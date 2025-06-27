@@ -1,0 +1,160 @@
+use serde::{Deserialize, Serialize};
+use anyhow::Result;
+use petgraph::dot::Config::NodeNoLabel;
+use petgraph::prelude::StableGraph;
+use serde_json::json;
+
+#[derive(Debug,Clone,Serialize,Deserialize,Default)]
+pub struct LLMConfig {
+    pub model: String,
+    pub api_key: String,
+    pub max_tokens: u32,
+    pub temperature: f32,
+    pub top_p: f32,
+    pub streaming: bool,
+    pub timeout: std::time::Duration,
+}
+pub struct LLMConfigBuilder {
+    model: String,
+    api_key: String,
+    max_tokens: Option<u32>,
+    temperature: Option<f32>,
+    top_p: Option<f32>,
+    streaming: Option<bool>,
+    timeout: Option<std::time::Duration>,
+}
+impl LLMConfigBuilder {
+    pub fn new(model: impl AsRef<str>, api_key: impl AsRef<str>) -> Self {
+        LLMConfigBuilder {
+            model: model.as_ref().to_string(),
+            api_key: api_key.as_ref().to_string(),
+            max_tokens: None,
+            temperature: None,
+            top_p: None,
+            streaming: None,
+            timeout: None,
+        }
+    }
+    pub fn build(self) -> LLMConfig {
+        LLMConfig {
+            model: self.model,
+            api_key: self.api_key,
+            max_tokens: self.max_tokens.unwrap_or(1024),
+            temperature: self.temperature.unwrap_or(0.7),
+            top_p: self.top_p.unwrap_or(1.0),
+            streaming: self.streaming.unwrap_or(false),
+            timeout: self.timeout.unwrap_or(std::time::Duration::from_secs(60)),
+        }
+    }
+    pub fn max_tokens(mut self, max_tokens: u32) -> Self {
+        self.max_tokens = Some(max_tokens);
+        self
+    }
+    pub fn temperature(mut self, temperature: f32) -> Self {
+        self.temperature = Some(temperature);
+        self
+    }
+    pub fn top_p(mut self, top_p: f32) -> Self {
+        self.top_p = Some(top_p);
+        self
+    }
+    pub fn streaming(mut self, streaming: bool) -> Self {
+        self.streaming = Some(streaming);
+        self
+    }
+    pub fn timeout(mut self, timeout: std::time::Duration) -> Self {
+        self.timeout = Some(timeout);
+        self
+    }
+}
+#[derive(Debug,Clone,Serialize,Deserialize,PartialEq)]
+pub enum Role {
+    System,
+    User,
+    Assistant,
+    Function,
+    Tool,
+    Memory
+}
+#[derive(Debug,Clone,Serialize,Deserialize)]
+pub struct Message {
+    pub role: Role,
+    pub content: String,
+}
+pub type ChatContext = Vec<Message>;
+
+pub trait LLM {
+    async fn get_completion(&self, prompt: impl AsRef<str>, config: &LLMConfig) -> Result<serde_json::Value>; // response in JSON format
+    async fn get_embedding(&self, content: impl AsRef<str>, config: &LLMConfig) -> Result<Vec<f32>>;
+    async fn chat(&self, prompt: impl AsRef<&str>, context: &ChatContext, config: &LLMConfig) -> Result<String>;
+}
+
+pub struct SiliconFlow {
+    client: reqwest::Client,
+}
+impl SiliconFlow {
+    pub fn new() -> Self {
+        SiliconFlow {
+            client: reqwest::Client::new(),
+        }
+    }
+    pub fn from_client(client: reqwest::Client) -> Self {
+        SiliconFlow {
+            client,
+        }
+    }
+    pub fn extract_completion_content(response: serde_json::Value) -> Option<serde_json::Value> {
+        response.get("choices")?.get(0)?.get("message")?.get("content").cloned()
+    }
+}
+impl LLM for SiliconFlow {
+    async fn chat(&self, prompt: impl AsRef<&str>, context: &ChatContext, config: &LLMConfig) -> Result<String> {
+        todo!()
+    }
+    async fn get_completion(&self, prompt: impl AsRef<str>, config: &LLMConfig) -> Result<serde_json::Value> {
+        let body = json!({
+            "model": config.model,
+            "stream": config.streaming,
+            "max_tokens": config.max_tokens as i32,
+            "temperature": config.temperature,
+            "top_p": config.top_p,
+            "messages": [
+                {"role": "user", "content": prompt.as_ref()}
+            ]
+        });
+
+        let response = self.client
+            .post("https://api.siliconflow.cn/v1/chat/completions")
+            .bearer_auth(&config.api_key)
+            .header("Content-Type", "application/json")
+            .json(&body)
+            .timeout(config.timeout)
+            .send()
+            .await?;
+        let status = response.status();
+        if !status.is_success() {
+            let error_body = response.text().await.unwrap_or_else(|_| "Failed to read error response".to_string());
+            return Err(anyhow::anyhow!("Error response from API: {}", error_body));
+        }
+        let response_json = response.json::<serde_json::Value>().await?;
+
+        match SiliconFlow::extract_completion_content(response_json) {
+            Some(content) => Ok(content),
+            None => Err(anyhow::anyhow!("Failed to extract completion content"))
+        }
+    }
+    async fn get_embedding(&self, content: impl AsRef<str>, config: &LLMConfig) -> Result<Vec<f32>> {
+        todo!()
+    }
+}
+
+mod test {
+    use super::*;
+    #[tokio::test]
+    async fn test_siliconflow() {
+        let mut llm = SiliconFlow::new();
+        let config = LLMConfigBuilder::new("deepseek-ai/DeepSeek-R1", "YOUR_API_KEY").build();
+        let response = llm.get_completion("好？", &config).await.unwrap();
+        println!("{:?}", response);
+    }
+}
