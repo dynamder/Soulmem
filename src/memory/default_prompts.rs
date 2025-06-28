@@ -29,3 +29,23 @@ const EVOLUTION_PROMPT: &str = " \
                                     \"new_context_neighborhood\": [\"new context\",...,\"new context\"],\n
                                     \"new_tags_neighborhood\": [[\"tag_1\",...,\"tag_n\"],...[\"tag_1\",...,\"tag_n\"]],\n
                                 }}";
+
+pub const FIND_RELATION_PROMPT: &str = "\
+You are {}.\n\
+Based on your role definition, analyze the relation between the current task and the suspended task description.\n\
+
+### Current Task: \n
+{}\n
+
+### Suspended Task: \n
+{}\n
+
+Based on these tasks, determine: \n
+1. Is there any task in the suspended task relevant to the current task? \n
+2. If there are some task related, how much they are relevant to the current task? list them sorted by relevance in the descending order. \n
+
+Return your answer in JSON format strictly with the following structure:\n
+{{
+    \"related_task\": [\"task1_id\",\"task2_id\",...],
+}}
+";

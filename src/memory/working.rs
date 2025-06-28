@@ -1,13 +1,20 @@
-use std::collections::HashMap;
+use std::borrow::Borrow;
+use std::collections::{HashMap, HashSet};
+use std::hash::Hash;
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
 
 use crate::memory::{GraphMemoryLink,MemoryNote};
 use super::probability;
 use anyhow::Result;
+use formatx::formatx;
 use ordered_float::OrderedFloat;
+use petgraph::Direction;
+use petgraph::prelude::EdgeRef;
+use petgraph::visit::{Dfs, VisitMap, Visitable};
 use rand::prelude::IteratorRandom;
-
+use crate::llm_driver::{LLMConfig, LLM};
+use super::default_prompts;
 
 const DEFAULT_FOCUS: &str = "发呆";
 
@@ -22,6 +29,16 @@ pub struct SoulTask {
     pub summary: String,
     pub related_notes: Vec<NodeIndex>,
     pub focus_prob: f32,
+}
+impl SoulTask {
+    pub fn new(summary: String, related_nots: Vec<NodeIndex>) -> Self {
+        SoulTask {
+            id: uuid::Uuid::new_v4().to_string(),
+            summary,
+            related_notes: related_nots,
+            focus_prob: 0.0,
+        }
+    }
 }
 #[derive(Debug,Clone)]
 pub struct SoulTaskSet { //挂起工作集
@@ -274,7 +291,8 @@ impl SoulTaskSet {
 #[derive(Debug,Clone)]
 pub struct WorkingMemory {
     graph: StableGraph<MemoryNote, GraphMemoryLink>,
-    temporary: Vec<RecordNewNode>,
+    id_to_index: HashMap<String,NodeIndex>,
+    temporary: HashMap<NodeIndex,RecordNewNode>,
     task_set: SoulTaskSet,
 }
 impl WorkingMemory {
@@ -282,21 +300,228 @@ impl WorkingMemory {
         Ok(
             WorkingMemory {
                 graph: StableGraph::new(),
-                temporary: vec![],
+                id_to_index: HashMap::new(),
+                temporary: HashMap::new(),
                 task_set: SoulTaskSet::new(task_inertia)?,
             }
         )
     }
-    pub fn add_task(&mut self, task: SoulTask) {
-        self.task_set.add_task(task);
+    pub fn add_task(&mut self, task_summary: impl Into<String>, related_notes: &[String] ) {
+        let related_idx = related_notes.iter()
+            .filter_map(|note_id| self.id_to_index.get(note_id).and_then(
+                |idx| Some(*idx)
+            ))
+            .collect::<Vec<_>>();
+        self.task_set.add_task(
+            SoulTask::new(
+                task_summary.into(),
+                related_idx
+            )
+        );
+    }
+    pub fn clean_index(&mut self) {
+        // 使用更高效的存在性检查
+        let valid_nodes: HashSet<NodeIndex> = self.graph.node_indices().collect();
+
+        // 步骤1：清理id_to_index映射
+        self.id_to_index.retain(|_, idx| valid_nodes.contains(idx));
+
+        // 步骤2：清理临时节点记录
+        self.temporary.retain(|idx, _| valid_nodes.contains(idx));
+
+        // 步骤3：清理任务中的无效节点引用
+        for task in self.task_set.tasks.values_mut() {
+            task.related_notes.retain(|idx| valid_nodes.contains(idx));
+        }
+    }
+    pub fn clean_empty_tasks(&mut self) {
+        self.task_set.tasks.retain(|_, task| {
+            let retain = !task.related_notes.is_empty();
+            if !retain && task.id == self.task_set.focus {
+                // 如果删除的是当前焦点任务，重置焦点
+                self.task_set.focus = DEFAULT_FOCUS.to_string();
+            }
+            retain
+        });
+        self.task_set.focus_normalize();
+    }
+
+    // 在删除节点的方法中调用清理函数
+    pub fn remove_note(&mut self, node_id: &str) -> Option<MemoryNote> {
+        if let Some(idx) = self.id_to_index.remove(node_id) {
+            self.temporary.remove(&idx);
+            let node = self.graph.remove_node(idx);
+            self.clean_index(); // 删除后立即清理
+            node
+        } else {
+            None
+        }
+    }
+    pub fn get_note(&self, node_id: &str) -> Option<&MemoryNote> {
+        self.id_to_index.get(node_id).and_then(|&idx| self.graph.node_weight(idx))
+    }
+    pub fn get_note_mut(&mut self, node_id: &str) -> Option<&mut MemoryNote> {
+        self.id_to_index.get(node_id)
+            .and_then(|&idx| self.graph.node_weight_mut(idx))
     }
     pub fn merge_mem_graph(&mut self, mem: Vec<MemoryNote>) {
-        todo!("merge_mem_graph")
+
+        // 节点更新/添加队列
+        let mut updated_indices = Vec::new();
+
+        // 合并新记忆节点
+        for note in mem {
+            let id = note.id().to_owned();
+
+            match self.id_to_index.get(&id) {
+                // 更新已有节点（包括临时节点）
+                Some(&idx) => {
+                    self.graph[idx] = note;
+                    updated_indices.push(idx);
+                }
+                // 添加新节点
+                None => {
+                    let idx = self.graph.add_node(note);
+                    self.id_to_index.insert(id, idx);
+                    updated_indices.push(idx);
+                }
+            }
+        }
+
+        // 收集所有需要添加的边
+        let mut edges_to_add = Vec::new();
+
+        for idx in &updated_indices {
+            // 清理旧出边
+            let edges: Vec<_> = self.graph
+                .edges_directed(*idx, petgraph::Direction::Outgoing)
+                .map(|e| e.id())
+                .collect();
+
+            for edge in edges {
+                self.graph.remove_edge(edge);
+            }
+
+            // 收集需要添加的新边
+            let links = self.graph[*idx].links.clone(); // 克隆链接数据避免借用问题
+            for link in links {
+                if let Some(&target) = self.id_to_index.get(&link.id) {
+                    edges_to_add.push((*idx, target, GraphMemoryLink::from(link)));
+                } else {
+                    eprintln!("Linked node {} not found in graph", link.id);
+                }
+            }
+        }
+
+        // 批量添加所有边
+        for (source, target, link) in edges_to_add {
+            self.graph.add_edge(source, target, link);
+        }
+        self.clean_index();
     }
+
     pub fn add_temp_mem(&mut self, mem: MemoryNote) {
-        todo!("add_temp_mem")
+        let id = mem.id().to_owned();
+        let links = mem.links().to_owned();
+        let idx = self.graph.add_node(mem);
+        self.id_to_index.insert(id, idx);
+        self.temporary.insert(idx,RecordNewNode {
+            index: idx,
+            ref_count: 1
+        });
+        for link in links {
+            if let Some(link_idx) = self.id_to_index.get(&link.id){
+                self.graph.add_edge(idx,*link_idx,GraphMemoryLink::from(link));
+            }
+        }
     }
-    pub fn focus_context(&self) -> Vec<String> {
-        todo!("focus_context")
+    pub fn focus_context(&mut self, sliding_window_size: usize, depth: usize, rng: &mut impl rand::RngCore) -> Vec<String> {
+        // 1. 从任务集中采样初始节点
+        let sampled_indices = self.task_set.focus_sample(sliding_window_size, rng);
+
+        // 2. 增加临时节点的引用计数
+        for idx in &sampled_indices {
+            if let Some(record) = self.temporary.get_mut(idx) {
+                record.ref_count += 1;
+            }
+        }
+
+        // 3. 创建访问映射和结果集合
+        let mut visited = self.graph.visit_map(); // 使用petgraph的高效访问映射
+        let mut result_contents = Vec::new();
+
+        // 4. 对每个采样节点执行深度受限的DFS
+        for &start_node in &sampled_indices {
+            // 使用petgraph的DFS遍历，限制深度
+            let mut dfs = Dfs::new(&self.graph, start_node);
+            let mut depth_map = vec![None; self.graph.node_count()]; // 使用Vec存储深度
+
+            // 设置起始节点深度为0
+            let start_index = start_node.index();
+            depth_map[start_index] = Some(0);
+
+            while let Some(node) = dfs.next(&self.graph) {
+                let node_index = node.index(); // 将NodeIndex转换为usize
+                let current_depth = depth_map[node_index].unwrap_or(0);
+
+                // 如果达到深度限制，不再继续深入
+                if current_depth >= depth {
+                    continue;
+                }
+
+                // 记录节点内容（如果首次访问）
+                if visited.visit(node) {
+                    result_contents.push(self.graph[node].content.clone());
+                }
+
+                // 遍历出边邻居
+                for edge in self.graph.edges_directed(node, Direction::Outgoing) {
+                    let neighbor = edge.target();
+                    let neighbor_index = neighbor.index();
+
+                    // 如果邻居节点还未被分配深度
+                    if depth_map[neighbor_index].is_none() {
+                        // 设置邻居深度为当前深度+1
+                        depth_map[neighbor_index] = Some(current_depth + 1);
+                        dfs.stack.push(neighbor);
+                    }
+                }
+            }
+        }
+
+        result_contents
+    }
+    ///return task_ids
+    pub async fn find_related_task(&self, query: impl AsRef<str>, role: impl AsRef<str>, llm_driver: &impl LLM, llm_config: &LLMConfig) -> Result<Vec<String>> {
+        let response = llm_driver.get_completion(
+            formatx!(
+                default_prompts::FIND_RELATION_PROMPT,
+                role.as_ref(),
+                query.as_ref(),
+                self.task_set.tasks()
+                    .enumerate()
+                    .fold(String::new(), |acc, (index,task)| {
+                    acc + &format!("task_id: {}, task_index:{}, description: {}\n",task.id, index, task.summary)
+                })
+            )?,
+            llm_config
+        ).await?;
+        if let serde_json::Value::Array(tasks) = response["related_task"].to_owned() {
+            Ok(
+                tasks.into_iter()
+                    .filter_map(|task_id| task_id.as_str().and_then(|task_id| Some(task_id.to_string())))
+                    .collect()
+            )
+        }else {
+            Err(anyhow::anyhow!("Invalid response Json from LLM"))
+        }
+
+    }
+    pub fn shift_focus(&mut self, sorted_related_task: &[impl AsRef<str>]) -> String {
+        self.task_set.shift_focus(sorted_related_task)
+    }
+    pub fn filter_need_consolidate(&self) -> Vec<MemoryNote> {
+        todo!()
     }
 }
+
