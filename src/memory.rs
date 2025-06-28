@@ -1,6 +1,7 @@
 mod long_term;
 mod working;
 mod default_prompts;
+mod probability;
 
 use std::collections::HashMap;
 use chrono::Utc;

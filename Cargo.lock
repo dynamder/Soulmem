@@ -1814,6 +1814,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 
 [[package]]
+name = "ordered-float"
+version = "5.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2c1f9f56e534ac6a9b8a4600bdf0f530fb393b5f393e7b4d03489c3cf0c3f01"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "ort"
 version = "2.0.0-rc.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2761,9 +2770,11 @@ dependencies = [
  "anyhow",
  "chrono",
  "fastembed",
+ "ordered-float",
  "parking_lot 0.12.4",
  "petgraph",
  "qdrant-client",
+ "rand 0.9.1",
  "reqwest",
  "reqwest-retry",
  "serde",
