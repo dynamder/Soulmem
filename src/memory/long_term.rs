@@ -1,13 +1,15 @@
 use std::collections::HashSet;
-use crate::memory::{MemoryCluster, MemoryNote};
+use crate::memory::{MemoryNote};
 use crate::qdrant_retriever::QdrantRetriever;
 use anyhow::Result;
 use qdrant_client::qdrant::Filter;
-use crate::llm_driver::LLM;
+use crate::llm_driver::Llm;
 
+#[allow(dead_code)]
 pub struct MemoryLongTerm {
     retriever: QdrantRetriever,
 }
+#[allow(dead_code)]
 impl MemoryLongTerm {
     pub fn new(retriever: QdrantRetriever) -> Self {
         Self {
@@ -65,7 +67,7 @@ impl MemoryLongTerm {
         response.append(&mut recursive_results);
         Ok(response)
     }
-    pub async fn evolve(&self, memory_notes: impl Into<Vec<MemoryNote>>, llm_driver: &impl LLM){
+    pub async fn evolve(&self, memory_notes: impl Into<Vec<MemoryNote>>, llm_driver: &impl Llm){
         todo!() // 接受一个可能的相关邻居记忆列表，交给LLM判断是否进化，具体为是否需要新增，加强联系，是否要修正记忆内容，更新记忆上下文（本节点和邻居节点）
         // 邻居记忆列表来自于qdrant数据库，和本地工作记忆（记录一个“提及次数”，取最高的几项）
     }

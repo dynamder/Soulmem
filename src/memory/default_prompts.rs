@@ -1,4 +1,5 @@
 ///These prompts are based on the prompts in the A-mem paper
+#[allow(unused)]
 const EVOLUTION_PROMPT: &str = " \
                                 You are an AI memory evolution agent responsible for managing and evolving a knowledge base.\n
                                 Analyze the the new memory note according to keywords and context, also with their several nearest neighbors memory.\n
@@ -30,10 +31,10 @@ const EVOLUTION_PROMPT: &str = " \
                                     \"new_tags_neighborhood\": [[\"tag_1\",...,\"tag_n\"],...[\"tag_1\",...,\"tag_n\"]],\n
                                 }}";
 
+#[allow(unused)]
 pub const FIND_RELATION_PROMPT: &str = "\
 You are {}.\n\
 Based on your role definition, analyze the relation between the current task and the suspended task description.\n\
-
 ### Current Task: \n
 {}\n
 

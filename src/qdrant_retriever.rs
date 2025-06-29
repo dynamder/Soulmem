@@ -19,9 +19,9 @@ impl QdrantRetriever {
     pub fn new(collection_name : &str, port: Option<u32>, keep_alive: bool, embedding_model: EmbeddingModel) -> Result<Self> {
         let port = port.unwrap_or(6334);
         let _client = if keep_alive {
-            Qdrant::from_url(format!("http://localhost:{}", port).as_str() ).keep_alive_while_idle().build()?
+            Qdrant::from_url(format!("http://localhost:{port}").as_str() ).keep_alive_while_idle().build()?
         }else{
-            Qdrant::from_url(format!("http://localhost:{}",port).as_str()).build()?
+            Qdrant::from_url(format!("http://localhost:{port}").as_str()).build()?
         };
 
         let _embedding_model = TextEmbedding::try_new(
@@ -200,7 +200,7 @@ impl QdrantRetriever {
                             match MemoryNote::try_from(score_point.payload) {
                                 Ok(note) => Some(note),
                                 Err(e) => {
-                                    eprintln!("Error parsing note: {:?}", e);
+                                    eprintln!("Error parsing note: {e:?}");
                                     None
                                 }
                             }

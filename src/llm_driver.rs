@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 use anyhow::Result;
-use petgraph::dot::Config::NodeNoLabel;
-use petgraph::prelude::StableGraph;
 use serde_json::json;
 
 #[derive(Debug,Clone,Serialize,Deserialize,Default)]
@@ -14,6 +12,7 @@ pub struct LLMConfig {
     pub streaming: bool,
     pub timeout: std::time::Duration,
 }
+#[allow(dead_code)]
 pub struct LLMConfigBuilder {
     model: String,
     api_key: String,
@@ -23,6 +22,7 @@ pub struct LLMConfigBuilder {
     streaming: Option<bool>,
     timeout: Option<std::time::Duration>,
 }
+#[allow(dead_code)]
 impl LLMConfigBuilder {
     pub fn new(model: impl AsRef<str>, api_key: impl AsRef<str>) -> Self {
         LLMConfigBuilder {
@@ -83,7 +83,8 @@ pub struct Message {
 }
 pub type ChatContext = Vec<Message>;
 
-pub trait LLM {
+#[allow(dead_code)]
+pub trait Llm {
     async fn get_completion(&self, prompt: impl AsRef<str>, config: &LLMConfig) -> Result<serde_json::Value>; // response in JSON format
     async fn get_embedding(&self, content: impl AsRef<str>, config: &LLMConfig) -> Result<Vec<f32>>;
     async fn chat(&self, prompt: impl AsRef<&str>, context: &ChatContext, config: &LLMConfig) -> Result<String>;
@@ -92,6 +93,7 @@ pub trait LLM {
 pub struct SiliconFlow {
     client: reqwest::Client,
 }
+#[allow(dead_code)]
 impl SiliconFlow {
     pub fn new() -> Self {
         SiliconFlow {
@@ -107,10 +109,7 @@ impl SiliconFlow {
         response.get("choices")?.get(0)?.get("message")?.get("content").cloned()
     }
 }
-impl LLM for SiliconFlow {
-    async fn chat(&self, prompt: impl AsRef<&str>, context: &ChatContext, config: &LLMConfig) -> Result<String> {
-        todo!()
-    }
+impl Llm for SiliconFlow {
     async fn get_completion(&self, prompt: impl AsRef<str>, config: &LLMConfig) -> Result<serde_json::Value> {
         let body = json!({
             "model": config.model,
@@ -146,13 +145,17 @@ impl LLM for SiliconFlow {
     async fn get_embedding(&self, content: impl AsRef<str>, config: &LLMConfig) -> Result<Vec<f32>> {
         todo!()
     }
+    async fn chat(&self, prompt: impl AsRef<&str>, context: &ChatContext, config: &LLMConfig) -> Result<String> {
+        todo!()
+    }
 }
 
 mod test {
+    #[allow(unused_imports)]
     use super::*;
     #[tokio::test]
     async fn test_siliconflow() {
-        let mut llm = SiliconFlow::new();
+        let llm = SiliconFlow::new();
         let config = LLMConfigBuilder::new("deepseek-ai/DeepSeek-R1", "YOUR_API_KEY").build();
         let response = llm.get_completion("好？", &config).await.unwrap();
         println!("{:?}", response);

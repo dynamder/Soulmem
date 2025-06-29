@@ -2,6 +2,8 @@ mod long_term;
 mod working;
 mod default_prompts;
 mod probability;
+mod temporary;
+mod share;
 
 use std::collections::HashMap;
 use chrono::Utc;
@@ -220,11 +222,16 @@ impl MemoryCluster {
         &mut self.0
     }
 }
-impl Into<MemoryCluster> for Vec<MemoryNote> {
-    fn into(self) -> MemoryCluster {
+impl Default for MemoryCluster {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+impl From<Vec<MemoryNote>> for MemoryCluster {
+    fn from(val: Vec<MemoryNote>) -> MemoryCluster {
         let mut cluster = MemoryCluster::new();
         let mut id_to_index = HashMap::new();
-        for note in self {
+        for note in val {
             let id = note.id().to_owned();
             let index = cluster.graph_mut().add_node(note);
             id_to_index.insert(id, index);
@@ -243,7 +250,7 @@ impl Into<MemoryCluster> for Vec<MemoryNote> {
                 if let Some(target_index) = id_to_index.get(&id) {
                     graph.add_edge(source_index, *target_index, graph_link);
                 }else { 
-                    eprintln!("Error: Node linked with id {} not found", id)
+                    eprintln!("Error: Node linked with id {id} not found")
                 }
             }
             
