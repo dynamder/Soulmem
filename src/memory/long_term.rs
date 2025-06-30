@@ -16,6 +16,7 @@ impl MemoryLongTerm {
             retriever,
         }
     }
+    ///巩固为长期记忆
     pub async fn consolidate(&self, memory_notes: impl Into<Vec<MemoryNote>>) -> Result<()> {
         self.retriever.add_points(memory_notes.into()).await
     }

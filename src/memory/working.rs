@@ -1,3 +1,4 @@
+///工作记忆
 mod task;
 
 use std::collections::{HashMap, HashSet};
@@ -18,14 +19,15 @@ use crate::memory::working::task::{SoulTask, SoulTaskSet};
 use super::default_prompts;
 
 const DEFAULT_FOCUS: &str = "发呆";
+///工作记忆记录，记录记忆节点被提取，激活的情况，用于记忆进化和巩固
 #[derive(Debug,Clone)]
 pub struct WorkingNoteRecord {
     #[allow(unused)]
-    pub index: NodeIndex,
+    pub index: NodeIndex, // 节点索引
 
-    activation_count: u32,
-    activation_history: HashMap<NodeIndex, u32>,
-    last_accessed: DateTime<chrono::Utc>,
+    activation_count: u32, // 激活次数
+    activation_history: HashMap<NodeIndex, u32>, // 激活历史信息（共激活节点索引，次数）
+    last_accessed: DateTime<chrono::Utc>,// 最后访问时间
 }
 #[allow(dead_code)]
 impl WorkingNoteRecord {
@@ -37,11 +39,15 @@ impl WorkingNoteRecord {
             last_accessed: chrono::Utc::now(),
         }
     }
+    pub fn last_accessed_at(&self) -> &DateTime<chrono::Utc> {
+        &self.last_accessed
+    }
 }
 impl NoteRecord for WorkingNoteRecord {
     fn activation_count(&self) -> u32 {
         self.activation_count
     }
+    ///记录共激活信息，接受同时激活的节点列表
     fn record_activation(&mut self, indexes: &[NodeIndex]) {
         indexes.iter().for_each(|index| {
             if let Some(activations) = self.activation_history.get_mut(index) {
@@ -61,11 +67,11 @@ impl NoteRecord for WorkingNoteRecord {
 #[allow(dead_code)]
 #[derive(Debug,Clone)]
 pub struct WorkingMemory {
-    graph: StableGraph<MemoryNote, GraphMemoryLink>,
-    working_record_map: HashMap<NodeIndex, WorkingNoteRecord>,
-    uuid_to_index: HashMap<String,NodeIndex>,
-    temporary: TemporaryMemory,
-    task_set: SoulTaskSet,
+    graph: StableGraph<MemoryNote, GraphMemoryLink>, //记忆图
+    working_record_map: HashMap<NodeIndex, WorkingNoteRecord>, //工作记忆激活记录映射
+    uuid_to_index: HashMap<String,NodeIndex>, //uuid到节点索引的映射
+    temporary: TemporaryMemory, //临时记忆
+    task_set: SoulTaskSet, //任务集
 }
 #[allow(unused)]
 impl WorkingMemory {
@@ -80,6 +86,7 @@ impl WorkingMemory {
             }
         )
     }
+    /// 添加任务
     pub fn add_task(&mut self, task_summary: impl Into<String>, related_notes: &[String] ) {
         self.task_set.add_task(
             SoulTask::new(
@@ -88,6 +95,7 @@ impl WorkingMemory {
             )
         );
     }
+    /// 清理无效索引
     pub fn clean_index(&mut self) {
         // 使用更高效的存在性检查
         let valid_nodes: HashSet<NodeIndex> = self.graph.node_indices().collect();
@@ -98,9 +106,10 @@ impl WorkingMemory {
         // 步骤2：清理临时节点记录
         self.temporary.get_map_mut().retain(|idx,_| valid_nodes.contains(idx));
 
+        self.working_record_map.retain(|idx,_| valid_nodes.contains(idx));
     }
 
-    // 在删除节点的方法中调用清理函数
+    /// 删除一个节点
     pub fn remove_note(&mut self, node_id: &str) -> Option<MemoryNote> {
         if let Some(idx) = self.uuid_to_index.remove(node_id) {
             self.temporary.remove_temp_memory(idx);
@@ -111,6 +120,7 @@ impl WorkingMemory {
             None
         }
     }
+    /// 获取一个节点记忆
     pub fn get_note(&self, node_id: &str) -> Option<&MemoryNote> {
         self.uuid_to_index.get(node_id).and_then(|&idx| self.graph.node_weight(idx))
     }
@@ -118,6 +128,7 @@ impl WorkingMemory {
         self.uuid_to_index.get(node_id)
             .and_then(|&idx| self.graph.node_weight_mut(idx))
     }
+    ///将一系列记忆合并到工作记忆图中
     pub fn merge_mem_graph(&mut self, mem: Vec<MemoryNote>) {
 
         // 节点更新/添加队列
@@ -174,6 +185,7 @@ impl WorkingMemory {
         self.clean_index();
     }
 
+    /// 添加临时记忆
     pub fn add_temp_mem(&mut self, mem: MemoryNote,source: MemorySource) {
         let id = mem.id().to_owned();
         let links = mem.links().to_owned();
@@ -188,7 +200,7 @@ impl WorkingMemory {
             }
         }
     }
-    //获取当前焦点的LLM上下文
+    ///获取当前焦点的LLM上下文,并维护激活信息
     pub fn focus_context(&mut self, sliding_window_size: usize, depth: usize, rng: &mut impl rand::RngCore) -> Vec<String> {
         // 1. 从任务集中采样初始节点
         let sampled_indices = self.task_set.focus_sample(sliding_window_size, rng);
@@ -205,59 +217,44 @@ impl WorkingMemory {
         let mut result_contents = Vec::new();
         let mut refered_notes = Vec::new();
 
-        // 3. 对每个采样节点执行深度受限的DFS
-        for &start_idx in &sampled_indexes {
+        let mut neighbor_stack = sampled_indexes;
+        let mut depth_count = 0;
+        let mut temp_stack = Vec::new();
 
-            // 使用petgraph的DFS遍历，限制深度
-            let mut dfs = Dfs::new(&self.graph, start_idx);
-            let mut depth_map = vec![None; self.graph.node_count()]; // 使用Vec存储深度
-
-            // 设置起始节点深度为0
-            let start_index = start_idx.index();
-            depth_map[start_index] = Some(0);
-
-            while let Some(node) = dfs.next(&self.graph) {
-                let node_index = node.index(); // 将NodeIndex转换为usize
-                let current_depth = depth_map[node_index].unwrap_or(0);
-
-                // 如果达到深度限制，不再继续深入
-                if current_depth >= depth {
-                    continue;
-                }
-
-                // 记录节点内容（如果首次访问）
-                if visited.visit(node) {
-                    result_contents.push(self.graph[node].content.clone());
-                    refered_notes.push(node);
-                }
-
-                // 遍历出边邻居
-                for edge in self.graph.edges_directed(node, Direction::Outgoing) {
-                    let neighbor = edge.target();
-                    let neighbor_index = neighbor.index();
-
-                    // 如果邻居节点还未被分配深度
-                    if depth_map[neighbor_index].is_none() {
-                        // 设置邻居深度为当前深度+1
-                        depth_map[neighbor_index] = Some(current_depth + 1);
-                        dfs.stack.push(neighbor);
+        while !neighbor_stack.is_empty() {
+            for &index in neighbor_stack.iter() {
+               if visited.is_visited(&index) {
+                   continue;
+               }
+                visited.visit(index);
+                if let Some(note) = self.graph.node_weight(index) {
+                    result_contents.push(note.content.clone());
+                    refered_notes.push(index);
+                    if depth_count < depth {
+                        temp_stack.extend(self.graph.neighbors(index));
                     }
                 }
             }
+            neighbor_stack.clear();
+            if depth_count < depth {
+                neighbor_stack.append(&mut temp_stack);
+            }
+            println!("{neighbor_stack:?}");
+            depth_count += 1;
         }
 
         // 4. 记录临时记忆, 激活的长期记忆（除临时记忆以外的工作记忆）的激活历史
         for index in &refered_notes {
             if let Some(record) = self.temporary.get_temp_memory_mut(*index) {
-                record.record_activation(&sampled_indexes)
+                record.record_activation(&refered_notes)
             }else if let Some(record) = self.working_record_map.get_mut(index) {
-                record.record_activation(&sampled_indexes);
+                record.record_activation(&refered_notes);
             }
         }
 
         result_contents
     }
-    ///return task_ids
+    ///使用LLM找到关联的任务
     pub async fn find_related_task(&self, query: impl AsRef<str>, role: impl AsRef<str>, llm_driver: &impl Llm, llm_config: &LLMConfig) -> Result<Vec<String>> {
         let response = llm_driver.get_completion(
             formatx!(
@@ -283,14 +280,18 @@ impl WorkingMemory {
         }
 
     }
+    ///焦点迭代，根据当前相关任务选择新焦点
     pub fn shift_focus(&mut self, sorted_related_task: &[impl AsRef<str>]) -> String {
         self.task_set.shift_focus(sorted_related_task)
     }
-    pub fn filter_need_consolidate<F>(&self, filter: F) -> Vec<(MemoryNote,Vec<MemoryNote>)> //(记忆，可能建立的联系)
+    
+    ///根据共激活历史信息，选择需要巩固，进化的记忆
+    pub fn filter_need_consolidate<Fw,Ft>(&self, filter_working: Fw, filter_temp: Ft) -> Vec<(MemoryNote,Vec<MemoryNote>)> //(记忆，可能建立的联系)
     where
-        F: Fn(&dyn NoteRecord) -> bool{
+        Fw: Fn(&WorkingNoteRecord) -> bool,
+        Ft: Fn(&TemporaryNoteRecord) -> bool,{
         let plastic_temporary =
-            self.temporary.filter_temp_memory(|record| filter(record))
+            self.temporary.filter_temp_memory(|record| filter_temp(record))
                 .into_iter()
                 .filter(|record| {
                     self.graph.contains_node(record.index) &&
@@ -315,7 +316,7 @@ impl WorkingMemory {
         let plastic_working =
             self.working_record_map.values()
                 .filter(|&record| {
-                    filter(record) &&
+                    filter_working(record) &&
                     self.graph.contains_node(record.index) &&
                     record.activation_history()
                         .keys()
@@ -336,3 +337,165 @@ impl WorkingMemory {
         plastic_temporary.chain(plastic_working).collect()
     }
 }
+
+mod test {
+    use crate::memory::{MemoryLink, MemoryNoteBuilder};
+    use super::*;
+    fn prepare_working_memory(init: Vec<MemoryNote>) -> WorkingMemory {
+        let mut mem = WorkingMemory::new(0.5).unwrap();
+        mem.merge_mem_graph(init);
+        mem
+    }
+    #[test]
+    fn test_clean_index() {
+        let mut mem = prepare_working_memory(vec![]);
+        mem.working_record_map.insert(NodeIndex::new(0), WorkingNoteRecord::new(NodeIndex::new(0)));
+        mem.working_record_map.insert(NodeIndex::new(1), WorkingNoteRecord::new(NodeIndex::new(1)));
+        mem.working_record_map.insert(NodeIndex::new(2), WorkingNoteRecord::new(NodeIndex::new(2)));
+        mem.clean_index();
+        assert_eq!(mem.working_record_map.len(), 0)
+    }
+    #[test]
+    fn test_merge_mem_graph() {
+        let mut mem = prepare_working_memory(
+            vec![
+                MemoryNoteBuilder::new("test1")
+                    .id("test1")
+                    .links(vec![
+                        MemoryLink::new("test2", None::<String>,1),
+                        MemoryLink::new("test3", None::<String>,2),
+                    ])
+                    .build(),
+                MemoryNoteBuilder::new("test2")
+                    .id("test2")
+                    .links(vec![MemoryLink::new("test1", None::<String>,1)])
+                    .build(),
+                MemoryNoteBuilder::new("test3")
+                    .id("test3")
+                    .links(vec![MemoryLink::new("test2", None::<String>,1)])
+                    .build(),
+            ]
+        );
+        let new_mem_note = vec![
+            MemoryNoteBuilder::new("test4")
+                .id("test4")
+                .links(vec![MemoryLink::new("test3", None::<String>,1)])
+                .build(),
+            MemoryNoteBuilder::new("test5")
+                .id("test5")
+                .links(vec![MemoryLink::new("test4", None::<String>,1)])
+                .build(),
+        ];
+        mem.merge_mem_graph(new_mem_note);
+        assert_eq!(mem.graph.node_count(), 5);
+        assert_eq!(mem.graph.edge_count(), 6);
+    }
+    #[test]
+    fn test_add_temp_mem() {
+        let mut mem = prepare_working_memory(vec![]);
+        mem.add_temp_mem(
+            MemoryNoteBuilder::new("test")
+                .id("test")
+                .links(vec![MemoryLink::new("test2", None::<String>,1)])
+                .build(),
+            MemorySource::Dialogue("test".to_string())
+        );
+        assert_eq!(mem.graph.node_count(), 1);
+        assert_eq!(mem.graph.edge_count(), 0);
+        assert_eq!(mem.temporary.get_all().len(), 1);
+    }
+    #[test]
+    fn test_focus_context() {
+        let mut mem = prepare_working_memory(
+            vec![
+                MemoryNoteBuilder::new("test1")
+                    .id("test1")
+                    .links(
+                        vec![
+                            MemoryLink::new("test2", None::<String>, 1)
+                        ]
+                    )
+                    .build(),
+                MemoryNoteBuilder::new("test2")
+                    .id("test2")
+                    .links(
+                        vec![
+                            MemoryLink::new("test3", None::<String>, 1)
+                        ]
+                    )
+                    .build(),
+                MemoryNoteBuilder::new("test3")
+                    .id("test3")
+                    .links(
+                        vec![
+                            MemoryLink::new("test4", None::<String>, 1)
+                        ]
+                    )
+                    .build(),
+                MemoryNoteBuilder::new("test4")
+                    .id("test4")
+                    .links(
+                        vec![
+                            MemoryLink::new("test5", None::<String>, 1)
+                        ]
+                    )
+                    .build(),
+                MemoryNoteBuilder::new("test5")
+                    .id("test5")
+                    .links(
+                        vec![
+                            MemoryLink::new("test6", None::<String>, 1)
+                        ]
+                    )
+                    .build(),
+                MemoryNoteBuilder::new("test6")
+                    .id("test6")
+                    .links(
+                        vec![
+                            MemoryLink::new("test7", None::<String>, 1)
+                        ]
+                    )
+                    .build(),
+                MemoryNoteBuilder::new("test7")
+                    .id("test7")
+                    .links(
+                        vec![
+                            MemoryLink::new("test8", None::<String>, 1)
+                        ]
+                    )
+                    .build(),
+                MemoryNoteBuilder::new("test8")
+                    .id("test8")
+                    .build(),
+            ]
+        );
+        mem.add_task("task1",&vec!["test1".to_string()]);
+        mem.add_task("task2",&vec!["test2".to_string()]);
+        mem.add_task("task3",&vec!["test3".to_string()]);
+        let context = mem.focus_context(6,1,&mut rand::rng());
+        assert_eq!(context.len(), 4,"context is: {context:?}");
+    }
+    #[test]
+    fn test_filter_need_consolidate() {
+        let mut mem = prepare_working_memory(
+            vec![
+                MemoryNoteBuilder::new("test1").id("test1").build(),
+                MemoryNoteBuilder::new("test2").id("test2").build(),
+                MemoryNoteBuilder::new("test3").id("test3").build(),
+            ]
+        );
+        mem.add_temp_mem(
+            MemoryNoteBuilder::new("test4").id("test4").build(),
+            MemorySource::Dialogue("test".to_string())
+        );
+        let con = mem.filter_need_consolidate(
+            |note| note.activation_count() > 1,
+            |note| note.activation_count() > 0
+        );
+        assert_eq!(con.len(), 1);
+        assert_eq!(con[0].0.id, "test4");
+        
+    }
+
+}
+
