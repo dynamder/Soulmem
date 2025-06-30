@@ -1,43 +1,53 @@
-# Soulmem
+# Soulmem - 面向LLM的类人化记忆系统
 
-This is a memory system for LLM, built for more humanized LLM response and behaviour.
+为大型语言模型设计的记忆架构，通过模拟人类记忆机制实现更自然、连贯的响应和行为。
 
+## 核心概念
 
+### 记忆层级
+| 类型         | 存储位置   | 特性                     | 生命周期 |
+| ------------ | ---------- | ------------------------ | -------- |
+| **长期记忆** | 向量数据库 | 持久化存储，知识图谱结构 | 永久     |
+| **工作记忆** | 内存       | 当前激活的记忆子图       | 暂时     |
+| **临时记忆** | 工作记忆中 | 实时对话产生的临时信息   | 暂时     |
 
-It's now developing, the current project structure is showed below.
+### 核心机制
+- **任务 (Task)** 
+  表示LLM当前处理的事件单元，包含关联记忆和注意力权重
+- **任务焦点 (Focus)** 
+  注意力分数最高的当前核心任务
+- **激活 (Activation)** 
+  长期记忆 → 工作记忆的提取过程，以及工作记忆 → LLM上下文的过程
+- **巩固 (Consolidation)** 
+  工作记忆 → 长期记忆的转化过程
+- **进化 (Evolution)** 
+  长期记忆的自优化过程（周期性执行）
 
+## 工作流程
 
+```mermaid
+graph TD
+    A[用户输入] --> B{任务分析}
+    B -->|存在相关任务| C[按关联度排序任务]
+    B -->|无相关任务| D[创建新任务]
+    C --> E{需激活长期记忆?}
+    D --> E
+    E -->|是| F[从向量DB提取记忆]
+    E -->|否| G[更新工作记忆]
+    F --> G
+    G --> H[计算任务注意力分数]
+    H --> I[确定任务焦点]
+    I --> J[按注意力权重提取记忆]
+    J --> K[限制深度的DFS遍历记忆图谱]
+    K --> L[组合记忆上下文]
+    L --> M[生成LLM响应]
+    
+    subgraph 后台进程
+        N[记忆激活事件] --> O[记录共激活记忆]
+        O --> P{达到时间阈值?}
+        P -->|是| Q[筛选记忆送LLM巩固]
+        R{进化周期到达} --> S[执行记忆进化]
+    end
 
-## Structure
+```
 
-### Long Term Memory
-
-Soulmem use Qdrant for the vector db. soulmem organize all memories in a graph structure. This is the only persistent memory storage.
-
-Over a period, we will decay the memories ( for link intensity and memory content), and decide if we should evolve some memories (not designed yet)
-
-
-
-### Working Memory
-
-working memory maintain a taskset, representing the current and recent tasks & event. All task has a focus score attached to it. Using Softmax to normalize them, the one with the highest probability become the focus.
-
-
-
-When a user message comes, LLM first find whether this message is relevant to tasks in the working memory, and determine whether it should extract more memories from the long term memory.
-
-If it choose to extract, then we extract some relevant memories from db, add them to the working memory, also as a graph.
-
-Then we decide if we will shift the task focus. recent focus will have an inertia factor to simulate focus consistency over time. The current message will give a relevant boost score, and we normalize again to get new focus.
-
-
-
-we sample relevant memories attached to the task proportionally of the focus score, then we dfs on the graph for certain depth, trying to get more linked memories. These memories will send to the LLM to generate a response.
-
-
-
-During the conversation, new information will pushed to the temporary part in the working memory, we maintain a reference count of them, if they are mentioned or used, we increment the count. temporary memories that has a count over the threshold will be consolidated to the long term memory.
-
-
-
-Over a period, we clean the working memory graph for invalid node and edge.
