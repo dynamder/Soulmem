@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use crate::memory::{MemoryNote};
-use crate::qdrant_retriever::QdrantRetriever;
+use crate::db::qdrant_retriever::QdrantRetriever;
 use anyhow::Result;
 use qdrant_client::qdrant::Filter;
 use crate::llm_driver::Llm;

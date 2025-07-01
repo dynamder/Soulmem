@@ -21,3 +21,12 @@ rand = "0.9.1"
 formatx = "0.2.4"
 mockall = "0.13.1"
 async-trait = "0.1.88"
+surrealdb = { version = "2.3.6", features = ["kv-rocksdb"] }
+rayon = "1.10.0"
+
+[profile.release]
+lto = true
+strip = true
+opt-level = 3
+panic = 'abort'
+codegen-units = 1

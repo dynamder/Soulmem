@@ -362,28 +362,28 @@ mod test {
                 MemoryNoteBuilder::new("test1")
                     .id("test1")
                     .links(vec![
-                        MemoryLink::new("test2", None::<String>,1),
-                        MemoryLink::new("test3", None::<String>,2),
+                        MemoryLink::new("test2", None::<String>,"test".to_string(),1),
+                        MemoryLink::new("test3", None::<String>,"test".to_string(),2),
                     ])
                     .build(),
                 MemoryNoteBuilder::new("test2")
                     .id("test2")
-                    .links(vec![MemoryLink::new("test1", None::<String>,1)])
+                    .links(vec![MemoryLink::new("test1", None::<String>,"test".to_string(),1)])
                     .build(),
                 MemoryNoteBuilder::new("test3")
                     .id("test3")
-                    .links(vec![MemoryLink::new("test2", None::<String>,1)])
+                    .links(vec![MemoryLink::new("test2", None::<String>,"test".to_string(),1)])
                     .build(),
             ]
         );
         let new_mem_note = vec![
             MemoryNoteBuilder::new("test4")
                 .id("test4")
-                .links(vec![MemoryLink::new("test3", None::<String>,1)])
+                .links(vec![MemoryLink::new("test3", None::<String>,"test".to_string(),1)])
                 .build(),
             MemoryNoteBuilder::new("test5")
                 .id("test5")
-                .links(vec![MemoryLink::new("test4", None::<String>,1)])
+                .links(vec![MemoryLink::new("test4", None::<String>,"test".to_string(),1)])
                 .build(),
         ];
         mem.merge_mem_graph(new_mem_note);
@@ -396,7 +396,7 @@ mod test {
         mem.add_temp_mem(
             MemoryNoteBuilder::new("test")
                 .id("test")
-                .links(vec![MemoryLink::new("test2", None::<String>,1)])
+                .links(vec![MemoryLink::new("test2", None::<String>,"test".to_string(),1)])
                 .build(),
             MemorySource::Dialogue("test".to_string())
         );
@@ -412,7 +412,7 @@ mod test {
                     .id("test1")
                     .links(
                         vec![
-                            MemoryLink::new("test2", None::<String>, 1)
+                            MemoryLink::new("test2", None::<String>,"test".to_string(), 1)
                         ]
                     )
                     .build(),
@@ -420,7 +420,7 @@ mod test {
                     .id("test2")
                     .links(
                         vec![
-                            MemoryLink::new("test3", None::<String>, 1)
+                            MemoryLink::new("test3", None::<String>,"test".to_string(), 1)
                         ]
                     )
                     .build(),
@@ -428,7 +428,7 @@ mod test {
                     .id("test3")
                     .links(
                         vec![
-                            MemoryLink::new("test4", None::<String>, 1)
+                            MemoryLink::new("test4", None::<String>,"test".to_string(), 1)
                         ]
                     )
                     .build(),
@@ -436,7 +436,7 @@ mod test {
                     .id("test4")
                     .links(
                         vec![
-                            MemoryLink::new("test5", None::<String>, 1)
+                            MemoryLink::new("test5", None::<String>,"test".to_string(), 1)
                         ]
                     )
                     .build(),
@@ -444,7 +444,7 @@ mod test {
                     .id("test5")
                     .links(
                         vec![
-                            MemoryLink::new("test6", None::<String>, 1)
+                            MemoryLink::new("test6", None::<String>,"test".to_string(), 1)
                         ]
                     )
                     .build(),
@@ -452,7 +452,7 @@ mod test {
                     .id("test6")
                     .links(
                         vec![
-                            MemoryLink::new("test7", None::<String>, 1)
+                            MemoryLink::new("test7", None::<String>,"test".to_string(), 1)
                         ]
                     )
                     .build(),
@@ -460,7 +460,7 @@ mod test {
                     .id("test7")
                     .links(
                         vec![
-                            MemoryLink::new("test8", None::<String>, 1)
+                            MemoryLink::new("test8", None::<String>,"test".to_string(), 1)
                         ]
                     )
                     .build(),

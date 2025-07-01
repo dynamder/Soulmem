@@ -21,6 +21,7 @@ use crate::soul_embedding::CalcEmbedding;
 pub struct MemoryLink {
     pub id : String,
     pub relation: String,
+    pub link_table: String,
     pub intensity: u32
 }
 #[derive(Debug,Clone,Serialize,Deserialize,PartialEq)]
@@ -40,10 +41,11 @@ impl From<MemoryLink> for GraphMemoryLink {
 
 
 impl MemoryLink {
-    pub fn new(id: impl Into<String>, relation: Option<impl Into<String>>, intensity: u32) -> Self {
+    pub fn new(id: impl Into<String>, relation: Option<impl Into<String>>, link_table: impl Into<String>, intensity: u32) -> Self {
         MemoryLink {
             id: id.into(),
             relation: relation.map(|x| x.into()).unwrap_or("Simple".to_string()),
+            link_table: link_table.into(),
             intensity,
         }
     }
@@ -52,17 +54,17 @@ impl MemoryLink {
 ///The basic unit of memory
 #[derive(Debug,Clone,Serialize,Deserialize)]
 pub struct MemoryNote {
-    pub content : String,
-    id : String,
-    pub keywords : Vec<String>,
-    links : Vec<MemoryLink>,
-    retrieval_count : u32,
-    timestamp : u64,
-    last_accessed : u64,
-    pub context : String,
-    evolution_history : Vec<String>,
-    pub category : String,
-    pub tags : Vec<String>,
+    pub content : String, //内容，自然文本
+    id : String, //uuid
+    pub keywords : Vec<String>,//关键词
+    links : Vec<MemoryLink>,//链接记忆
+    retrieval_count : u32,//被检索次数
+    timestamp : u64,//创建时间
+    last_accessed : u64,//最后访问时间
+    pub context : String,//记忆情景
+    evolution_history : Vec<String>,//进化历史
+    pub category : String,//分类,用作Surreal db 的表名
+    pub tags : Vec<String>,//标签，（认知，行为）
 }
 impl MemoryNote {
     pub fn new(content: impl Into<String>) -> Self {
@@ -359,7 +361,7 @@ mod test {
         let memory_note = MemoryNoteBuilder::new("test")
             .id("test_id")
             .keywords(vec!["test".to_string()])
-            .links(vec![MemoryLink::new("test", None::<String>,100)])
+            .links(vec![MemoryLink::new("test", None::<String>, "test".to_string(),100)])
             .retrieval_count(6u32)
             .timestamp(2025u64)
             .last_accessed(2025u64)
@@ -372,7 +374,7 @@ mod test {
         assert_eq!(memory_note.content, "test");
         assert_eq!(memory_note.id, "test_id");
         assert_eq!(memory_note.keywords, vec!["test".to_string()]);
-        assert_eq!(memory_note.links, vec![MemoryLink::new("test", None::<String>,100)]);
+        assert_eq!(memory_note.links, vec![MemoryLink::new("test", None::<String>,"test".to_string(),100)]);
         assert_eq!(memory_note.retrieval_count, 6u32);
         assert_eq!(memory_note.timestamp, 2025u64);
         assert_eq!(memory_note.last_accessed, 2025u64);
