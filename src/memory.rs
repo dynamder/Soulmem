@@ -55,7 +55,7 @@ impl MemoryLink {
 #[derive(Debug,Clone,Serialize,Deserialize)]
 pub struct MemoryNote {
     pub content : String, //内容，自然文本
-    id : String, //uuid
+    mem_id: String, //uuid
     pub keywords : Vec<String>,//关键词
     links : Vec<MemoryLink>,//链接记忆
     retrieval_count : u32,//被检索次数
@@ -71,7 +71,7 @@ impl MemoryNote {
         let now = Utc::now().format("%Y%m%d%H%M%S").to_string().parse().unwrap_or(0);
         MemoryNote {
             content: content.into(),
-            id: Uuid::new_v4().into(),
+            mem_id: Uuid::new_v4().into(),
             keywords: vec![],
             links: vec![],
             retrieval_count: 0,
@@ -84,7 +84,7 @@ impl MemoryNote {
         }
     }
     pub fn id(&self) -> &str {
-        self.id.as_str()
+        self.mem_id.as_str()
     }
     pub fn links(&self) -> &[MemoryLink] {
         &self.links
@@ -252,7 +252,7 @@ impl From<Vec<MemoryNote>> for MemoryCluster {
                 if let Some(target_index) = id_to_index.get(&id) {
                     graph.add_edge(source_index, *target_index, graph_link);
                 }else { 
-                    eprintln!("Error: Node linked with id {id} not found")
+                    eprintln!("Error: Node linked with mem_id {id} not found")
                 }
             }
             
@@ -263,7 +263,7 @@ impl From<Vec<MemoryNote>> for MemoryCluster {
 
 pub struct MemoryNoteBuilder {
     content: String,
-    id: Option<String>,
+    mem_id: Option<String>,
     keywords: Option<Vec<String>>,
     links: Option<Vec<MemoryLink>>,
     retrieval_count: Option<u32>,
@@ -278,7 +278,7 @@ impl MemoryNoteBuilder {
     pub fn new(content: impl Into<String>) -> Self {
         Self {
             content: content.into(),
-            id: None,
+            mem_id: None,
             keywords: None,
             links: None,
             retrieval_count: None,
@@ -291,7 +291,7 @@ impl MemoryNoteBuilder {
         }
     }
     pub fn id(mut self, id: impl Into<String>) -> Self {
-        self.id = Some(id.into());
+        self.mem_id = Some(id.into());
         self
     }
     pub fn keywords(mut self, keywords: impl Into<Vec<String>>) -> Self {
@@ -334,7 +334,7 @@ impl MemoryNoteBuilder {
         let now = Utc::now().format("%Y%m%d%H%M%S").to_string().parse().unwrap_or(0);
         MemoryNote {
             content: self.content,
-            id:self.id.unwrap_or(Uuid::new_v4().into()),
+            mem_id:self.mem_id.unwrap_or(Uuid::new_v4().into()),
             keywords: self.keywords.unwrap_or_default(),
             links:  self.links.unwrap_or_default(),
             retrieval_count: self.retrieval_count.unwrap_or_default(),
@@ -372,7 +372,7 @@ mod test {
             .build();
 
         assert_eq!(memory_note.content, "test");
-        assert_eq!(memory_note.id, "test_id");
+        assert_eq!(memory_note.mem_id, "test_id");
         assert_eq!(memory_note.keywords, vec!["test".to_string()]);
         assert_eq!(memory_note.links, vec![MemoryLink::new("test", None::<String>,"test".to_string(),100)]);
         assert_eq!(memory_note.retrieval_count, 6u32);

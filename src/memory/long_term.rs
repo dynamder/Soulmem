@@ -37,7 +37,7 @@ impl MemoryLongTerm {
         let mut visited = HashSet::new();
         let mut next_ids = Vec::new();
         for note in &response {
-            if visited.insert(note.id.clone()) {
+            if visited.insert(note.mem_id.clone()) {
                 next_ids.extend(note.links().iter().map(|link| link.id.clone()));
             }
         }
@@ -58,7 +58,7 @@ impl MemoryLongTerm {
             next_ids.clear();
             //将结果进行展开
             for note in &current_notes {
-                if visited.insert(note.id.clone()) {
+                if visited.insert(note.mem_id.clone()) {
                     next_ids.extend(note.links().iter().map(|link| link.id.clone()));
                 }
             }

@@ -493,7 +493,7 @@ mod test {
             |note| note.activation_count() > 0
         );
         assert_eq!(con.len(), 1);
-        assert_eq!(con[0].0.id, "test4");
+        assert_eq!(con[0].0.mem_id, "test4");
         
     }
 

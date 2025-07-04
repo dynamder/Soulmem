@@ -1,10 +1,45 @@
+use std::rc::Rc;
 use rayon::prelude::*;
 use std::sync::Arc;
 use surrealdb::{Response, Surreal};
 use anyhow::{Context, Result};
+use serde::{Deserialize, Serialize};
 use surrealdb::engine::local::{Db, RocksDb};
+use surrealdb::opt::{IntoResource, Resource};
+use surrealdb::sql::{Thing, Value};
 use tokio::task::JoinHandle;
-use crate::memory::{MemoryLink, MemoryNote};
+use crate::memory::{MemoryLink, MemoryNote, MemoryNoteBuilder};
+
+#[derive(Debug,Clone,Serialize,Deserialize)]
+pub struct SurrealMemoryNoteWrapper {
+    pub content : String, //内容，自然文本
+    pub id : Thing, //uuid
+    pub keywords : Vec<String>,//关键词
+    pub links : Vec<MemoryLink>,//链接记忆
+    pub retrieval_count : u32,//被检索次数
+    pub timestamp : u64,//创建时间
+    pub last_accessed : u64,//最后访问时间
+    pub context : String,//记忆情景
+    pub evolution_history : Vec<String>,//进化历史
+    pub category : String,//分类,用作Surreal db 的表名
+    pub tags : Vec<String>,//标签，（认知，行为）
+}
+impl From<SurrealMemoryNoteWrapper> for MemoryNote {
+    fn from(wrapper: SurrealMemoryNoteWrapper) -> Self {
+        MemoryNoteBuilder::new(wrapper.content)
+            .category(wrapper.category)
+            .links(wrapper.links)
+            .tags(wrapper.tags)
+            .context(wrapper.context)
+            .evolution_history(wrapper.evolution_history)
+            .timestamp(wrapper.timestamp)
+            .last_accessed(wrapper.last_accessed)
+            .retrieval_count(wrapper.retrieval_count)
+            .keywords(wrapper.keywords)
+            .id(wrapper.id.id.to_string())
+            .build()
+    }
+}
 
 #[allow(unused)]
 const RAYON_THRESHOLD: usize = 100;
@@ -24,6 +59,23 @@ const NEIGHBOR_QUERY_SINGLE: &str = r#"
 SELECT ->{}->{}.* FROM $in_node;
 RETURN array::flatten($in_node->{}->{}.*)
 "#;
+#[allow(dead_code)]
+pub struct RelateQueryBuilder {
+    relation: String,
+}
+impl RelateQueryBuilder {
+    pub fn new(relation: impl AsRef<str>) -> Self {
+        RelateQueryBuilder {
+            relation: relation.as_ref().to_string(),
+        }
+    }
+    pub fn build(self) -> String {
+        format!("RELATE $in->{}->$out SET intensity = $value;",self.relation)
+    }
+}
+pub fn format_record_id(table: impl AsRef<str>, id: impl AsRef<str>) -> String {
+    Thing::from((table.as_ref(), id.as_ref())).to_raw()
+}
 #[allow(dead_code)]
 pub struct SurrealGraphRetriever {
     db: Arc<Surreal<Db>>,
@@ -61,9 +113,7 @@ impl SurrealGraphRetriever {
             .take::<Vec<MemoryNote>>(1)
             .with_context(|| "Error querying neighbors") //TODO
     }
-    pub fn format_record_id(table: impl AsRef<str>, id: impl AsRef<str>) -> String {
-        format!("{}:{}", table.as_ref(), id.as_ref())
-    }
+
     /// 通用任务执行器 - 处理并行/串行任务调度
     async fn execute_tasks<T, F>(
         &self,
@@ -116,35 +166,34 @@ impl SurrealGraphRetriever {
             records
                 .into_par_iter()
                 .map(|record| {
-                    (Self::format_record_id(record.category.as_str(), record.id()), record)
+                    ((record.category.as_str().to_owned(), record.id().to_string()), record)
                 })
                 .collect::<Vec<_>>()
         } else {
             records
                 .into_iter()
                 .map(|record| {
-                    (Self::format_record_id(record.category.as_str(), record.id()), record)
+                    ((record.category.as_str().to_owned(), record.id().to_string()), record)
                 })
                 .collect::<Vec<_>>()
         };
 
         fn create_task( _self: &SurrealGraphRetriever,
-                        (key, record): (String, MemoryNote),
+                        (key, record): ((String, String), MemoryNote),
                         semaphore: Arc<tokio::sync::Semaphore>,
         ) -> JoinHandle<Result<(), anyhow::Error>> {
             let db = Arc::clone(&_self.db);
-
             tokio::spawn(async move {
                 let _permit = semaphore
                     .acquire_owned()
                     .await
                     .map_err(|e| anyhow::anyhow!("Error acquiring semaphore: {}", e))?;
 
-                db.upsert(&key)
+                db.upsert(key.clone())
                     .content(record)
                     .await
-                    .map(|_:Vec<()>| ())
-                    .context(format!("Error upserting record: {}", key))?;
+                    .map(|_:Option<SurrealMemoryNoteWrapper>| ())
+                    .context(format!("Error upserting record: {}", format_record_id(key.0, key.1.as_str())))?;
                 Ok(())
             })
         }
@@ -162,9 +211,8 @@ impl SurrealGraphRetriever {
                 let _permit = semaphore.acquire_owned().await
                     .map_err(|e| anyhow::anyhow!("Error acquiring semaphore: {}",e))?;
 
-                db.query(EDGE_RELATE_QUERY)
+                db.query(RelateQueryBuilder::new(links.relation).build())
                     .bind(("in", in_id))
-                    .bind(("relation", links.relation))
                     .bind(("out", links.id))
                     .bind(("value", links.intensity))
                     .await
@@ -196,7 +244,50 @@ impl SurrealGraphRetriever {
         if res_node.is_ok() && res_edge.is_ok() {
             Ok(())
         } else {
-            Err(res_node.unwrap_err().into_iter().chain(res_edge.unwrap_err().into_iter()).collect())
+            let mut err = Vec::new();
+            if res_node.is_err() {
+                err.extend(res_node.unwrap_err())
+            }
+            if res_edge.is_err() {
+                err.extend(res_edge.unwrap_err())
+            }
+            Err(err)
         }
+    }
+}
+
+mod test {
+    use crate::memory::MemoryNoteBuilder;
+    use super::*;
+    async fn prepare_db_connect() -> SurrealGraphRetriever {
+        let db = SurrealGraphRetriever::new("./test/mydatabase.db", None).await.unwrap();
+        db.use_ns_db("test", "test").await.unwrap();
+        db
+    }
+    fn prepare_test_data() -> Vec<MemoryNote> {
+        vec![
+            MemoryNoteBuilder::new("test1")
+                .id("test1")
+                .category("test")
+                .links(vec![MemoryLink::new("test2", Some("default"),"test",1u32)])
+                .build(),
+            MemoryNoteBuilder::new("test2")
+                .id("test2")
+                .category("test")
+                .links(vec![MemoryLink::new("test3", Some("default"),"test",1u32)])
+                .build(),
+            MemoryNoteBuilder::new("test3")
+                .id("test3")
+                .category("test")
+                .links(vec![MemoryLink::new("test1", Some("default"),"test",1u32)])
+                .build(),
+        ]
+    }
+    #[tokio::test]
+    async fn test_upsert_notes() {
+        let db = prepare_db_connect().await;
+        let data = prepare_test_data();
+        db.upsert_notes(data).await.unwrap();
+    //TODO: Why the fuck table name error?
     }
 }
