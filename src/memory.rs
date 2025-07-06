@@ -14,6 +14,7 @@ use uuid::Uuid;
 use anyhow::Result;
 use fastembed::{Embedding, TextEmbedding};
 use petgraph::prelude::StableDiGraph;
+use surrealdb::RecordId;
 use crate::soul_embedding::CalcEmbedding;
 
 ///Stand for a link to another MemoryNote,the intensity mimics the strength of the link in human brains
@@ -48,6 +49,9 @@ impl MemoryLink {
             link_table: link_table.into(),
             intensity,
         }
+    }
+    pub fn as_surreal_id(&self) -> RecordId {
+        RecordId::from((self.link_table.as_str(),self.id.as_str()))
     }
 }
 
@@ -85,6 +89,9 @@ impl MemoryNote {
     }
     pub fn id(&self) -> &str {
         self.mem_id.as_str()
+    }
+    pub fn surreal_id(&self) -> RecordId {
+        RecordId::from((self.category.as_str(),self.mem_id.as_str()))
     }
     pub fn links(&self) -> &[MemoryLink] {
         &self.links

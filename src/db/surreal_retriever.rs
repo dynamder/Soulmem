@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use rayon::prelude::*;
 use std::sync::Arc;
-use surrealdb::{Response, Surreal};
+use surrealdb::{RecordId, Response, Surreal};
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use surrealdb::engine::local::{Db, RocksDb};
@@ -73,6 +73,37 @@ impl RelateQueryBuilder {
         format!("RELATE $in->{}->$out SET intensity = $value;",self.relation)
     }
 }
+pub struct NeighborQueryBuilder {
+    depth: usize,
+    relation: Option<String>,
+    table_name: Option<String>,
+}
+impl NeighborQueryBuilder {
+    pub fn new(depth: usize) -> Self {
+        NeighborQueryBuilder {
+            depth,
+            relation: None,
+            table_name: None,
+        }
+    }
+    pub fn relation(mut self, relation: impl AsRef<str>) -> Self {
+        self.relation = Some(relation.as_ref().to_string());
+        self
+    }
+    pub fn table_name(mut self, table_name: impl AsRef<str>) -> Self {
+        self.table_name = Some(table_name.as_ref().to_string());
+        self
+    }
+    pub fn build(self) -> String {
+        format!(
+            "SELECT @.{{..{}+collect}}->{}->{} AS neighbors FROM $start_node FETCH neighbors;",
+            self.depth,
+            self.relation.as_ref().unwrap_or(&"?".to_string()),
+            self.table_name.as_ref().unwrap_or(&"?".to_string())
+        )
+    }
+}
+
 pub fn format_record_id(table: impl AsRef<str>, id: impl AsRef<str>) -> String {
     Thing::from((table.as_ref(), id.as_ref())).to_raw()
 }
@@ -97,21 +128,25 @@ impl SurrealGraphRetriever {
     pub async fn raw_query(&self, query: impl AsRef<str>) -> Result<Response> {
         Ok(self.db.query(query.as_ref()).await?)
     }
-    pub async fn query_neighbors(&self, record_id: impl AsRef<str>, table: impl AsRef<str>, relation: Option<impl AsRef<str>>) -> Result<Vec<MemoryNote>> {
+    pub async fn query_neighbors(&self,depth: usize, start_record_id: RecordId, table: Option<impl AsRef<str>>, relation: Option<impl AsRef<str>>) -> Result<Vec<MemoryNote>> {
         let relation = relation.map(|r| r.as_ref().to_string()).unwrap_or("?".to_string());
-        let table =table.as_ref();
-        let query = format!(
-            "SELECT ->{}->{}.* FROM $in_node;RETURN array::flatten($in_node->{}->{}.*)",
-            &relation,
-            &table,
-            &relation,
-            &table
-        );
-        self.db.query(query)
-            .bind(("in_node", record_id.as_ref().to_string()))
-            .await?
-            .take::<Vec<MemoryNote>>(1)
-            .with_context(|| "Error querying neighbors") //TODO
+        let table =table.map(|t| t.as_ref().to_string()).unwrap_or("?".to_string());
+        let query = NeighborQueryBuilder::new(depth)
+            .relation(relation)
+            .table_name(table)
+            .build();
+        //println!("{}",query);
+        let mut res =self.db.query(query)
+            .bind(("start_node", start_record_id))
+            .await?;
+        let p_res = res.take::<Vec<Vec<SurrealMemoryNoteWrapper>>>((0,"neighbors"))
+            .with_context(|| "Error querying neighbors")?
+            .into_iter()
+            .flatten()
+            .map(|wrapper| wrapper.into())
+            .collect();//TODO:???????????????????????????????????????????????????? WTF???????????????????
+        //println!("{:?}",p_res);
+        Ok(p_res)
     }
 
     /// 通用任务执行器 - 处理并行/串行任务调度
@@ -199,11 +234,20 @@ impl SurrealGraphRetriever {
         }
         self.execute_tasks(processed_records, create_task, use_parallel).await
     }
-    async fn upsert_notes_edge(&self,  edges: Vec<(String, MemoryLink)>) -> Result<(), Vec<anyhow::Error>> {
+    pub async fn define_unique_relation_index(db: &Arc<Surreal<Db>>, relation: impl AsRef<str>) -> Result<()>{
+        db.query(
+            format!("DEFINE TABLE IF NOT EXISTS {} SCHEMALESS;",relation.as_ref())
+        ).await?;
+        db.query(
+            format!("DEFINE INDEX IF NOT EXISTS unique_relationships ON TABLE {} COLUMNS in, out UNIQUE;",relation.as_ref())
+        ).await?;
+        Ok(())
+    }
+    async fn upsert_notes_edge(&self,  edges: Vec<(RecordId, MemoryLink)>) -> Result<(), Vec<anyhow::Error>> {
         let use_parallel = edges.len() >= RAYON_THRESHOLD;
         fn create_task(
             _self: &SurrealGraphRetriever,
-            (in_id, links): (String, MemoryLink),
+            (in_id, links): (RecordId, MemoryLink),
             semaphore: Arc<tokio::sync::Semaphore>,
         ) -> JoinHandle<Result<(), anyhow::Error>> {
             let db = Arc::clone(&_self.db);
@@ -211,12 +255,15 @@ impl SurrealGraphRetriever {
                 let _permit = semaphore.acquire_owned().await
                     .map_err(|e| anyhow::anyhow!("Error acquiring semaphore: {}",e))?;
 
-                db.query(RelateQueryBuilder::new(links.relation).build())
+                SurrealGraphRetriever::define_unique_relation_index(&db, links.relation.clone()).await?;
+                let out_id = links.as_surreal_id();
+                let res = db.query(RelateQueryBuilder::new(links.relation).build())
                     .bind(("in", in_id))
-                    .bind(("out", links.id))
+                    .bind(("out", out_id))
                     .bind(("value", links.intensity))
                     .await
                     .context("Error upserting edge")?;
+
 
                 Ok(())
             })
@@ -228,14 +275,14 @@ impl SurrealGraphRetriever {
             records.par_iter()
                 .flat_map_iter(|record| {
                     record.links().iter().map(|link| {
-                        (record.id().to_string(), link.clone())
+                        (record.surreal_id(), link.clone())
                     })
                 }).collect::<Vec<_>>()
         }else {
             records.iter()
                 .flat_map(|record| {
                     record.links().iter().map(|link| {
-                        (record.id().to_string(), link.clone())
+                        (record.surreal_id(), link.clone())
                     })
                 }).collect::<Vec<_>>()
         };
@@ -288,6 +335,12 @@ mod test {
         let db = prepare_db_connect().await;
         let data = prepare_test_data();
         db.upsert_notes(data).await.unwrap();
-    //TODO: Why the fuck table name error?
+    }
+    #[tokio::test]
+    async fn test_query_notes() {
+        let db = prepare_db_connect().await;
+        let response = db.query_neighbors(2,RecordId::from_table_key("test","test1"), Some("test"),None::<String>).await.unwrap();
+        println!("response: {:?}", response);
+        assert_eq!(response.len(), 2,"the response is {:?}",response);
     }
 }
