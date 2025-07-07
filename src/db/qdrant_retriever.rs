@@ -3,8 +3,11 @@ use qdrant_client::qdrant::{CreateCollectionBuilder, DeletePointsBuilder, Distan
 use qdrant_client::{Payload, Qdrant};
 use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
 use anyhow::{Error, Result};
+use qdrant_client::qdrant::point_id::PointIdOptions;
+use surrealdb::RecordId;
 use qdrant_client::qdrant::points_selector::PointsSelectorOneOf;
 use qdrant_client::qdrant::points_update_operation::{Operation, OverwritePayload};
+use crate::db::surreal_retriever::RecordIdProxy;
 use crate::memory::MemoryNote;
 use crate::soul_embedding::CalcEmbedding;
 
@@ -46,7 +49,7 @@ impl QdrantRetriever {
         }
         Ok(())
     }
-    pub async fn add_points(&self,payloads: Vec<MemoryNote>) -> Result<()> {
+    pub async fn add_points(&self,payloads: &Vec<MemoryNote>) -> Result<()> {
 
         // dbg!(&payloads);
         //dbg!(serde_json::json!(payloads.get(0)));
@@ -140,7 +143,7 @@ impl QdrantRetriever {
         Ok((time,response))
     }
 
-    //TODO: tests it
+    //WARNING: DEPRECATED
     pub async fn update_points_payload(&self, payloads: impl Into<Vec<(String,Payload)>>) -> Result<(), Error> {
         self.client.update_points_batch(
             UpdateBatchPointsBuilder::new(
@@ -189,7 +192,7 @@ impl QdrantRetriever {
                 )
             ).await?)
     }
-    pub fn parse_response_to_notes(response: QueryBatchResponse) -> Vec<Vec<MemoryNote>> {
+    pub fn parse_response_to_record_id(response: QueryBatchResponse) -> Vec<Vec<RecordIdProxy>> {
         response.result
             .into_iter()
             .map(|points| {
@@ -197,13 +200,16 @@ impl QdrantRetriever {
                     .into_iter()
                     .filter_map(|score_point| {
                         if score_point.id.is_some() {
-                            match MemoryNote::try_from(score_point.payload) {
-                                Ok(note) => Some(note),
-                                Err(e) => {
-                                    eprintln!("Error parsing note: {e:?}");
+                            if let Some(raw_id) = score_point.payload.get("id") && let Some(raw_category) = score_point.payload.get("category") {
+                                if let Some(id) = raw_id.as_str() && let Some(category) = raw_category.as_str() {
+                                    Some(RecordIdProxy::from(RecordId::from_table_key(category, id)))
+                                }else{
                                     None
                                 }
+                            }else{
+                                None
                             }
+
                         }else{
                             None
                         }
@@ -248,7 +254,7 @@ mod test {
             EmbeddingModel::AllMiniLML6V2
         ).unwrap();
         retriever.add_points(
-            vec![
+            &vec![
                 MemoryNote::new("test1_content"),
                 MemoryNote::new("test2_content"),
                 MemoryNote::new("test3_content"),
@@ -266,7 +272,7 @@ mod test {
             EmbeddingModel::AllMiniLML6V2
         ).unwrap();
         retriever.add_points(
-            vec![
+            &vec![
                 MemoryNote::new("test1_content"),
                 MemoryNote::new("test2_content"),
                 MemoryNote::new("test3_content"),
@@ -275,12 +281,10 @@ mod test {
             ]
         ).await.unwrap();
         let (_,res) = retriever.query(&vec!["test"], 5, None::<Filter>).await.unwrap();
-        let res = QdrantRetriever::parse_response_to_notes(res);
+        let res = QdrantRetriever::parse_response_to_record_id(res);
         res.iter().for_each(|notes|{
             notes.iter().for_each(|note|{
-                if !is_valid_test_content(note.content.as_str()) {
-                    panic!("Invalid test content:{}", note.content)
-                }
+                assert_ne!(note.as_ref().to_string(), "")
             })
         })
     }

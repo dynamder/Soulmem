@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use chrono::Utc;
 use qdrant_client::Payload;
 use serde::{Deserialize, Serialize};
-use serde_json::Map;
+use serde_json::{json, Map};
 use uuid::Uuid;
 use anyhow::Result;
 use fastembed::{Embedding, TextEmbedding};
@@ -132,11 +132,10 @@ impl MemoryNote {
 }
 impl MemoryNote {
     pub fn as_payload(&self) -> Result<Payload> {
-        if let serde_json::Value::Object(map) = serde_json::to_value(self)? {
-            Ok(Payload::from(map))
-        } else {
-            Err(anyhow::anyhow!("Can't convert MemoryNote to Payload, Not a valid memory note"))
-        }
+        Ok(Payload::try_from(json!({
+            "id": self.id(),
+            "category": &self.category
+        }))?)
     }
 }
 impl CalcEmbedding for MemoryNote {

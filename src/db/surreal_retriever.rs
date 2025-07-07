@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use surrealdb::engine::local::{Db, RocksDb};
 use surrealdb::opt::{IntoResource, Resource};
 use surrealdb::sql::{Thing, Value};
-use tokio::task::JoinHandle;
+use tokio::task::{id, JoinHandle};
 use crate::memory::{MemoryLink, MemoryNote, MemoryNoteBuilder};
 
 #[derive(Debug,Clone,Serialize,Deserialize)]
@@ -40,25 +40,26 @@ impl From<SurrealMemoryNoteWrapper> for MemoryNote {
             .build()
     }
 }
+pub struct RecordIdProxy(RecordId);
+impl AsRef<RecordId> for RecordIdProxy {
+    fn as_ref(&self) -> &RecordId {
+        &self.0
+    }
+}
+impl From<RecordId> for RecordIdProxy {
+    fn from(record_id: RecordId) -> Self {
+        RecordIdProxy(record_id)
+    }
+}
+impl Into<RecordId> for RecordIdProxy {
+    fn into(self) -> RecordId {
+        self.0
+    }
+}
 
 #[allow(unused)]
 const RAYON_THRESHOLD: usize = 100;
-#[allow(unused)]
-const EDGE_RELATE_QUERY: &str = r#"
-RELATE $in->$relation->$out SET intensity = $value;
-"#;
-const NEIGHBOR_QUERY_UNIQUE: &str = r#"
-SELECT VALUE array::distinct(array::flatten(
-    (SELECT VALUE out
-     FROM SELECT ->?[?]*1..$depth AS out
-     FROM $starts)
-))
-WHERE = $depth
-"#;
-const NEIGHBOR_QUERY_SINGLE: &str = r#"
-SELECT ->{}->{}.* FROM $in_node;
-RETURN array::flatten($in_node->{}->{}.*)
-"#;
+
 #[allow(dead_code)]
 pub struct RelateQueryBuilder {
     relation: String,
@@ -101,6 +102,21 @@ impl NeighborQueryBuilder {
             self.relation.as_ref().unwrap_or(&"?".to_string()),
             self.table_name.as_ref().unwrap_or(&"?".to_string())
         )
+    }
+}
+pub struct IdQueryBuilder;
+impl IdQueryBuilder {
+    pub fn new() -> Self {
+        Self
+    }
+    pub fn build(self, ids: impl IntoIterator<Item = impl AsRef<RecordId>>) -> String {
+        let mut query = ids.into_iter()
+            .fold("SELECT * FROM ".to_string(), |acc, id| {
+                acc + &format!("{},", id.as_ref())
+            });
+        query.pop();
+        query
+
     }
 }
 
@@ -147,6 +163,72 @@ impl SurrealGraphRetriever {
             .collect();//TODO:???????????????????????????????????????????????????? WTF???????????????????
         //println!("{:?}",p_res);
         Ok(p_res)
+    }
+    pub async fn query_ids(&self, ids: impl IntoIterator<Item = impl AsRef<RecordId>>) -> Result<Vec<MemoryNote>> {
+        Ok(self.db.query(IdQueryBuilder::new().build(ids))
+            .await?
+            .take::<Vec<SurrealMemoryNoteWrapper>>(0)
+            .with_context(|| "Error querying ids")?
+            .into_iter()
+            .map(|wrapper| wrapper.into())
+            .collect())
+    }
+    //TODO:test it
+    pub async fn batch_query_ids(&self,ids: Vec<impl IntoIterator<Item = impl AsRef<RecordId>> + Send + 'static>) -> Result<Vec<Vec<MemoryNote>>,Vec<anyhow::Error>> {
+        fn create_task( _self: &SurrealGraphRetriever,
+                        record_ids: impl IntoIterator<Item = impl AsRef<RecordId>> + Send + 'static,
+                        semaphore: Arc<tokio::sync::Semaphore>,
+        ) -> JoinHandle<Result<Vec<MemoryNote>, anyhow::Error>> {
+            let db = Arc::clone(&_self.db);
+            tokio::spawn(async move {
+                let _permit = semaphore
+                    .acquire_owned()
+                    .await
+                    .map_err(|e| anyhow::anyhow!("Error acquiring semaphore: {}", e))?;
+
+                Ok(db.query(IdQueryBuilder::new().build(record_ids))
+                    .await?
+                    .take::<Vec<SurrealMemoryNoteWrapper>>(0)
+                    .with_context(|| "Error querying ids")?
+                    .into_iter()
+                    .map(|wrapper| wrapper.into())
+                    .collect())
+
+            })
+        }
+        let len = ids.len();
+        let use_parallel = len >= RAYON_THRESHOLD;
+        let semaphore = Arc::new(tokio::sync::Semaphore::new(self.capacity));
+        let mut errors = Vec::new();
+        let mut tasks = Vec::with_capacity(len);
+        if use_parallel {
+            // 并行处理分支
+            tasks = ids
+                .into_par_iter()
+                .map(|item| {
+                    create_task(self, item, Arc::clone(&semaphore))
+                })
+                .collect::<Vec<_>>();
+        } else {
+            // 串行处理分支
+            for item in ids {
+                tasks.push(create_task(self, item, Arc::clone(&semaphore)));
+            }
+        }
+        let mut res_notes = Vec::with_capacity(len);
+        // 统一结果处理
+        for task in tasks {
+            match task.await {
+                Ok(Ok(res)) => {res_notes.push(res)}
+                Ok(Err(e)) => errors.push(e),
+                Err(join_err) => errors.push(anyhow::anyhow!("Error joining task: {:?}", join_err)),
+            }
+        }
+        if errors.is_empty() {
+            Ok(res_notes)
+        } else {
+            Err(errors)
+        }
     }
 
     /// 通用任务执行器 - 处理并行/串行任务调度
