@@ -432,17 +432,17 @@ mod test {
             MemoryNoteBuilder::new("test1")
                 .id("test1")
                 .category("test")
-                .links(vec![MemoryLink::new("test2", Some("default"),"test",1u32)])
+                .links(vec![MemoryLink::new("test2", Some("default"),"test",1f32)])
                 .build(),
             MemoryNoteBuilder::new("test2")
                 .id("test2")
                 .category("test")
-                .links(vec![MemoryLink::new("test3", Some("default"),"test",1u32)])
+                .links(vec![MemoryLink::new("test3", Some("default"),"test",1f32)])
                 .build(),
             MemoryNoteBuilder::new("test3")
                 .id("test3")
                 .category("test")
-                .links(vec![MemoryLink::new("test1", Some("default"),"test",1u32)])
+                .links(vec![MemoryLink::new("test1", Some("default"),"test",1f32)])
                 .build(),
         ]
     }

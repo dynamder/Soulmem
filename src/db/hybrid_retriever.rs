@@ -84,17 +84,17 @@ mod test {
             MemoryNoteBuilder::new("test1")
                 .category("test")
                 .id("d69691ad-42d7-433d-96b5-99436c4e9c21")
-                .links(vec![MemoryLink::new("test2", Some("default"),"test",1u32)])
+                .links(vec![MemoryLink::new("test2", Some("default"),"test",1f32)])
                 .build(),
             MemoryNoteBuilder::new("test2")
                 .category("test")
                 .id("6067153d-aceb-4a43-ac11-cf2a801ed32c")
-                .links(vec![MemoryLink::new("test3", Some("default"),"test",1u32)])
+                .links(vec![MemoryLink::new("test3", Some("default"),"test",1f32)])
                 .build(),
             MemoryNoteBuilder::new("test3")
                 .category("test")
                 .id("006b9abb-5506-4d8c-b2eb-f366452a4e53")
-                .links(vec![MemoryLink::new("test1", Some("default"),"test",1u32)])
+                .links(vec![MemoryLink::new("test1", Some("default"),"test",1f32)])
                 .build(),
         ]
     }

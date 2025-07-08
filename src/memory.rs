@@ -23,12 +23,12 @@ pub struct MemoryLink {
     pub id : String,
     pub relation: String,
     pub link_table: String,
-    pub intensity: u32
+    pub intensity: f32
 }
 #[derive(Debug,Clone,Serialize,Deserialize,PartialEq)]
 pub struct GraphMemoryLink {
     pub relation: String,
-    pub intensity: u32
+    pub intensity: f32
 }
 impl From<MemoryLink> for GraphMemoryLink {
     fn from(link: MemoryLink) -> Self {
@@ -42,7 +42,7 @@ impl From<MemoryLink> for GraphMemoryLink {
 
 
 impl MemoryLink {
-    pub fn new(id: impl Into<String>, relation: Option<impl Into<String>>, link_table: impl Into<String>, intensity: u32) -> Self {
+    pub fn new(id: impl Into<String>, relation: Option<impl Into<String>>, link_table: impl Into<String>, intensity: f32) -> Self {
         MemoryLink {
             id: id.into(),
             relation: relation.map(|x| x.into()).unwrap_or("Simple".to_string()),
@@ -367,7 +367,7 @@ mod test {
         let memory_note = MemoryNoteBuilder::new("test")
             .id("test_id")
             .keywords(vec!["test".to_string()])
-            .links(vec![MemoryLink::new("test", None::<String>, "test".to_string(),100)])
+            .links(vec![MemoryLink::new("test", None::<String>, "test".to_string(),100.0)])
             .retrieval_count(6u32)
             .timestamp(2025u64)
             .last_accessed(2025u64)
@@ -380,7 +380,7 @@ mod test {
         assert_eq!(memory_note.content, "test");
         assert_eq!(memory_note.mem_id, "test_id");
         assert_eq!(memory_note.keywords, vec!["test".to_string()]);
-        assert_eq!(memory_note.links, vec![MemoryLink::new("test", None::<String>,"test".to_string(),100)]);
+        assert_eq!(memory_note.links, vec![MemoryLink::new("test", None::<String>,"test".to_string(),100.0)]);
         assert_eq!(memory_note.retrieval_count, 6u32);
         assert_eq!(memory_note.timestamp, 2025u64);
         assert_eq!(memory_note.last_accessed, 2025u64);
