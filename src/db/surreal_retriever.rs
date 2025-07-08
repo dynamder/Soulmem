@@ -78,6 +78,7 @@ pub struct NeighborQueryBuilder {
     depth: usize,
     relation: Option<String>,
     table_name: Option<String>,
+    start_node: Option<RecordId>,
 }
 impl NeighborQueryBuilder {
     pub fn new(depth: usize) -> Self {
@@ -85,6 +86,7 @@ impl NeighborQueryBuilder {
             depth,
             relation: None,
             table_name: None,
+            start_node: None,
         }
     }
     pub fn relation(mut self, relation: impl AsRef<str>) -> Self {
@@ -95,13 +97,27 @@ impl NeighborQueryBuilder {
         self.table_name = Some(table_name.as_ref().to_string());
         self
     }
+    pub fn start_node(mut self, start_node: RecordId) -> Self {
+        self.start_node = Some(start_node);
+        self
+    }
     pub fn build(self) -> String {
-        format!(
-            "SELECT @.{{..{}+collect}}->{}->{} AS neighbors FROM $start_node FETCH neighbors;",
-            self.depth,
-            self.relation.as_ref().unwrap_or(&"?".to_string()),
-            self.table_name.as_ref().unwrap_or(&"?".to_string())
-        )
+        if let Some(start_node) = self.start_node {
+            format!(
+                "SELECT @.{{..{}+collect}}->{}->{} AS neighbors FROM {} FETCH neighbors;",
+                self.depth,
+                self.relation.as_ref().unwrap_or(&"?".to_string()),
+                self.table_name.as_ref().unwrap_or(&"?".to_string()),
+                start_node.to_string(),
+            )
+        } else {
+            format!(
+                "SELECT @.{{..{}+collect}}->{}->{} AS neighbors FROM $start_node FETCH neighbors;",
+                self.depth,
+                self.relation.as_ref().unwrap_or(&"?".to_string()),
+                self.table_name.as_ref().unwrap_or(&"?".to_string())
+            )
+        }
     }
 }
 pub struct IdQueryBuilder;
@@ -162,6 +178,24 @@ impl SurrealGraphRetriever {
             .map(|wrapper| wrapper.into())
             .collect();//TODO:???????????????????????????????????????????????????? WTF???????????????????
         //println!("{:?}",p_res);
+        Ok(p_res)
+    }
+    pub async fn query_neighbors_batch(&self, queries: Vec<String>) -> Result<Vec<Vec<MemoryNote>>> {  //use neighbor query builder to build query strings, should identify the RecordId when building
+        let len = queries.len();
+        let queries = queries.into_iter()
+            .fold("".to_string(),|acc, query| acc + &query + "\n");
+        let mut res = self.db.query(queries).await?;
+        let mut p_res = Vec::with_capacity(len);
+        for i in 0..len {
+            p_res.push(
+                res.take::<Vec<Vec<SurrealMemoryNoteWrapper>>>((i,"neighbors"))
+                    .with_context(|| "Error querying neighbors")?
+                    .into_iter()
+                    .flatten()
+                    .map(|wrapper| wrapper.into())
+                    .collect()//TODO:???????????????????????????????????????????????????? WTF???????????????????
+            )
+        }
         Ok(p_res)
     }
     pub async fn query_ids(&self, ids: impl IntoIterator<Item = impl AsRef<RecordId>>) -> Result<Vec<MemoryNote>> {
@@ -424,5 +458,56 @@ mod test {
         let response = db.query_neighbors(2,RecordId::from_table_key("test","test1"), Some("test"),None::<String>).await.unwrap();
         println!("response: {:?}", response);
         assert_eq!(response.len(), 2,"the response is {:?}",response);
+    }
+    #[tokio::test]
+    async fn test_query_neighbors_batch() { 
+        let db = prepare_db_connect().await;
+        let response = db.query_neighbors_batch(
+            vec![
+                NeighborQueryBuilder::new(2)
+                    .start_node(RecordId::from_table_key("test","test1"))
+                    .build(),
+                NeighborQueryBuilder::new(2)
+                    .start_node(RecordId::from_table_key("test","test2"))
+                    .build(),
+            ]
+        ).await.unwrap();
+        assert_eq!(response.len(), 2,"the response is {:?}",response);
+        for res in response {
+            println!("response: {:?}", res);
+            assert_eq!(res.len(), 2,"the response is {:?}",res);
+        }
+    }
+    #[tokio::test]
+    async fn test_query_id() {
+        let db = prepare_db_connect().await;
+        let response = db.query_ids(
+            vec![
+                RecordIdProxy::from(RecordId::from_table_key("test","test1")),
+                RecordIdProxy::from(RecordId::from_table_key("test","test2"))
+            ]
+        ).await.unwrap();
+        assert_eq!(response.len(), 2,"the response is {response:?}");
+        for (i,res) in response.iter().enumerate() {
+            println!("response: {res:?}");
+            let mut id = res.id().to_string();
+            id.pop();
+            assert_eq!(id, "test","the response is {:?}",res);
+        }
+    }
+    #[tokio::test]
+    async fn test_batch_query_ids() {
+        let db = prepare_db_connect().await;
+        let response = db.batch_query_ids(
+            vec![
+                vec![RecordIdProxy::from(RecordId::from_table_key("test","test1"))],
+                vec![RecordIdProxy::from(RecordId::from_table_key("test","test2"))]
+            ]
+        ).await.unwrap();
+        assert_eq!(response.len(), 2,"the response is {:?}",response);
+        for res in response {
+            println!("response: {:?}", res);
+            assert_eq!(res.len(), 1,"the response is {:?}",res);
+        }
     }
 }

@@ -51,14 +51,10 @@ impl QdrantRetriever {
     }
     pub async fn add_points(&self,payloads: &Vec<MemoryNote>) -> Result<()> {
 
-        // dbg!(&payloads);
-        //dbg!(serde_json::json!(payloads.get(0)));
-
+        
         // use the document part of the payload for embedding vector
         let embeddings = payloads.calc_embedding(&self.embedding_model)?;
-
-        //dbg!(&embeddings);
-
+        
         if embeddings.is_empty() || embeddings.len() != payloads.len() {
             return Err(Error::msg("Embedding Failed, empty embedding"));
         }
@@ -76,8 +72,7 @@ impl QdrantRetriever {
                 }
             })
             .collect();
-
-        //dbg!(&points);
+        
 
         self.client
             .upsert_points(
