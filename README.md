@@ -55,12 +55,10 @@
   - 记忆分类，surreal db 表名
 - tags
   - 标签，包含（认知，行为...）
-- symbolic_triple
-  - 结构化的要点提取，三元组
 - base_emotion
   - 记忆的情感基调
 
-#### 超单元 SuperNote
+#### 超单元 SuperNote （后续实现）
 
 将一个由MemoryNote构成的子图，抽象为一个逻辑上的超节点，以降低图的复杂度。（后续更新优化）
 

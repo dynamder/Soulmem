@@ -13,7 +13,8 @@ use serde_json::{json, Map};
 use uuid::Uuid;
 use anyhow::Result;
 use fastembed::{Embedding, TextEmbedding};
-use petgraph::prelude::StableDiGraph;
+use petgraph::prelude::{EdgeIndex, NodeIndex, StableDiGraph};
+use rayon::prelude::IntoParallelIterator;
 use surrealdb::RecordId;
 use crate::soul_embedding::CalcEmbedding;
 
@@ -215,19 +216,94 @@ impl TryFrom<HashMap<String, qdrant_client::qdrant::Value>> for MemoryNote {
         )
     }
 }
-pub struct MemoryCluster(pub(crate) StableDiGraph<MemoryNote, GraphMemoryLink>);
+//TODO: test it
+pub struct MemoryCluster {
+    graph: StableDiGraph<MemoryNote, GraphMemoryLink>,
+    id_to_index: HashMap<String, NodeIndex>,
+    relation_map: HashMap<(NodeIndex,String,NodeIndex),EdgeIndex>,
+    incompletely_linked_note: Vec<(NodeIndex,MemoryLink)>
+}
 impl MemoryCluster {
     pub fn new() -> Self {
-        Self(StableDiGraph::new())
+        Self {
+            graph: StableDiGraph::new(),
+            id_to_index: HashMap::new(),
+            relation_map: HashMap::new(),
+            incompletely_linked_note: Vec::new(),
+        }
     }
     // 获取内部图的不可变引用
     pub fn graph(&self) -> &StableDiGraph<MemoryNote, GraphMemoryLink> {
-        &self.0
+        &self.graph
     }
 
     // 获取内部图的可变引用
     pub fn graph_mut(&mut self) -> &mut StableDiGraph<MemoryNote, GraphMemoryLink> {
-        &mut self.0
+        &mut self.graph
+    }
+    pub fn merge(&mut self, other: Vec<MemoryNote>) {
+        let to_merged_edge = other.iter()
+            .map(|x| (x.id().to_owned(),x.links().to_owned()));
+
+        self.merge_nodes(other);
+        let to_merged_edge = to_merged_edge
+            .filter_map(|(id,links)| {
+                if let Some(&node_index) = self.id_to_index.get(&id) {
+                    Some((node_index, links))
+                }else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+        self.merge_batch_edges(to_merged_edge);
+
+    }
+    pub fn merge_cluster(&mut self, other: MemoryCluster) {
+        todo!()
+    }
+    fn merge_node(&mut self, node: MemoryNote) -> NodeIndex {
+        if let Some(&index) = self.id_to_index.get(node.id()) {
+            if let Some(existing_node) = self.graph.node_weight_mut(index) {
+                existing_node.retrieval_increment();
+                index
+            }else {
+                let id = node.id().to_owned();
+                let index = self.graph.add_node(node);
+                self.id_to_index.insert(id, index);
+                index
+            }
+        }else {
+            let id = node.id().to_owned();
+            let index = self.graph.add_node(node);
+            self.id_to_index.insert(id, index);
+            index
+        }
+    }
+    fn merge_nodes(&mut self, nodes: Vec<MemoryNote>) -> Vec<NodeIndex> {
+        nodes.into_iter()
+            .map(|x| self.merge_node(x))
+            .collect::<Vec<_>>()
+    }
+    fn merge_edges(&mut self, source: NodeIndex, edges: Vec<MemoryLink>) {
+        for edge in edges {
+            self.merge_edge(source, edge);
+        }
+    }
+    fn merge_batch_edges(&mut self, edges: Vec<(NodeIndex, Vec<MemoryLink>)>) {
+        for (source, edges) in edges {
+            self.merge_edges(source, edges);
+        }
+    }
+    fn merge_edge(&mut self, source: NodeIndex, edge: MemoryLink) {
+        if let Some(&target_index) = self.id_to_index.get(&edge.id) {
+            let relation = edge.relation.clone();
+            if !self.relation_map.contains_key(&(source, relation.clone(), target_index)) {
+               let edge_index = self.graph.add_edge(source, target_index, GraphMemoryLink::from(edge));
+               self.relation_map.insert((source, relation, target_index), edge_index);
+            }
+        } else {
+            self.incompletely_linked_note.push((source, edge))
+        }
     }
 }
 impl Default for MemoryCluster {

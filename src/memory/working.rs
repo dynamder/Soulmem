@@ -16,6 +16,7 @@ use petgraph::visit::{Dfs, VisitMap, Visitable};
 use crate::llm_driver::{LLMConfig, Llm};
 use crate::memory::share::NoteRecord;
 use crate::memory::temporary::{MemorySource, TemporaryMemory, TemporaryNoteRecord};
+use crate::memory::working::diffuser::{DiffuserConfig, MemoryDiffuser};
 use crate::memory::working::task::{SoulTask, SoulTaskSet};
 use super::default_prompts;
 
@@ -72,11 +73,12 @@ pub struct WorkingMemory {
     working_record_map: HashMap<NodeIndex, WorkingNoteRecord>, //工作记忆激活记录映射
     uuid_to_index: HashMap<String,NodeIndex>, //uuid到节点索引的映射
     temporary: TemporaryMemory, //临时记忆
+    diffuser: MemoryDiffuser,
     task_set: SoulTaskSet, //任务集
 }
 #[allow(unused)]
 impl WorkingMemory {
-    pub fn new(task_inertia: f32) -> Result<WorkingMemory> {
+    pub fn new(task_inertia: f32, diffuser_config: DiffuserConfig) -> Result<WorkingMemory> {
         Ok(
             WorkingMemory {
                 graph: StableGraph::new(),
@@ -84,6 +86,7 @@ impl WorkingMemory {
                 temporary: TemporaryMemory::new(),
                 working_record_map: HashMap::new(),
                 task_set: SoulTaskSet::new(task_inertia)?,
+                diffuser: MemoryDiffuser::from_config(diffuser_config),
             }
         )
     }
@@ -343,7 +346,7 @@ mod test {
     use crate::memory::{MemoryLink, MemoryNoteBuilder};
     use super::*;
     fn prepare_working_memory(init: Vec<MemoryNote>) -> WorkingMemory {
-        let mut mem = WorkingMemory::new(0.5).unwrap();
+        let mut mem = WorkingMemory::new(0.5,DiffuserConfig::default()).unwrap();
         mem.merge_mem_graph(init);
         mem
     }

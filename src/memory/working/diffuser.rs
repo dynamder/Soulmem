@@ -4,7 +4,56 @@ use petgraph::prelude::{StableDiGraph, StableGraph};
 use petgraph::visit::{IntoEdgeReferences, IntoEdges, NodeIndexable, EdgeRef, IntoNodeReferences};
 use crate::memory::{GraphMemoryLink, MemoryNote};
 
+pub struct DiffuserConfig {
+    damping: f32,
+    max_iteration: usize,
+    clamp_threshold: f32
+}
+impl Default for DiffuserConfig {
+    fn default() -> Self {
+        Self {
+            damping: 0.85,
+            max_iteration: 100,
+            clamp_threshold: 1e-6
+        }
+    }
+}
+pub struct DiffuserConfigBuilder {
+    damping: Option<f32>,
+    max_iteration: Option<usize>,
+    clamp_threshold: Option<f32>
+}
+impl DiffuserConfigBuilder {
+    pub fn new() -> Self {
+        Self {
+            damping: None,
+            max_iteration: None,
+            clamp_threshold: None
+        }
+    }
+    pub fn damping(mut self, damping: f32) -> Self {
+        self.damping = Some(damping);
+        self
+    }
+    pub fn max_iteration(mut self, max_iteration: usize) -> Self {
+        self.max_iteration = Some(max_iteration);
+        self
+    }
+    pub fn clamp_threshold(mut self, clamp_threshold: f32) -> Self {
+        self.clamp_threshold = Some(clamp_threshold);
+        self
+    }
+    pub fn build(self) -> DiffuserConfig {
+        DiffuserConfig {
+            damping: self.damping.unwrap_or(0.85),
+            max_iteration: self.max_iteration.unwrap_or(100),
+            clamp_threshold: self.clamp_threshold.unwrap_or(1e-6)
+        }
+    }
+}
+
 //TODO:test it
+#[derive(Clone, Debug)]
 pub struct MemoryDiffuser {
     damping: f32,
     max_iteration: usize,
@@ -16,6 +65,13 @@ impl MemoryDiffuser {
             damping,
             max_iteration,
             clamp_threshold
+        }
+    }
+    pub fn from_config(config: DiffuserConfig) -> Self {
+        Self {
+            damping: config.damping,
+            max_iteration: config.max_iteration,
+            clamp_threshold: config.clamp_threshold
         }
     }
     pub fn diffuse(&self, start_nodes: &[NodeIndex], mem_graph: &StableGraph<MemoryNote, GraphMemoryLink>) -> Vec<(NodeIndex,f32)> {
@@ -61,5 +117,11 @@ impl MemoryDiffuser {
             }
         }
         matrix
+    }
+    pub fn sparse_diffuse(&self, start_nodes: &[NodeIndex], mem_graph: &StableGraph<MemoryNote, GraphMemoryLink>) -> Vec<(NodeIndex,f32)> {
+        todo!()
+    }
+    pub fn monte_carlo_walker() {
+        todo!()
     }
 }
