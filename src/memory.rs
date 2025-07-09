@@ -14,6 +14,7 @@ use uuid::Uuid;
 use anyhow::Result;
 use fastembed::{Embedding, TextEmbedding};
 use petgraph::prelude::{EdgeIndex, NodeIndex, StableDiGraph};
+use qdrant_client::qdrant::condition::ConditionOneOf::HasId;
 use rayon::prelude::IntoParallelIterator;
 use surrealdb::RecordId;
 use crate::soul_embedding::CalcEmbedding;
@@ -221,7 +222,8 @@ pub struct MemoryCluster {
     graph: StableDiGraph<MemoryNote, GraphMemoryLink>,
     id_to_index: HashMap<String, NodeIndex>,
     relation_map: HashMap<(NodeIndex,String,NodeIndex),EdgeIndex>,
-    incompletely_linked_note: Vec<(NodeIndex,MemoryLink)>
+    incompletely_linked_note: HashMap<String,Vec<(NodeIndex,MemoryLink)>> //目标节点的uuid，Vec<(源节点的uuid，关系)>
+    //由于link储存在source节点，source节点不在图中，link则不可知，因此source节点通常总是有效
 }
 impl MemoryCluster {
     pub fn new() -> Self {
@@ -229,7 +231,7 @@ impl MemoryCluster {
             graph: StableDiGraph::new(),
             id_to_index: HashMap::new(),
             relation_map: HashMap::new(),
-            incompletely_linked_note: Vec::new(),
+            incompletely_linked_note: HashMap::new(),
         }
     }
     // 获取内部图的不可变引用
@@ -243,10 +245,12 @@ impl MemoryCluster {
     }
     pub fn merge(&mut self, other: Vec<MemoryNote>) {
         let to_merged_edge = other.iter()
-            .map(|x| (x.id().to_owned(),x.links().to_owned()));
+            .map(|x| (x.id().to_owned(),x.links().to_owned()))
+            .collect::<Vec<_>>();
 
         self.merge_nodes(other);
         let to_merged_edge = to_merged_edge
+            .into_iter()
             .filter_map(|(id,links)| {
                 if let Some(&node_index) = self.id_to_index.get(&id) {
                     Some((node_index, links))
@@ -262,21 +266,45 @@ impl MemoryCluster {
         todo!()
     }
     fn merge_node(&mut self, node: MemoryNote) -> NodeIndex {
-        if let Some(&index) = self.id_to_index.get(node.id()) {
-            if let Some(existing_node) = self.graph.node_weight_mut(index) {
-                existing_node.retrieval_increment();
-                index
-            }else {
-                let id = node.id().to_owned();
-                let index = self.graph.add_node(node);
-                self.id_to_index.insert(id, index);
+        let node_id = node.id().to_owned();
+
+        match self.id_to_index.get(&node_id) {
+            Some(&index) if self.graph.contains_node(index) => {
+                // 节点存在且有效
+                if let Some(existing_node) = self.graph.node_weight_mut(index) {
+                    existing_node.retrieval_increment();
+                }
                 index
             }
-        }else {
-            let id = node.id().to_owned();
-            let index = self.graph.add_node(node);
-            self.id_to_index.insert(id, index);
-            index
+            _ => {
+                // 节点不存在或索引无效
+                self.add_new_node(node)
+            }
+        }
+    }
+    fn add_new_node(&mut self, node: MemoryNote) -> NodeIndex {
+        let node_id = node.id().to_owned();
+        let index = self.graph.add_node(node);
+
+        // 清理可能存在的无效索引
+        self.id_to_index.remove(&node_id);
+        self.id_to_index.insert(node_id.clone(), index);
+
+        // 处理悬挂边
+        self.process_pending_edges(&node_id);
+
+        index
+    }
+    fn process_pending_edges(&mut self, node_id: &str) {
+        if let Some(pending_edges) = self.incompletely_linked_note.remove(node_id) {
+            for (source_index, edge) in pending_edges {
+                if !self.graph.contains_node(source_index) {
+                    log::warn!("Attempted to add edge from invalid source node {node_id}");
+                    // 处理源节点丢失的情况
+                    continue;
+                }
+                self.merge_edge(source_index, edge);
+            }
         }
     }
     fn merge_nodes(&mut self, nodes: Vec<MemoryNote>) -> Vec<NodeIndex> {
@@ -295,15 +323,31 @@ impl MemoryCluster {
         }
     }
     fn merge_edge(&mut self, source: NodeIndex, edge: MemoryLink) {
+        if !self.graph.contains_node(source) {
+            log::warn!("Attempted to add edge from invalid source node");
+            return;
+        }
+
+        let target_id = edge.id.clone();
         if let Some(&target_index) = self.id_to_index.get(&edge.id) {
+            if !self.graph.contains_node(target_index) {
+                self.id_to_index.remove(&target_id);
+                self.add_pending_edge(target_id, (source, edge));
+                return;
+            }
             let relation = edge.relation.clone();
             if !self.relation_map.contains_key(&(source, relation.clone(), target_index)) {
                let edge_index = self.graph.add_edge(source, target_index, GraphMemoryLink::from(edge));
                self.relation_map.insert((source, relation, target_index), edge_index);
             }
         } else {
-            self.incompletely_linked_note.push((source, edge))
+           self.add_pending_edge(target_id, (source, edge))
         }
+    }
+    fn add_pending_edge(&mut self, target_id: String, edge: (NodeIndex, MemoryLink)) {
+        self.incompletely_linked_note.entry(target_id)
+            .or_default()
+            .push(edge);
     }
 }
 impl Default for MemoryCluster {
@@ -314,31 +358,7 @@ impl Default for MemoryCluster {
 impl From<Vec<MemoryNote>> for MemoryCluster {
     fn from(val: Vec<MemoryNote>) -> MemoryCluster {
         let mut cluster = MemoryCluster::new();
-        let mut id_to_index = HashMap::new();
-        for note in val {
-            let id = note.id().to_owned();
-            let index = cluster.graph_mut().add_node(note);
-            id_to_index.insert(id, index);
-        }
-        
-        let graph = cluster.graph_mut();
-        let indices: Vec<_> = graph.node_indices().collect();
-        
-        for source_index in indices {
-            let links = graph[source_index]
-                .links
-                .iter()
-                .map(|link| (link.id.clone(), GraphMemoryLink::from(link.clone())))
-                .collect::<Vec<_>>();
-            for (id, graph_link) in links {
-                if let Some(target_index) = id_to_index.get(&id) {
-                    graph.add_edge(source_index, *target_index, graph_link);
-                }else { 
-                    eprintln!("Error: Node linked with mem_id {id} not found")
-                }
-            }
-            
-        }
+        cluster.merge(val);
         cluster
     }
 }
