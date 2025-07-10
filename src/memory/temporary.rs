@@ -40,12 +40,12 @@ impl MemorySource {
 #[allow(dead_code)]
 #[derive(Debug,Clone)]
 pub struct TemporaryNoteRecord {
-    pub note_id: NodeRefId,
-    pub source: MemorySource,
-    activation_count: u32,
-    activation_history: HashMap<NodeRefId, u32>,
-    create_timestamp: DateTime<chrono::Utc>,
-    last_accessed: DateTime<chrono::Utc>,
+    pub note_id: NodeRefId, //记录的记忆ID
+    pub source: MemorySource, //临时记忆来源
+    activation_count: u32, //记忆被激活的次数
+    activation_history: HashMap<NodeRefId, u32>, //记录共激活历史，（共激活记忆id,共激活次数）
+    create_timestamp: DateTime<chrono::Utc>, //临时记忆创建时间
+    last_accessed: DateTime<chrono::Utc>, //临时记忆最后访问时间
 }
 impl TemporaryNoteRecord {
     #[allow(dead_code)]
@@ -91,7 +91,7 @@ impl NoteRecord for TemporaryNoteRecord {
 #[allow(unused)]
 #[derive(Debug,Clone)]
 pub struct TemporaryMemory {
-    record_map: HashMap<NodeRefId, TemporaryNoteRecord>,
+    record_map: HashMap<NodeRefId, TemporaryNoteRecord>, //记录的临时记忆
 }
 #[allow(unused)]
 impl TemporaryMemory {
@@ -100,28 +100,36 @@ impl TemporaryMemory {
             record_map: HashMap::new(),
         }
     }
+    ///添加临时记忆
     pub fn add_temp_memory(&mut self, temp_record: TemporaryNoteRecord) {
         let id = temp_record.note_id.clone();
         self.record_map.insert(id, temp_record);
     }
+    ///获取临时记忆
     pub fn get_temp_memory(&self, id: NodeRefId) -> Option<&TemporaryNoteRecord> {
         self.record_map.get(&id)
     }
+    ///获取可变临时记忆
     pub fn get_temp_memory_mut(&mut self, id: NodeRefId) -> Option<&mut TemporaryNoteRecord> {
         self.record_map.get_mut(&id)
     }
+    ///删除临时记忆
     pub fn remove_temp_memory(&mut self, id: NodeRefId) -> Option<TemporaryNoteRecord> {
         self.record_map.remove(&id)
     }
+    ///获取所有临时记忆
     pub fn get_all(&self) -> Vec<&TemporaryNoteRecord> {
         self.record_map.values().collect()
     }
+    ///获取临时记忆映射
     pub fn get_map(&self) -> &HashMap<NodeRefId, TemporaryNoteRecord> {
         &self.record_map
     }
+    ///获取可变临时记忆映射
     pub fn get_map_mut(&mut self) -> &mut HashMap<NodeRefId, TemporaryNoteRecord> {
         &mut self.record_map
     }
+    ///判断临时记忆是否存在
     pub fn contain(&self, id: NodeRefId) -> bool {
         self.record_map.contains_key(&id)
     }

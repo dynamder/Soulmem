@@ -9,10 +9,10 @@ use anyhow::Result;
 #[allow(dead_code)]
 #[derive(Debug,Clone)]
 pub struct SoulTask {
-    pub id: String,
-    pub summary: String,
-    pub related_notes: Vec<NodeRefId>,
-    pub focus_prob: f32,
+    pub id: String, //任务ID
+    pub summary: String, //任务描述摘要
+    pub related_notes: Vec<NodeRefId>, //关联的记忆
+    pub focus_prob: f32,//任务焦点概率分数
 }
 #[allow(dead_code)]
 impl SoulTask {
@@ -28,7 +28,7 @@ impl SoulTask {
 #[allow(dead_code)]
 #[derive(Debug,Clone)]
 pub struct SoulTaskSet { //挂起工作集
-    tasks: HashMap<String,SoulTask>,
+    tasks: HashMap<String,SoulTask>, //任务列表, (任务id，任务)
     focus: String, //当前聚焦任务
     inertia: f32 // 0 - 1
 }
@@ -110,11 +110,11 @@ impl SoulTaskSet {
         self.focus_normalize();
         removed
     }
-    //获取全部的任务
+    ///获取全部的任务
     pub fn tasks(&self) -> impl Iterator<Item = &SoulTask> {
         self.tasks.values()
     }
-    //获取全部的任务描述
+    ///获取全部的任务描述
     pub fn task_summaries(&self) -> Vec<String> {
         self.tasks.values().map(|task| task.summary.clone()).collect()
     }

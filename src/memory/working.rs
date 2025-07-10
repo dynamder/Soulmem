@@ -72,7 +72,7 @@ pub struct WorkingMemory {
     cluster: MemoryCluster, //记忆图
     working_record_map: HashMap<NodeRefId, WorkingNoteRecord>, //工作记忆激活记录映射
     temporary: TemporaryMemory, //临时记忆
-    diffuser: MemoryDiffuser,
+    diffuser: MemoryDiffuser, //记忆扩散器，用于模拟联想
     task_set: SoulTaskSet, //任务集
 }
 #[allow(unused)]

@@ -74,6 +74,7 @@ pub struct MemoryNote {
     evolution_history : Vec<String>,//进化历史
     pub category : String,//分类,用作Surreal db 的表名
     pub tags : Vec<String>,//标签，（认知，行为）
+    pub base_emotion: String, //情感基调
 }
 impl MemoryNote {
     pub fn new(content: impl Into<String>) -> Self {
@@ -90,6 +91,7 @@ impl MemoryNote {
             evolution_history: vec![],
             category: String::default(),
             tags: vec![],
+            base_emotion: "无明显情感".to_string(),
         }
     }
     pub fn id(&self) -> &NodeRefId {
@@ -448,6 +450,7 @@ pub struct MemoryNoteBuilder {
     evolution_history: Option<Vec<String>>,
     category: Option<String>,
     tags: Option<Vec<String>>,
+    base_emotion: Option<String>,
 }
 impl MemoryNoteBuilder {
     pub fn new(content: impl Into<String>) -> Self {
@@ -463,6 +466,7 @@ impl MemoryNoteBuilder {
             evolution_history: None,
             category: None,
             tags: None,
+            base_emotion: None,
         }
     }
     pub fn id(mut self, id: impl Into<NodeRefId>) -> Self {
@@ -505,6 +509,10 @@ impl MemoryNoteBuilder {
         self.tags = Some(tags.into());
         self
     }
+    pub fn base_emotion(mut self, base_emotion: impl Into<String>) -> Self {
+        self.base_emotion = Some(base_emotion.into());
+        self
+    }
     pub fn build(self) -> MemoryNote {
         let now = Utc::now().format("%Y%m%d%H%M%S").to_string().parse().unwrap_or(0);
         MemoryNote {
@@ -519,6 +527,7 @@ impl MemoryNoteBuilder {
             evolution_history: self.evolution_history.unwrap_or_default(),
             category: self.category.unwrap_or_default(),
             tags: self.tags.unwrap_or_default(),
+            base_emotion: self.base_emotion.unwrap_or("无明显情感".to_string()),
         }
     }
 }
