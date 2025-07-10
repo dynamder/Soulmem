@@ -6,6 +6,8 @@ mod temporary;
 mod share;
 
 use std::collections::HashMap;
+use std::fmt::Display;
+use std::sync::Arc;
 use chrono::Utc;
 use qdrant_client::Payload;
 use serde::{Deserialize, Serialize};
@@ -15,6 +17,7 @@ use anyhow::Result;
 use fastembed::{Embedding, TextEmbedding};
 use petgraph::prelude::{EdgeIndex, NodeIndex, StableDiGraph};
 use qdrant_client::qdrant::condition::ConditionOneOf::HasId;
+use qdrant_client::qdrant::PointId;
 use rayon::prelude::IntoParallelIterator;
 use surrealdb::RecordId;
 use crate::soul_embedding::CalcEmbedding;
@@ -22,7 +25,7 @@ use crate::soul_embedding::CalcEmbedding;
 ///Stand for a link to another MemoryNote,the intensity mimics the strength of the link in human brains
 #[derive(Debug,Clone,Serialize,Deserialize,PartialEq)]
 pub struct MemoryLink {
-    pub id : String,
+    pub id : NodeRefId,
     pub relation: String,
     pub link_table: String,
     pub intensity: f32
@@ -44,7 +47,7 @@ impl From<MemoryLink> for GraphMemoryLink {
 
 
 impl MemoryLink {
-    pub fn new(id: impl Into<String>, relation: Option<impl Into<String>>, link_table: impl Into<String>, intensity: f32) -> Self {
+    pub fn new(id: impl Into<NodeRefId>, relation: Option<impl Into<String>>, link_table: impl Into<String>, intensity: f32) -> Self {
         MemoryLink {
             id: id.into(),
             relation: relation.map(|x| x.into()).unwrap_or("Simple".to_string()),
@@ -61,7 +64,7 @@ impl MemoryLink {
 #[derive(Debug,Clone,Serialize,Deserialize)]
 pub struct MemoryNote {
     pub content : String, //内容，自然文本
-    mem_id: String, //uuid
+    mem_id: NodeRefId, //uuid
     pub keywords : Vec<String>,//关键词
     links : Vec<MemoryLink>,//链接记忆
     retrieval_count : u32,//被检索次数
@@ -89,8 +92,8 @@ impl MemoryNote {
             tags: vec![],
         }
     }
-    pub fn id(&self) -> &str {
-        self.mem_id.as_str()
+    pub fn id(&self) -> &NodeRefId {
+        &self.mem_id
     }
     pub fn surreal_id(&self) -> RecordId {
         RecordId::from((self.category.as_str(),self.mem_id.as_str()))
@@ -217,12 +220,59 @@ impl TryFrom<HashMap<String, qdrant_client::qdrant::Value>> for MemoryNote {
         )
     }
 }
+#[derive(Debug, Clone,Serialize,Deserialize,Default,PartialOrd,PartialEq,Eq,Hash,Ord)]
+pub struct NodeRefId(Arc<str>);
+impl NodeRefId {
+    pub fn new(id: impl AsRef<str>) -> Self {
+        Self(Arc::from(id.as_ref()))
+    }
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+impl AsRef<str> for NodeRefId {
+    fn as_ref(&self) -> &str {
+        self.0.as_ref()
+    }
+}
+impl From<String> for NodeRefId {
+    fn from(s: String) -> Self {
+        Self(s.into())
+    }
+}
+impl From<&str> for NodeRefId {
+    fn from(id: &str) -> Self {
+        Self(id.into())
+    }
+}
+impl From<Uuid> for NodeRefId {
+    fn from(id: Uuid) -> Self {
+        Self(id.to_string().into())
+    }
+}
+impl Into<String> for NodeRefId {
+    fn into(self) -> String {
+        self.0.to_string()
+    }
+}
+impl Into<PointId> for NodeRefId {
+    fn into(self) -> PointId {
+        PointId::from(self.0.as_ref())
+    }
+}
+impl Display for NodeRefId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 //TODO: test it
+#[derive(Debug, Clone)]
 pub struct MemoryCluster {
     graph: StableDiGraph<MemoryNote, GraphMemoryLink>,
-    id_to_index: HashMap<String, NodeIndex>,
+    id_to_index: HashMap<NodeRefId, NodeIndex>,
     relation_map: HashMap<(NodeIndex,String,NodeIndex),EdgeIndex>,
-    incompletely_linked_note: HashMap<String,Vec<(NodeIndex,MemoryLink)>> //目标节点的uuid，Vec<(源节点的uuid，关系)>
+    incompletely_linked_note: HashMap<NodeRefId,Vec<(NodeIndex,MemoryLink)>> //目标节点的uuid，Vec<(源节点的uuid，关系)>
     //由于link储存在source节点，source节点不在图中，link则不可知，因此source节点通常总是有效
 }
 impl MemoryCluster {
@@ -240,8 +290,31 @@ impl MemoryCluster {
     }
 
     // 获取内部图的可变引用
-    pub fn graph_mut(&mut self) -> &mut StableDiGraph<MemoryNote, GraphMemoryLink> {
+    pub fn graph_mut(&mut self) -> &mut StableDiGraph<MemoryNote, GraphMemoryLink> { //Be careful when using this
         &mut self.graph
+    }
+    pub fn add_single_node(&mut self, node: MemoryNote) {
+        let (id,links) = (node.id().to_owned(),node.links().to_owned());
+        self.merge_node(node);
+        if let Some(&node_index) = self.id_to_index.get(&id) {
+            self.merge_edges(node_index,links)
+        }
+    }
+    pub fn remove_single_node(&mut self, node_id: String) {
+
+    }
+    pub fn get_node(&self, node_id: &NodeRefId) -> Option<&MemoryNote> {
+        self.id_to_index.get(node_id).and_then(|&index| self.graph.node_weight(index))
+    }
+    pub fn get_node_mut(&mut self, node_id: &NodeRefId) -> Option<&mut MemoryNote> {
+        self.id_to_index.get(node_id).and_then(|&index| self.graph.node_weight_mut(index))
+    }
+    pub fn contains_node(&self, node_id: &NodeRefId) -> bool {
+        if let Some(&index) = self.id_to_index.get(node_id) {
+            self.graph.contains_node(index) //TODO: clean dirty index
+        } else {
+            false
+        }
     }
     pub fn merge(&mut self, other: Vec<MemoryNote>) {
         let to_merged_edge = other.iter()
@@ -295,7 +368,7 @@ impl MemoryCluster {
 
         index
     }
-    fn process_pending_edges(&mut self, node_id: &str) {
+    fn process_pending_edges(&mut self, node_id: &NodeRefId) {
         if let Some(pending_edges) = self.incompletely_linked_note.remove(node_id) {
             for (source_index, edge) in pending_edges {
                 if !self.graph.contains_node(source_index) {
@@ -344,7 +417,7 @@ impl MemoryCluster {
            self.add_pending_edge(target_id, (source, edge))
         }
     }
-    fn add_pending_edge(&mut self, target_id: String, edge: (NodeIndex, MemoryLink)) {
+    fn add_pending_edge(&mut self, target_id: NodeRefId, edge: (NodeIndex, MemoryLink)) {
         self.incompletely_linked_note.entry(target_id)
             .or_default()
             .push(edge);
@@ -365,7 +438,7 @@ impl From<Vec<MemoryNote>> for MemoryCluster {
 
 pub struct MemoryNoteBuilder {
     content: String,
-    mem_id: Option<String>,
+    mem_id: Option<NodeRefId>,
     keywords: Option<Vec<String>>,
     links: Option<Vec<MemoryLink>>,
     retrieval_count: Option<u32>,
@@ -392,7 +465,7 @@ impl MemoryNoteBuilder {
             tags: None,
         }
     }
-    pub fn id(mut self, id: impl Into<String>) -> Self {
+    pub fn id(mut self, id: impl Into<NodeRefId>) -> Self {
         self.mem_id = Some(id.into());
         self
     }
@@ -453,6 +526,84 @@ impl MemoryNoteBuilder {
 mod test {
     #[allow(unused_imports)]
     use super::*;
+    fn prepare_vec_graph() -> Vec<MemoryNote> {
+        vec![
+            MemoryNoteBuilder::new("test1")
+                .id("test1")
+                .links(
+                    vec![
+                        MemoryLink::new("test2", None::<String>, "test".to_string(),100.0),
+                        MemoryLink::new("test3", None::<String>, "test".to_string(),100.0),
+                    ]
+                )
+                .build(),
+            MemoryNoteBuilder::new("test2")
+                .id("test2")
+                .links(
+                    vec![
+                        MemoryLink::new("test1", None::<String>, "test".to_string(),100.0),
+                        MemoryLink::new("test3", None::<String>, "test".to_string(),100.0),
+                    ]
+                )
+                .build(),
+            MemoryNoteBuilder::new("test3")
+                .id("test3")
+                .links(
+                    vec![
+                        MemoryLink::new("test1", None::<String>, "test".to_string(),100.0),
+                        MemoryLink::new("test2", None::<String>, "test".to_string(),100.0),
+                    ]
+                )
+                .build(),
+        ]
+    }
+    fn prepare_merge_graph() -> Vec<MemoryNote> {
+        vec![
+            MemoryNoteBuilder::new("test4")
+                .id("test4")
+                .links(
+                    vec![
+                        MemoryLink::new("test8", None::<String>, "test".to_string(),100.0),
+                        MemoryLink::new("test9", None::<String>, "test".to_string(),100.0),
+                    ]
+                )
+                .build(),
+            MemoryNoteBuilder::new("test5")
+                .id("test5")
+                .links(
+                    vec![
+                        MemoryLink::new("test4", None::<String>, "test".to_string(),100.0),
+                        MemoryLink::new("test6", None::<String>, "test".to_string(),100.0),
+                    ]
+                )
+                .build(),
+            MemoryNoteBuilder::new("test6")
+                .id("test6")
+                .links(
+                    vec![
+                        MemoryLink::new("test10", None::<String>, "test".to_string(),100.0),
+                        MemoryLink::new("test11", None::<String>, "test".to_string(),100.0),
+                    ]
+                )
+                .build(),
+        ]
+    }
+    fn prepare_merge_graph_2() -> Vec<MemoryNote> {
+        vec![
+            MemoryNoteBuilder::new("test8")
+                .id("test8")
+                .build(),
+            MemoryNoteBuilder::new("test9")
+                .id("test9")
+                .build(),
+            MemoryNoteBuilder::new("test10")
+                .id("test10")
+                .build(),
+            MemoryNoteBuilder::new("test11")
+                .id("test11")
+                .build(),
+        ]
+     }
     #[test]
     fn test_memory_note_create_simple() {
         let memory_note = MemoryNote::new("test");
@@ -474,7 +625,7 @@ mod test {
             .build();
 
         assert_eq!(memory_note.content, "test");
-        assert_eq!(memory_note.mem_id, "test_id");
+        assert_eq!(memory_note.mem_id.as_str(), "test_id");
         assert_eq!(memory_note.keywords, vec!["test".to_string()]);
         assert_eq!(memory_note.links, vec![MemoryLink::new("test", None::<String>,"test".to_string(),100.0)]);
         assert_eq!(memory_note.retrieval_count, 6u32);
@@ -484,5 +635,34 @@ mod test {
         assert_eq!(memory_note.evolution_history, vec!["test".to_string()]);
         assert_eq!(memory_note.category, "test");
         assert_eq!(memory_note.tags, vec!["test".to_string()]);
+    }
+    #[test]
+    fn test_memory_cluster_create() {
+        let mem_vec = prepare_vec_graph();
+        let cluster = MemoryCluster::from(mem_vec);
+        assert_eq!(cluster.graph.node_count(),3);
+        assert_eq!(cluster.graph.edge_count(),6);
+        println!("{:?}",cluster);
+    }
+    #[test]
+    fn test_memory_merge() {
+        let mem_vec = prepare_vec_graph();
+        let mem_merge = prepare_merge_graph();
+        let mut cluster = MemoryCluster::from(mem_vec);
+        cluster.merge(mem_merge);
+        assert_eq!(cluster.graph.node_count(),6);
+        assert_eq!(cluster.graph.edge_count(),8);
+        assert_eq!(cluster.incompletely_linked_note.len(), 4);
+        assert_eq!(cluster.id_to_index.len(),6);
+        assert_eq!(cluster.relation_map.len(),8);
+        let mem_merge_2 = prepare_merge_graph_2();
+        cluster.merge(mem_merge_2);
+        assert_eq!(cluster.graph.node_count(),10);
+        assert_eq!(cluster.graph.edge_count(),12);
+        assert_eq!(cluster.incompletely_linked_note.len(), 0);
+        assert_eq!(cluster.id_to_index.len(),10);
+        assert_eq!(cluster.relation_map.len(),12);
+        println!("{:?}",cluster);
+
     }
 }

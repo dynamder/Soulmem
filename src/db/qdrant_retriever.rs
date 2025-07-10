@@ -66,7 +66,7 @@ impl QdrantRetriever {
             .zip(payloads.into_iter())
             .filter_map(|(vector,note)| {
                 if let Ok(point_payload) = note.as_payload() {
-                    Some(PointStruct::new(note.id(), vector, point_payload))
+                    Some(PointStruct::new(note.id().as_str(), vector, point_payload))
                 }else {
                     None
                 }

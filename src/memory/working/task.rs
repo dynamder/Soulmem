@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use ordered_float::OrderedFloat;
 use rand::prelude::IteratorRandom;
-use crate::memory::probability;
+use crate::memory::{probability, NodeRefId};
 use crate::memory::working::DEFAULT_FOCUS;
 use anyhow::Result;
 
@@ -11,12 +11,12 @@ use anyhow::Result;
 pub struct SoulTask {
     pub id: String,
     pub summary: String,
-    pub related_notes: Vec<String>,
+    pub related_notes: Vec<NodeRefId>,
     pub focus_prob: f32,
 }
 #[allow(dead_code)]
 impl SoulTask {
-    pub fn new(summary: String, related_notes: Vec<String>) -> Self {
+    pub fn new(summary: String, related_notes: Vec<NodeRefId>) -> Self {
         SoulTask {
             id: uuid::Uuid::new_v4().to_string(),
             summary,
@@ -181,7 +181,7 @@ impl SoulTaskSet {
         self.focus.clone()
     }
     ///根据当前焦点情况，按比例采样直接关联记忆
-    pub fn focus_sample(&self, sliding_window_size: usize, rng: &mut impl rand::RngCore) -> Vec<String> {
+    pub fn focus_sample(&self, sliding_window_size: usize, rng: &mut impl rand::RngCore) -> Vec<NodeRefId> {
         if self.tasks.is_empty() || sliding_window_size == 0 {
             return Vec::new();
         }
@@ -257,7 +257,7 @@ impl SoulTaskSet {
         tasks: &[&SoulTask],
         counts: &[usize],
         rng: &mut impl rand::RngCore,
-    ) -> Vec<String> {
+    ) -> Vec<NodeRefId> {
         let total_samples: usize = counts.iter().sum();
         let mut sampled = Vec::with_capacity(total_samples);
 
@@ -277,7 +277,7 @@ impl SoulTaskSet {
     }
 
     ///备用采样方法，当概率异常时
-    fn fallback_sample(&self, sliding_window_size: usize, rng: &mut impl rand::RngCore) -> Vec<String> {
+    fn fallback_sample(&self, sliding_window_size: usize, rng: &mut impl rand::RngCore) -> Vec<NodeRefId> {
         // 均匀采样所有相关节点
         let all_notes: Vec<_> = self.tasks.values()
             .flat_map(|t| &t.related_notes)
@@ -470,8 +470,8 @@ mod tests {
             focus: DEFAULT_FOCUS.to_string(),
             inertia: 0.01,
         };
-        let task1 = SoulTask::new("test1".to_string(), vec!["test1".to_string()]);
-        let task2 = SoulTask::new("test2".to_string(), vec!["test2".to_string()]);
+        let task1 = SoulTask::new("test1".to_string(), vec![NodeRefId::from("test1")]);
+        let task2 = SoulTask::new("test2".to_string(), vec![NodeRefId::from("test2")]);
         let task1_id = task1.id.clone();
         let task2_id = task2.id.clone();
         task_set.add_task(task1);
@@ -503,8 +503,8 @@ mod tests {
         };
         let mut task1 = create_test_task("t1", "Task 1");
         let mut task2 = create_test_task("t2", "Task 2");
-        task1.related_notes = vec!["111".to_string(),"222".to_string(),"333".to_string()];
-        task2.related_notes = vec!["444".to_string(),"555".to_string(),"666".to_string()];
+        task1.related_notes = vec![NodeRefId::from("111"),NodeRefId::from("222"),NodeRefId::from("333")];
+        task2.related_notes = vec![NodeRefId::from("444"),NodeRefId::from("555"),NodeRefId::from("666")];
 
         // 创建两个任务，具有相同的概率
         let tasks = vec![
@@ -542,9 +542,9 @@ mod tests {
         // 创建一个带有相关笔记的任务
         let mut task = create_test_task("t1", "Task 1");
         task.related_notes = vec![
-            "note1".to_string(),
-            "note2".to_string(),
-            "note3".to_string(),
+            NodeRefId::from("note1"),
+            NodeRefId::from("note2"),
+            NodeRefId::from("note3"),
         ];
 
         let tasks = vec![&task];
@@ -554,7 +554,7 @@ mod tests {
         let samples = task_set.perform_sampling(&tasks, &counts, &mut rng);
 
         assert_eq!(samples.len(), 2);
-        assert!(samples.iter().all(|s| s.starts_with("note")));
+        assert!(samples.iter().all(|s| s.as_str().starts_with("note")));
     }
 
     #[test]
@@ -568,9 +568,9 @@ mod tests {
         // 创建一个带有相关笔记的任务
         let mut task = create_test_task("t1", "Task 1");
         task.related_notes = vec![
-            "note1".to_string(),
-            "note2".to_string(),
-            "note3".to_string(),
+            NodeRefId::from("note1"),
+            NodeRefId::from("note2"),
+            NodeRefId::from("note3"),
         ];
         task_set.add_task(task);
             
@@ -579,7 +579,7 @@ mod tests {
         let samples = task_set.fallback_sample(2, &mut rng);
 
         assert_eq!(samples.len(), 2);
-        assert!(samples.iter().all(|s| s.starts_with("note")));
+        assert!(samples.iter().all(|s| s.as_str().starts_with("note")));
     }
 
     #[test]
@@ -592,7 +592,7 @@ mod tests {
 
         // 添加两个任务，其中一个有笔记，一个没有
         let mut task1 = create_test_task("t1", "Task 1");
-        task1.related_notes = vec!["note1".to_string()];
+        task1.related_notes = vec![NodeRefId::from("note1")];
 
         let task2 = create_test_task("t2", "Task 2");
 
