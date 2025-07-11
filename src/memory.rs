@@ -6,15 +6,15 @@ mod temporary;
 mod share;
 
 use std::collections::HashMap;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 use std::sync::Arc;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use qdrant_client::Payload;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map};
 use uuid::Uuid;
 use anyhow::Result;
-use fastembed::{Embedding, TextEmbedding};
+use fastembed::{Embedding, EmbeddingModel, TextEmbedding};
 use petgraph::prelude::{EdgeIndex, NodeIndex, StableDiGraph};
 use qdrant_client::qdrant::condition::ConditionOneOf::HasId;
 use qdrant_client::qdrant::PointId;
@@ -59,6 +59,29 @@ impl MemoryLink {
         RecordId::from((self.link_table.as_str(),self.id.as_str()))
     }
 }
+
+#[derive(Debug,Clone,Serialize,Deserialize)]
+pub struct MemoryEmbeddings {
+    pub concept_embedding: Vec<f32>, //关键概念嵌入
+    pub emotion_embedding: Vec<f32>, //情感嵌入
+    pub context_embedding: Vec<f32>, //上下文情境嵌入
+    pub last_updated: DateTime<Utc>, //最后更新时间
+}
+impl MemoryEmbeddings {
+    pub fn new(
+        concept_embedding: Vec<f32>,
+        emotion_embedding: Vec<f32>,
+        context_embedding: Vec<f32>,
+    ) -> Self {
+        Self {
+            concept_embedding,
+            emotion_embedding,
+            context_embedding,
+            last_updated: Utc::now(),
+        }
+    }
+}
+
 
 ///The basic unit of memory
 #[derive(Debug,Clone,Serialize,Deserialize)]
@@ -144,8 +167,21 @@ impl MemoryNote {
             "category": &self.category
         }))?)
     }
+    pub fn get_embedding(&self, embedding_model: &TextEmbedding) -> Result<MemoryEmbeddings> {
+        let embeddings = embedding_model.embed(
+            vec![
+                &self.keywords.join(" "),
+                &self.base_emotion,
+                &self.context
+            ],
+            None
+        )?;
+        let [concept, emotion, context]: [Embedding; 3] = embeddings.try_into()
+            .map_err(|_| anyhow::anyhow!("Embedding error: the length doesn't match"))?;
+        Ok(MemoryEmbeddings::new(concept, emotion, context))
+    }
 }
-impl CalcEmbedding for MemoryNote {
+impl CalcEmbedding for MemoryNote {  //TODO: modify the calc embedding trait function to suit the latest embedding calc
     fn calc_embedding(&self,embedding_model: &TextEmbedding) -> Result<Vec<Embedding>> {
         embedding_model.embed(vec![self.content.as_str()],None)
     }
@@ -269,21 +305,26 @@ impl Display for NodeRefId {
 }
 
 //TODO: test it
-#[derive(Debug, Clone)]
 pub struct MemoryCluster {
     graph: StableDiGraph<MemoryNote, GraphMemoryLink>,
     id_to_index: HashMap<NodeRefId, NodeIndex>,
     relation_map: HashMap<(NodeIndex,String,NodeIndex),EdgeIndex>,
-    incompletely_linked_note: HashMap<NodeRefId,Vec<(NodeIndex,MemoryLink)>> //目标节点的uuid，Vec<(源节点的uuid，关系)>
+    incompletely_linked_note: HashMap<NodeRefId,Vec<(NodeIndex,MemoryLink)>>, //目标节点的uuid，Vec<(源节点的index，关系)>
+
+    embedding_store: HashMap<NodeRefId, MemoryEmbeddings>,
+    embedding_model: TextEmbedding
+
     //由于link储存在source节点，source节点不在图中，link则不可知，因此source节点通常总是有效
 }
 impl MemoryCluster {
-    pub fn new() -> Self {
+    pub fn new(embedding_model: TextEmbedding) -> Self {
         Self {
             graph: StableDiGraph::new(),
             id_to_index: HashMap::new(),
             relation_map: HashMap::new(),
             incompletely_linked_note: HashMap::new(),
+            embedding_store: HashMap::new(),
+            embedding_model
         }
     }
     // 获取内部图的不可变引用
@@ -295,6 +336,9 @@ impl MemoryCluster {
     pub fn graph_mut(&mut self) -> &mut StableDiGraph<MemoryNote, GraphMemoryLink> { //Be careful when using this
         &mut self.graph
     }
+    fn add_embeddings(&mut self, node_id: NodeRefId, embeddings: MemoryEmbeddings) {
+        self.embedding_store.insert(node_id, embeddings);
+    }
     pub fn add_single_node(&mut self, node: MemoryNote) {
         let (id,links) = (node.id().to_owned(),node.links().to_owned());
         self.merge_node(node);
@@ -302,8 +346,18 @@ impl MemoryCluster {
             self.merge_edges(node_index,links)
         }
     }
-    pub fn remove_single_node(&mut self, node_id: String) {
-
+    /// 删除单个节点，返回被删除的节点，并清理冗余项目
+    pub fn remove_single_node(&mut self, node_id: NodeRefId) -> Option<MemoryNote> { //TODO: test it
+        if let Some(idx) = self.id_to_index.remove(&node_id) {
+            self.embedding_store.remove(&node_id);
+            self.relation_map.retain(|k,_| k.0 != idx && k.2 != idx);
+            self.incompletely_linked_note.values_mut().for_each(|v| {
+                v.retain(|(origin_idx,_)| *origin_idx != idx)
+            });
+            self.graph.remove_node(idx)
+        }else {
+            None
+        }
     }
     pub fn get_node(&self, node_id: &NodeRefId) -> Option<&MemoryNote> {
         self.id_to_index.get(node_id).and_then(|&index| self.graph.node_weight(index))
@@ -359,10 +413,17 @@ impl MemoryCluster {
     }
     fn add_new_node(&mut self, node: MemoryNote) -> NodeIndex {
         let node_id = node.id().to_owned();
+        let embeddings = node.get_embedding(&self.embedding_model);
+        if let Ok(embeddings) = embeddings {
+            self.add_embeddings(node_id.clone(), embeddings);
+        }else {
+            log::warn!("Failed to get embeddings for node {node_id}");
+        }
+
         let index = self.graph.add_node(node);
 
         // 清理可能存在的无效索引
-        self.id_to_index.remove(&node_id);
+        //self.id_to_index.remove(&node_id);
         self.id_to_index.insert(node_id.clone(), index);
 
         // 处理悬挂边
@@ -425,18 +486,17 @@ impl MemoryCluster {
             .push(edge);
     }
 }
-impl Default for MemoryCluster {
-    fn default() -> Self {
-        Self::new()
+impl Debug for MemoryCluster {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MemoryCluster")
+            .field("graph", &self.graph)
+            .field("id_to_index", &self.id_to_index)
+            .field("incompletely_linked_note", &self.incompletely_linked_note)
+            .field("relation_map", &self.relation_map)
+            .finish()
     }
 }
-impl From<Vec<MemoryNote>> for MemoryCluster {
-    fn from(val: Vec<MemoryNote>) -> MemoryCluster {
-        let mut cluster = MemoryCluster::new();
-        cluster.merge(val);
-        cluster
-    }
-}
+
 
 pub struct MemoryNoteBuilder {
     content: String,
@@ -531,8 +591,38 @@ impl MemoryNoteBuilder {
         }
     }
 }
+pub struct MemoryQuery {
+    pub text: String,
+    pub concept_vec: Vec<f32>,
+    pub emotion_vec: Vec<f32>,
+    pub context_vec: Vec<f32>
+}
+impl MemoryQuery {
+    pub fn new(text: impl Into<String>) -> Self {
+        Self {
+            text: text.into(),
+            concept_vec: Vec::new(),
+            emotion_vec: Vec::new(),
+            context_vec: Vec::new(),
+        }
+    }
+    pub fn with_concept(mut self, concept: Vec<f32>) -> Self {
+        self.concept_vec = concept;
+        self
+    }
+    pub fn with_emotion(mut self, emotion: Vec<f32>) -> Self {
+        self.emotion_vec = emotion;
+        self
+    }
+
+    pub fn with_context(mut self, context: Vec<f32>) -> Self {
+        self.context_vec = context;
+        self
+    }
+}
 
 mod test {
+    use fastembed::InitOptions;
     #[allow(unused_imports)]
     use super::*;
     fn prepare_vec_graph() -> Vec<MemoryNote> {
@@ -648,7 +738,12 @@ mod test {
     #[test]
     fn test_memory_cluster_create() {
         let mem_vec = prepare_vec_graph();
-        let cluster = MemoryCluster::from(mem_vec);
+        let mut cluster = MemoryCluster::new(
+            TextEmbedding::try_new(
+                InitOptions::new(EmbeddingModel::AllMiniLML6V2).with_show_download_progress(true),
+            ).unwrap()
+        );
+        cluster.merge(mem_vec);
         assert_eq!(cluster.graph.node_count(),3);
         assert_eq!(cluster.graph.edge_count(),6);
         println!("{:?}",cluster);
@@ -657,7 +752,12 @@ mod test {
     fn test_memory_merge() {
         let mem_vec = prepare_vec_graph();
         let mem_merge = prepare_merge_graph();
-        let mut cluster = MemoryCluster::from(mem_vec);
+        let mut cluster = MemoryCluster::new(
+            TextEmbedding::try_new(
+                InitOptions::new(EmbeddingModel::AllMiniLML6V2).with_show_download_progress(true),
+            ).unwrap()
+        );
+        cluster.merge(mem_vec);
         cluster.merge(mem_merge);
         assert_eq!(cluster.graph.node_count(),6);
         assert_eq!(cluster.graph.edge_count(),8);

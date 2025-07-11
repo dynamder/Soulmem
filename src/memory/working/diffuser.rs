@@ -1,6 +1,7 @@
-use nalgebra::{DMatrix, DVector};
+use nalgebra::{DVector};
+use nalgebra_sparse::{CooMatrix, CsrMatrix};
 use petgraph::graph::NodeIndex;
-use petgraph::prelude::{StableDiGraph, StableGraph};
+use petgraph::prelude::{StableGraph};
 use petgraph::visit::{IntoEdgeReferences, IntoEdges, NodeIndexable, EdgeRef, IntoNodeReferences};
 use crate::memory::{GraphMemoryLink, MemoryNote};
 
@@ -100,9 +101,9 @@ impl MemoryDiffuser {
             })
             .collect()
     }
-    fn build_transition_matrix(&self, start_nodes: &[NodeIndex],mem_graph: &StableGraph<MemoryNote, GraphMemoryLink>) -> DMatrix<f32> {
+    fn build_transition_matrix(&self, start_nodes: &[NodeIndex],mem_graph: &StableGraph<MemoryNote, GraphMemoryLink>) -> CsrMatrix<f32> {
         let node_bound = mem_graph.node_bound();
-        let mut matrix: DMatrix<f32> = DMatrix::zeros(node_bound,node_bound);
+        let mut matrix: CooMatrix<f32> = CooMatrix::zeros(node_bound,node_bound);
         for source in mem_graph.node_references() {
             let total_intensity = mem_graph.edges(source.0).fold(0.0, |acc, edge| {
                 acc + edge.weight().intensity
@@ -111,16 +112,12 @@ impl MemoryDiffuser {
                 continue;
             }
             for edge in mem_graph.edges(source.0) {
-                if let Some(item) = matrix.get_mut((edge.target().index(), source.0.index())) {
-                    *item = edge.weight().intensity / total_intensity;
-                }
+                matrix.push(edge.target().index(),source.0.index(), edge.weight().intensity / total_intensity);
             }
         }
-        matrix
+        CsrMatrix::from(&matrix)
     }
-    pub fn sparse_diffuse(&self, start_nodes: &[NodeIndex], mem_graph: &StableGraph<MemoryNote, GraphMemoryLink>) -> Vec<(NodeIndex,f32)> {
-        todo!()
-    }
+   
     pub fn monte_carlo_walker() {
         todo!()
     }

@@ -9,6 +9,7 @@ use petgraph::stable_graph::StableGraph;
 use crate::memory::{GraphMemoryLink, MemoryCluster, MemoryNote, NodeRefId};
 use anyhow::Result;
 use chrono::DateTime;
+use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
 use formatx::formatx;
 use petgraph::Direction;
 use petgraph::prelude::EdgeRef;
@@ -67,7 +68,7 @@ impl NoteRecord for WorkingNoteRecord {
 }
 
 #[allow(dead_code)]
-#[derive(Debug,Clone)]
+#[derive(Debug)]
 pub struct WorkingMemory {
     cluster: MemoryCluster, //记忆图
     working_record_map: HashMap<NodeRefId, WorkingNoteRecord>, //工作记忆激活记录映射
@@ -77,10 +78,14 @@ pub struct WorkingMemory {
 }
 #[allow(unused)]
 impl WorkingMemory {
-    pub fn new(task_inertia: f32, diffuser_config: DiffuserConfig) -> Result<WorkingMemory> {
+    pub fn new(task_inertia: f32, diffuser_config: DiffuserConfig, embedding_model: EmbeddingModel) -> Result<WorkingMemory> {
         Ok(
             WorkingMemory {
-                cluster: MemoryCluster::new(),
+                cluster: MemoryCluster::new(
+                    TextEmbedding::try_new(
+                        InitOptions::new(embedding_model).with_show_download_progress(true),
+                    )?
+                ),
                 temporary: TemporaryMemory::new(),
                 working_record_map: HashMap::new(),
                 task_set: SoulTaskSet::new(task_inertia)?,
@@ -121,8 +126,8 @@ impl WorkingMemory {
         );
         self.cluster.add_single_node(mem);
     }
-    ///获取当前焦点的LLM上下文,并维护激活信息
-    pub fn focus_context(&mut self, sliding_window_size: usize, depth: usize, rng: &mut impl rand::RngCore) -> Vec<String> {
+    ///进行记忆扩散，获得指导LLM的上下文，并记录共激活信息
+    pub fn diffuse_context(&mut self, sliding_window_size: usize, depth: usize, rng: &mut impl rand::RngCore) -> Vec<String> {
        todo!()
     }
     ///使用LLM找到关联的任务
@@ -213,7 +218,7 @@ mod test {
     use crate::memory::{MemoryLink, MemoryNoteBuilder};
     use super::*;
     fn prepare_working_memory(init: Vec<MemoryNote>) -> WorkingMemory {
-        let mut mem = WorkingMemory::new(0.5,DiffuserConfig::default()).unwrap();
+        let mut mem = WorkingMemory::new(0.5,DiffuserConfig::default(), EmbeddingModel::AllMiniLML6V2).unwrap();
         mem.merge_mem_graph(init);
         mem
     }
@@ -334,7 +339,7 @@ mod test {
         mem.add_task("task1",&vec![NodeRefId::from("test1")]);
         mem.add_task("task2",&vec![NodeRefId::from("test2")]);
         mem.add_task("task3",&vec![NodeRefId::from("test3")]);
-        let context = mem.focus_context(6,1,&mut rand::rng());
+        let context = mem.diffuse_context(6,1,&mut rand::rng());
         assert_eq!(context.len(), 4,"context is: {context:?}");
     }
     #[test]
