@@ -3,6 +3,7 @@ pub mod memory;
 mod soul_embedding;
 mod llm_driver;
 mod db;
+mod utils;
 
 pub struct AgentMemory {
     

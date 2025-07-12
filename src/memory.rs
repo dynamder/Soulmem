@@ -362,6 +362,9 @@ impl MemoryCluster {
     pub fn get_node(&self, node_id: &NodeRefId) -> Option<&MemoryNote> {
         self.id_to_index.get(node_id).and_then(|&index| self.graph.node_weight(index))
     }
+    pub fn get_embedding(&self, node_id: &NodeRefId) -> Option<&MemoryEmbeddings> {
+        self.embedding_store.get(node_id)
+    }
     pub fn get_node_mut(&mut self, node_id: &NodeRefId) -> Option<&mut MemoryNote> {
         self.id_to_index.get(node_id).and_then(|&index| self.graph.node_weight_mut(index))
     }
