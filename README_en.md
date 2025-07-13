@@ -112,7 +112,7 @@ graph TD
 
 - [x] Tasks and task focus
 
-- [ ] Memory diffusion mechanism (in development)
+- [x] Memory diffusion mechanism (PPR, Hybrid PPR Only, Random Walker method will be implemented in further version)
 
 - [ ] Working memory (in development)
 

@@ -7,7 +7,8 @@ use petgraph::prelude::{StableGraph};
 use petgraph::visit::{EdgeRef};
 use surrealdb::sql::Start;
 use crate::memory::{GraphMemoryLink, MemoryCluster, MemoryNote, MemoryQuery};
-use crate::utils::IteratorPipe;
+use crate::utils::pipe::IteratorPipe;
+use crate::memory::probability::{data_softmax, online_temperature_softmax};
 
 fn cosine_similarity(a: &DVector<f32>, b: &DVector<f32>) -> Result<f32> {
     if a.len() != b.len() {
@@ -57,8 +58,8 @@ impl DiffuserConfigBuilder {
     }
     pub fn build(self) -> DiffuserConfig {
         DiffuserConfig {
-            damping: self.damping.unwrap_or(0.85),
-            max_iteration: self.max_iteration.unwrap_or(100),
+            damping: self.damping.unwrap_or(0.5),
+            max_iteration: self.max_iteration.unwrap_or(50),
             clamp_threshold: self.clamp_threshold.unwrap_or(1e-6)
         }
     }
@@ -73,34 +74,55 @@ pub enum DiffuseType {
 #[derive(Debug,Copy,Clone)]
 pub struct DiffuseBoostWeight {
     pub emotion: f32,
-    pub context: f32
+    pub context: f32,
+    pub emotion_threshold: f32,
+    pub context_threshold: f32
 }
 impl DiffuseBoostWeight {
-    pub fn new(emotion: f32, context: f32) -> Self {
+    pub fn new(emotion: f32, context: f32, emotion_threshold: f32, context_threshold: f32) -> Self {
         Self {
             emotion,
-            context
+            context,
+            emotion_threshold,
+            context_threshold
         }
     }
     pub fn from_preset(preset: DiffuseType) -> Self {
         match preset { //TODO:test these preset value's actual effect
-            DiffuseType::Concept => Self::new(0.9, 0.9),
-            DiffuseType::Emotion => Self::new(1.2, 0.6),
-            DiffuseType::Context => Self::new(0.7, 1.1)
+            DiffuseType::Concept => Self {
+                emotion: 0.6,
+                context: 0.6,
+                emotion_threshold: 0.35,
+                context_threshold: 0.4
+            },
+            DiffuseType::Emotion => Self {
+                emotion: 2.5,
+                context: 0.0,
+                emotion_threshold: 0.36,
+                context_threshold: 0.3
+            },
+            DiffuseType::Context => Self {
+                emotion: 0.0,
+                context: 2.5,
+                emotion_threshold: 0.3,
+                context_threshold: 0.5
+            }
         }
     }
 }
 #[derive(Debug,Clone)]
 pub struct DiffuseInitStruct<'a> {
     pub blend_weight: DiffuseBoostWeight,
+    normalize_temperature: f32,
     start_nodes: &'a [NodeIndex],
     emotion_vec: Option<DVector<f32>>,
     context_vec: Option<DVector<f32>>
 }
 impl<'a> DiffuseInitStruct<'a> {
-    pub fn new(blend_weight: DiffuseBoostWeight, start_nodes: &'a [NodeIndex]) -> Self {
+    pub fn new(blend_weight: DiffuseBoostWeight, normalize_temperature: f32, start_nodes: &'a [NodeIndex]) -> Self {
         Self {
             blend_weight,
+            normalize_temperature,
             start_nodes,
             emotion_vec: None,
             context_vec: None
@@ -122,6 +144,9 @@ impl<'a> DiffuseInitStruct<'a> {
     }
     pub fn context_vec(&self) -> Option<&DVector<f32>> {
         self.context_vec.as_ref()
+    }
+    pub fn normalize_temperature(&self) -> f32 {
+        self.normalize_temperature
     }
 }
 #[derive(Debug,Clone)]
@@ -245,18 +270,19 @@ impl MemoryDiffuser {
         }
         CsrMatrix::from(&matrix)
     }
-    pub fn hybrid_diffuse(&self, memory_cluster: &MemoryCluster, init: DiffuseInitStruct) -> DiffuseResult {
+    pub fn hybrid_diffuse(&self, memory_cluster: &MemoryCluster, init: DiffuseInitStruct) -> Result<DiffuseResult> {
         let base_result = self.base_diffuse(init.start_nodes(),memory_cluster.graph());
         let base_iter = base_result.clone().into_iter();
 
-        let boosted_iter = base_iter
+        let boosted = base_iter
             .pipe_if(
                 init.emotion_vec().is_some(),
                 |iter| self.emotion_boost(
                     iter,
                     memory_cluster,
                     init.emotion_vec().unwrap(),
-                    init.blend_weight.emotion
+                    init.blend_weight.emotion,
+                    init.blend_weight.emotion_threshold
                 )
             )
             .pipe_if(
@@ -265,12 +291,15 @@ impl MemoryDiffuser {
                     iter,
                     memory_cluster,
                     init.context_vec().unwrap(),
-                    init.blend_weight.context
+                    init.blend_weight.context,
+                    init.blend_weight.context_threshold
                 )
-            );
-        DiffuseResult::new(base_result,boosted_iter.collect())
+            )
+            .collect::<Vec<_>>();
+
+        Ok(DiffuseResult::new(base_result, data_softmax(&boosted, init.normalize_temperature)?))
     }
-    fn emotion_boost<I>(&self, raw: I, memory_cluster: &MemoryCluster, emotion_vec: &DVector<f32>, boost_factor: f32) -> impl Iterator<Item = (NodeIndex, f32)>
+    fn emotion_boost<I>(&self, raw: I, memory_cluster: &MemoryCluster, emotion_vec: &DVector<f32>, boost_factor: f32, threshold: f32) -> impl Iterator<Item = (NodeIndex, f32)>
     where
         I: IntoIterator<Item = (NodeIndex, f32)>
     {
@@ -278,7 +307,8 @@ impl MemoryDiffuser {
             if let Some(node) = memory_cluster.graph().node_weight(node_idx) {
                 if let Some(embeddings) = memory_cluster.get_embedding(node.id()) {
                     if let Ok(cos_sim) = cosine_similarity(emotion_vec,&DVector::from_column_slice(&embeddings.emotion_embedding)) {
-                        return (node_idx,base_score * ((1.0 + cos_sim) * boost_factor).max(0.8))
+                        println!("idx:{node_idx:?}, emotion_cos_sim: {cos_sim}");
+                        return (node_idx,base_score * Self::apply_boost_factor(cos_sim, boost_factor,threshold))
                     }
                 }
             }
@@ -286,7 +316,7 @@ impl MemoryDiffuser {
         })
 
     }
-    fn context_boost<I>(&self, raw: I, memory_cluster: &MemoryCluster, context_vec: &DVector<f32>, boost_factor: f32) -> impl Iterator<Item=(NodeIndex,f32)>
+    fn context_boost<I>(&self, raw: I, memory_cluster: &MemoryCluster, context_vec: &DVector<f32>, boost_factor: f32, threshold: f32) -> impl Iterator<Item=(NodeIndex,f32)>
     where
         I: IntoIterator<Item = (NodeIndex, f32)>
     {
@@ -294,12 +324,35 @@ impl MemoryDiffuser {
             if let Some(node) = memory_cluster.graph().node_weight(node_idx) {
                 if let Some(embeddings) = memory_cluster.get_embedding(node.id()) {
                     if let Ok(cos_sim) = cosine_similarity(context_vec,&DVector::from_column_slice(&embeddings.context_embedding)) {
-                        return (node_idx,base_score * (0.8 + 0.4 * cos_sim) * boost_factor)
+                        println!("idx:{node_idx:?}, context_cos_sim: {cos_sim}");
+                        return (node_idx,base_score * Self::apply_boost_factor(cos_sim, boost_factor, threshold))
                     }
                 }
             }
             (node_idx,base_score)
         })
+    }
+    fn apply_boost_factor(cos_sim: f32, boost_factor: f32, threshold: f32) -> f32 {
+        if boost_factor == 0.0 {
+            return 1.0;
+        }
+        if boost_factor > 0.0 {
+            // 增强逻辑：高于阈值增强，低于阈值抑制
+            if cos_sim >= threshold {
+                // 指数增强高相似度
+                1.0 + boost_factor * (cos_sim - threshold).exp()
+            } else {
+                // 线性抑制低相似度
+                1.0 - boost_factor * (threshold - cos_sim)
+            }
+        } else {
+            let abs_factor = boost_factor.abs();
+            if cos_sim < threshold {
+                1.0 - abs_factor * (threshold - cos_sim).exp()
+            }else {
+                1.0 - abs_factor * (cos_sim - threshold)
+            }
+        }
     }
    
     pub fn monte_carlo_walker() {
@@ -308,8 +361,8 @@ impl MemoryDiffuser {
 }
 
 mod test {
-    use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
-    use crate::memory::{MemoryCluster, MemoryLink, MemoryNoteBuilder, NodeRefId};
+    use fastembed::{Embedding, EmbeddingModel, InitOptions, TextEmbedding};
+    use crate::memory::{MemoryCluster, MemoryEmbeddings, MemoryLink, MemoryNoteBuilder, NodeRefId};
     use super::*;
     fn prepare_graph() -> MemoryCluster {
         let mut graph = MemoryCluster::new(
@@ -326,6 +379,9 @@ mod test {
                         MemoryLink::new("test3", None::<String>,"test",10.0)
                     ]
                 )
+                .context("At Home")
+                .base_emotion("Happy")
+                .keywords(vec!["home".to_string()])
                 .build(),
             MemoryNoteBuilder::new("test2")
                 .id("test2")
@@ -335,6 +391,9 @@ mod test {
                         MemoryLink::new("test4", None::<String>,"test",15.0)
                     ]
                 )
+                .context("Working")
+                .base_emotion("Boring")
+                .keywords(vec!["work".to_string(),"code".to_string()])
                 .build(),
             MemoryNoteBuilder::new("test3")
                 .id("test3")
@@ -343,6 +402,9 @@ mod test {
                         MemoryLink::new("test2", None::<String>,"test",10.0),
                     ]
                 )
+                .context("On Train")
+                .base_emotion("Angry")
+                .keywords(vec!["train".to_string(),"Quarrel".to_string()])
                 .build(),
             MemoryNoteBuilder::new("test4")
                 .id("test4")
@@ -351,6 +413,9 @@ mod test {
                         MemoryLink::new("test2", None::<String>,"test",10.0),
                     ]
                 )
+                .context("Drinking wine")
+                .base_emotion("Sad")
+                .keywords(vec!["wine".to_string(), "break up".to_string()])
                 .build(),
         ];
         graph.merge(mem);
@@ -408,5 +473,52 @@ mod test {
         ];
         let result = diffuser.base_diffuse(&start_nodes, graph.graph());
         println!("{:?}",result);
+    }
+    fn prepare_emotion() -> Embedding {
+        let model = TextEmbedding::try_new(
+            InitOptions::new(EmbeddingModel::AllMiniLML6V2)
+        ).unwrap();
+        let embeddings = model.embed(
+            vec![
+                "Delight",
+            ],
+            None
+        ).unwrap();
+        embeddings.first().unwrap().clone()
+    }
+    fn prepare_context() -> Embedding {
+        let model = TextEmbedding::try_new(
+            InitOptions::new(EmbeddingModel::AllMiniLML6V2)
+        ).unwrap();
+        let embeddings = model.embed(
+            vec![
+               "Home"
+            ],
+            None
+        ).unwrap();
+        embeddings.first().unwrap().clone()
+    }
+    #[test]
+    fn test_hybrid_diffuse() {
+        let graph = prepare_graph();
+
+        let diffuser = MemoryDiffuser::from_config(DiffuserConfig::default());
+        let start_nodes = vec![
+            NodeIndex::new(0),
+            NodeIndex::new(2)
+        ];
+        let init_config = DiffuseInitStruct::new(
+            DiffuseBoostWeight::from_preset(DiffuseType::Emotion),
+            1.0,
+            &start_nodes
+
+        ).with_context(DVector::from(prepare_context()))
+            .with_emotion(DVector::from(prepare_emotion()));
+
+        let res = diffuser.hybrid_diffuse(&graph, init_config).unwrap();
+        assert_eq!(res.raw.len(), 4);
+        assert_eq!(res.boosted.len(),4);
+        println!("raw: {:?}", &res.raw);
+        println!("boosted: {:?}", &res.boosted);
     }
 }
