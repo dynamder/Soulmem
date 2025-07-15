@@ -6,7 +6,7 @@ use std::collections::{HashMap, HashSet};
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
 
-use crate::memory::{GraphMemoryLink, MemoryCluster, MemoryNote, NodeRefId};
+use crate::memory::{GraphMemoryLink, MemoryCluster, MemoryNote, MemoryQuery, NodeRefId};
 use anyhow::Result;
 use chrono::DateTime;
 use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
@@ -17,8 +17,9 @@ use petgraph::visit::{Dfs, VisitMap, Visitable};
 use crate::llm_driver::{LLMConfig, Llm};
 use crate::memory::share::NoteRecord;
 use crate::memory::temporary::{MemorySource, TemporaryMemory, TemporaryNoteRecord};
-use crate::memory::working::diffuser::{DiffuserConfig, MemoryDiffuser};
+use crate::memory::working::diffuser::{DiffuseInitStruct, DiffuserConfig, MemoryDiffuser};
 use crate::memory::working::task::{SoulTask, SoulTaskSet};
+use crate::utils::pipe::IteratorPipe;
 use super::default_prompts;
 
 const DEFAULT_FOCUS: &str = "发呆";
@@ -104,8 +105,11 @@ impl WorkingMemory {
     }
 
     /// 删除一个节点
-    pub fn remove_note(&mut self, node_id: &str) -> Option<MemoryNote> {
-       todo!()
+    pub fn remove_note(&mut self, node_id: NodeRefId) -> Option<MemoryNote> {
+        self.working_record_map.remove(&node_id);
+        self.temporary.remove_temp_memory(node_id.clone());
+        self.task_set.clean_notes(&[node_id.clone()]);
+        self.cluster.remove_single_node(node_id)
     }
     /// 获取一个节点记忆
     pub fn get_note(&self, node_id: &NodeRefId) -> Option<&MemoryNote> {
@@ -126,11 +130,35 @@ impl WorkingMemory {
         );
         self.cluster.add_single_node(mem);
     }
+    //TODO: test it
     ///进行记忆扩散，获得指导LLM的上下文，并记录共激活信息
-    pub fn diffuse_context(&mut self, sliding_window_size: usize, depth: usize, rng: &mut impl rand::RngCore) -> Vec<String> {
-       todo!()
+    pub fn diffuse_context<'a, F, O>(&'a mut self, diffuse_init: DiffuseInitStruct, selector: F, use_raw: bool) -> Result<Vec<NodeRefId>>
+    where
+        F: FnOnce(Box<dyn Iterator<Item = (&'a MemoryNote, f32)> + 'a>) -> O,
+        O: Iterator<Item = (&'a MemoryNote, f32)>,
+    {
+        let diffuse_res = self.diffuser.hybrid_diffuse(&self.cluster, diffuse_init)?;
+        if use_raw {
+            Ok(diffuse_res.raw.into_iter()
+                .filter_map(|(node_idx, prob)| {
+                    self.cluster.graph().node_weight(node_idx).map(|node| (node, prob))
+                })
+                .pipe(|item|selector(Box::new(item)))
+                .map(|(node, _)| node.id().clone())
+                .collect())
+        }else{
+            Ok(diffuse_res.boosted.into_iter()
+                .filter_map(|(node_idx, prob)| {
+                    self.cluster.graph().node_weight(node_idx).map(|node| (node, prob))
+                })
+                .pipe(|item|selector(Box::new(item)))
+                .map(|(node, _)| node.id().clone())
+                .collect())
+        }
+
     }
-    ///使用LLM找到关联的任务
+    //TODO
+    ///使用LLM找到关联的任务，以及提取关键词
     pub async fn find_related_task(&self, query: impl AsRef<str>, role: impl AsRef<str>, llm_driver: &impl Llm, llm_config: &LLMConfig) -> Result<Vec<String>> {
         let response = llm_driver.get_completion(
             formatx!(
@@ -216,6 +244,7 @@ impl WorkingMemory {
 
 mod test {
     use crate::memory::{MemoryLink, MemoryNoteBuilder};
+    use crate::memory::working::diffuser::{DiffuseBoostWeight, DiffuseType};
     use super::*;
     fn prepare_working_memory(init: Vec<MemoryNote>) -> WorkingMemory {
         let mut mem = WorkingMemory::new(0.5,DiffuserConfig::default(), EmbeddingModel::AllMiniLML6V2).unwrap();
@@ -339,8 +368,16 @@ mod test {
         mem.add_task("task1",&vec![NodeRefId::from("test1")]);
         mem.add_task("task2",&vec![NodeRefId::from("test2")]);
         mem.add_task("task3",&vec![NodeRefId::from("test3")]);
-        let context = mem.diffuse_context(6,1,&mut rand::rng());
-        assert_eq!(context.len(), 4,"context is: {context:?}");
+        let context = mem.diffuse_context(
+            DiffuseInitStruct::new(
+                DiffuseBoostWeight::from_preset(DiffuseType::Concept),
+                1.0,
+                &[NodeIndex::new(0), NodeIndex::new(1), NodeIndex::new(2)]
+            ),
+            |x| x,
+            false
+        ).unwrap();
+        assert_eq!(context.len(), 8,"context is: {context:?}");
     }
     #[test]
     fn test_filter_need_consolidate() {

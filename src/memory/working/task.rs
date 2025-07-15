@@ -126,6 +126,11 @@ impl SoulTaskSet {
         self.inertia = inertia;
         Ok(())
     }
+    ///清除无效的关联任务,给定一个要删除的节点列表
+    pub fn clean_notes(&mut self, notes: &[NodeRefId]) {
+        self.tasks.values_mut()
+            .for_each(|task| task.related_notes.retain(|note| !notes.contains(note)))
+    }
     ///焦点迭代，根据当前焦点情况和新的相关任务序列选择新焦点
     pub fn shift_focus(&mut self, sorted_related_tasks: &[impl AsRef<str>]) -> String {
         // Handle empty task set,using the DEFAULT_FOCUS

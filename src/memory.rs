@@ -596,30 +596,30 @@ impl MemoryNoteBuilder {
 }
 pub struct MemoryQuery {
     pub text: String,
-    pub concept_vec: Vec<f32>,
-    pub emotion_vec: Vec<f32>,
-    pub context_vec: Vec<f32>
+    pub concept_vec: Option<Embedding>,
+    pub emotion_vec: Option<Embedding>,
+    pub context_vec: Option<Embedding>
 }
 impl MemoryQuery {
     pub fn new(text: impl Into<String>) -> Self {
         Self {
             text: text.into(),
-            concept_vec: Vec::new(),
-            emotion_vec: Vec::new(),
-            context_vec: Vec::new(),
+            concept_vec: None,
+            emotion_vec: None,
+            context_vec: None,
         }
     }
-    pub fn with_concept(mut self, concept: Vec<f32>) -> Self {
-        self.concept_vec = concept;
+    pub fn with_concept(mut self, concept: Embedding) -> Self {
+        self.concept_vec = Some(concept);
         self
     }
-    pub fn with_emotion(mut self, emotion: Vec<f32>) -> Self {
-        self.emotion_vec = emotion;
+    pub fn with_emotion(mut self, emotion: Embedding) -> Self {
+        self.emotion_vec = Some(emotion);
         self
     }
 
-    pub fn with_context(mut self, context: Vec<f32>) -> Self {
-        self.context_vec = context;
+    pub fn with_context(mut self, context: Embedding) -> Self {
+        self.context_vec = Some(context);
         self
     }
 }
