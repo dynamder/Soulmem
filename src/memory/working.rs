@@ -7,13 +7,14 @@ use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
 
 use crate::memory::{GraphMemoryLink, MemoryCluster, MemoryNote, MemoryQuery, NodeRefId};
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use chrono::DateTime;
 use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
 use formatx::formatx;
 use petgraph::Direction;
 use petgraph::prelude::EdgeRef;
 use petgraph::visit::{Dfs, VisitMap, Visitable};
+use serde_json::Value;
 use crate::llm_driver::{LLMConfig, Llm};
 use crate::memory::share::NoteRecord;
 use crate::memory::temporary::{MemorySource, TemporaryMemory, TemporaryNoteRecord};
@@ -159,7 +160,7 @@ impl WorkingMemory {
     }
     //TODO
     ///使用LLM找到关联的任务，以及提取关键词
-    pub async fn find_related_task(&self, query: impl AsRef<str>, role: impl AsRef<str>, llm_driver: &impl Llm, llm_config: &LLMConfig) -> Result<Vec<String>> {
+    pub async fn find_related_task(&self, query: impl AsRef<str>, role: impl AsRef<str>, llm_driver: &impl Llm, llm_config: &LLMConfig) -> Result<(Vec<String>,Vec<String>)> {
         let response = llm_driver.get_completion(
             formatx!(
                 default_prompts::FIND_RELATION_PROMPT,
@@ -173,14 +174,40 @@ impl WorkingMemory {
             )?,
             llm_config
         ).await?;
-        if let serde_json::Value::Array(tasks) = response["related_task"].to_owned() {
-            Ok(
-                tasks.into_iter()
-                    .filter_map(|task_id| task_id.as_str().map(|task_id| task_id.to_string()))
-                    .collect()
-            )
-        }else {
-            Err(anyhow::anyhow!("Invalid response Json from Llm"))
+        
+        //清理response字符串
+        let response = match response {
+            Value::Object(o) => Value::Object(o),
+            Value::String(s) => {
+                let o = s.trim().parse::<Value>()?;
+                if !o.is_object() {
+                    return Err(anyhow!("Unexpected response JSON"));
+                }
+                o
+            },
+            _ => return Err(anyhow!("Unexpected response JSON")),
+        };
+
+        match (
+            response.get("related_task").and_then(Value::as_array),
+            response.get("current_keywords").and_then(Value::as_array),
+        ) {
+            (Some(tasks), Some(keywords)) => {
+                // 转换任务ID
+                let task_ids: Vec<String> = tasks
+                    .iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect();
+
+                // 转换关键词
+                let keyword_list: Vec<String> = keywords
+                    .iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect();
+
+                Ok((task_ids, keyword_list))
+            }
+            _ => Err(anyhow!("Invalid response JSON: Missing or invalid fields")),
         }
 
     }
@@ -243,6 +270,9 @@ impl WorkingMemory {
 }
 
 mod test {
+    use std::env;
+    use dotenvy::dotenv;
+    use crate::llm_driver::{LLMConfigBuilder, SiliconFlow};
     use crate::memory::{MemoryLink, MemoryNoteBuilder};
     use crate::memory::working::diffuser::{DiffuseBoostWeight, DiffuseType};
     use super::*;
@@ -399,6 +429,33 @@ mod test {
         assert_eq!(con.len(), 1);
         assert_eq!(con[0].0.mem_id, NodeRefId::from("test4"));
 
+    }
+    #[tokio::test]
+    async fn test_find_related_task() {
+        let env = dotenvy::dotenv().unwrap();
+        let api_key = env::var("API_KEY").unwrap();
+        let mut mem = prepare_working_memory(
+            vec![
+                MemoryNoteBuilder::new("test1").id("test1").build(),
+                MemoryNoteBuilder::new("test2").id("test2").build(),
+                MemoryNoteBuilder::new("test3").id("test3").build(),
+            ]
+        );
+        mem.add_task("task1 test",&[NodeRefId::from("test1")]);
+        mem.add_task("task2 run",&[NodeRefId::from("test2")]);
+        mem.add_task("task3 config",&[NodeRefId::from("test3")]);
+        let llm_driver = SiliconFlow::new();
+        let response = mem.find_related_task(
+            "test",
+            "you are a ai engineer",
+            &llm_driver,
+            &LLMConfigBuilder::new("Qwen/Qwen3-8B", api_key)
+                .build()
+        ).await.unwrap();
+        println!("response: {response:?}");
+        assert!(response.0.len() > 0);
+        assert!(response.1.len() > 0);
+        assert_eq!(mem.task_set.get_task(&response.0[0]).unwrap().summary, "task1 test");
     }
 
 }
