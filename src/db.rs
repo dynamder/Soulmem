@@ -1,3 +1,3 @@
 pub mod qdrant_retriever;
-mod surreal_retriever;
-mod hybrid_retriever;
+pub mod surreal_retriever;
+pub mod hybrid_retriever;

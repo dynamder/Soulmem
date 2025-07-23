@@ -444,7 +444,7 @@ mod test {
         mem.add_task("task1 test",&[NodeRefId::from("test1")]);
         mem.add_task("task2 run",&[NodeRefId::from("test2")]);
         mem.add_task("task3 config",&[NodeRefId::from("test3")]);
-        let llm_driver = SiliconFlow::new();
+        let llm_driver = SiliconFlow::new().unwrap();
         let response = mem.find_related_task(
             "test",
             "you are a ai engineer",

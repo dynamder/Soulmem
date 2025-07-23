@@ -95,10 +95,24 @@ pub struct SiliconFlow {
 }
 #[allow(dead_code)]
 impl SiliconFlow {
-    pub fn new() -> Self {
-        SiliconFlow {
-            client: reqwest::Client::new(),
-        }
+    pub fn new() -> Result<Self> {
+        Ok(SiliconFlow {
+            client: reqwest::ClientBuilder::new()
+                .use_rustls_tls()
+                .http2_prior_knowledge()
+                .pool_max_idle_per_host(10)
+                .tcp_keepalive(Some(std::time::Duration::from_secs(30)))
+                .pool_idle_timeout(std::time::Duration::from_secs(300))
+                .connect_timeout(std::time::Duration::from_secs(10))
+                .build()?,
+        })
+    }
+    pub async fn warmup(&self) {
+        // 发送HEAD请求预热连接
+        let _ = self.client
+            .head("https://api.siliconflow.cn")
+            .send()
+            .await;
     }
     pub fn from_client(client: reqwest::Client) -> Self {
         SiliconFlow {
@@ -121,7 +135,6 @@ impl Llm for SiliconFlow {
                 {"role": "user", "content": prompt.as_ref()}
             ]
         });
-
         let response = self.client
             .post("https://api.siliconflow.cn/v1/chat/completions")
             .bearer_auth(&config.api_key)
@@ -130,7 +143,9 @@ impl Llm for SiliconFlow {
             .timeout(config.timeout)
             .send()
             .await?;
+
         let status = response.status();
+        //println!("version:{:?}",response.version());
         if !status.is_success() {
             let error_body = response.text().await.unwrap_or_else(|_| "Failed to read error response".to_string());
             return Err(anyhow::anyhow!("Error response from API: {}", error_body));
@@ -151,13 +166,41 @@ impl Llm for SiliconFlow {
 }
 
 mod test {
+    use std::env;
     #[allow(unused_imports)]
     use super::*;
     #[tokio::test]
-    async fn test_siliconflow() {
-        let llm = SiliconFlow::new();
-        let config = LLMConfigBuilder::new("deepseek-ai/DeepSeek-R1", "YOUR_API_KEY").build();
+    async fn test_siliconflow_function() {
+        let env = dotenvy::dotenv().unwrap();
+        let api_key = env::var("API_KEY").unwrap();
+        let llm = SiliconFlow::new().unwrap();
+        let config = LLMConfigBuilder::new("Qwen/Qwen3-8B", api_key).build();
         let response = llm.get_completion("好？", &config).await.unwrap();
         println!("{:?}", response);
+    }
+    #[tokio::test]
+    async fn test_siliconflow_latency() {
+        let env = dotenvy::dotenv().unwrap();
+        let api_key = env::var("API_KEY").unwrap();
+        let llm = SiliconFlow::new().unwrap();
+        let config = LLMConfigBuilder::new("Qwen/Qwen3-8B", api_key).build();
+
+        // 冷启动测试
+        let start = std::time::Instant::now();
+        llm.get_completion("好冷？", &config).await.unwrap();
+        println!("冷启动延迟: {:?}", start.elapsed());
+
+        // 预热后测试
+        llm.warmup().await;
+        let start = std::time::Instant::now();
+        llm.get_completion("好热？", &config).await.unwrap();
+        println!("预热后延迟: {:?}", start.elapsed()); //TODO: warm up mechanics failed
+
+        // 连续请求测试
+        for i in 0..5 {
+            let start = std::time::Instant::now();
+            llm.get_completion(&format!("请求{}", i), &config).await.unwrap();
+            println!("请求{}延迟: {:?}", i, start.elapsed());
+        }
     }
 }

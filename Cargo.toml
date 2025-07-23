@@ -11,7 +11,7 @@ ordered-float = "5.0.0"
 parking_lot = { version = "0.12.4", features = ["serde"] }
 petgraph = "0.8.2"
 qdrant-client = "1.14.0"
-reqwest = { version = "0.12.20", features = ["json"] }
+reqwest = { version = "0.12.20", features = ["json","rustls-tls"] }
 reqwest-retry = "0.7.0"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
