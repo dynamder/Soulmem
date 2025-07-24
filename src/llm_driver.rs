@@ -243,4 +243,17 @@ mod test {
             println!("请求{}延迟: {:?}", i, start.elapsed());
         }
     }
+    #[tokio::test]
+    async fn test_batch_siliconflow() {
+        let env = dotenvy::dotenv().unwrap();
+        let api_key = env::var("API_KEY").unwrap();
+        let llm = SiliconFlow::new().unwrap();
+        let config = LLMConfigBuilder::new("Qwen/Qwen3-8B", api_key).build();
+        let prompts = "test ".repeat(5).split(" ").map(|s| s.to_string()).collect::<Vec<String>>();
+        let responses = Arc::new(llm).batch_completion(&prompts, &config).await.unwrap();
+        for (i, response) in responses.iter().enumerate() {
+            println!("{}: {}", i, response);
+        }
+        assert_eq!(responses.len(), prompts.len())
+    }
 }
