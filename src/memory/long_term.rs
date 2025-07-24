@@ -49,4 +49,5 @@ impl MemoryLongTerm {
     pub async fn clean(&self) {
         todo!()
     }
+    pub async fn integration(&self) {todo!()}
 }

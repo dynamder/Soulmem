@@ -6,7 +6,7 @@ use std::collections::{HashMap, HashSet};
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
 
-use crate::memory::{GraphMemoryLink, MemoryCluster, MemoryNote, MemoryQuery, NodeRefId};
+use crate::memory::{GraphMemoryLink, MemoryCluster, MemoryNote, NodeRefId};
 use anyhow::{anyhow, Result};
 use chrono::DateTime;
 use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
@@ -139,26 +139,35 @@ impl WorkingMemory {
         O: Iterator<Item = (&'a MemoryNote, f32)>,
     {
         let diffuse_res = self.diffuser.hybrid_diffuse(&self.cluster, diffuse_init)?;
-        if use_raw {
-            Ok(diffuse_res.raw.into_iter()
+        let processed_res = if use_raw {
+            diffuse_res.raw.into_iter()
                 .filter_map(|(node_idx, prob)| {
                     self.cluster.graph().node_weight(node_idx).map(|node| (node, prob))
                 })
                 .pipe(|item|selector(Box::new(item)))
                 .map(|(node, _)| node.id().clone())
-                .collect())
+                .collect::<Vec<_>>()
         }else{
-            Ok(diffuse_res.boosted.into_iter()
+            diffuse_res.boosted.into_iter()
                 .filter_map(|(node_idx, prob)| {
                     self.cluster.graph().node_weight(node_idx).map(|node| (node, prob))
                 })
                 .pipe(|item|selector(Box::new(item)))
                 .map(|(node, _)| node.id().clone())
-                .collect())
+                .collect()
+        };
+        //记录共激活信息
+        for item in processed_res.iter() {
+            if let Some(record) = self.working_record_map.get_mut(item) {
+                record.record_activation(&processed_res)
+            }else {
+                let mut rec_map = WorkingNoteRecord::new(item.clone());
+                rec_map.record_activation(&processed_res);
+                self.working_record_map.insert(item.clone(), rec_map);
+            }
         }
-
+        Ok(processed_res)
     }
-    //TODO
     ///使用LLM找到关联的任务，以及提取关键词
     pub async fn find_related_task(&self, query: impl AsRef<str>, role: impl AsRef<str>, llm_driver: &impl Llm, llm_config: &LLMConfig) -> Result<(Vec<String>,Vec<String>)> {
         let response = llm_driver.get_completion(
@@ -266,6 +275,9 @@ impl WorkingMemory {
                 });
 
         plastic_temporary.chain(plastic_working).collect()
+    }
+    pub async fn reconsolidate(&mut self, llm_driver: &impl Llm, llm_config: &LLMConfig, to_consolidate: Vec<(MemoryNote,Vec<MemoryNote>)>) -> Result<()> {
+        todo!("to implement after complete the batch operation of LLM")
     }
 }
 

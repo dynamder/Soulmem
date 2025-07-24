@@ -52,3 +52,43 @@ Return your answer in JSON format strictly with the following structure, with no
     \"current_keywords\": [\"keyword1\",\",keyword2\",...]
 }}
 ";
+
+#[allow(unused)]
+pub const RECONSOLIDATION_PROMPT: &str = " \
+                                You are an AI memory evolution agent responsible for managing and reconsolidating a knowledge base.\n
+                                Analyze the the new memory note according to keywords and context, also with the several memories that frequently co-activated.\n
+                                Make decisions about its reconsolidation.\n\n
+
+                                The new memory context:\n
+                                id: {}\n
+                                content: {}\n
+                                keywords: {}\n\n
+
+                                The frequently co-activated memories:\n
+                                {}\n\n
+
+                                Based on this information, determine:\n
+                                1. Should this memory be modified? Consider its relationships with other memories.\n
+                                2. What specific actions should be taken (strengthen_connection, update_self, both the two above)?\n
+                                   2.1 If choose to strengthen the connection, which memory should it be connected to? Can you give the possible relationship between the two memories?\n\
+                                   2.2 If choose to update the note itself, What does the new content, keywords, tags, context, base_emotion should be?
+
+                                Content is the raw string of a memory note.\n
+                                Keywords should be determined by important of frequent appeared concepts of the content, which can be used to analyze them later and categorize them.\n
+                                Tags should be determined by the content of these characteristic of these memories, which can be used to retrieve them later and categorize them.\n
+                                Context is the description of time and space circumstances of the memory note.\n
+                                Base Emotion is the mood of the memory note, which can be used to retrieve them later with specific emotion.\n\n
+
+                                If you choose not to update a specific field, don't let the field appear in the final JSON. But the \"should_modify\" is always required.\n
+
+                                Return your decision in JSON format strictly with the following structure:\n
+                                {{\n
+                                    \"should_modify\": True or False,\n    
+                                    \"actions\": \"strengthen_connection\" or \"update_neighbor\" or \"both\",\n
+                                    \"suggested_connections\": [\"{{\"id\": \"memory_id\", \"relationship\": \"possible_relationship\"}}\",...,\"{{\"id\": \"memory_id\", \"relationship\": \"possible_relationship\"}}\"],\n
+                                    \"new_content\":\"new_content\",
+                                    \"new_keywords\":[\"keyword_1\",...,\"keyword_n\"],\n
+                                    \"new_tags\": [\"tag_1\",...,\"tag_n\"], \n
+                                    \"new_context\": [\"new context\",...,\"new context\"],\n\
+                                    \"new_base_emotion\": \"new_base_emotion\"\n
+                                }}";

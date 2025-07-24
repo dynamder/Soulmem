@@ -6,7 +6,7 @@ use petgraph::graph::NodeIndex;
 use petgraph::prelude::{StableGraph};
 use petgraph::visit::{EdgeRef};
 use surrealdb::sql::Start;
-use crate::memory::{GraphMemoryLink, MemoryCluster, MemoryNote, MemoryQuery};
+use crate::memory::{GraphMemoryLink, MemoryCluster, MemoryNote};
 use crate::utils::pipe::IteratorPipe;
 use crate::memory::probability::{data_softmax, online_temperature_softmax};
 
