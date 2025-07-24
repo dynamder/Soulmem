@@ -1,6 +1,9 @@
+use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use anyhow::Result;
-use serde_json::json;
+use serde_json::{json, Value};
+use tokio::sync::Semaphore;
+use tokio::task::{JoinError, JoinSet};
 
 #[derive(Debug,Clone,Serialize,Deserialize,Default)]
 pub struct LLMConfig {
@@ -88,8 +91,9 @@ pub trait Llm {
     async fn get_completion(&self, prompt: impl AsRef<str>, config: &LLMConfig) -> Result<serde_json::Value>; // response in JSON format
     async fn get_embedding(&self, content: impl AsRef<str>, config: &LLMConfig) -> Result<Vec<f32>>;
     async fn chat(&self, prompt: impl AsRef<&str>, context: &ChatContext, config: &LLMConfig) -> Result<String>;
+    async fn batch_completion(self: Arc<Self>, prompts: &[impl AsRef<str>], config: &LLMConfig) -> Result<Vec<serde_json::Value>>;
 }
-
+//TODO: add batch operation
 pub struct SiliconFlow {
     client: reqwest::Client,
 }
@@ -162,6 +166,42 @@ impl Llm for SiliconFlow {
     }
     async fn chat(&self, prompt: impl AsRef<&str>, context: &ChatContext, config: &LLMConfig) -> Result<String> {
         todo!()
+    }
+    /// 批量获取 completions, 不保证与原顺序一致
+    async fn batch_completion(self: Arc<Self>, prompts: &[impl AsRef<str>], config: &LLMConfig) -> Result<Vec<Value>> {
+        let semaphore = Arc::new(Semaphore::new(3));
+        let mut join_set = JoinSet::new();
+        let config = Arc::new(config.clone());
+        for prompt in prompts {
+            let semaphore = semaphore.clone();
+            let prompt = prompt.as_ref().to_string();
+            let config = config.clone();
+            let self_clone = self.clone();
+            join_set.spawn(async move {
+                let _permit = semaphore.acquire_owned().await?;
+                self_clone.get_completion(&prompt, &config).await
+            });
+        }
+        let (mut values, mut errors) = (Vec::new(), Vec::new());
+        while let Some(join_result) = join_set.join_next_with_id().await {
+            match join_result {
+                Ok(result) => {
+                    match result.1 {
+                        Ok(value) => values.push(value),
+                        Err(err) => errors.push(anyhow::anyhow!("completion error in task id: {}, {}", result.0, err)),
+                    }
+                },
+                Err(err) => {
+                    join_set.shutdown().await;
+                    return Err(anyhow::anyhow!("join error in task id: {}, {}",JoinError::id(&err), err))
+                },
+            }
+        }
+        if !errors.is_empty() {
+            Err(anyhow::anyhow!("{} tasks failed: \n {}", errors.len(), errors.iter().fold(String::new(), |acc, err| acc + &err.to_string() + "\n"))) // 聚合错误
+        } else {
+            Ok(values)
+        }
     }
 }
 
