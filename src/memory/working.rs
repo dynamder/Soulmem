@@ -3,14 +3,16 @@ mod task;
 mod diffuser;
 
 use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
 
-use crate::memory::{GraphMemoryLink, MemoryCluster, MemoryNote, NodeRefId};
+use crate::memory::{GraphMemoryLink, MemoryCluster, MemoryLink, MemoryNote, NodeRefId};
 use anyhow::{anyhow, Result};
 use chrono::DateTime;
 use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
 use formatx::formatx;
+use mockall::predicate::ne;
 use petgraph::Direction;
 use petgraph::prelude::EdgeRef;
 use petgraph::visit::{Dfs, VisitMap, Visitable};
@@ -276,8 +278,162 @@ impl WorkingMemory {
 
         plastic_temporary.chain(plastic_working).collect()
     }
-    pub async fn reconsolidate(&mut self, llm_driver: &impl Llm, llm_config: &LLMConfig, to_consolidate: Vec<(MemoryNote,Vec<MemoryNote>)>) -> Result<()> {
-        todo!("to implement after complete the batch operation of LLM")
+    //TODO: need test
+    pub async fn reconsolidate(&mut self, llm_driver: Arc<impl Llm>, llm_config: &LLMConfig, to_consolidate: Vec<(MemoryNote,Vec<MemoryNote>)>) -> Result<()> {
+        enum ActionType {
+            Strengthen,
+            Update,
+            Both
+        }
+        struct ReconRes {
+            id: NodeRefId,
+            should_modify: bool,
+            action: Option<ActionType>,
+            suggested_connections: Option<Vec<MemoryLink>>,
+            new_content: Option<String>,
+            new_keywords: Option<Vec<String>>,
+            new_tags: Option<Vec<String>>,
+            new_context: Option<String>,
+            new_base_emotion: Option<String>,
+        }
+        impl TryFrom<serde_json::Value> for ReconRes {
+            type Error = anyhow::Error;
+            fn try_from(value: serde_json::Value) -> Result<Self, Self::Error> {
+                let id = value.get("id").and_then(|v| v.as_str()).map(NodeRefId::from);
+                let should_modify = value.get("should_modify").and_then(|v| v.as_bool());
+                if id.is_none() || should_modify.is_none() {
+                    return Err(anyhow!("Invalid response JSON: Missing or invalid fields"));
+                }
+                let id = id.unwrap();
+                let should_modify = should_modify.unwrap();
+                let action = match value.get("action").and_then(|v| v.as_str()) {
+                    Some("strengthen_connection") => Some(ActionType::Strengthen),
+                    Some("update_self") => Some(ActionType::Update),
+                    Some("both") => Some(ActionType::Both),
+                    None => match should_modify {
+                        true => return Err(anyhow!("Invalid response JSON: Modify without a specified Action")),
+                        false => None,
+                    }
+                    _ => return Err(anyhow!("Invalid response JSON: ActionType Not Known"))
+                };
+                let suggested_connections = match value.get("suggested_connections").and_then(|v| v.as_array()) {
+                    Some(arr) => Some(
+                        arr.iter()
+                            .filter_map(|v| v.as_object())
+                            .filter_map(|obj| MemoryLink::try_from(obj.clone()).ok())
+                            .collect::<Vec<_>>()
+                    ),
+                    None => match action {
+                        Some(ActionType::Update)=> None,
+                        _ => return Err(anyhow!("Invalid response JSON: Action need suggested_connections but not found"))
+                    }
+                };
+                let new_content = value.get("new_content").and_then(|v| v.as_str()).map(String::from);
+                let new_keywords = value.get("new_keywords")
+                    .and_then(|v| v.as_array())
+                    .map(|arr| arr.iter()
+                        .filter_map(|v| v.as_str())
+                        .map(|s| s.to_string())
+                        .collect::<Vec<_>>());
+                let new_tags = value.get("new_tags")
+                    .and_then(|v| v.as_array())
+                    .map(|arr| arr.iter()
+                        .filter_map(|v| v.as_str())
+                        .map(|s| s.to_string())
+                        .collect::<Vec<_>>());
+                let new_context = value.get("new_context").and_then(|v| v.as_str()).map(String::from);
+                let new_base_emotion = value.get("new_base_emotion").and_then(|v| v.as_str()).map(String::from);
+
+                Ok(
+                    ReconRes {
+                        id,
+                        should_modify,
+                        action,
+                        suggested_connections,
+                        new_content,
+                        new_keywords,
+                        new_tags,
+                        new_context,
+                        new_base_emotion
+                    }
+                )
+            }
+        }
+        let res_value = llm_driver.batch_completion(
+            &to_consolidate
+                .into_iter()
+                .filter_map(|(note,co_activated)| {
+                    formatx!(
+                        default_prompts::RECONSOLIDATION_PROMPT,
+                        note.as_prompt(),
+                        co_activated.into_iter().enumerate().map(|(i,note)|
+                            format!("note {}:\n{}\n",i, note.as_prompt())
+                        ).fold(String::new(), |acc, note| acc + &note)
+                    ).ok()
+                })
+                .collect::<Vec<_>>(),
+            llm_config
+        ).await?;
+        let res = res_value
+            .into_iter()
+            .filter_map(|v| ReconRes::try_from(v).ok())
+            .collect::<Vec<_>>();
+
+        for recon in res {
+            let mut need_refresh = false;
+            if !recon.should_modify {
+                continue;
+            }
+            if let Some(node) = self.get_note_mut(&recon.id) {
+                match recon.action.unwrap() {
+                    ActionType::Strengthen => {
+                        node.append_links(recon.suggested_connections.unwrap());
+                        need_refresh = true;
+                    },
+                    ActionType::Update => {
+                        if let Some(new_content) = recon.new_content {
+                            node.content = new_content;
+                        }
+                        if let Some(new_keywords) = recon.new_keywords {
+                            node.keywords = new_keywords;
+                        }
+                        if let Some(new_tags) = recon.new_tags {
+                            node.tags = new_tags;
+                        }
+                        if let Some(new_context) = recon.new_context {
+                            node.context = new_context;
+                        }
+                        if let Some(new_base_emotion) = recon.new_base_emotion {
+                            node.base_emotion = new_base_emotion;
+                        }
+
+                    }
+                    ActionType::Both => {
+                        need_refresh = true;
+                        node.append_links(recon.suggested_connections.unwrap());
+                        if let Some(new_content) = recon.new_content {
+                            node.content = new_content;
+                        }
+                        if let Some(new_keywords) = recon.new_keywords {
+                            node.keywords = new_keywords;
+                        }
+                        if let Some(new_tags) = recon.new_tags {
+                            node.tags = new_tags;
+                        }
+                        if let Some(new_context) = recon.new_context {
+                            node.context = new_context;
+                        }
+                        if let Some(new_base_emotion) = recon.new_base_emotion {
+                            node.base_emotion = new_base_emotion;
+                        }
+                    }
+                }
+            }
+            if need_refresh {
+                self.cluster.refresh_node(&recon.id);
+            }
+        }
+        Ok(())
     }
 }
 

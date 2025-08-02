@@ -5,6 +5,7 @@ mod probability;
 mod temporary;
 mod share;
 
+use qdrant_client::qdrant::Filter;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display};
 use std::sync::Arc;
@@ -29,6 +30,25 @@ pub struct MemoryLink {
     pub relation: String,
     pub link_table: String,
     pub intensity: f32
+}
+impl TryFrom<Map<String, serde_json::Value>> for MemoryLink {
+    type Error = anyhow::Error;
+    fn try_from(value: Map<String, serde_json::Value>) -> Result<Self, Self::Error> {
+        let id = value.get("id").and_then(|x| x.as_str()).map(|x| x.into());
+        if id.is_none() { return Err(anyhow::anyhow!("No id found"))}
+        let relationship = value.get("relation").and_then(|x| x.as_str()).map(String::from);
+        if relationship.is_none() { return Err(anyhow::anyhow!("No relation found"))}
+        let linked_category = value.get("linked_category").and_then(|x| x.as_str()).map(String::from);
+        if linked_category.is_none() { return Err(anyhow::anyhow!("No linked_category found"))}
+        Ok(
+            MemoryLink {
+                id: id.unwrap(),
+                relation: relationship.unwrap(),
+                link_table: linked_category.unwrap(),
+                intensity: 1.0,
+            }
+        )
+    }
 }
 #[derive(Debug,Clone,Serialize,Deserialize,PartialEq)]
 pub struct GraphMemoryLink {
@@ -123,6 +143,21 @@ impl MemoryNote {
     pub fn surreal_id(&self) -> RecordId {
         RecordId::from((self.category.as_str(),self.mem_id.as_str()))
     }
+    pub fn mem_record_id(&self) -> MemRecordId {
+        MemRecordId::new(self.id().clone(),Arc::from(self.category.as_ref()))
+    }
+    pub fn as_prompt(&self) -> String {
+        format!(
+            "id:{}\ncontent:{}\nkeywords:{}\ncontext:{}\ncategory:{}\ntags:{}\nbase_emotion:{}",
+            self.id(),
+            self.content,
+            self.keywords.join(","),
+            self.context,
+            self.category,
+            self.tags.join(","),
+            self.base_emotion
+        )
+    }
     pub fn links(&self) -> &[MemoryLink] {
         &self.links
     }
@@ -167,6 +202,7 @@ impl MemoryNote {
             "category": &self.category
         }))?)
     }
+
     pub fn get_embedding(&self, embedding_model: &TextEmbedding) -> Result<MemoryEmbeddings> {
         let embeddings = embedding_model.embed(
             vec![
@@ -346,6 +382,15 @@ impl MemoryCluster {
             self.merge_edges(node_index,links)
         }
     }
+    /// 在直接修改节点的连接后，必须调用此方法
+    pub fn refresh_node(&mut self, node: &NodeRefId) {
+        if let Some(node_index) = self.id_to_index.get(node) {
+            if let Some(node) = self.graph.node_weight(*node_index) {
+                self.merge_edges(*node_index, node.links().to_owned());
+            }
+        }
+        
+    } 
     /// 删除单个节点，返回被删除的节点，并清理冗余项目
     pub fn remove_single_node(&mut self, node_id: NodeRefId) -> Option<MemoryNote> { //TODO: test it
         if let Some(idx) = self.id_to_index.remove(&node_id) {
@@ -594,32 +639,123 @@ impl MemoryNoteBuilder {
         }
     }
 }
-pub struct MemoryQuery {
-    pub text: String,
-    pub concept_vec: Option<Embedding>,
-    pub emotion_vec: Option<Embedding>,
-    pub context_vec: Option<Embedding>
+pub struct MemRecordId {
+    id: NodeRefId,
+    table: Arc<str>,
+    record_id: RecordId,
 }
-impl MemoryQuery {
-    pub fn new(text: impl Into<String>) -> Self {
+impl MemRecordId {
+    pub fn new(id: NodeRefId, table: Arc<str>) -> Self {
         Self {
-            text: text.into(),
-            concept_vec: None,
-            emotion_vec: None,
-            context_vec: None,
+            record_id: RecordId::from_table_key(table.as_ref(), id.as_ref()),
+            id,
+            table,
+
         }
     }
-    pub fn with_concept(mut self, concept: Embedding) -> Self {
-        self.concept_vec = Some(concept);
+    pub fn id(&self) -> &NodeRefId {
+        &self.id
+    }
+    pub fn table(&self) -> &Arc<str> {
+        &self.table
+    }
+}
+impl AsRef<RecordId> for MemRecordId {
+    fn as_ref(&self) -> &RecordId {
+        &self.record_id
+    }
+}
+pub enum LTQueryType {
+    Text(String),
+    Id(MemRecordId),
+    Embedding(Embedding),
+}
+pub enum BatchLTQueryType {
+    Text(Vec<String>),
+    Id(Vec<MemRecordId>),
+    Embedding(Vec<Embedding>), // TODO: 待实现
+}
+impl BatchLTQueryType {
+    pub fn as_text(&self) -> Option<&Vec<String>> {
+        match self {
+            BatchLTQueryType::Text(text) => Some(text),
+            _ => None,
+        }
+    }
+    pub fn as_id(&self) -> Option<&Vec<MemRecordId>> {
+        match self {
+            BatchLTQueryType::Id(id) => Some(id),
+            _ => None,
+        }
+    }
+}
+pub struct LTMemoryQuery {
+    pub query_type: LTQueryType,
+    pub depth: Option<usize>,
+    pub filter: Option<qdrant_client::qdrant::Filter>,
+    pub relation: Option<Vec<String>>, //TODO: 未实现
+    pub vs_k : Option<usize>, //vector_search_k
+}
+impl LTMemoryQuery {
+    pub fn new(query_type: LTQueryType) -> Self {
+        Self {
+            query_type,
+            depth: None,
+            filter: None,
+            relation: None,
+            vs_k: None,
+        }
+    }
+    pub fn with_depth(mut self, depth: usize) -> Self {
+        self.depth = Some(depth);
         self
     }
-    pub fn with_emotion(mut self, emotion: Embedding) -> Self {
-        self.emotion_vec = Some(emotion);
+    pub fn with_filter(mut self, filter: Filter) -> Self {
+        self.filter = Some(filter);
         self
     }
 
-    pub fn with_context(mut self, context: Embedding) -> Self {
-        self.context_vec = Some(context);
+    pub fn with_relation(mut self, relation: impl Into<Vec<String>>) -> Self {
+        self.relation = Some(relation.into());
+        self
+    }
+    pub fn with_vs_k(mut self, vs_k: usize) -> Self {
+        self.vs_k = Some(vs_k);
+        self
+    }
+}
+pub struct BatchLTMemoryQuery {
+    pub query_type: BatchLTQueryType,
+    pub depth: Option<usize>,
+    pub filter: Option<qdrant_client::qdrant::Filter>,
+    pub relation: Option<Vec<String>>,
+    pub vs_k : Option<usize>,
+}
+impl BatchLTMemoryQuery {
+    pub fn new(query_type: BatchLTQueryType) -> Self {
+        Self {
+            query_type,
+            depth: None,
+            filter: None,
+            relation: None,
+            vs_k: None,
+        }
+    }
+    pub fn with_depth(mut self, depth: usize) -> Self {
+        self.depth = Some(depth);
+        self
+    }
+    pub fn with_filter(mut self, filter: Filter) -> Self {
+        self.filter = Some(filter);
+        self
+    }
+
+    pub fn with_relation(mut self, relation: impl Into<Vec<String>>) -> Self {
+        self.relation = Some(relation.into());
+        self
+    }
+    pub fn with_vs_k(mut self, vs_k: usize) -> Self {
+        self.vs_k = Some(vs_k);
         self
     }
 }

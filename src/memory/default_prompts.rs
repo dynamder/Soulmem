@@ -59,10 +59,8 @@ pub const RECONSOLIDATION_PROMPT: &str = " \
                                 Analyze the the new memory note according to keywords and context, also with the several memories that frequently co-activated.\n
                                 Make decisions about its reconsolidation.\n\n
 
-                                The new memory context:\n
-                                id: {}\n
-                                content: {}\n
-                                keywords: {}\n\n
+                                The new memory:\n\
+                                {}
 
                                 The frequently co-activated memories:\n
                                 {}\n\n
@@ -79,16 +77,17 @@ pub const RECONSOLIDATION_PROMPT: &str = " \
                                 Context is the description of time and space circumstances of the memory note.\n
                                 Base Emotion is the mood of the memory note, which can be used to retrieve them later with specific emotion.\n\n
 
-                                If you choose not to update a specific field, don't let the field appear in the final JSON. But the \"should_modify\" is always required.\n
+                                If you choose not to update a specific field, don't let the field appear in the final JSON. But the \"id\" and \"should_modify\" are always required.\n
 
                                 Return your decision in JSON format strictly with the following structure:\n
-                                {{\n
+                                {{\n\
+                                    \"id\": The id of the note itself,\n
                                     \"should_modify\": True or False,\n    
-                                    \"actions\": \"strengthen_connection\" or \"update_neighbor\" or \"both\",\n
-                                    \"suggested_connections\": [\"{{\"id\": \"memory_id\", \"relationship\": \"possible_relationship\"}}\",...,\"{{\"id\": \"memory_id\", \"relationship\": \"possible_relationship\"}}\"],\n
+                                    \"action\": \"strengthen_connection\" or \"update_self\" or \"both\",\n
+                                    \"suggested_connections\": [\"{{\"id\": \"memory_id\", \"relationship\": \"possible_relationship\", \"linked_category\": \"the category of the new neighbor\"}}\",...,\"{{\"id\": \"memory_id\", \"relationship\": \"possible_relationship\",\"linked_category\": \"the category of the new neighbor\"}}\"],\n
                                     \"new_content\":\"new_content\",
                                     \"new_keywords\":[\"keyword_1\",...,\"keyword_n\"],\n
                                     \"new_tags\": [\"tag_1\",...,\"tag_n\"], \n
-                                    \"new_context\": [\"new context\",...,\"new context\"],\n\
+                                    \"new_context\": \"new context\",\n\
                                     \"new_base_emotion\": \"new_base_emotion\"\n
                                 }}";

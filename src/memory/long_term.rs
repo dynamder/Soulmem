@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use crate::memory::{MemoryNote};
+use crate::memory::{BatchLTMemoryQuery, BatchLTQueryType, MemoryNote};
 use crate::db::hybrid_retriever::HybridRetriever;
 use anyhow::Result;
 use qdrant_client::qdrant::Filter;
@@ -23,11 +23,24 @@ impl MemoryLongTerm {
     }
     /// Retrieve memory clusters recursively with depth, the original retrieve is depth 0,or None
     //TODO: reduce the collect method call
-    pub async fn retrieve(&self, queries: &[impl AsRef<str>], k: u64, depth: Option<u32>, filter: Option<impl Into<Filter> + Clone>) -> Result<Vec<MemoryNote>> {
-        let depth = depth.unwrap_or(0) as usize;
-        let initial_notes = self.retriever.retrieve_related_notes(
-            queries, k, filter
-        ).await?;
+    pub async fn retrieve(&self, queries: BatchLTMemoryQuery) -> Result<Vec<MemoryNote>> {
+        let depth = queries.depth.unwrap_or(0) as usize;
+        let vs_k = queries.vs_k.unwrap_or(5) as u64;
+        let initial_notes = match queries.query_type {
+            BatchLTQueryType::Text(texts) => {
+                self.retriever.retrieve_related_notes(
+                    &texts, vs_k, queries.filter
+                ).await?
+            }
+            BatchLTQueryType::Id(ids) => {
+                let mut res = Vec::new();
+                res.push(
+                    self.retriever.retrieve_notes_by_id(ids).await?
+                );
+                res
+            }
+            _ => return Err(anyhow::anyhow!("Invalid query type")),
+        };
         if depth == 0 {
             return Ok(initial_notes.into_iter().flatten().collect());
         }
