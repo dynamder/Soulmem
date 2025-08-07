@@ -280,11 +280,13 @@ impl WorkingMemory {
     }
     //TODO: need test
     pub async fn reconsolidate(&mut self, llm_driver: Arc<impl Llm>, llm_config: &LLMConfig, to_consolidate: Vec<(MemoryNote,Vec<MemoryNote>)>) -> Result<()> {
+        #[derive(Debug)]
         enum ActionType {
             Strengthen,
             Update,
             Both
         }
+        #[derive(Debug)]
         struct ReconRes {
             id: NodeRefId,
             should_modify: bool,
@@ -374,10 +376,25 @@ impl WorkingMemory {
                 .collect::<Vec<_>>(),
             llm_config
         ).await?;
+        println!("res: {:?}", res_value);
         let res = res_value
             .into_iter()
-            .filter_map(|v| ReconRes::try_from(v).ok())
+            .filter_map(|v| {
+                let obj = match v { 
+                    Value::Object(obj) => Value::Object(obj),
+                    Value::String(s) => {
+                        let o = s.trim().parse::<Value>().ok()?;
+                        if !o.is_object() {
+                            return None;
+                        }
+                        o
+                    }
+                    _ => return None,
+                };
+                ReconRes::try_from(obj).ok()
+            })
             .collect::<Vec<_>>();
+        println!("res_transformed: {:?}", res);
 
         for recon in res {
             let mut need_refresh = false;
@@ -391,6 +408,7 @@ impl WorkingMemory {
                         need_refresh = true;
                     },
                     ActionType::Update => {
+                        println!("Updating note: {}", node.id());
                         if let Some(new_content) = recon.new_content {
                             node.content = new_content;
                         }
@@ -625,6 +643,39 @@ mod test {
         assert!(response.1.len() > 0);
         assert_eq!(mem.task_set.get_task(&response.0[0]).unwrap().summary, "task1 test");
     }
-
+    #[tokio::test]
+    async fn test_reconsolidate() {
+        let env = dotenvy::dotenv().unwrap();
+        let api_key = env::var("API_KEY").unwrap();
+        let mut mem = prepare_working_memory(
+            vec![
+                MemoryNoteBuilder::new("test1").id("test1").build(),
+                MemoryNoteBuilder::new("test2").id("test2").build(),
+                MemoryNoteBuilder::new("test3").id("test3").build(),
+            ]
+        );
+        mem.add_temp_mem(
+            MemoryNoteBuilder::new("test4").id("test4").build(),
+            MemorySource::Dialogue("test".to_string())
+        );
+        mem.add_temp_mem(
+            MemoryNoteBuilder::new("test5").id("test5").build(),
+            MemorySource::Dialogue("test".to_string())
+        );
+        mem.add_temp_mem(
+            MemoryNoteBuilder::new("test6").id("test6").build(),
+            MemorySource::Dialogue("test".to_string())
+        );
+        let llm_driver = SiliconFlow::new().unwrap();
+        let llm_config = LLMConfigBuilder::new("Qwen/Qwen3-8B", api_key)
+            .build();
+        let con = mem.filter_need_consolidate(
+            |_| true,
+            |_| true
+        );
+        println!("filtered_con:{:?}",con);
+        mem.reconsolidate(Arc::new(llm_driver), &llm_config, con).await.unwrap();
+        println!("mem: {:?}",mem.cluster.graph);
+    }
 }
 
