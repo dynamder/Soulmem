@@ -4,7 +4,7 @@ mod soul_embedding;
 mod llm_driver;
 mod db;
 mod utils;
-mod schedule_task;
+mod time_wheel;
 
 pub struct SoulMemory {
     
