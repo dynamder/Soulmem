@@ -9,6 +9,7 @@ use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 
 use std::future::Future;
+use std::rc::Rc;
 
 type BoxFuture = Box<dyn Future<Output = Result<()>> + Send>;
 
@@ -45,6 +46,7 @@ pub struct ErrorHandleConfig {
     pub retry_interval: Duration,
     pub on_failure: Option<Arc<dyn Fn() + Send + Sync>>
 }
+
 pub struct ScheduleTask {
     id: Uuid,
     task: TaskType,
@@ -173,7 +175,7 @@ impl ScheduleTask {
     }
 }
 pub trait TimeWheel {
-    fn tick(&mut self);
+    fn tick(&mut self) -> bool;
     fn add_task(&mut self, task: ScheduleTask) -> Result<Uuid>;
     fn remove_task(&mut self, task_id: Uuid) -> Option<ScheduleTask>;
     fn get_ready_tasks(&mut self) -> Vec<ScheduleTask>;
@@ -219,13 +221,14 @@ impl SimpleTimeWheel {
     }
 
     fn max_delay(&self) -> Duration {
-        self.tick_duration.checked_mul(self.wheel_size as u32).unwrap_or(Duration::MAX)
+        self.tick_duration.saturating_mul(self.wheel_size as u32)
     }
 
 }
 impl TimeWheel for SimpleTimeWheel {
-    fn tick(&mut self) {
+    fn tick(&mut self) -> bool { //当发生上溢时，返回true
         self.current_slot = (self.current_slot + 1) % self.wheel_size;
+        self.current_slot == 0
     }
     fn add_task(&mut self, task: ScheduleTask) -> Result<Uuid> {
         if self.start_time.is_none() {
@@ -248,6 +251,7 @@ impl TimeWheel for SimpleTimeWheel {
 
         Ok(task_id)
     }
+
     fn remove_task(&mut self, task_id: Uuid) -> Option<ScheduleTask> {
         let slot = self.task_map.remove(&task_id)?;
         let slot_tasks = &mut self.slots[slot];
@@ -266,6 +270,98 @@ impl TimeWheel for SimpleTimeWheel {
         self.tick_duration
     }
 }
+pub struct HierarchicalTimeWheel {
+    base_tick_duration: Duration,
+    levels: Vec<SimpleTimeWheel>,
+    start_time: Option<Instant>
+}
+impl HierarchicalTimeWheel {
+    pub fn new(tick_duration: Duration, levels_wheel_size: Vec<usize>) -> Result<Self> {
+        let wheel_vec_len = levels_wheel_size.len();
+        if levels_wheel_size.is_empty() {
+            return Err(anyhow::anyhow!("levels must not be empty"));
+        }
+        let mut muled_ticks = Vec::with_capacity(wheel_vec_len);
+        muled_ticks.push(tick_duration);
+        let mut mul_sum = tick_duration;
+        for &size in &levels_wheel_size[0..wheel_vec_len - 1 ] {
+            match mul_sum.checked_mul(size as u32) {
+                None => return Err(anyhow::anyhow!("tick_duration overflow")),
+                Some(mul) => mul_sum = mul,
+            }
+            muled_ticks.push(mul_sum);
+        }
+       let wheels = muled_ticks
+            .into_iter()
+            .zip(levels_wheel_size)
+            .filter_map(|(duration, size)| {
+                SimpleTimeWheel::new(duration, size).ok()
+            })
+            .collect::<Vec<_>>();
+        if wheels.len() != wheel_vec_len {
+            return Err(anyhow::anyhow!("Failed to create all time wheels"));
+        }
+        Ok(Self {
+            base_tick_duration: tick_duration,
+            levels: wheels,
+            start_time: None
+        })
+    }
+    fn find_appropriate_level(&self, expires_at: Instant) -> Result<usize> {
+        let now = Instant::now();
+        let delay= expires_at.saturating_duration_since(now);
+        for (i, wheel) in self.levels.iter().enumerate() {
+            if delay <= wheel.max_delay() {
+                return Ok(i)
+            }
+        }
+        Err(anyhow::anyhow!("Task delay exceeds maximum supported delay"))
+    }
+}
+impl TimeWheel for HierarchicalTimeWheel {
+    fn tick(&mut self) -> bool {
+        for wheel in self.levels.iter_mut() {
+            if !wheel.tick() {
+                return false
+            }
+        }
+        true
+    }
+    fn add_task(&mut self, task: ScheduleTask) -> Result<Uuid> {
+        let wheel_index = self.find_appropriate_level(task.expires_at)?;
+        if wheel_index < self.levels.len() {
+            self.levels[wheel_index].add_task(task)
+        } else {
+            Err(anyhow::anyhow!("Task delay exceeds maximum supported delay"))
+        }
+    }
+
+    fn remove_task(&mut self, task_id: Uuid) -> Option<ScheduleTask> {
+        for level in self.levels.iter_mut() {
+            if let Some(task) = level.remove_task(task_id) {
+                return Some(task);
+            }
+        }
+        None
+    }
+
+    fn get_ready_tasks(&mut self) -> Vec<ScheduleTask> {
+        self.levels.iter_mut()
+            .flat_map(|wheel| wheel.get_ready_tasks())
+            .collect()
+    }
+
+    fn task_count(&self) -> usize {
+        self.levels.iter().map(|wheel| wheel.task_count()).sum()
+    }
+
+    fn get_tick_duration(&self) -> Duration {
+        self.base_tick_duration
+    }
+}
+
+
+
 pub struct TimeWheelRunner<T: TimeWheel + Send> {
     wheel: Arc<Mutex<T>>,
     tick_interval: Duration,
@@ -902,3 +998,339 @@ mod simple_time_wheel_tests {
         assert_eq!(counter.load(Ordering::SeqCst), 1);
     }
 }
+
+#[cfg(test)]
+mod hierarchical_time_wheel_tests {
+    use super::*;
+    use std::time::Duration;
+    use tokio::time::Instant;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::Arc;
+
+    // Helper function to create a simple successful task
+    fn success_task() -> impl Fn() -> Pin<Box<dyn Future<Output = Result<()>> + Send>> {
+        move || -> Pin<Box<dyn Future<Output = Result<()>> + Send>> {
+            Box::pin(async { Ok(()) })
+        }
+    }
+
+    #[test]
+    fn test_hierarchical_time_wheel_new_success() {
+        // 测试成功创建层级时间轮
+        let tick_duration = Duration::from_secs(1);
+        let levels_wheel_size = vec![4, 8, 16]; // 3层结构
+
+        let result = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size);
+
+        assert!(result.is_ok());
+        let wheel = result.unwrap();
+        assert_eq!(wheel.base_tick_duration, tick_duration);
+        assert_eq!(wheel.levels.len(), 3);
+        assert!(wheel.start_time.is_none());
+    }
+
+    #[test]
+    fn test_hierarchical_time_wheel_new_empty_levels() {
+        // 测试空层级大小数组
+        let tick_duration = Duration::from_secs(1);
+        let levels_wheel_size = vec![];
+
+        let result = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_hierarchical_time_wheel_new_overflow() {
+        // 测试时间计算溢出情况
+        let tick_duration = Duration::from_secs(1000000);
+        let levels_wheel_size = vec![10000000, 10000000, 10000000]; // 会导致溢出的配置
+
+        let result = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_hierarchical_time_wheel_levels_configuration() {
+        // 测试层级配置正确性
+        let tick_duration = Duration::from_secs(1);
+        let levels_wheel_size = vec![4, 8, 2]; // 第1层: 1s*4, 第2层: 4s*8, 第3层: 32s*2
+
+        let wheel = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size).unwrap();
+
+        // 验证各层tick_duration配置
+        assert_eq!(wheel.levels[0].tick_duration, Duration::from_secs(1)); // 1s
+        assert_eq!(wheel.levels[1].tick_duration, Duration::from_secs(4)); // 1s * 4
+        assert_eq!(wheel.levels[2].tick_duration, Duration::from_secs(32)); // 4s * 8
+
+        // 验证各层wheel_size配置
+        assert_eq!(wheel.levels[0].wheel_size, 4);
+        assert_eq!(wheel.levels[1].wheel_size, 8);
+        assert_eq!(wheel.levels[2].wheel_size, 2);
+    }
+
+    #[test]
+    fn test_find_appropriate_level_first_level() {
+        // 测试任务分配到第一层
+        let tick_duration = Duration::from_secs(1);
+        let levels_wheel_size = vec![4, 8]; // 第1层最大延迟4s, 第2层最大延迟32s
+        let wheel = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size).unwrap();
+
+        // 任务在2秒后过期，应该分配到第1层
+        let expires_at = Instant::now() + Duration::from_secs(2);
+        let result = wheel.find_appropriate_level(expires_at);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 0);
+    }
+
+    #[test]
+    fn test_find_appropriate_level_second_level() {
+        // 测试任务分配到第二层
+        let tick_duration = Duration::from_secs(1);
+        let levels_wheel_size = vec![4, 8]; // 第1层最大延迟4s, 第2层最大延迟32s
+        let wheel = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size).unwrap();
+
+        // 任务在8秒后过期，应该分配到第2层（超过第1层最大延迟）
+        let expires_at = Instant::now() + Duration::from_secs(8);
+        let result = wheel.find_appropriate_level(expires_at);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 1);
+    }
+
+    #[test]
+    fn test_find_appropriate_level_exceeds_max_delay() {
+        // 测试任务延迟超过最大支持延迟
+        let tick_duration = Duration::from_secs(1);
+        let levels_wheel_size = vec![4, 8]; // 最大支持延迟32s
+        let wheel = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size).unwrap();
+
+        // 任务在5000秒后过期，超过最大支持延迟
+        let expires_at = Instant::now() + Duration::from_secs(5000);
+        let result = wheel.find_appropriate_level(expires_at);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_hierarchical_time_wheel_tick() {
+        // 测试层级时间轮转动
+        let tick_duration = Duration::from_secs(1);
+        let levels_wheel_size = vec![3, 3]; // 2层，每层3个槽位
+        let mut wheel = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size).unwrap();
+
+        // 初始状态检查
+        assert_eq!(wheel.levels[0].current_slot, 0);
+        assert_eq!(wheel.levels[1].current_slot, 0);
+
+        // 第一次tick
+        let overflow = wheel.tick();
+        assert_eq!(wheel.levels[0].current_slot, 1);
+        assert_eq!(wheel.levels[1].current_slot, 0); // 第二层不转动
+        assert!(!overflow); // 未溢出
+
+        // 第二次tick
+        let overflow = wheel.tick();
+        assert_eq!(wheel.levels[0].current_slot, 2);
+        assert_eq!(wheel.levels[1].current_slot, 0);
+        assert!(!overflow);
+
+        // 第三次tick，第一层溢出
+        let overflow = wheel.tick();
+        assert_eq!(wheel.levels[0].current_slot, 0); // 回到起点
+        assert_eq!(wheel.levels[1].current_slot, 1); // 第二层转动
+        assert!(!overflow);
+
+        // 继续tick直到整体溢出
+        wheel.tick(); // 1,1
+        wheel.tick(); // 2,1
+        wheel.tick(); // 0,2
+        wheel.tick(); // 1,2
+        wheel.tick(); // 2,2
+        let overflow = wheel.tick(); // 0,0 - 整体溢出
+        assert_eq!(wheel.levels[0].current_slot, 0);
+        assert_eq!(wheel.levels[1].current_slot, 0);
+        assert!(overflow); // 整体溢出
+    }
+
+    #[test]
+    fn test_add_task_success() {
+        // 测试成功添加任务
+        let tick_duration = Duration::from_secs(1);
+        let levels_wheel_size = vec![4, 8];
+        let mut wheel = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size).unwrap();
+
+        let expires_at = Instant::now() + Duration::from_secs(2);
+        let task = ScheduleTask::new_once(success_task(), expires_at, None);
+        let task_id = task.id;
+
+        let result = wheel.add_task(task);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), task_id);
+        assert_eq!(wheel.task_count(), 1);
+    }
+
+    #[test]
+    fn test_add_task_exceeds_max_delay() {
+        // 测试任务延迟过大无法添加
+        let tick_duration = Duration::from_secs(1);
+        let levels_wheel_size = vec![4, 8]; // 最大延迟32秒
+        let mut wheel = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size).unwrap();
+
+        let expires_at = Instant::now() + Duration::from_secs(1000); // 超过最大延迟
+        let task = ScheduleTask::new_once(success_task(), expires_at, None);
+
+        let result = wheel.add_task(task);
+
+        assert!(result.is_err());
+        assert_eq!(wheel.task_count(), 0);
+    }
+
+    #[test]
+    fn test_remove_task_success() {
+        // 测试成功移除任务
+        let tick_duration = Duration::from_secs(1);
+        let levels_wheel_size = vec![4, 8];
+        let mut wheel = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size).unwrap();
+
+        // 添加任务
+        let expires_at = Instant::now() + Duration::from_secs(2);
+        let task = ScheduleTask::new_once(success_task(), expires_at, None);
+        let task_id = task.id;
+        wheel.add_task(task).unwrap();
+        assert_eq!(wheel.task_count(), 1);
+
+        // 移除任务
+        let removed_task = wheel.remove_task(task_id);
+
+        assert!(removed_task.is_some());
+        assert_eq!(removed_task.unwrap().id, task_id);
+        assert_eq!(wheel.task_count(), 0);
+    }
+
+    #[test]
+    fn test_remove_task_not_found() {
+        // 测试移除不存在的任务
+        let tick_duration = Duration::from_secs(1);
+        let levels_wheel_size = vec![4, 8];
+        let mut wheel = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size).unwrap();
+
+        let task_id = Uuid::new_v4();
+        let removed_task = wheel.remove_task(task_id);
+
+        assert!(removed_task.is_none());
+        assert_eq!(wheel.task_count(), 0);
+    }
+
+    #[test]
+    fn test_get_ready_tasks() {
+        // 测试获取就绪任务
+        let tick_duration = Duration::from_secs(1);
+        let levels_wheel_size = vec![4, 8];
+        let mut wheel = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size).unwrap();
+
+        // 添加两个任务到不同层级
+        let expires_at1 = Instant::now() + Duration::from_secs(2); // 第1层
+        let task1 = ScheduleTask::new_once(success_task(), expires_at1, None);
+        wheel.add_task(task1).unwrap();
+
+        let expires_at2 = Instant::now() + Duration::from_secs(12); // 第2层
+        let task2 = ScheduleTask::new_once(success_task(), expires_at2, None);
+        wheel.add_task(task2).unwrap();
+
+        assert_eq!(wheel.task_count(), 2);
+
+        // 获取就绪任务（初始状态下应该为空）
+        let ready_tasks = wheel.get_ready_tasks();
+        assert!(ready_tasks.is_empty());
+
+        // 由于我们无法直接控制时间轮的槽位，这里验证任务数统计
+        assert_eq!(wheel.task_count(), 2);
+    }
+
+    #[test]
+    fn test_task_count() {
+        // 测试任务计数
+        let tick_duration = Duration::from_secs(1);
+        let levels_wheel_size = vec![4, 8];
+        let mut wheel = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size).unwrap();
+
+        // 初始任务数为0
+        assert_eq!(wheel.task_count(), 0);
+
+        // 添加任务
+        let expires_at1 = Instant::now() + Duration::from_secs(2);
+        let task1 = ScheduleTask::new_once(success_task(), expires_at1, None);
+        wheel.add_task(task1).unwrap();
+        assert_eq!(wheel.task_count(), 1);
+
+        let expires_at2 = Instant::now() + Duration::from_secs(5);
+        let task2 = ScheduleTask::new_once(success_task(), expires_at2, None);
+        let task2_id = task2.id.clone();
+        wheel.add_task(task2).unwrap();
+        assert_eq!(wheel.task_count(), 2);
+
+        // 移除任务
+        wheel.remove_task(task2_id);
+        assert_eq!(wheel.task_count(), 1);
+    }
+
+    #[test]
+    fn test_get_tick_duration() {
+        // 测试获取基础tick_duration
+        let tick_duration = Duration::from_secs(1);
+        let levels_wheel_size = vec![4, 8];
+        let wheel = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size).unwrap();
+
+        let duration = wheel.get_tick_duration();
+
+        assert_eq!(duration, tick_duration);
+    }
+
+    #[tokio::test]
+    async fn test_hierarchical_time_wheel_with_runner() {
+        // 测试层级时间轮与Runner配合工作
+        let tick_duration = Duration::from_secs(1);
+        let levels_wheel_size = vec![4, 4];
+        let wheel = HierarchicalTimeWheel::new(tick_duration, levels_wheel_size).unwrap();
+
+        let runner = TimeWheelRunner::new(wheel);
+        let cancel_token = runner.cancel_token();
+        let wheel_handle = runner.wheel();
+
+        // 启动runner
+        let handle = runner.run().await;
+
+        // 添加任务
+        let counter = Arc::new(AtomicUsize::new(0));
+        let counter_clone = counter.clone();
+        let task_fn = move || -> Pin<Box<dyn Future<Output = Result<()>> + Send>> {
+            let counter = counter_clone.clone();
+            Box::pin(async move {
+                counter.fetch_add(1, Ordering::SeqCst);
+                Ok(())
+            })
+        };
+
+        {
+            let mut wheel_guard = wheel_handle.lock().await;
+            let expires_at = Instant::now() + Duration::from_secs(2); // 应该在第1层
+            let task = ScheduleTask::new_once(task_fn, expires_at, None);
+            wheel_guard.add_task(task).unwrap();
+        }
+
+        // 等待任务执行
+        tokio::time::sleep(Duration::from_secs(3)).await;
+
+        // 取消runner
+        cancel_token.cancel();
+        let _ = tokio::time::timeout(Duration::from_secs(1), handle).await;
+
+        // 验证任务被执行
+        assert_eq!(counter.load(Ordering::SeqCst), 1);
+    }
+}
+
