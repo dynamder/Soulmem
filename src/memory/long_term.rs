@@ -56,11 +56,13 @@ impl MemoryLongTerm {
         Ok(initial_notes.into_iter().chain(neighbors.into_iter()).flatten().collect())
     }
     pub async fn evolve(&self, memory_notes: impl Into<Vec<MemoryNote>>, llm_driver: &impl Llm){
-        todo!() // 接受一个可能的相关邻居记忆列表，交给LLM判断是否进化，具体为是否需要新增，加强联系，是否要修正记忆内容，更新记忆上下文（本节点和邻居节点）
+        unimplemented!("implement in the next version") // 接受一个可能的相关邻居记忆列表，交给LLM判断是否进化，具体为是否需要新增，加强联系，是否要修正记忆内容，更新记忆上下文（本节点和邻居节点）
         // 邻居记忆列表来自于qdrant数据库，和本地工作记忆（记录一个“提及次数”，取最高的几项）
     }
     pub async fn clean(&self) {
-        todo!()
+        unimplemented!("implement in the next version")
     }
-    pub async fn integration(&self) {todo!()}
+    pub async fn integration(&self) {
+        unimplemented!("implement in the next version")
+    }
 }

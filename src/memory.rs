@@ -1,9 +1,10 @@
-mod long_term;
-mod working;
+pub mod long_term;
+pub mod working;
 mod default_prompts;
 mod probability;
 mod temporary;
 mod share;
+mod flasher;
 
 use qdrant_client::qdrant::Filter;
 use std::collections::HashMap;

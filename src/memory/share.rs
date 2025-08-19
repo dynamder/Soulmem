@@ -3,7 +3,6 @@ use mockall::automock;
 use crate::memory::NodeRefId;
 
 #[allow(dead_code)]
-#[automock]
 ///记录一份记忆的激活记录
 pub trait NoteRecord {
     fn activation_count(&self) -> u32; //被激活的次数
