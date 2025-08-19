@@ -116,6 +116,6 @@ graph TD
 
 - [x] Working memory (Basic function has tested)
 
-- [ ] Long-term memory
+- [x] Long-term memory (Evolution and Integration of the Long-term memory itself will be implemented in further version)
 
 - [ ] Full system integration
