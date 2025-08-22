@@ -19,12 +19,16 @@ pub struct SoulMemory {
     task_scheduler: TimeWheelRunner<HierarchicalTimeWheel>
 }
 impl SoulMemory {
-    pub fn new(working: WorkingMemory, long_term: MemoryLongTerm, task_scheduler: TimeWheelRunner<HierarchicalTimeWheel>) -> Self {
-        Self {
+    pub fn new(working: WorkingMemory, long_term: MemoryLongTerm, time_wheel_config: time_wheel::HierarchicalTimeWheelConfig) -> Result<Self> {
+        Ok(Self {
             working,
             long_term,
-            task_scheduler
-        }
+            task_scheduler: TimeWheelRunner::new(HierarchicalTimeWheel::from_config(time_wheel_config)?),
+        })
+    }
+    /// 初始化记忆系统
+    pub fn mem_init(&mut self) -> Result<()> {
+        todo!("拉取常驻记忆，初始化时间轮任务")
     }
     ///根据给定信息，尝试回忆
     pub async fn recall_mem<RetIter>(&mut self, input: &str) -> RetIter 
