@@ -307,6 +307,9 @@ impl HierarchicalTimeWheel {
             start_time: None
         })
     }
+    pub fn from_config(config: HierarchicalTimeWheelConfig) -> Result<Self> {
+        HierarchicalTimeWheel::new(config.base_tick_duration, config.levels_wheel_size)
+    }
     fn find_appropriate_level(&self, expires_at: Instant) -> Result<usize> {
         let now = Instant::now();
         let delay= expires_at.saturating_duration_since(now);
@@ -359,7 +362,10 @@ impl TimeWheel for HierarchicalTimeWheel {
         self.base_tick_duration
     }
 }
-
+pub struct HierarchicalTimeWheelConfig {
+    pub base_tick_duration: Duration,
+    pub levels_wheel_size: Vec<usize>,
+}
 
 
 pub struct TimeWheelRunner<T: TimeWheel + Send> {
@@ -408,6 +414,7 @@ impl<T: TimeWheel + Send + 'static> TimeWheelRunner<T> {
         self.cancel_token.clone()
     }
 }
+
 
 /* ------------------tests----------------------------------------------------*/
 #[cfg(test)]
@@ -998,6 +1005,7 @@ mod simple_time_wheel_tests {
         assert_eq!(counter.load(Ordering::SeqCst), 1);
     }
 }
+
 
 #[cfg(test)]
 mod hierarchical_time_wheel_tests {
