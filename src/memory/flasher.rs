@@ -4,3 +4,6 @@ mod basic_component;
 pub struct Flasher {
     
 }
+pub struct FlasherConfig {
+    
+}
