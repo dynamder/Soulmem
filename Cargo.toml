@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.98"
 chrono = "0.4.41"
-fastembed = "4.9.1"
+fastembed = "5.2.0"
 ordered-float = "5.0.0"
 parking_lot = { version = "0.12.4", features = ["serde"] }
 petgraph = "0.8.2"
@@ -30,6 +30,7 @@ approx = "0.5.1"
 dotenvy = "0.15.7"
 tokio-util = "0.7.16"
 toml = "0.9.5"
+thiserror = "2.0.17"
 
 [profile.release]
 lto = true

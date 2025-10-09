@@ -475,7 +475,7 @@ mod test {
         println!("{:?}",result);
     }
     fn prepare_emotion() -> Embedding {
-        let model = TextEmbedding::try_new(
+        let mut model = TextEmbedding::try_new(
             InitOptions::new(EmbeddingModel::AllMiniLML6V2)
         ).unwrap();
         let embeddings = model.embed(
@@ -487,7 +487,7 @@ mod test {
         embeddings.first().unwrap().clone()
     }
     fn prepare_context() -> Embedding {
-        let model = TextEmbedding::try_new(
+        let mut model = TextEmbedding::try_new(
             InitOptions::new(EmbeddingModel::AllMiniLML6V2)
         ).unwrap();
         let embeddings = model.embed(

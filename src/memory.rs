@@ -5,6 +5,7 @@ mod probability;
 mod temporary;
 mod share;
 mod flasher;
+mod refactor;
 
 use qdrant_client::qdrant::Filter;
 use std::collections::HashMap;
@@ -204,7 +205,7 @@ impl MemoryNote {
         }))?)
     }
 
-    pub fn get_embedding(&self, embedding_model: &TextEmbedding) -> Result<MemoryEmbeddings> {
+    pub fn get_embedding(&self, embedding_model: &mut TextEmbedding) -> Result<MemoryEmbeddings> {
         let embeddings = embedding_model.embed(
             vec![
                 &self.keywords.join(" "),
@@ -219,37 +220,37 @@ impl MemoryNote {
     }
 }
 impl CalcEmbedding for MemoryNote {  //TODO: modify the calc embedding trait function to suit the latest embedding calc
-    fn calc_embedding(&self,embedding_model: &TextEmbedding) -> Result<Vec<Embedding>> {
+    fn calc_embedding(&self, embedding_model: &mut TextEmbedding) -> Result<Vec<Embedding>> {
         embedding_model.embed(vec![self.content.as_str()],None)
     }
 }
 impl CalcEmbedding for Vec<MemoryNote> {
-    fn calc_embedding(&self,embedding_model: &TextEmbedding) -> Result<Vec<Embedding>> {
+    fn calc_embedding(&self, embedding_model: &mut TextEmbedding) -> Result<Vec<Embedding>> {
         embedding_model.embed(self.iter().map(|x| x.content.as_str()).collect::<Vec<_>>(),None)
     }
 }
 impl CalcEmbedding for &[String] {
-    fn calc_embedding(&self,embedding_model: &TextEmbedding) -> Result<Vec<Embedding>> {
+    fn calc_embedding(&self, embedding_model: &mut TextEmbedding) -> Result<Vec<Embedding>> {
         embedding_model.embed(Vec::from(*self),None)
     }
 }
 impl CalcEmbedding for String {
-    fn calc_embedding(&self,embedding_model: &TextEmbedding) -> Result<Vec<Embedding>> {
+    fn calc_embedding(&self, embedding_model: &mut TextEmbedding) -> Result<Vec<Embedding>> {
         embedding_model.embed(vec![self],None)
     }
 }
 impl CalcEmbedding for &[&str] {
-    fn calc_embedding(&self,embedding_model: &TextEmbedding) -> Result<Vec<Embedding>> {
+    fn calc_embedding(&self, embedding_model: &mut TextEmbedding) -> Result<Vec<Embedding>> {
         embedding_model.embed(Vec::from(*self),None)
     }
 }
 impl CalcEmbedding for &str {
-    fn calc_embedding(&self,embedding_model: &TextEmbedding) -> Result<Vec<Embedding>> {
+    fn calc_embedding(&self, embedding_model: &mut TextEmbedding) -> Result<Vec<Embedding>> {
         embedding_model.embed(vec![self],None)
     }
 }
 impl CalcEmbedding for Vec<&str> {
-    fn calc_embedding(&self,embedding_model: &TextEmbedding) -> Result<Vec<Embedding>> {
+    fn calc_embedding(&self, embedding_model: &mut TextEmbedding) -> Result<Vec<Embedding>> {
         embedding_model.embed(self.to_vec(),None)
     }
 }
@@ -462,7 +463,7 @@ impl MemoryCluster {
     }
     fn add_new_node(&mut self, node: MemoryNote) -> NodeIndex {
         let node_id = node.id().to_owned();
-        let embeddings = node.get_embedding(&self.embedding_model);
+        let embeddings = node.get_embedding(&mut self.embedding_model);
         if let Ok(embeddings) = embeddings {
             self.add_embeddings(node_id.clone(), embeddings);
         }else {
