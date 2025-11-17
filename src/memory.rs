@@ -1,11 +1,3 @@
-pub mod long_term;
-pub mod working;
-mod default_prompts;
-mod probability;
-mod temporary;
-mod share;
-mod flasher;
-mod refactor;
 
 use qdrant_client::qdrant::Filter;
 use std::collections::HashMap;
@@ -23,7 +15,7 @@ use qdrant_client::qdrant::condition::ConditionOneOf::HasId;
 use qdrant_client::qdrant::PointId;
 use rayon::prelude::IntoParallelIterator;
 use surrealdb::RecordId;
-use crate::soul_embedding::CalcEmbedding;
+
 
 ///Stand for a link to another MemoryNote,the intensity mimics the strength of the link in human brains
 #[derive(Debug,Clone,Serialize,Deserialize,PartialEq)]
@@ -217,41 +209,6 @@ impl MemoryNote {
         let [concept, emotion, context]: [Embedding; 3] = embeddings.try_into()
             .map_err(|_| anyhow::anyhow!("Embedding error: the length doesn't match"))?;
         Ok(MemoryEmbeddings::new(concept, emotion, context))
-    }
-}
-impl CalcEmbedding for MemoryNote {  //TODO: modify the calc embedding trait function to suit the latest embedding calc
-    fn calc_embedding(&self, embedding_model: &mut TextEmbedding) -> Result<Vec<Embedding>> {
-        embedding_model.embed(vec![self.content.as_str()],None)
-    }
-}
-impl CalcEmbedding for Vec<MemoryNote> {
-    fn calc_embedding(&self, embedding_model: &mut TextEmbedding) -> Result<Vec<Embedding>> {
-        embedding_model.embed(self.iter().map(|x| x.content.as_str()).collect::<Vec<_>>(),None)
-    }
-}
-impl CalcEmbedding for &[String] {
-    fn calc_embedding(&self, embedding_model: &mut TextEmbedding) -> Result<Vec<Embedding>> {
-        embedding_model.embed(Vec::from(*self),None)
-    }
-}
-impl CalcEmbedding for String {
-    fn calc_embedding(&self, embedding_model: &mut TextEmbedding) -> Result<Vec<Embedding>> {
-        embedding_model.embed(vec![self],None)
-    }
-}
-impl CalcEmbedding for &[&str] {
-    fn calc_embedding(&self, embedding_model: &mut TextEmbedding) -> Result<Vec<Embedding>> {
-        embedding_model.embed(Vec::from(*self),None)
-    }
-}
-impl CalcEmbedding for &str {
-    fn calc_embedding(&self, embedding_model: &mut TextEmbedding) -> Result<Vec<Embedding>> {
-        embedding_model.embed(vec![self],None)
-    }
-}
-impl CalcEmbedding for Vec<&str> {
-    fn calc_embedding(&self, embedding_model: &mut TextEmbedding) -> Result<Vec<Embedding>> {
-        embedding_model.embed(self.to_vec(),None)
     }
 }
 

@@ -1,121 +1,59 @@
-# Soulmem - A Human-like Memory System for LLMs
+# SoulMem
 
-A memory architecture designed for large language models (LLMs) to achieve more natural and coherent responses and behaviors by simulating human memory mechanisms. This memory framework is still **under development**.
+[简体中文](README.md) | [English](README_en.md)
 
-## Core Concepts
+[![Project Status: WIP](https://img.shields.io/badge/Status-Active%20Development-orange)](https://github.com/your-username/SoulMem)
 
-### Memory Hierarchy
-| Type                 | Storage               | Characteristics                                   | Lifecycle |
-| -------------------- | --------------------- | ------------------------------------------------- | --------- |
-| **Long-term Memory** | Vector Database       | Persistent storage, knowledge graph structure     | Permanent |
-| **Working Memory**   | RAM                   | Currently activated memory subgraph               | Temporary |
-| **Temporary Memory** | Within Working Memory | Transient information from real-time conversation | Temporary |
+[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
-### Core Mechanisms
-- **Task** 
-  Represents an event unit currently being processed by the LLM, containing associated memories and attention weights
-  
-- **Task Focus** 
-  The core task with the highest attention score
-  
-- **Activation** 
-  The retrieval process from long-term memory → working memory, and working memory → LLM context
-  
-- **Consolidation** 
-  The transformation process from working memory → long-term memory
-  
-- **Reconsolidation**
+SoulMem is a memory system specifically designed for role-playing tasks. It **aims to** enable more anthropomorphic outputs from LLMs, allowing simulated characters to remember important, emotionally relevant, and behavior-driving events like humans, and to establish connections between them. **It does not aim to** remember event details or factual knowledge with precise accuracy.
 
-  The process of updating content and establishing connections when working memory is activated.
+**Please Note!**: SoulMem is a memory system intended for **individual users** running on **personal computers**, and is not an enterprise-level solution.
 
-- **Integration**
+## ✨ Core Features
 
-  The process of updating the memory graph based on high-frequency activated memories and extracted random samples.
+-   ***Memory Consolidation & Evolution***: Memories are consolidated and generalized over time, forming higher-level cognitions.
+-   ***Active Forgetting Mechanism***: Simulates the human forgetting curve, retaining important memories while fading trivial details.
+-   ***Graph-based Association***: Achieves active memory association through a working memory subgraph.
+-   ***Dynamic Memory Updates***: Supports real-time addition and updating of memories during interaction.
+-   ***Short-term Memory Abstraction***: Processes short-term context through summarization mechanisms to prevent information overload.
 
-- **Evolution** 
-  The self-optimization process for long-term memory (executed periodically)
+## 🏗️ Design Philosophy
 
-## MemoryNote
+The core design philosophy of SoulMem is: ***"All characteristics and events belong to memory."***
 
-The basic unit of memory, contains the following attributes:
+Unlike traditional role-playing systems that rely on static "character cards," SoulMem posits that a character's personality, speech habits, behavioral patterns, etc., are all results of the interactive evolution of long-term memories. This design aims to better support the dynamic evolution of character personality and maintain high character consistency.
 
-- content
-  - the raw content of the memory
-- id
-  - uuid
-- keywords
-- links
-  - links between memories
-- retrieval_count
-- timestamp
-  - time when created
-- last_accessed
-  - time when last accessed
-- context
-  - the time and space circumstances of a memory (time, place, objects, etc.)
-- evolution_history
-- category
-  - This attribute serves as the table name in Surreal DB
-- tags
-  - cognitions?, behavior?, etc.
-- base_emotion
-  - the leading emotion of the memory
+## 📁 Project Status & Architecture
 
-### SuperNote (Further implemention)
+***Current Status: Active Development***
 
-A SuperNote represents a subgraph in the memory graph, intended to lower the complexity of the memory graph.
+*> 🚧 SoulMem is under active development and a stable version has not yet been released. We welcome interested developers to follow, discuss, and even contribute! Please refer to the* *`docs`* *directory for the latest architectural designs and development progress.*
 
-## Workflow
+- ***Important Notice***: The project has undergone architectural refactoring. The `main` branch contains the latest version. The old alpha version code can be found on the [`alpha_deprecated`](https://github.com/dynamder/SoulMem/tree/alpha_deprecated) branch.
 
-```mermaid
-graph TD
-    A[User Input] --> B{Task Analysis}
-    B -->|Related tasks exist| C[Rank tasks by relevance]
-    B -->|No related tasks| D[Create new task]
-    C --> E{Requires long-term memory activation?}
-    D --> E
-    E -->|Yes| F[Retrieve memory from Vector DB]
-    E -->|No| G[Update working memory]
-    F --> G
-    G --> H[Calculate task attention scores]
-    H --> I[Determine task focus]
-    I --> J[Retrieve memories by attention weights]
-    J --> K[Heuristic search memory graph, or memory diffusion]
-    K --> L[Assemble memory context]
-    L --> M[Generate LLM response]
-    
-    subgraph Background Processes
-        N[Memory activation event] --> O[Record co-activated memories]
-        O --> P{Cool-down complete?}
-        P -->|Yes| Q[Add to reconsolidation queue]
-        
-        R{Resources idle?} -->|Yes|S[Execute offline consolidation]
-        S --> T[Frequency-stratified sampling]
-        T --> U[Construct memory subgraph]
-        U --> V[LLM integration]
-        
-        W{Monthly cycle reached} --> X[Global knowledge health check]
-        X --> Y[Trigger deep evolution via LLM]
-    end
+- ***Detailed Architecture***: Please refer to [`docs/architecture/beta_ver.md`](docs/architecture/beta_ver.md) for the latest technical architecture documentation.
 
-```
+## 🚀 Quick Start
 
-## Project Progress
+The project is currently in its early development stages. Installation and basic usage tutorials will be provided here when an applicable version is available.
 
-- [x] Basic organizational structure of memory
+## 🤝 Contributing
 
-- [x] Database interface encapsulation
+We warmly welcome contributions of any kind! Whether it's code, documentation, ideas, or testing, all help SoulMem grow.
 
-- [x] LLM invocation (current provider: SiliconFlow only)
+1.  Fork the repository
+2.  Create your feature branch
+3.  Commit your changes
+4.  Push to the branch
+5.  Open a Pull Request
 
-- [x] Temporary memory
+Please ensure your code follows the existing project style.
 
-- [x] Tasks and task focus
+## 📄 License
 
-- [x] Memory diffusion mechanism (PPR, Hybrid PPR Only, Random Walker method will be implemented in further version)
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-- [x] Working memory (Basic function has tested)
+## 🙏 Acknowledgments
 
-- [x] Long-term memory (Evolution and Integration of the Long-term memory itself will be implemented in further version)
-
-- [ ] Full system integration
+Thanks to all contributors who have provided ideas and assistance for this project.
