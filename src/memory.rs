@@ -1,3 +1,5 @@
+mod memory_note;
+mod memory_links;
 
 use qdrant_client::qdrant::Filter;
 use std::collections::HashMap;
@@ -398,7 +400,7 @@ impl MemoryCluster {
         self.merge_batch_edges(to_merged_edge);
 
     }
-    pub fn merge_cluster(&mut self, other: MemoryCluster) {
+    pub fn merge_cluster(&mut self, _other: MemoryCluster) {
         todo!()
     }
     fn merge_node(&mut self, node: MemoryNote) -> NodeIndex {
