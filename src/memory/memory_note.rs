@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use thiserror::Error;
 use uuid::Uuid;
 
-mod memory_type;
+mod proc_mem;
 
 //new-type pattern
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Hash)]
