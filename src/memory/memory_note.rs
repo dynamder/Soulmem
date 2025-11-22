@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use chrono::{DateTime, Utc};
 use thiserror::Error;
 use uuid::Uuid;
@@ -6,16 +5,16 @@ use uuid::Uuid;
 mod proc_mem;
 
 //new-type pattern
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Hash)]
-pub struct MemoryId(Arc<Uuid>); // 因为Uuid在创建后不会变化，所以直接使用Arc
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Copy, Clone, Hash)]
+pub struct MemoryId(Uuid);
 impl MemoryId {
     pub fn new() -> Self {
-        Self(Arc::new(Uuid::new_v4()))
+        Self(Uuid::new_v4())
     }
 }
 impl From<Uuid> for MemoryId {
     fn from(id: Uuid) -> Self {
-        Self(Arc::new(id))
+        Self(id)
     }
 }
 impl Default for MemoryId {
@@ -26,12 +25,12 @@ impl Default for MemoryId {
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub struct MemoryNote {
-    id: MemoryId, // 记忆唯一id
-    tags: Vec<String>, //记忆的标签，暂定会成为embedding的一部分
-    retrieval_count: usize,//记忆被提取的次数
-    create_time: DateTime<Utc>,//记忆的创建时间
-    last_accessed_time: DateTime<Utc>,//记忆的最后访问时间
-    mem_type: MemoryType,//记忆的类型，存储类型特定内容
+    id: MemoryId,                      // 记忆唯一id
+    tags: Vec<String>,                 //记忆的标签，暂定会成为embedding的一部分
+    retrieval_count: usize,            //记忆被提取的次数
+    create_time: DateTime<Utc>,        //记忆的创建时间
+    last_accessed_time: DateTime<Utc>, //记忆的最后访问时间
+    mem_type: MemoryType,              //记忆的类型，存储类型特定内容
 }
 impl MemoryNote {
     pub fn is_same_id(mem1: &MemoryNote, mem2: &MemoryNote) -> bool {
@@ -83,7 +82,8 @@ impl MemoryNoteBuilder {
         self.last_accessed_time = Some(last_accessed_time);
         self
     }
-    pub fn build(self) -> Result<MemoryNote, MemoryNoteBuildError>  { //允许对字段的自由控制，以便于调试和修正
+    pub fn build(self) -> Result<MemoryNote, MemoryNoteBuildError> {
+        //允许对字段的自由控制，以便于调试和修正
         if self.last_accessed_time < self.create_time {
             return Err(MemoryNoteBuildError::TimeConflict);
         }

@@ -6,7 +6,7 @@ pub enum ProcMemLink {
     TrigToAction(TrigToAction),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct TrigToAction {
     pub trig: MemoryId,
     pub action: MemoryId,
