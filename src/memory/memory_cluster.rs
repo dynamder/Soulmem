@@ -189,7 +189,7 @@ impl MemoryCluster {
         &self,
         node_ids: impl Into<HashSet<MemoryId>>,
         edge_ids: impl Into<HashSet<LinkId>>,
-    ) -> MemorySubCluster {
+    ) -> MemorySubCluster<'_> {
         MemorySubCluster {
             node_ids: node_ids.into(),
             edge_ids: edge_ids.into(),
