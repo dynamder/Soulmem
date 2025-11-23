@@ -1,14 +1,16 @@
-use anyhow::Result;
 use chrono::{DateTime, Utc};
 use fastembed::{Embedding, TextEmbedding};
 use petgraph::prelude::{EdgeIndex, NodeIndex, StableDiGraph};
+use petgraph::visit::EdgeRef;
+use petgraph::{Direction, Undirected};
 use rayon::prelude::IntoParallelIterator;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, json};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Display};
 use std::sync::Arc;
 use surrealdb::RecordId;
+use thiserror::Error;
 use uuid::Uuid;
 
 use crate::memory::embedding::{Embeddable, EmbeddingModel};
@@ -23,22 +25,35 @@ use super::memory_note::MemoryNote;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct GraphMemoryLink {
+    id: LinkId,
     link_type: MemoryLinkType,
+}
+impl GraphMemoryLink {
+    pub fn id(&self) -> LinkId {
+        self.id
+    }
+    pub fn link_type(&self) -> &MemoryLinkType {
+        &self.link_type
+    }
 }
 impl From<MemoryLink> for GraphMemoryLink {
     fn from(link: MemoryLink) -> Self {
         GraphMemoryLink {
+            id: link.id(),
             link_type: link.into_link_type(), // extract the link type
         }
     }
 }
 
-impl From<MemoryLinkType> for GraphMemoryLink {
-    fn from(link_type: MemoryLinkType) -> Self {
-        GraphMemoryLink { link_type }
+impl From<(LinkId, MemoryLinkType)> for GraphMemoryLink {
+    fn from(link: (LinkId, MemoryLinkType)) -> Self {
+        GraphMemoryLink {
+            id: link.0,
+            link_type: link.1,
+        }
     }
 }
-
+#[derive(Clone)]
 //TODO: test it, the embedding injection and link store has changed
 pub struct MemoryCluster {
     graph: StableDiGraph<MemoryNote, GraphMemoryLink>,
@@ -121,6 +136,33 @@ impl MemoryCluster {
             false
         }
     }
+    pub fn get_directed_linked_edges(
+        &self,
+        node_id: MemoryId,
+        direction: Direction,
+    ) -> Option<impl Iterator<Item = LinkId>> {
+        if let Some(&index) = self.mem_id_to_index.get(&node_id) {
+            Some(
+                self.graph()
+                    .edges_directed(index, direction)
+                    .map(|edge| edge.weight().id()),
+            )
+        } else {
+            None
+        }
+    }
+    pub fn get_all_linked_edges(&self, node_id: MemoryId) -> Option<impl Iterator<Item = LinkId>> {
+        if let Some(&index) = self.mem_id_to_index.get(&node_id) {
+            Some(
+                self.graph()
+                    .edges_directed(index, Direction::Incoming)
+                    .chain(self.graph().edges_directed(index, Direction::Outgoing))
+                    .map(|edge| edge.weight().id()),
+            )
+        } else {
+            None
+        }
+    }
     pub fn merge(&mut self, other: Vec<EmbedMemoryNote>) {
         let to_merged_edge = other
             .iter()
@@ -142,6 +184,17 @@ impl MemoryCluster {
     }
     pub fn merge_cluster(&mut self, _other: MemoryCluster) {
         todo!()
+    }
+    pub fn sub_cluster(
+        &self,
+        node_ids: impl Into<HashSet<MemoryId>>,
+        edge_ids: impl Into<HashSet<LinkId>>,
+    ) -> MemorySubCluster {
+        MemorySubCluster {
+            node_ids: node_ids.into(),
+            edge_ids: edge_ids.into(),
+            super_cluster: &self,
+        }
     }
     fn merge_node(&mut self, embed_node: EmbedMemoryNote) -> NodeIndex {
         let node_id = embed_node.note().id();
@@ -269,6 +322,51 @@ impl BatchLTQueryType {
     }
 }
 
+//TODO: test it
+#[derive(Debug, Clone)]
+pub struct MemorySubCluster<'a> {
+    node_ids: HashSet<MemoryId>,
+    edge_ids: HashSet<LinkId>,
+    super_cluster: &'a MemoryCluster,
+}
+impl<'a> MemorySubCluster<'a> {
+    pub fn add_node(&mut self, mem_id: MemoryId) -> Result<(), ClusterError> {
+        if !self.super_cluster.contains_node(mem_id) {
+            return Err(ClusterError::NodeNotContained(mem_id));
+        }
+        self.node_ids.insert(mem_id);
+        if let Some(edges) = self.super_cluster.get_all_linked_edges(mem_id) {
+            self.edge_ids.extend(edges);
+        }
+        Ok(())
+    }
+    pub fn add_nodes(&mut self, mem_ids: &[MemoryId]) -> Result<(), Vec<ClusterError>> {
+        let mut errors = Vec::with_capacity(mem_ids.len() / 2); // Initialize with half the capacity
+        for mem_id in mem_ids {
+            let res = self.add_node(*mem_id);
+            if let Err(err) = res {
+                errors.push(err);
+            }
+        }
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(errors)
+        }
+    }
+    pub fn super_cluster(&self) -> &'a MemoryCluster {
+        self.super_cluster
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum ClusterError {
+    #[error("node {0} not contained in Super.")]
+    NodeNotContained(MemoryId),
+    #[error("edge {0} not contained in Super.")]
+    EdgeNotContained(LinkId),
+    //PlaceHolder for now
+}
 //WARNING: Legacy Code below, maybe useful for later reuse
 
 // pub struct LTMemoryQuery {

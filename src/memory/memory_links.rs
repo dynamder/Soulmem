@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -14,6 +16,11 @@ impl LinkId {
 impl Default for LinkId {
     fn default() -> Self {
         LinkId::new()
+    }
+}
+impl Display for LinkId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 

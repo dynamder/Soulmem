@@ -19,6 +19,7 @@ pub enum EmbeddingError {
 pub struct EmbeddingModel {
     // Placeholder for embedding model wrapper
 }
+#[derive(Debug, Clone, PartialEq, Eq)]
 
 pub struct MemoryEmbedding {
     //Placeholder for embedding holder
