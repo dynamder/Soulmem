@@ -123,7 +123,7 @@ impl MemoryCluster {
                     let source_id = self.graph.node_weight(edge_ref.source()).unwrap().id();
                     let target_id = self.graph.node_weight(edge_ref.target()).unwrap().id();
                     let mem_link =
-                        MemoryLink::new(source_id, target_id, edge_ref.weight().to_owned());
+                        MemoryLink::new(source_id, target_id, edge_ref.weight().to_owned().link_type);
                     (edge_ref.source(), mem_link)
                 })
                 .collect::<Vec<_>>();
