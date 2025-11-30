@@ -59,7 +59,7 @@ pub struct MemoryCluster {
     graph: StableDiGraph<MemoryNote, GraphMemoryLink>,
     mem_id_to_index: HashMap<MemoryId, NodeIndex>,
     link_id_to_index: HashMap<LinkId, EdgeIndex>,
-    incompletely_linked_note: HashMap<MemoryId, Vec<(NodeIndex, MemoryLink)>>, //目标节点的uuid，Vec<(源节点的index，关系)>
+    incompletely_linked_note: HashMap<MemoryId, Vec<(NodeIndex, MemoryLink)>>, //目标节点的uuid，Vec<(源节点的index，关系)>，TODO：或许这里可以直接用GraphMemoryLink减少不必要的构造
     embedding_store: HashMap<MemoryId, MemoryEmbedding>, //由于link储存在source节点，source节点不在图中，link则不可知，因此source节点通常总是有效
 }
 impl MemoryCluster {
@@ -103,14 +103,33 @@ impl MemoryCluster {
             }
         }
     }
-    /// 删除单个节点，返回被删除的节点，并清理冗余项目
+    /// 删除单个节点，返回被删除的节点，并清理冗余项目，添加pending边
     pub fn remove_single_node(&mut self, node_id: MemoryId) -> Option<MemoryNote> {
         //TODO: test it
         if let Some(idx) = self.mem_id_to_index.remove(&node_id) {
             self.embedding_store.remove(&node_id);
+            //清理所有pending的边中，源节点是node_id的项
             self.incompletely_linked_note
                 .values_mut()
                 .for_each(|v| v.retain(|(origin_idx, _)| *origin_idx != idx));
+
+            //因为删除了node_id节点，原来已经建立的链接，可能会丢失，将Incoming的链接加入pending边
+            // 这里似乎性能看起来不是很好，不过先这样了，后续再说,remove操作本身不会非常频繁
+            let incoming_neighbors = self
+                .graph
+                .edges_directed(idx, Direction::Incoming)
+                .map(|edge_ref| {
+                    //SAFEUNWRAP: 以下的unwrap是安全的，因为edge_ref中的source和target在这个时间点总存在
+                    let source_id = self.graph.node_weight(edge_ref.source()).unwrap().id();
+                    let target_id = self.graph.node_weight(edge_ref.target()).unwrap().id();
+                    let mem_link =
+                        MemoryLink::new(source_id, target_id, edge_ref.weight().to_owned());
+                    (edge_ref.source(), mem_link)
+                })
+                .collect::<Vec<_>>();
+
+            self.incompletely_linked_note
+                .insert(node_id, incoming_neighbors);
             self.graph.remove_node(idx)
         } else {
             None

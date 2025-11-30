@@ -27,6 +27,7 @@ impl From<Uuid> for MemoryId {
         Self(id)
     }
 }
+
 impl Default for MemoryId {
     fn default() -> Self {
         Self::new()
