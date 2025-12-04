@@ -1,3 +1,4 @@
+pub mod algo;
 pub mod embedding;
 pub mod memory_cluster;
 pub mod memory_links;
