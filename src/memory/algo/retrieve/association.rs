@@ -9,7 +9,7 @@ pub struct RetrAssociation {
     max_results: usize,
 }
 pub struct AssociationRequest {
-    working_mem: Arc<WorkingMemory>
+    working_mem: Arc<WorkingMemory>,
 }
 impl RetrStrategy for RetrAssociation {
     type RetrRequest = AssociationRequest;
