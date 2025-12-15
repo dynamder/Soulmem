@@ -56,9 +56,9 @@ where
     let mut ppr_ranks = vec![D::zero(); graph.node_bound()];
     let mut out_degrees = vec![D::zero(); graph.node_bound()];
 
-    //初始化PPR向量
-    valid_index.iter().for_each(|&valid_index| {
-        ppr_ranks[valid_index] = D::one() / d_node_count //SAFEUNWRAP: 已经预先分配了索引上限大小的内存，不会越界访问。
+    //使用个性化向量，初始化PPR值向量，由于源节点有向量相似性取top-k提供（k通常不大），这样初始化通常可以加快收敛速度
+    normalized_bias.iter().for_each(|(&node_id, &bias)| {
+        ppr_ranks[graph.to_index(node_id)] = bias; //SAFEUNWRAP: 已经预先分配了索引上限大小的内存，不会越界访问。
     });
 
     //预计算每个节点的出度
