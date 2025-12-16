@@ -67,7 +67,40 @@ where
     });
 
     for _ in 0..nb_iter {
-        todo!("Implement the PPR algorithm")
+        let ppr_vec_i = valid_index
+            .iter()
+            .map(|&computing_idx| {
+                let iter_ppr = valid_index
+                    .iter()
+                    .map(|&idx| {
+                        //计算每个节点的出度
+                        let mut out_edges = graph.edges(graph.from_index(idx));
+
+                        //拆分标准PPR公式为整体求和形式，便于编写和计算，以及对可能的优化更友好
+                        if out_edges.any(|e| e.target() == graph.from_index(computing_idx)) {
+                            damping_factor * ppr_ranks[idx] / out_degrees[idx]
+                        } else if out_degrees[idx] == D::zero() {
+                            damping_factor
+                                * ppr_ranks[idx]
+                                * normalized_bias[&graph.from_index(computing_idx)]
+                        } else {
+                            (D::one() - damping_factor)
+                                * ppr_ranks[idx]
+                                * normalized_bias[&graph.from_index(computing_idx)]
+                        }
+                    })
+                    .sum::<D>();
+                (computing_idx, iter_ppr)
+            })
+            .collect::<Vec<_>>();
+
+        // 归一化PPR值，确保数值稳定，总和为1
+
+        let sum = ppr_vec_i.iter().map(|(_, ppr)| *ppr).sum::<D>();
+
+        ppr_vec_i.iter().for_each(|&(idx, ppr)| {
+            ppr_ranks[idx] = ppr / sum;
+        });
     }
 
     //返回PPR向量，HashMap形式
