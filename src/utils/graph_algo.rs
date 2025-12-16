@@ -5,6 +5,10 @@ use petgraph::{
     visit::{EdgeRef, IntoEdges, IntoNodeIdentifiers, NodeCount, NodeIndexable},
 };
 
+///PPR: ppr_s = dampling_factor * P * ppr_s + (1-damping_factor) * personalized_vec, P为转移矩阵
+/// 对无出度的节点，采取与source_bias中的节点建立连接
+/// 必须保证source_bias的key是有效的NodeId, 否则会得到不正确的结果
+// 由于NodeId会由MemoryCluster提供，这不会造成额外的检查负担
 #[track_caller]
 pub fn naive_ppr<G, D>(
     graph: G,
@@ -80,13 +84,19 @@ where
                         if out_edges.any(|e| e.target() == graph.from_index(computing_idx)) {
                             damping_factor * ppr_ranks[idx] / out_degrees[idx]
                         } else if out_degrees[idx] == D::zero() {
-                            damping_factor
-                                * ppr_ranks[idx]
-                                * normalized_bias[&graph.from_index(computing_idx)]
+                            normalized_bias
+                                .get(&graph.from_index(computing_idx))
+                                .map(|personal_bias| {
+                                    damping_factor * ppr_ranks[idx] * *personal_bias
+                                })
+                                .unwrap_or(D::zero())
                         } else {
-                            (D::one() - damping_factor)
-                                * ppr_ranks[idx]
-                                * normalized_bias[&graph.from_index(computing_idx)]
+                            normalized_bias
+                                .get(&graph.from_index(computing_idx))
+                                .map(|personal_bias| {
+                                    (D::one() - damping_factor) * ppr_ranks[idx] * *personal_bias
+                                })
+                                .unwrap_or(D::zero())
                         }
                     })
                     .sum::<D>();
@@ -103,9 +113,105 @@ where
         });
     }
 
+    //最终归一化
+    let sum = ppr_ranks.iter().map(|ppr| *ppr).sum::<D>();
+
     //返回PPR向量，HashMap形式
     graph
         .node_identifiers()
-        .map(|node_id| (node_id, ppr_ranks[graph.to_index(node_id)]))
+        .map(|node_id| (node_id, ppr_ranks[graph.to_index(node_id)] / sum))
         .collect()
+}
+
+#[cfg(test)]
+mod test {
+
+    use petgraph::{matrix_graph::NodeIndex, prelude::StableDiGraph};
+
+    use super::*;
+    fn relative_error(actual: f64, expected: f64) -> f64 {
+        if expected.abs() < f64::EPSILON && actual.abs() < f64::EPSILON {
+            0.0
+        } else {
+            let diff = (actual - expected).abs();
+            let denominator = expected.abs().max(actual.abs()).max(f64::EPSILON);
+            diff / denominator
+        }
+    }
+
+    fn test_toy_graph() -> (StableDiGraph<String, f64>, Vec<NodeIndex<u32>>) {
+        let mut graph = StableDiGraph::new();
+        let a = graph.add_node("A".to_string());
+        let b = graph.add_node("B".to_string());
+        //制造索引空洞
+        graph.remove_node(b);
+        let b = graph.add_node("B".to_string());
+        let c = graph.add_node("C".to_string());
+        let d = graph.add_node("D".to_string());
+
+        graph.add_edge(a, b, 1.0);
+        graph.add_edge(a, c, 1.0);
+        graph.add_edge(b, c, 1.0);
+        graph.add_edge(c, d, 1.0);
+
+        (graph, vec![a, b, c, d])
+    }
+    fn toy_graph_with_init_a() -> (
+        StableDiGraph<String, f64>,
+        HashMap<NodeIndex<u32>, f64>,
+        Vec<NodeIndex<u32>>,
+    ) {
+        let (graph, indexes) = test_toy_graph();
+        let ans_vec: Vec<f64> = vec![0.851652742, 0.06387396045, 0.07345504972, 0.01101824785];
+        let ans = indexes.iter().copied().zip(ans_vec).collect();
+        (graph, ans, indexes)
+    }
+    fn toy_graph_with_init_b() -> (
+        StableDiGraph<String, f64>,
+        HashMap<NodeIndex<u32>, f64>,
+        Vec<NodeIndex<u32>>,
+    ) {
+        let (graph, indexes) = test_toy_graph();
+        let ans_vec: Vec<f64> = vec![];
+        let ans = indexes.iter().copied().zip(ans_vec).collect();
+        (graph, ans, indexes)
+    }
+    fn toy_graph_with_init_ab() -> (
+        StableDiGraph<String, f64>,
+        HashMap<NodeIndex<u32>, f64>,
+        Vec<NodeIndex<u32>>,
+    ) {
+        let (graph, indexes) = test_toy_graph();
+        let ans_vec: Vec<f64> = vec![];
+        let ans = indexes.iter().copied().zip(ans_vec).collect();
+        (graph, ans, indexes)
+    }
+    #[test]
+    fn ppr_toy_graph_init_a() {
+        let (graph, true_ans, indexes) = toy_graph_with_init_a();
+        let mut source_bias = HashMap::new();
+        source_bias.insert(indexes[0], 1.0);
+
+        let ppr_ans = naive_ppr(&graph, 0.15_f64, source_bias, 15);
+        let ans_sum = ppr_ans.values().copied().sum::<f64>();
+        assert_eq!(ans_sum, 1.0);
+
+        let relative_error = 0.25
+            * indexes
+                .iter()
+                .map(|idx| {
+                    let actual = ppr_ans[idx];
+                    let expected = true_ans[idx];
+                    (actual - expected).abs()
+                })
+                .sum::<f64>();
+
+        assert!(
+            relative_error < 0.005,
+            "failed with relative err {}, whole ppr_vec is : {:?}, but it should be : {:?}",
+            relative_error,
+            ppr_ans,
+            true_ans
+        )
+    }
 }
