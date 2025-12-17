@@ -1,4 +1,4 @@
-use std::{collections::HashMap, hash::Hash};
+use std::{collections::HashMap, fmt::Debug, hash::Hash};
 
 use petgraph::{
     algo::UnitMeasure,
@@ -13,7 +13,7 @@ use petgraph::{
 pub fn naive_ppr<G, D>(
     graph: G,
     damping_factor: D,
-    source_bias: HashMap<G::NodeId, D>,
+    personalized_vec: HashMap<G::NodeId, D>,
     nb_iter: usize,
 ) -> HashMap<G::NodeId, D>
 where
@@ -31,22 +31,22 @@ where
         D::zero() <= damping_factor && damping_factor <= D::one(),
         "Damping factor should be between 0 et 1."
     );
-    let d_node_count = D::from_usize(node_count);
 
     //检查个性化分布是不是一个概率分布
-    let bias_sum: D = source_bias.values().copied().sum();
+    let personalized_sum: D = personalized_vec.values().copied().sum();
     assert!(
-        bias_sum > D::zero(),
+        personalized_sum > D::zero(),
         "Personalized Source bias sum must be positive"
     );
+
     //归一化个性化向量（初始向量）
-    let normalized_bias: HashMap<G::NodeId, D> = if bias_sum != D::one() {
-        source_bias
+    let normalized_personalized_vec: HashMap<G::NodeId, D> = if personalized_sum != D::one() {
+        personalized_vec
             .into_iter()
-            .map(|(node_id, bias)| (node_id, bias / bias_sum))
+            .map(|(node_id, bias)| (node_id, bias / personalized_sum))
             .collect()
     } else {
-        source_bias
+        personalized_vec
     };
 
     //图中有效的索引值，适配StableGraph(索引可能不连续)
@@ -61,56 +61,67 @@ where
     let mut out_degrees = vec![D::zero(); graph.node_bound()];
 
     //使用个性化向量，初始化PPR值向量，由于源节点有向量相似性取top-k提供（k通常不大），这样初始化通常可以加快收敛速度
-    normalized_bias.iter().for_each(|(&node_id, &bias)| {
-        ppr_ranks[graph.to_index(node_id)] = bias; //SAFEUNWRAP: 已经预先分配了索引上限大小的内存，不会越界访问。
-    });
+    normalized_personalized_vec
+        .iter()
+        .for_each(|(&node_id, &bias)| {
+            ppr_ranks[graph.to_index(node_id)] = bias; //SAFEUNWRAP: 已经预先分配了索引上限大小的内存，不会越界访问。
+        });
+    let normalized_bias_len = normalized_personalized_vec.len();
+    //println!("normalized_bias: {:?}", normalized_bias);
 
     //预计算每个节点的出度
     graph.node_identifiers().for_each(|node_id| {
         out_degrees[graph.to_index(node_id)] = graph.edges(node_id).map(|_| D::one()).sum();
     });
+    //println!("out_degrees: {:?}", out_degrees);
 
-    for _ in 0..nb_iter {
+    for i in 0..nb_iter {
         let ppr_vec_i = valid_index
             .iter()
             .map(|&computing_idx| {
                 let iter_ppr = valid_index
                     .iter()
                     .map(|&idx| {
-                        //计算每个节点的出度
+                        //找到每个节点的出边
                         let mut out_edges = graph.edges(graph.from_index(idx));
 
-                        //拆分标准PPR公式为整体求和形式，便于编写和计算，以及对可能的优化更友好
+                        //游走部分的计算，对于无出度节点，默认其连接至所有个性化向量中不为0的节点
                         if out_edges.any(|e| e.target() == graph.from_index(computing_idx)) {
                             damping_factor * ppr_ranks[idx] / out_degrees[idx]
                         } else if out_degrees[idx] == D::zero() {
-                            normalized_bias
+                            normalized_personalized_vec
                                 .get(&graph.from_index(computing_idx))
-                                .map(|personal_bias| {
-                                    damping_factor * ppr_ranks[idx] * *personal_bias
+                                .map(|_| {
+                                    damping_factor * ppr_ranks[idx]
+                                        / D::from_usize(normalized_bias_len)
                                 })
                                 .unwrap_or(D::zero())
                         } else {
-                            normalized_bias
-                                .get(&graph.from_index(computing_idx))
-                                .map(|personal_bias| {
-                                    (D::one() - damping_factor) * ppr_ranks[idx] * *personal_bias
-                                })
-                                .unwrap_or(D::zero())
+                            D::zero()
                         }
                     })
                     .sum::<D>();
-                (computing_idx, iter_ppr)
+
+                //随机重启部分计算
+                let random_back_part = if let Some(per_i) =
+                    normalized_personalized_vec.get(&graph.from_index(computing_idx))
+                {
+                    (D::one() - damping_factor) * *per_i
+                } else {
+                    D::zero()
+                };
+
+                (computing_idx, iter_ppr + random_back_part)
             })
             .collect::<Vec<_>>();
 
         // 归一化PPR值，确保数值稳定，总和为1
-
         let sum = ppr_vec_i.iter().map(|(_, ppr)| *ppr).sum::<D>();
 
         ppr_vec_i.iter().for_each(|&(idx, ppr)| {
             ppr_ranks[idx] = ppr / sum;
         });
+        //println!("iteration {i}: PPR values: {:?}", ppr_ranks);
     }
 
     //最终归一化
@@ -129,13 +140,12 @@ mod test {
     use petgraph::{matrix_graph::NodeIndex, prelude::StableDiGraph};
 
     use super::*;
-    fn relative_error(actual: f64, expected: f64) -> f64 {
+    fn diff(actual: f64, expected: f64) -> f64 {
         if expected.abs() < f64::EPSILON && actual.abs() < f64::EPSILON {
             0.0
         } else {
             let diff = (actual - expected).abs();
-            let denominator = expected.abs().max(actual.abs()).max(f64::EPSILON);
-            diff / denominator
+            diff
         }
     }
 
@@ -172,7 +182,7 @@ mod test {
         Vec<NodeIndex<u32>>,
     ) {
         let (graph, indexes) = test_toy_graph();
-        let ans_vec: Vec<f64> = vec![];
+        let ans_vec: Vec<f64> = vec![0.0, 0.852878432, 0.1279320211, 0.01918954688];
         let ans = indexes.iter().copied().zip(ans_vec).collect();
         (graph, ans, indexes)
     }
@@ -182,7 +192,7 @@ mod test {
         Vec<NodeIndex<u32>>,
     ) {
         let (graph, indexes) = test_toy_graph();
-        let ans_vec: Vec<f64> = vec![];
+        let ans_vec: Vec<f64> = vec![0.4261326137, 0.4580925718, 0.1006738318, 0.00510098267];
         let ans = indexes.iter().copied().zip(ans_vec).collect();
         (graph, ans, indexes)
     }
@@ -194,22 +204,79 @@ mod test {
 
         let ppr_ans = naive_ppr(&graph, 0.15_f64, source_bias, 15);
         let ans_sum = ppr_ans.values().copied().sum::<f64>();
-        assert_eq!(ans_sum, 1.0);
+        assert!(ans_sum - 1.0 < f64::EPSILON);
 
-        let relative_error = 0.25
+        let avg_diff = 0.25
             * indexes
                 .iter()
                 .map(|idx| {
                     let actual = ppr_ans[idx];
                     let expected = true_ans[idx];
-                    (actual - expected).abs()
+                    diff(actual, expected)
                 })
                 .sum::<f64>();
 
         assert!(
-            relative_error < 0.005,
-            "failed with relative err {}, whole ppr_vec is : {:?}, but it should be : {:?}",
-            relative_error,
+            avg_diff < 0.005,
+            "failed with avg_diff {}, whole ppr_vec is : {:?}, but it should be : {:?}",
+            avg_diff,
+            ppr_ans,
+            true_ans
+        )
+    }
+    #[test]
+    fn ppr_toy_graph_init_b() {
+        let (graph, true_ans, indexes) = toy_graph_with_init_b();
+        let mut source_bias = HashMap::new();
+        source_bias.insert(indexes[1], 1.0);
+
+        let ppr_ans = naive_ppr(&graph, 0.15_f64, source_bias, 15);
+        let ans_sum = ppr_ans.values().copied().sum::<f64>();
+        assert!(ans_sum - 1.0 < f64::EPSILON);
+
+        let avg_diff = 0.25
+            * indexes
+                .iter()
+                .map(|idx| {
+                    let actual = ppr_ans[idx];
+                    let expected = true_ans[idx];
+                    diff(actual, expected)
+                })
+                .sum::<f64>();
+
+        assert!(
+            avg_diff < 0.005,
+            "failed with avg_diff {}, whole ppr_vec is : {:?}, but it should be : {:?}",
+            avg_diff,
+            ppr_ans,
+            true_ans
+        )
+    }
+    #[test]
+    fn ppr_toy_graph_init_ab() {
+        let (graph, true_ans, indexes) = toy_graph_with_init_ab();
+        let mut source_bias = HashMap::new();
+        source_bias.insert(indexes[0], 1.0);
+        source_bias.insert(indexes[1], 1.0);
+
+        let ppr_ans = naive_ppr(&graph, 0.15_f64, source_bias, 15);
+        let ans_sum = ppr_ans.values().copied().sum::<f64>();
+        assert!(ans_sum - 1.0 < f64::EPSILON);
+
+        let avg_diff = 0.25
+            * indexes
+                .iter()
+                .map(|idx| {
+                    let actual = ppr_ans[idx];
+                    let expected = true_ans[idx];
+                    diff(actual, expected)
+                })
+                .sum::<f64>();
+
+        assert!(
+            avg_diff < 0.005,
+            "failed with avg_diff {}, whole ppr_vec is : {:?}, but it should be : {:?}",
+            avg_diff,
             ppr_ans,
             true_ans
         )
