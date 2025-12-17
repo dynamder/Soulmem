@@ -137,6 +137,7 @@ where
 #[cfg(test)]
 mod test {
 
+    use mockall::predicate::float;
     use petgraph::{matrix_graph::NodeIndex, prelude::StableDiGraph};
 
     use super::*;
@@ -147,6 +148,23 @@ mod test {
             let diff = (actual - expected).abs();
             diff
         }
+    }
+    fn pressure_large_graph() -> (StableDiGraph<String, f64>, Vec<NodeIndex<u32>>) {
+        let mut graph = StableDiGraph::new();
+        let mut nodes = Vec::new();
+        for i in 0..5000 {
+            let mut node = graph.add_node("".to_string());
+            if i % 2 == 0 || i % 7 == 0 {
+                graph.remove_node(node);
+                node = graph.add_node("".to_string());
+            }
+            nodes.push(node);
+            graph.add_edge(node, node, 1.0);
+            nodes.iter().for_each(|idx| {
+                graph.add_edge(node, *idx, 1.0);
+            });
+        }
+        (graph, nodes)
     }
 
     fn test_toy_graph() -> (StableDiGraph<String, f64>, Vec<NodeIndex<u32>>) {
@@ -280,5 +298,17 @@ mod test {
             ppr_ans,
             true_ans
         )
+    }
+    #[test]
+    fn pressure_large_graph_test() {
+        let (graph, nodes) = pressure_large_graph();
+        let mut source_bias = HashMap::new();
+        nodes.iter().take(10).for_each(|idx| {
+            source_bias.insert(*idx, graph.to_index(*idx) as f64);
+        });
+
+        let ppr_ans = naive_ppr(&graph, 0.15_f64, source_bias, 15);
+        let ans_sum = ppr_ans.values().copied().sum::<f64>();
+        assert!(ans_sum - 1.0 < f64::EPSILON);
     }
 }
