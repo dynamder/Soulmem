@@ -39,3 +39,10 @@ strip = true
 opt-level = 3
 panic = 'abort'
 codegen-units = 1
+
+[dev-dependencies]
+criterion = "0.8.1"
+
+[[bench]]
+name = "ppr"
+harness = false
