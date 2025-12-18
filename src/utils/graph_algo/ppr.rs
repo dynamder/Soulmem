@@ -281,7 +281,7 @@ where
             let weights = weights
                 .into_iter()
                 .map(|w| EdgeWeightUnit {
-                    idx: w.id,
+                    idx: w.idx,
                     value: w.value / sum,
                 })
                 .collect::<Vec<_>>();
