@@ -6,6 +6,7 @@ use uuid::Uuid;
 use crate::memory::{memory_links::proc_mem::ProcMemLink, memory_note::MemoryId};
 
 pub mod proc_mem;
+pub mod situation_mem;
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Copy, Clone, Hash, Serialize, Deserialize)]
 pub struct LinkId(Uuid);
 impl LinkId {
