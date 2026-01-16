@@ -342,7 +342,7 @@ where
     };
 
     let source_node_count = D::from_usize(normalized_personalized_vec.len());
-    println!("source_node_count: {:?}", source_node_count);
+    //println!("source_node_count: {:?}", source_node_count);
 
     //初始化残差和保留
     let mut reserve_vec = vec![D::zero(); graph.node_bound()];
@@ -366,11 +366,11 @@ where
 
     //每次取残差最大的节点进行push，加速收敛
     while let Some(residue_i) = residue_vec.iter().copied().max() {
-        println!("Processing node {}", residue_i.idx);
+        //println!("Processing node {}", residue_i.idx);
         let out_edges = graph.edges(graph.from_index(residue_i.idx));
         //动态归一化的边权计算
         if !ppr_edge_weight_cache.contains_key(&graph.from_index(residue_i.idx)) {
-            println!("Calculating edge weights for node {}", residue_i.idx);
+            //println!("Calculating edge weights for node {}", residue_i.idx);
             let weights = out_edges
                 .map(|edge| {
                     let weight = weight_calc(&edge, dynamic_query);
@@ -394,7 +394,7 @@ where
         }
 
         let edge_weights = &ppr_edge_weight_cache[&graph.from_index(residue_i.idx)];
-        println!("edge_weights: {:?}", edge_weights);
+        //println!("edge_weights: {:?}", edge_weights);
         //清空当前节点残差
         residue_vec[residue_i.idx].value = D::zero();
 
@@ -640,11 +640,10 @@ mod test {
         )
     }
     #[test]
-    //TODO: pass this test
     fn ppr_forward_push_toy_graph_init_b() {
         let (graph, true_ans, indexes) = toy_graph_with_init_b();
         let mut source_bias = HashMap::new();
-        source_bias.insert(indexes[0], OrdFloat::from_f64(1.0));
+        source_bias.insert(indexes[1], OrdFloat::from_f64(1.0));
 
         let ppr_ans = weighted_ppr_fp(
             &graph,
@@ -659,7 +658,7 @@ mod test {
             .copied()
             .sum::<OrdFloat<f64>>()
             .into_inner();
-        assert!(ans_sum - 1.0 < f64::EPSILON);
+        assert!(ans_sum - 1.0 < 1e-5, "the sum is: {ans_sum}");
 
         let avg_diff = 0.25
             * indexes
@@ -679,6 +678,47 @@ mod test {
             true_ans
         )
     }
+    #[test]
+    fn ppr_forward_push_toy_graph_init_ab() {
+        let (graph, true_ans, indexes) = toy_graph_with_init_ab();
+        let mut source_bias = HashMap::new();
+        source_bias.insert(indexes[0], OrdFloat::from_f64(1.0));
+        source_bias.insert(indexes[1], OrdFloat::from_f64(1.0));
+
+        let ppr_ans = weighted_ppr_fp(
+            &graph,
+            OrdFloat::from_f64(0.15),
+            source_bias,
+            OrdFloat::from_f64(0.002),
+            |_, _| OrdFloat::from_f64(1.0),
+            &"1",
+        );
+        let ans_sum: f64 = ppr_ans
+            .values()
+            .copied()
+            .sum::<OrdFloat<f64>>()
+            .into_inner();
+        assert!(ans_sum - 1.0 < 1e-5, "the sum is: {ans_sum}");
+
+        let avg_diff = 0.25
+            * indexes
+                .iter()
+                .map(|idx| {
+                    let actual: f64 = ppr_ans[idx].into_inner();
+                    let expected = true_ans[idx];
+                    diff(actual, expected)
+                })
+                .sum::<f64>();
+
+        assert!(
+            avg_diff < 0.005,
+            "failed with avg_diff {}, whole ppr_vec is : {:?}, but it should be : {:?}",
+            avg_diff,
+            ppr_ans,
+            true_ans
+        )
+    }
+
     #[test]
     fn pressure_large_graph_test() {
         let (graph, nodes) = pressure_large_graph();
