@@ -3,9 +3,13 @@ use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::memory::{memory_links::proc_mem::ProcMemLink, memory_note::MemoryId};
+use crate::memory::{
+    memory_links::proc_mem::ProcMemLink, memory_links::sem_mem::SemMemLink, memory_note::MemoryId,
+};
 
 pub mod proc_mem;
+pub mod sem_mem;
+
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Copy, Clone, Hash, Serialize, Deserialize)]
 pub struct LinkId(Uuid);
 impl LinkId {
@@ -35,6 +39,7 @@ pub struct MemoryLink {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum MemoryLinkType {
     Proc(ProcMemLink),
+    Sem(SemMemLink),
 }
 
 impl MemoryLink {
