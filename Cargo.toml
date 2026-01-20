@@ -31,6 +31,7 @@ dotenvy = "0.15.7"
 tokio-util = "0.7.16"
 toml = "0.9.5"
 thiserror = "2.0.17"
+foyer = { version = "0.21.1", features = ["serde"] }
 
 [profile.release]
 lto = true
@@ -38,3 +39,10 @@ strip = true
 opt-level = 3
 panic = 'abort'
 codegen-units = 1
+
+[dev-dependencies]
+criterion = "0.8.1"
+
+[[bench]]
+name = "ppr"
+harness = false
