@@ -1,47 +1,44 @@
 use std::collections::VecDeque
 
-//滑动窗口（容器、容量、标记窗口）通过标记窗口中对应索引是否为true来判断是否被标记
-pub struct SlidingWindow<T> {
-    window: VecDeque<T>,
+//滑动窗口（容器、容量、标记计数、摘要用临时储存）
+pub struct SlidingWindow<information> {
+    window: VecDeque<information>,
     capacity: usize,
-    tag_window: VecDeque<bool>,
-    tag_count: usize
+    tag_count: usize,
+    summary: Vec<information>
 }
 
-impl<T> SlidingWindow {
+impl<information> SlidingWindow {
     //新建
     pub fn new(capacity: usize) -> Self {
         Self {
             window: VecDeque::with_capacity(capacity),
-            capacity,
-            tag_window: VecDeque::with_capacity(capacity),
-            tag_count: 0
+            capacity: 0,
+            tag_count: 0,
+            summary: Vec::with_capacity(capacity)
         }
     }
-    //信息滑入，对应标记窗口滑入false，返回被弹出的信息，若未满或弹出未标记的信息则返回None，若弹出被标记信息则返回Some(该信息)
-    pub fn push(&mut self, value: T) -> Option<T> {
-        let target = None;
+    //信息滑入，若滑出时信息有标记则发送摘要用片段
+    pub fn push(&mut self, value: information) -> Option<Vec<information>> {
+        value = self.auto_tag(value);
+        let is_tagged: bool = false;
+        let target: Option<information> = None;
         if self.window.len() == self.capacity {
-            target = self.pop();
+            is_tagged = self.pop();
+        }
+        if is_tagged {
+            target = self.summarize();
         }
         self.capacity += 1;
         self.window.push_back(value);
-        self.auto_tag();
         target
     }
-    //信息滑出，返回被弹出的信息，若未满或弹出未标记的信息则返回None，若弹出被标记信息则返回Some(该信息)
-    pub fn pop(&mut self) -> Option<T> {
-        if self.tag_window.get(0).copied() == Some(true) {
-            let target = Some(self.dwindow.pop_front());
-            self.capacity -= 1;
-            self.tag_window.pop_front();
-            target
-        } else {
-            self.window.pop_front();
-            self.capacity -= 1;
-            self.tag_window.pop_front();
-            None
-        }
+    //信息滑出，返回弹出信息是否被标记
+    pub fn pop(&mut self) -> bool {
+        let target = self.window.pop_front();
+        self.capacity -= 1;
+        self.summary.push(target.clone());
+        self.get_tagged(target)
     }
     //获取窗口大小
     pub fn len(&self) -> usize {
@@ -59,27 +56,64 @@ impl<T> SlidingWindow {
     pub fn is_empty(&self) -> bool {
         self.window.is_empty()
     }
+    //清空窗口
+    pub fn clear(&mut self) {
+        self.window.clear();
+        self.capacity = 0;
+        self.tag_count = 0;
+        self.summary.clear();
+    }
     //标记用
     pub fn tag_information(&mut self, index: usize) {
         if index < self.capacity {
-            self.tag_window[index] = true;
+            self.window[index].tag_information();
         }
     }
     //取消标记用
     pub fn untag_information(&mut self, index: usize) {
         if index < self.capacity {
-            self.tag_window[index] = false;
+            self.window[index].untag_information();
         }
     }
     //每滑出capacity次信息时进行一次标记
-    fn auto_tag(&mut self) {
+    fn auto_tag(&mut self, value: information) -> information {
         self.tag_count += 1;
         if self.tag_count == self.capacity {
-            self.tag_window.push_back(true);
+            value.tag_information();
             self.tag_count = 0;
         }
-        else{
-            self.tag_window.push_back(false);
-        }
+        value
+    }
+    //给出摘要
+    pub fn summarize(&mut self) -> Vec<information> {
+        self.summary.drain(..).collect()
+    }
+    //检测是否存在标记信息
+    pub fn is_tagged(&mut self, value: information) -> bool {
+        value.is_tagged()
+    }
+
+}
+
+pub struct information {
+    pub text: String,
+    pub tag: bool,
+}
+
+impl information {
+    pub fn new(text: String) -> Self {
+        Self { text, false }
+    }
+    pub fn tag_information(&mut self) {
+        self.tag = true;
+    }
+    pub fn untag_information(&mut self) {
+        self.tag = false;
+    }
+    pub fn is_tagged(&self) -> bool {
+        self.tag
+    }
+    pub fn get_mut_capacity(&mut self) -> &mut usize {
+        &mut self.capacity
     }
 }
