@@ -75,7 +75,7 @@ impl<information> SlidingWindow {
             self.window[index].untag_information();
         }
     }
-    //每滑出capacity次信息时进行一次标记
+    //每滑入capacity次信息时进行一次标记
     fn auto_tag(&mut self, value: information) -> information {
         self.tag_count += 1;
         if self.tag_count == self.capacity {
