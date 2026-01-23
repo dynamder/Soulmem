@@ -1,14 +1,14 @@
 use std::collections::VecDeque
 
 //滑动窗口（容器、容量、标记计数、摘要用临时储存）
-pub struct SlidingWindow<information> {
-    window: VecDeque<information>,
+pub struct SlidingWindow<Information> {
+    window: VecDeque<Information>,
     capacity: usize,
     tag_count: usize,
-    summary: Vec<information>
+    summary: Vec<Information>
 }
 
-impl<information> SlidingWindow {
+impl<Information> SlidingWindow {
     //新建
     pub fn new(capacity: usize) -> Self {
         Self {
@@ -19,10 +19,10 @@ impl<information> SlidingWindow {
         }
     }
     //信息滑入，若滑出时信息有标记则发送摘要用片段
-    pub fn push(&mut self, value: information) -> Option<Vec<information>> {
+    pub fn push(&mut self, value: Information) -> Option<Vec<Information>> {
         value = self.auto_tag(value);
         let is_tagged: bool = false;
-        let target: Option<information> = None;
+        let target: Option<Information> = None;
         if self.window.len() == self.capacity {
             is_tagged = self.pop();
         }
@@ -76,7 +76,7 @@ impl<information> SlidingWindow {
         }
     }
     //每滑入capacity次信息时进行一次标记
-    fn auto_tag(&mut self, value: information) -> information {
+    fn auto_tag(&mut self, value: Information) -> Information {
         self.tag_count += 1;
         if self.tag_count == self.capacity {
             value.tag_information();
@@ -85,22 +85,22 @@ impl<information> SlidingWindow {
         value
     }
     //给出摘要
-    pub fn summarize(&mut self) -> Vec<information> {
+    pub fn summarize(&mut self) -> Vec<Information> {
         self.summary.drain(..).collect()
     }
     //检测是否存在标记信息
-    pub fn is_tagged(&mut self, value: information) -> bool {
+    pub fn is_tagged(&mut self, value: Information) -> bool {
         value.is_tagged()
     }
 
 }
 
-pub struct information {
+pub struct Information {
     pub text: String,
     pub tag: bool,
 }
 
-impl information {
+impl Information {
     pub fn new(text: String) -> Self {
         Self { text, false }
     }
