@@ -1,35 +1,22 @@
 use thiserror::Error;
-
-use crate::memory::memory_note::EmbedMemoryNote;
-
-pub struct EmbeddingVector {
-    // Placeholder for embedding vector
-}
-impl EmbeddingVector {
-    pub fn euclidean_distance(&self, other: &EmbeddingVector) -> Result<f32, EmbeddingCalcError> {
-        todo!("Euclidean distance")
-    }
-    pub fn cosine_similarity(&self, other: &EmbeddingVector) -> Result<f32, EmbeddingCalcError> {
-        todo!("Cosine similarity")
-    }
-    pub fn manhattan_distance(&self, other: &EmbeddingVector) -> Result<f32, EmbeddingCalcError> {
-        todo!("Manhattan distance")
-    }
-}
+pub mod embedding_model;
+pub mod sem_embedding;
 
 pub trait Embeddable {
-    fn embed(&self, model: &EmbeddingModel) -> Result<EmbedMemoryNote, EmbeddingGenError>;
-    fn embed_vec(&self, model: &EmbeddingModel) -> Result<MemoryEmbedding, EmbeddingGenError>;
+    type EmbeddingFused;
+    fn embed_and_fuse(self, model: &dyn EmbeddingModel)
+    -> EmbeddingGenResult<Self::EmbeddingFused>;
+    fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<MemoryEmbedding>;
 }
 type EmbedCalcResult = Result<MemoryEmbedding, EmbeddingCalcError>;
-type EmbeddingGenResult = Result<EmbeddingVector, EmbeddingGenError>;
+type EmbeddingGenResult<T> = Result<T, EmbeddingGenError>;
 
 #[derive(Debug, Error)]
 pub enum EmbeddingGenError {
     #[error("Invalid input")] //缺失了某些必要字段
     InvalidInput,
     #[error("Embedding failed")]
-    EmbeddingFailed,
+    EmbeddingFailed(#[from] candle_core::Error),
 }
 
 //Only a placeholder for now
@@ -42,34 +29,51 @@ pub enum EmbeddingCalcError {
     #[error("Invalid number value")] //数值无效，例如NaN，Inf等
     InvalidNumValue,
 }
+pub type EmbeddingVec = Vec<f32>;
 
-pub struct EmbeddingModel {
-    // Placeholder for embedding model wrapper
+pub trait EmbeddingModel {
+    fn infer(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>>;
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct MemoryEmbedding {
-    //Placeholder for embedding holder
+pub trait GenericEmbeddingModel {
+    fn infer<S: AsRef<str>>(&self, input: &[S]) -> EmbeddingGenResult<Vec<EmbeddingVec>>;
 }
+
+impl<T> EmbeddingModel for T
+where
+    T: GenericEmbeddingModel,
+{
+    fn infer(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>> {
+        GenericEmbeddingModel::infer(self, input)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum MemoryEmbedding {
+    Situation(),
+    Procedure(),
+    Semantic(),
+}
+
 impl MemoryEmbedding {
     pub fn euclidean_distance(
         &self,
-        other: &MemoryEmbedding,
-        hyperparams: VecBlendHyperParams,
+        _other: &MemoryEmbedding,
+        _hyperparams: VecBlendHyperParams,
     ) -> Result<f32, EmbeddingCalcError> {
         todo!("Euclidean distance")
     }
     pub fn cosine_similarity(
         &self,
-        other: &MemoryEmbedding,
-        hyperparams: VecBlendHyperParams,
+        _other: &MemoryEmbedding,
+        _hyperparams: VecBlendHyperParams,
     ) -> Result<f32, EmbeddingCalcError> {
         todo!("Cosine similarity")
     }
     pub fn manhattan_distance(
         &self,
-        other: &MemoryEmbedding,
-        hyperparams: VecBlendHyperParams,
+        _other: &MemoryEmbedding,
+        _hyperparams: VecBlendHyperParams,
     ) -> Result<f32, EmbeddingCalcError> {
         todo!("Manhattan distance")
     }

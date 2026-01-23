@@ -5,14 +5,14 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use uuid::Uuid;
 
-mod proc_mem;
-mod sem_mem;
-mod situation_mem;
+pub mod proc_mem;
+pub mod sem_mem;
+pub mod situation_mem;
 
 use crate::memory::embedding::Embeddable;
 use crate::memory::embedding::MemoryEmbedding;
 
-use super::embedding::EmbeddingError;
+use super::embedding::EmbeddingGenError;
 use super::embedding::EmbeddingModel;
 use super::memory_links::MemoryLink;
 
@@ -68,10 +68,14 @@ impl MemoryNote {
     }
 }
 impl Embeddable for MemoryNote {
-    fn embed(&self, embedding_model: &EmbeddingModel) -> Result<EmbedMemoryNote, EmbeddingError> {
+    type EmbeddingFused = ();
+    fn embed_and_fuse(
+        self,
+        embedding_model: &dyn EmbeddingModel,
+    ) -> Result<Self::EmbeddingFused, EmbeddingGenError> {
         todo!("Add the embedding logic")
     }
-    fn embed_vec(&self, model: &EmbeddingModel) -> Result<MemoryEmbedding, EmbeddingError> {
+    fn embed(&self, model: &dyn EmbeddingModel) -> Result<MemoryEmbedding, EmbeddingGenError> {
         todo!("Add the embedding logic")
     }
 }
