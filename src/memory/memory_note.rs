@@ -69,13 +69,16 @@ impl MemoryNote {
 }
 impl Embeddable for MemoryNote {
     type EmbeddingFused = ();
-    fn embed_and_fuse(
+    async fn embed_and_fuse(
         self,
         embedding_model: &dyn EmbeddingModel,
     ) -> Result<Self::EmbeddingFused, EmbeddingGenError> {
         todo!("Add the embedding logic")
     }
-    fn embed(&self, model: &dyn EmbeddingModel) -> Result<MemoryEmbedding, EmbeddingGenError> {
+    async fn embed(
+        &self,
+        model: &dyn EmbeddingModel,
+    ) -> Result<MemoryEmbedding, EmbeddingGenError> {
         todo!("Add the embedding logic")
     }
 }

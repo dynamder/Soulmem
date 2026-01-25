@@ -1,15 +1,21 @@
+use async_trait::async_trait;
 use thiserror::Error;
+
+use crate::memory::embedding::sem::SemanticEmbedding;
 pub mod embedding_model;
-pub mod sem_embedding;
+pub mod sem;
+pub mod situation;
 
 pub trait Embeddable {
     type EmbeddingFused;
-    fn embed_and_fuse(self, model: &dyn EmbeddingModel)
-    -> EmbeddingGenResult<Self::EmbeddingFused>;
-    fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<MemoryEmbedding>;
+    async fn embed_and_fuse(
+        self,
+        model: &dyn EmbeddingModel,
+    ) -> EmbeddingGenResult<Self::EmbeddingFused>;
+    async fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<MemoryEmbedding>;
 }
-type EmbedCalcResult = Result<MemoryEmbedding, EmbeddingCalcError>;
-type EmbeddingGenResult<T> = Result<T, EmbeddingGenError>;
+pub type EmbeddingCalcResult<T> = Result<T, EmbeddingCalcError>;
+pub type EmbeddingGenResult<T> = Result<T, EmbeddingGenError>;
 
 #[derive(Debug, Error)]
 pub enum EmbeddingGenError {
@@ -17,6 +23,8 @@ pub enum EmbeddingGenError {
     InvalidInput,
     #[error("Embedding failed")]
     EmbeddingFailed(#[from] candle_core::Error),
+    #[error("{0}")]
+    Anyhow(#[from] anyhow::Error),
 }
 
 //Only a placeholder for now
@@ -26,33 +34,40 @@ pub enum EmbeddingCalcError {
     InvalidVec,
     #[error("Shape mismatch")] //维度不匹配
     ShapeMismatch,
+    #[error("Incompatible embedding types")] //不兼容的嵌入类型
+    IncompatibleEmbeddingTypes,
     #[error("Invalid number value")] //数值无效，例如NaN，Inf等
     InvalidNumValue,
 }
 pub type EmbeddingVec = Vec<f32>;
 
+#[async_trait]
 pub trait EmbeddingModel {
-    fn infer(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>>;
-}
-
-pub trait GenericEmbeddingModel {
-    fn infer<S: AsRef<str>>(&self, input: &[S]) -> EmbeddingGenResult<Vec<EmbeddingVec>>;
-}
-
-impl<T> EmbeddingModel for T
-where
-    T: GenericEmbeddingModel,
-{
-    fn infer(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>> {
-        GenericEmbeddingModel::infer(self, input)
-    }
+    async fn infer_batch(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>>;
+    async fn infer_with_chunk(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec>;
+    async fn infer_and_fuse(&self, input: &[&str]) -> EmbeddingGenResult<EmbeddingVec>;
+    fn max_input_token(&self) -> usize;
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum MemoryEmbedding {
     Situation(),
     Procedure(),
-    Semantic(),
+    Semantic(SemanticEmbedding),
+}
+impl MemoryEmbedding {
+    pub fn to_situation(self) {
+        todo!()
+    }
+    pub fn to_procedure(self) {
+        todo!()
+    }
+    pub fn to_semantic(self) -> Option<SemanticEmbedding> {
+        match self {
+            MemoryEmbedding::Semantic(embedding) => Some(embedding),
+            _ => None,
+        }
+    }
 }
 
 impl MemoryEmbedding {
@@ -60,23 +75,55 @@ impl MemoryEmbedding {
         &self,
         _other: &MemoryEmbedding,
         _hyperparams: VecBlendHyperParams,
-    ) -> Result<f32, EmbeddingCalcError> {
+    ) -> EmbeddingCalcResult<f32> {
         todo!("Euclidean distance")
     }
     pub fn cosine_similarity(
         &self,
         _other: &MemoryEmbedding,
         _hyperparams: VecBlendHyperParams,
-    ) -> Result<f32, EmbeddingCalcError> {
+    ) -> EmbeddingCalcResult<f32> {
         todo!("Cosine similarity")
     }
     pub fn manhattan_distance(
         &self,
         _other: &MemoryEmbedding,
         _hyperparams: VecBlendHyperParams,
-    ) -> Result<f32, EmbeddingCalcError> {
+    ) -> EmbeddingCalcResult<f32> {
         todo!("Manhattan distance")
     }
+    pub fn linear_blend(
+        &self,
+        other: &MemoryEmbedding,
+        blend_factor: f32,
+    ) -> EmbeddingCalcResult<MemoryEmbedding> {
+        match (self, other) {
+            (MemoryEmbedding::Semantic(embedding1), MemoryEmbedding::Semantic(embedding2)) => {
+                embedding1
+                    .linear_blend(embedding2, blend_factor)
+                    .map(MemoryEmbedding::from)
+            }
+            (MemoryEmbedding::Situation(), MemoryEmbedding::Situation()) => {
+                todo!()
+            }
+
+            _ => Err(EmbeddingCalcError::IncompatibleEmbeddingTypes),
+        }
+    }
+}
+fn raw_linear_blend(
+    vec1: &EmbeddingVec,
+    vec2: &EmbeddingVec,
+    blend_factor: f32,
+) -> EmbeddingCalcResult<EmbeddingVec> {
+    if vec1.len() != vec2.len() {
+        return Err(EmbeddingCalcError::ShapeMismatch);
+    }
+    Ok(vec1
+        .iter()
+        .zip(vec2.iter())
+        .map(|(&a, &b)| a * blend_factor + b * (1.0 - blend_factor))
+        .collect())
 }
 #[derive(Debug, Clone, Copy)]
 pub struct VecBlendHyperParams {
