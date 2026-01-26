@@ -1,18 +1,18 @@
 use async_trait::async_trait;
+use petgraph::Direction::Outgoing;
 use thiserror::Error;
 
-use crate::memory::embedding::sem::SemanticEmbedding;
+use crate::memory::embedding::{sem::SemanticEmbedding, situation::SituationEmbedding};
 pub mod embedding_model;
 pub mod sem;
 pub mod situation;
 
 pub trait Embeddable {
     type EmbeddingFused;
-    async fn embed_and_fuse(
-        self,
-        model: &dyn EmbeddingModel,
-    ) -> EmbeddingGenResult<Self::EmbeddingFused>;
-    async fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<MemoryEmbedding>;
+    type EmbeddingGen;
+    fn embed_and_fuse(self, model: &dyn EmbeddingModel)
+    -> EmbeddingGenResult<Self::EmbeddingFused>;
+    fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<Self::EmbeddingGen>;
 }
 pub type EmbeddingCalcResult<T> = Result<T, EmbeddingCalcError>;
 pub type EmbeddingGenResult<T> = Result<T, EmbeddingGenError>;
@@ -43,21 +43,24 @@ pub type EmbeddingVec = Vec<f32>;
 
 #[async_trait]
 pub trait EmbeddingModel {
-    async fn infer_batch(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>>;
-    async fn infer_with_chunk(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec>;
-    async fn infer_and_fuse(&self, input: &[&str]) -> EmbeddingGenResult<EmbeddingVec>;
+    fn infer_batch(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>>;
+    fn infer_with_chunk(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec>;
+    fn infer_and_fuse(&self, input: &[&str]) -> EmbeddingGenResult<EmbeddingVec>;
     fn max_input_token(&self) -> usize;
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum MemoryEmbedding {
-    Situation(),
+    Situation(SituationEmbedding),
     Procedure(),
     Semantic(SemanticEmbedding),
 }
 impl MemoryEmbedding {
-    pub fn to_situation(self) {
-        todo!()
+    pub fn to_situation(self) -> Option<SituationEmbedding> {
+        match self {
+            MemoryEmbedding::Situation(embedding) => Some(embedding),
+            _ => None,
+        }
     }
     pub fn to_procedure(self) {
         todo!()
@@ -103,7 +106,10 @@ impl MemoryEmbedding {
                     .linear_blend(embedding2, blend_factor)
                     .map(MemoryEmbedding::from)
             }
-            (MemoryEmbedding::Situation(), MemoryEmbedding::Situation()) => {
+            (MemoryEmbedding::Situation(embedding1), MemoryEmbedding::Situation(embedding2)) => {
+                // embedding1
+                //     .linear_blend(embedding2, blend_factor)
+                //     .map(MemoryEmbedding::from)
                 todo!()
             }
 

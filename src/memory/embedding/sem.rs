@@ -29,40 +29,48 @@ impl SemanticEmbedding {
             description: raw_linear_blend(&self.description, &other.description, blend_factor)?,
         })
     }
+    pub fn content(&self) -> &EmbeddingVec {
+        &self.content
+    }
+    pub fn fused_aliases(&self) -> &EmbeddingVec {
+        &self.fused_aliases
+    }
+    pub fn description(&self) -> &EmbeddingVec {
+        &self.description
+    }
 }
 
 impl Embeddable for SemMemory {
+    type EmbeddingGen = SemanticEmbedding;
     type EmbeddingFused = EmbeddedSemanticMemory;
     //TODO: use multi-thread if necessary
-    async fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<MemoryEmbedding> {
-        let content_vec = model.infer_with_chunk(&self.content).await?;
+    fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<Self::EmbeddingGen> {
+        let content_vec = model.infer_with_chunk(&self.content)?;
 
-        let aliases_vec = model
-            .infer_and_fuse(
-                &self
-                    .aliases
-                    .iter()
-                    .map(|alias| alias.as_str())
-                    .collect::<Vec<&str>>(),
-            )
-            .await?;
+        let aliases_vec = model.infer_and_fuse(
+            &self
+                .aliases
+                .iter()
+                .map(|alias| alias.as_str())
+                .collect::<Vec<&str>>(),
+        )?;
         let fused_aliases_vec = raw_linear_blend(&content_vec, &aliases_vec, 0.6).unwrap(); //SAFEUNWRAP: 由同一个嵌入模型生成的嵌入向量，维度相同
 
-        let description_vec = model.infer_with_chunk(&self.description).await?;
+        let description_vec = model.infer_with_chunk(&self.description)?;
 
-        Ok(MemoryEmbedding::Semantic(SemanticEmbedding {
+        Ok(SemanticEmbedding {
             content: content_vec,
             fused_aliases: fused_aliases_vec,
             description: description_vec,
-        }))
+        })
     }
-    async fn embed_and_fuse(
+    fn embed_and_fuse(
         self,
         model: &dyn EmbeddingModel,
     ) -> EmbeddingGenResult<Self::EmbeddingFused> {
-        let embedding = self.embed(model).await?;
+        let embedding = self.embed(model)?;
         Ok(EmbeddedSemanticMemory {
-            embedding: embedding.to_semantic().unwrap(), //SAFEUNWRAP: 此处的枚举变体只可能为semantic
+            embedding,
             memory: self,
         })
     }
@@ -84,8 +92,8 @@ mod tests {
     use super::*;
     use crate::memory::embedding::embedding_model::bge::BgeSmallZh;
 
-    #[tokio::test]
-    async fn test_semantic_embed() {
+    #[test]
+    fn test_semantic_embed() {
         let model = BgeSmallZh::default_cpu().unwrap();
         let memory = SemMemory {
             content: "Rustacean".to_string(),
@@ -94,10 +102,8 @@ mod tests {
             concept_type: crate::memory::memory_note::sem_mem::ConceptType::Entity,
         };
 
-        let embedding = memory.embed(&model).await.unwrap();
+        let sem_embedding = memory.embed(&model).unwrap();
         //println!("{:?}", embedding);
-        assert!(matches!(embedding, MemoryEmbedding::Semantic(_)));
-        let sem_embedding = embedding.to_semantic().unwrap();
         let dimension = sem_embedding.content.len();
         assert_eq!(dimension, 512);
         assert_eq!(sem_embedding.description.len(), dimension);

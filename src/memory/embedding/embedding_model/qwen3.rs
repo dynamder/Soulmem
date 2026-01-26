@@ -1,6 +1,9 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use embed_anything::embeddings::embed::{Embedder, EmbedderBuilder};
+use embed_anything::embeddings::{
+    embed::{Embedder, EmbedderBuilder},
+    local::qwen3::{Qwen3Embed, Qwen3Embedder},
+};
 
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use text_splitter::{Characters, TextSplitter};
@@ -9,16 +12,19 @@ use crate::memory::embedding::{
     EmbeddingGenError, EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
 };
 pub struct Qwen3Embedding600M {
-    model: Embedder,
+    model: Qwen3Embedder,
     splitter: TextSplitter<Characters>,
 }
 impl Qwen3Embedding600M {
     pub fn default_cpu() -> Result<Self> {
         Ok(Self {
             splitter: TextSplitter::new(6000), //should be 6000
-            model: EmbedderBuilder::new()
-                .model_id(Some("Qwen/Qwen3-Embedding-0.6B"))
-                .from_pretrained_hf()?,
+            model: Qwen3Embedder::new(
+                "Qwen/Qwen3-Embedding-0.6B",
+                None,
+                None,
+                Some(embed_anything::Dtype::F32),
+            )?,
         })
     }
     // pub fn default_gpu_cuda() -> Result<Self> {
@@ -48,23 +54,16 @@ impl Qwen3Embedding600M {
 }
 impl Qwen3Embedding600M {
     //简单的批量生成，单个句子过长则截断
-    pub async fn embed_gen_simple_batch(
-        &self,
-        input: &[&str],
-    ) -> EmbeddingGenResult<Vec<EmbeddingVec>> {
+    pub fn embed_gen_simple_batch(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>> {
         Ok(self
             .model
-            .embed(&input, None, None)
-            .await?
+            .embed(&input, None, None)?
             .into_iter()
             .map(|e| e.to_dense().unwrap()) //SAFEUNWRAP: qwen3 embedder在embed_anything的
             .collect())
     }
     //对于长文本，分块向量化后平均池化
-    pub async fn embed_gen_with_chunk_pooling(
-        &self,
-        input: &str,
-    ) -> EmbeddingGenResult<EmbeddingVec> {
+    pub fn embed_gen_with_chunk_pooling(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec> {
         //分块文本
         let chunked_input = self.splitter.chunks(&input).collect::<Vec<_>>();
         //println!("chunked_input: {:?}", chunked_input);
@@ -72,13 +71,10 @@ impl Qwen3Embedding600M {
             return Err(EmbeddingGenError::InvalidInput);
         }
 
-        self.embed_gen_with_mean_pooling(&chunked_input).await
+        self.embed_gen_with_mean_pooling(&chunked_input)
     }
     //将输入的所有句子向量化后平均池化，如果单个句子长度过长，会被截断
-    pub async fn embed_gen_with_mean_pooling(
-        &self,
-        input: &[&str],
-    ) -> EmbeddingGenResult<EmbeddingVec> {
+    pub fn embed_gen_with_mean_pooling(&self, input: &[&str]) -> EmbeddingGenResult<EmbeddingVec> {
         if input.is_empty() {
             return Err(EmbeddingGenError::InvalidInput);
         }
@@ -86,8 +82,7 @@ impl Qwen3Embedding600M {
         //生成embedding
         let embeddings = self
             .model
-            .embed(input, None, None)
-            .await?
+            .embed(input, None, None)?
             .into_iter()
             .map(|e| e.to_dense().unwrap()) //SAFEUNWRAP: qwen3 embedder在embed_anything的源码中永远返回dense
             .collect::<Vec<_>>();
@@ -107,16 +102,15 @@ impl Qwen3Embedding600M {
         Ok(fused_embedding)
     }
 }
-#[async_trait]
 impl EmbeddingModel for Qwen3Embedding600M {
-    async fn infer_batch(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>> {
-        self.embed_gen_simple_batch(input).await
+    fn infer_batch(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>> {
+        self.embed_gen_simple_batch(input)
     }
-    async fn infer_and_fuse(&self, input: &[&str]) -> EmbeddingGenResult<EmbeddingVec> {
-        self.embed_gen_with_mean_pooling(input).await
+    fn infer_and_fuse(&self, input: &[&str]) -> EmbeddingGenResult<EmbeddingVec> {
+        self.embed_gen_with_mean_pooling(input)
     }
-    async fn infer_with_chunk(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec> {
-        self.embed_gen_with_chunk_pooling(input).await
+    fn infer_with_chunk(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec> {
+        self.embed_gen_with_chunk_pooling(input)
     }
     fn max_input_token(&self) -> usize {
         32768
@@ -171,7 +165,7 @@ mod test {
     async fn test_qwen3_embedding_600m_cpu() {
         let model = Qwen3Embedding600M::default_cpu().unwrap();
         let input = "SoulMem是一个专为角色扮演任务设计的记忆系统，它旨在使LLM的输出更拟人化成为可能，让模拟角色像人一样记住重要的、情感相关的、可驱动行为的事件，并建立关联。它不旨在精确无误地记忆事件的细节，或事实性知识。请注意！：SoulMem是针对于个人用户，在家用电脑上运行的记忆系统，并非企业级解决方案。";
-        let embeddings = model.embed_gen_with_chunk_pooling(&input).await.unwrap();
+        let embeddings = model.embed_gen_with_chunk_pooling(&input).unwrap();
         assert_eq!(embeddings.len(), 1024);
     }
 }
