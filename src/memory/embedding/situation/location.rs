@@ -4,11 +4,11 @@ use crate::memory::{
 };
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct SitLocationEmbedding {
+pub struct LocationEmbedding {
     name: EmbeddingVec,
     coordinates: EmbeddingVec,
 }
-impl SitLocationEmbedding {
+impl LocationEmbedding {
     pub fn name(&self) -> &EmbeddingVec {
         &self.name
     }
@@ -18,7 +18,7 @@ impl SitLocationEmbedding {
 }
 
 impl Embeddable for Location {
-    type EmbeddingGen = SitLocationEmbedding;
+    type EmbeddingGen = LocationEmbedding;
     type EmbeddingFused = EmbeddedLocation;
     fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<Self::EmbeddingGen> {
         let [name_vec, coordinates_vec] = model
@@ -26,7 +26,7 @@ impl Embeddable for Location {
             .try_into()
             .unwrap(); //SAFEUNWRAP: 此处可以确定Vec的长度为2
 
-        Ok(SitLocationEmbedding {
+        Ok(LocationEmbedding {
             name: name_vec,
             coordinates: coordinates_vec,
         })
@@ -43,6 +43,6 @@ impl Embeddable for Location {
 }
 
 pub struct EmbeddedLocation {
-    pub embedding: SitLocationEmbedding,
+    pub embedding: LocationEmbedding,
     pub location: Location,
 }
