@@ -257,10 +257,10 @@ impl TryFrom<Context> for Location {
 }
 
 //传感数据（名称，强度）（描述）
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct SensoryData {
     pub name: String,
-    pub intensity: i32,
+    pub intensity: f32,
 }
 impl From<Context> for Vec<SensoryData> {
     fn from(context: Context) -> Vec<SensoryData> {
