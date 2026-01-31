@@ -23,7 +23,7 @@ impl From<SpecificSituation> for SituationType {
 pub enum AbstractSituation {
     Location(Location),
     Participant(Participant),
-    Situation(Situation),
+    Environment(Environment),
     Event(Event),
 }
 
@@ -37,9 +37,9 @@ impl From<Participant> for AbstractSituation {
         AbstractSituation::Participant(participant)
     }
 }
-impl From<Situation> for AbstractSituation {
-    fn from(situation: Situation) -> Self {
-        AbstractSituation::Situation(situation)
+impl From<Environment> for AbstractSituation {
+    fn from(environment: Environment) -> Self {
+        AbstractSituation::Environment(environment)
     }
 }
 impl From<Event> for AbstractSituation {
@@ -85,14 +85,15 @@ impl SpecificSituation {
     }
 }
 
-//描述（地点、人物、情感、感官数据、情境）
+//描述（地点、人物、情感、感官数据、环境、事件）
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub struct Context {
     location: Option<Location>,
     participants: Vec<Participant>,
     emotions: Vec<Emotion>,
     sensory_data: Vec<SensoryData>,
-    situation: Situation,
+    environment: Environment,
+    event: Event,
 }
 
 impl Context {
@@ -101,14 +102,16 @@ impl Context {
         participants: Vec<Participant>,
         emotions: Vec<Emotion>,
         sensory_data: Vec<SensoryData>,
-        situation: Situation,
+        environment: Environment,
+        event: Event,
     ) -> Self {
         Context {
             location,
             participants,
             emotions,
             sensory_data,
-            situation,
+            environment,
+            event,
         }
     }
     pub fn get_mut_location(&mut self) -> &mut Option<Location> {
@@ -123,8 +126,11 @@ impl Context {
     pub fn get_mut_sensory_data(&mut self) -> &mut Vec<SensoryData> {
         &mut self.sensory_data
     }
-    pub fn get_mut_situation(&mut self) -> &mut Situation {
-        &mut self.situation
+    pub fn get_mut_environment(&mut self) -> &mut Environment {
+        &mut self.environment
+    }
+    pub fn get_mut_event(&mut self) -> &mut Event {
+        &mut self.event
     }
 }
 
@@ -134,58 +140,24 @@ impl Context {
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub struct Event {
     pub action: String,
-    pub action_intensity: i32,
-}
-impl TryFrom<AbstractSituation> for Event {
-    type Error = String;
-
-    fn try_from(value: AbstractSituation) -> Result<Self, Self::Error> {
-        match value {
-            AbstractSituation::Event(Event{ action, action_intensity }) => Ok(Event { action, action_intensity }),
-            _ => Err("Cannot convert AbstractSituation to Event".to_string()),
-        }
-    }
+    pub action_intensity: u32,
 }
 
-//情景（氛围，环境色调）（抽象、描述）
+//环境（氛围，环境色调）（抽象、描述）
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
-pub struct Situation {
+pub struct Environment {
     pub atmosphere: String,
     pub tone: String,
 }
-impl TryFrom<AbstractSituation> for Situation {
-    type Error = String;
 
-    fn try_from(value: AbstractSituation) -> Result<Self, Self::Error> {
-        match value {
-            AbstractSituation::Situation(Situation{ atmosphere, tone }) => Ok(Situation { atmosphere, tone }),
-            _ => Err("Cannot convert AbstractSituation to Situation".to_string()),
-        }
-    }
-}
-impl From<Context> for Situation {
-    fn from(context: Context) -> Self {
-        Situation {
-            atmosphere: context.situation.atmosphere,
-            tone: context.situation.tone,
-        }
-    }
-}
 
 //智能体情绪（名称，强度）（描述）
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub struct Emotion {
     pub name: String,
-    pub intensity: i32,
+    pub intensity: u32,
 }
-impl From<Context> for Vec<Emotion> {
-    fn from(context: Context) -> Vec<Emotion> {
-        context.emotions.into_iter().map(|emotion| Emotion {
-            name: emotion.name,
-            intensity: emotion.intensity,
-        }).collect()
-    }
-}
+
 
 //记忆时间主动参与者（名称，角色）(抽象、描述)
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
@@ -193,24 +165,7 @@ pub struct Participant {
     pub name: String,
     pub role: String,
 }
-impl TryFrom<AbstractSituation> for Participant {
-    type Error = String;
 
-    fn try_from(value: AbstractSituation) -> Result<Self, Self::Error> {
-        match value {
-            AbstractSituation::Participant(Participant { name, role }) => Ok(Participant { name, role }),
-            _ => Err("Cannot convert AbstractParticipant to Participant".to_string()),
-        }
-    }
-}
-impl From<Context> for Vec<Participant> {
-    fn from(context: Context) -> Vec<Participant> {
-        context.participants.into_iter().map(|participant| Participant {
-            name: participant.name,
-            role: participant.role,
-        }).collect()
-    }
-}
 
 //地点（名称，坐标）(抽象、描述)
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
@@ -218,38 +173,11 @@ pub struct Location {
     pub name: String,
     pub coordinates: String,
 }
-impl TryFrom<AbstractSituation> for Location {
-    type Error = String;
 
-    fn try_from(value: AbstractSituation) -> Result<Self, Self::Error> {
-        match value {
-            AbstractSituation::Location(Location { name, coordinates }) => Ok(Location { name, coordinates }),
-            _ => Err("Cannot convert AbstractSituation to Location".to_string()),
-        }
-    }
-}
-impl TryFrom<Context> for Location {
-    type Error = String;
-
-    fn try_from(context: Context) -> Result<Self, Self::Error> {
-        match context.location {
-            Some(Location { name, coordinates }) => Ok(Location { name, coordinates }),
-            None => Err("Cannot convert Context to Location".to_string()),
-        }
-    }
-}
 
 //传感数据（名称，强度）（描述）
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub struct SensoryData {
     pub name: String,
-    pub intensity: i32,
-}
-impl From<Context> for Vec<SensoryData> {
-    fn from(context: Context) -> Vec<SensoryData> {
-        context.sensory_data.into_iter().map(|sensory_data| SensoryData {
-            name: sensory_data.name,
-            intensity: sensory_data.intensity,
-        }).collect()
-    }
+    pub intensity: u32,
 }
