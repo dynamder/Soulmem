@@ -93,7 +93,7 @@ pub struct Context {
     emotions: Vec<Emotion>,
     sensory_data: Vec<SensoryData>,
     environment: Environment,
-    event: Event,
+    event: Vec<Event>,
 }
 
 impl Context {
@@ -103,7 +103,7 @@ impl Context {
         emotions: Vec<Emotion>,
         sensory_data: Vec<SensoryData>,
         environment: Environment,
-        event: Event,
+        event: Vec<Event>,
     ) -> Self {
         Context {
             location,
@@ -129,18 +129,20 @@ impl Context {
     pub fn get_mut_environment(&mut self) -> &mut Environment {
         &mut self.environment
     }
-    pub fn get_mut_event(&mut self) -> &mut Event {
+    pub fn get_mut_event(&mut self) -> &mut Vec<Event> {
         &mut self.event
     }
 }
 
 
 
-//事件（动作，动作强度）（抽象）
+//事件（动作，动作强度，单个发起者，单个目标）（抽象）
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub struct Event {
     pub action: String,
     pub action_intensity: u32,
+    pub initiator: String,
+    pub target: String,
 }
 
 //环境（氛围，环境色调）（抽象、描述）
