@@ -71,3 +71,22 @@ pub struct EmbeddedParticipant {
     pub embedding: ParticipantEmbedding,
     pub participant: Participant,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::memory::embedding::embedding_model::bge::BgeSmallZh;
+
+    #[test]
+    fn test_embed() {
+        let participant = Participant {
+            name: "张三".to_string(),
+            role: "学生".to_string(),
+        };
+        let model = BgeSmallZh::default_cpu().unwrap();
+        let embedding = participant.embed(&model).unwrap();
+        assert_eq!(embedding.name.len(), 512);
+        assert_eq!(embedding.role.len(), 512);
+        assert_eq!(embedding.fused.len(), 512);
+    }
+}

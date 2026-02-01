@@ -69,3 +69,21 @@ pub struct EmbeddedEmotion {
     pub embedding: EmotionEmbedding,
     pub emotion: Emotion,
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::memory::embedding::embedding_model::bge::BgeSmallZh;
+
+    use super::*;
+
+    #[test]
+    fn test_embed() {
+        let emotion = Emotion {
+            name: "happy".to_string(),
+            intensity: 1.0,
+        };
+        let model = BgeSmallZh::default_cpu().unwrap();
+        let embedding = emotion.embed(&model).unwrap();
+        assert_eq!(embedding.intensity, 1.0);
+    }
+}

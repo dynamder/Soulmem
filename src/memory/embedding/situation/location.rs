@@ -46,3 +46,21 @@ pub struct EmbeddedLocation {
     pub embedding: LocationEmbedding,
     pub location: Location,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::memory::embedding::embedding_model::bge::BgeSmallZh;
+
+    #[test]
+    fn test_embed() {
+        let location = Location {
+            name: "北京".to_string(),
+            coordinates: "亚洲，中国".to_string(),
+        };
+        let model = BgeSmallZh::default_cpu().unwrap();
+        let embedding = location.embed(&model).unwrap();
+        assert_eq!(embedding.name.len(), 512);
+        assert_eq!(embedding.coordinates.len(), 512);
+    }
+}

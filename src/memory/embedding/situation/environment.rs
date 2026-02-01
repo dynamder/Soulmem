@@ -69,3 +69,21 @@ pub struct EmbeddedEnvironment {
     pub embedding: EnvironmentEmbedding,
     pub environment: Environment,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::memory::embedding::embedding_model::bge::BgeSmallZh;
+
+    #[test]
+    fn test_embed() {
+        let environment = Environment {
+            atmosphere: "happy".to_string(),
+            tone: "azure".to_string(),
+        };
+        let model = BgeSmallZh::default_cpu().unwrap();
+        let embedding = environment.embed(&model).unwrap();
+        assert_eq!(embedding.atmosphere.len(), 512);
+        assert_eq!(embedding.tone.len(), 512);
+    }
+}

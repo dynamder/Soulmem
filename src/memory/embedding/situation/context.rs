@@ -108,3 +108,78 @@ pub struct EmbeddedContext {
     pub embedding: ContextEmbedding,
     pub context: Context,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::memory::{
+        embedding::embedding_model::bge::BgeSmallZh,
+        memory_note::situation_mem::{
+            Emotion, Environment, Event, Location, Participant, SensoryData,
+        },
+    };
+
+    fn test_context() -> Context {
+        let location = Location {
+            name: "北京".to_string(),
+            coordinates: "亚洲，中国".to_string(),
+        };
+        let environment = Environment {
+            atmosphere: "轻松".to_string(),
+            tone: "黄色".to_string(),
+        };
+        let emotions = vec![
+            Emotion {
+                name: "快乐".to_string(),
+                intensity: 0.8,
+            },
+            Emotion {
+                name: "紧张".to_string(),
+                intensity: 0.3,
+            },
+            Emotion {
+                name: "悲伤".to_string(),
+                intensity: 0.1,
+            },
+        ];
+        let participants = vec![
+            Participant {
+                name: "小明".to_string(),
+                role: "学生".to_string(),
+            },
+            Participant {
+                name: "小红".to_string(),
+                role: "老师".to_string(),
+            },
+        ];
+        let sensory_data = vec![
+            SensoryData {
+                name: "花香".to_string(),
+                intensity: 0.5,
+            },
+            SensoryData {
+                name: "鸟鸣".to_string(),
+                intensity: 0.8,
+            },
+        ];
+        let event = Event {
+            action: "上课".to_string(),
+            action_intensity: 0.7,
+        };
+        Context::new(
+            Some(location),
+            participants,
+            emotions,
+            sensory_data,
+            environment,
+            vec![event],
+        )
+    }
+
+    #[test]
+    fn test_embed() {
+        let context = test_context();
+        let model = BgeSmallZh::default_cpu().unwrap();
+        let embedding = context.embed(&model).unwrap();
+    }
+}
