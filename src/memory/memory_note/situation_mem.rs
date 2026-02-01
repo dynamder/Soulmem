@@ -140,7 +140,7 @@ impl Context {
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub struct Event {
     pub action: String,
-    pub action_intensity: u32,
+    pub action_intensity: f32,
     pub initiator: String,
     pub target: String,
 }
@@ -157,7 +157,7 @@ pub struct Environment {
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub struct Emotion {
     pub name: String,
-    pub intensity: u32,
+    pub intensity: f32,
 }
 
 
@@ -181,5 +181,5 @@ pub struct Location {
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub struct SensoryData {
     pub name: String,
-    pub intensity: u32,
+    pub intensity: f32,
 }
