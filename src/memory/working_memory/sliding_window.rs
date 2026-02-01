@@ -1,11 +1,16 @@
-use std::collections::VecDeque
+use std::collections::VecDeque;
+use tokio::sync::mpsc;
+use async_openai::{
+    types::{CreateChatCompletionRequest, ChatCompletionRequestMessage},
+    Client,
+};
 
 //滑动窗口（容器、容量、标记计数、摘要用临时储存）
 pub struct SlidingWindow<Information> {
     window: VecDeque<Information>,
     capacity: usize,
     tag_count: usize,
-    summary: Vec<Information>
+    summary: String,
 }
 
 impl<Information> SlidingWindow {
@@ -13,32 +18,31 @@ impl<Information> SlidingWindow {
     pub fn new(capacity: usize) -> Self {
         Self {
             window: VecDeque::with_capacity(capacity),
-            capacity: 0,
+            capacity,
             tag_count: 0,
-            summary: Vec::with_capacity(capacity)
+            summary: String::new(),
         }
     }
-    //信息滑入，若滑出时信息有标记则发送摘要用片段
-    pub fn push(&mut self, value: Information) -> Vec<Information> {
+    //信息滑入
+    pub fn push(&mut self, value: Information) {
         value = self.auto_tag(value);
-        let is_tagged: bool = false;
-        let target: Option<Information> = None;
         if self.window.len() == self.capacity {
-            is_tagged = self.pop();
+            self.pop();
         }
-        if is_tagged {
-            target = self.summarize();
-        }
-        self.capacity += 1;
         self.window.push_back(value);
-        target
     }
-    //信息滑出，返回弹出信息是否被标记
-    pub fn pop(&mut self) -> bool {
+    //信息滑出，若信息被标记则进行摘要
+    pub fn pop(&mut self) {
         let target = self.window.pop_front();
-        self.capacity -= 1;
-        self.summary.push(target.clone());
-        self.get_tagged(target)
+        if target.is_tagged() {
+            let summary = self.summarize();
+            tokio::spawn(async move {
+                match call_llm(summary).await {
+                    Ok(response) => {
+                        self.set_summary(response);
+                    }
+                    Err(e) => eprintln!("LLM error for id {}: {}", id, e),
+        }
     }
     //获取窗口大小
     pub fn len(&self) -> usize {
@@ -56,10 +60,9 @@ impl<Information> SlidingWindow {
     pub fn is_empty(&self) -> bool {
         self.window.is_empty()
     }
-    //清空窗口
+    //清空窗口内容
     pub fn clear(&mut self) {
         self.window.clear();
-        self.capacity = 0;
         self.tag_count = 0;
         self.summary.clear();
     }
@@ -78,19 +81,29 @@ impl<Information> SlidingWindow {
     //每滑入capacity次信息时进行一次标记
     fn auto_tag(&mut self, value: Information) -> Information {
         self.tag_count += 1;
-        if self.tag_count == self.capacity {
+        if self.tag_count >= self.capacity {
             value.tag_information();
             self.tag_count = 0;
         }
         value
     }
-    //给出摘要
-    pub fn summarize(&mut self) -> Vec<Information> {
-        self.summary.drain(..).collect()
+
+    //将摘要记忆和当前滑动窗口信息合并
+    pub fn summarize(&mut self) -> String {
+        let mut summary = self.summary;
+        for (index, i) in self.window.iter().enumerate() {
+            summary.push_str(index.to_string());
+            summary.push_str(&i.text);
+        }
+        summary
     }
-    //检测是否存在标记信息
-    pub fn is_tagged(&mut self, value: Information) -> bool {
-        value.is_tagged()
+    //将返回摘要记忆存入
+    pub fn set_summary(&mut self, summary: String) {
+        self.summary = summary;
+    }
+    //将摘要记忆清空
+    pub fn clear_summary(&mut self) {
+        self.summary.clear();
     }
 
 }
@@ -116,4 +129,32 @@ impl Information {
     pub fn get_mut_capacity(&mut self) -> &mut usize {
         &mut self.capacity
     }
+}
+
+async fn call_llm(summary: String) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    let client = Client::new();
+
+    let request = CreateChatCompletionRequest {
+        model: "unknown".to_string(),
+        messages: vec![ChatCompletionRequestMessage {
+            role: "user".to_string(),
+            content: summary,
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    let response = client.chat().create(request).await?;
+    let output = response
+        .choices
+        .first()
+        .and_then(|c| c.message.content.clone())
+        .unwrap_or_default();
+
+    Ok(output)
+}
+
+
+#[cfg(test)]
+fn test_call(summary: String) -> Result<String, Err>{
+    Ok("success".to_string())
 }

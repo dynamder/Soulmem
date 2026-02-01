@@ -309,6 +309,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-openai"
+version = "0.32.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4d91c2005832450ad9ac92411b9d4cec39e30be21adc76553efc47f812d59c7"
+dependencies = [
+ "getrandom 0.3.3",
+ "reqwest",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "async-stream"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2085,6 +2097,7 @@ dependencies = [
  "hyper",
  "hyper-util",
  "rustls",
+ "rustls-native-certs",
  "rustls-pki-types",
  "tokio",
  "tokio-rustls",
@@ -4159,6 +4172,7 @@ dependencies = [
  "pin-project-lite",
  "quinn",
  "rustls",
+ "rustls-native-certs",
  "rustls-pki-types",
  "serde",
  "serde_json",
@@ -4902,6 +4916,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "approx 0.5.1",
+ "async-openai",
  "async-trait",
  "chrono",
  "dotenvy",
