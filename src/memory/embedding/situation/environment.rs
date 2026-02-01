@@ -1,5 +1,5 @@
 use crate::memory::{
-    embedding::{Embeddable, EmbeddingVec},
+    embedding::{Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling},
     memory_note::situation_mem::Environment,
 };
 
@@ -15,6 +15,27 @@ impl EnvironmentEmbedding {
 
     pub fn tone(&self) -> &EmbeddingVec {
         &self.tone
+    }
+    pub fn mean_pooling(
+        environments: &[EnvironmentEmbedding],
+    ) -> EmbeddingCalcResult<Option<Self>> {
+        if environments.is_empty() {
+            return Ok(None);
+        }
+        let atmosphere_vecs = environments
+            .iter()
+            .map(|env| env.atmosphere())
+            .collect::<Vec<_>>();
+        let tone_vecs = environments
+            .iter()
+            .map(|env| env.tone())
+            .collect::<Vec<_>>();
+        let atmosphere_mean = mean_pooling(&atmosphere_vecs)?;
+        let tone_mean = mean_pooling(&tone_vecs)?;
+        Ok(Some(EnvironmentEmbedding {
+            atmosphere: atmosphere_mean,
+            tone: tone_mean,
+        }))
     }
 }
 impl Embeddable for Environment {

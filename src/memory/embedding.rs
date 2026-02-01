@@ -23,6 +23,8 @@ pub enum EmbeddingGenError {
     InvalidInput,
     #[error("Embedding failed")]
     EmbeddingFailed(#[from] candle_core::Error),
+    #[error("Post calculation failed")]
+    PostCalcFailed(#[from] EmbeddingCalcError),
     #[error("{0}")]
     Anyhow(#[from] anyhow::Error),
 }
@@ -129,6 +131,23 @@ fn raw_linear_blend(
         .iter()
         .zip(vec2.iter())
         .map(|(&a, &b)| a * blend_factor + b * (1.0 - blend_factor))
+        .collect())
+}
+fn mean_pooling(vecs: &[&EmbeddingVec]) -> EmbeddingCalcResult<EmbeddingVec> {
+    if vecs.is_empty() {
+        return Ok(Vec::new());
+    }
+    let len = vecs[0].len();
+    if !vecs.iter().all(|vec| vec.len() == len) {
+        return Err(EmbeddingCalcError::ShapeMismatch);
+    }
+    Ok(vecs
+        .iter()
+        .fold(vec![0.0; len], |acc, vec| {
+            acc.iter().zip(vec.iter()).map(|(&a, &b)| a + b).collect()
+        })
+        .iter()
+        .map(|&sum| sum / vecs.len() as f32)
         .collect())
 }
 #[derive(Debug, Clone, Copy)]

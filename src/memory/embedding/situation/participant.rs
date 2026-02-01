@@ -1,21 +1,45 @@
 use crate::memory::{
-    embedding::{Embeddable, EmbeddingVec, raw_linear_blend},
+    embedding::{Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling, raw_linear_blend},
     memory_note::situation_mem::Participant,
 };
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct SitParticipantEmbedding {
+pub struct ParticipantEmbedding {
     name: EmbeddingVec,
     role: EmbeddingVec,
     fused: EmbeddingVec,
 }
-impl SitParticipantEmbedding {
+impl ParticipantEmbedding {
     pub fn name(&self) -> &EmbeddingVec {
         &self.name
     }
+    pub fn role(&self) -> &EmbeddingVec {
+        &self.role
+    }
+    pub fn fused(&self) -> &EmbeddingVec {
+        &self.fused
+    }
+    pub fn mean_pooling(vecs: &[Self]) -> EmbeddingCalcResult<Option<Self>> {
+        if vecs.is_empty() {
+            return Ok(None);
+        }
+        let names = vecs.iter().map(|p| p.name()).collect::<Vec<_>>();
+        let name_vec = mean_pooling(&names)?;
+
+        let roles = vecs.iter().map(|p| p.role()).collect::<Vec<_>>();
+        let role_vec = mean_pooling(&roles)?;
+
+        let fuses = vecs.iter().map(|p| p.fused()).collect::<Vec<_>>();
+        let fused_vec = mean_pooling(&fuses)?;
+        Ok(Some(ParticipantEmbedding {
+            name: name_vec,
+            role: role_vec,
+            fused: fused_vec,
+        }))
+    }
 }
 impl Embeddable for Participant {
-    type EmbeddingGen = SitParticipantEmbedding;
+    type EmbeddingGen = ParticipantEmbedding;
     type EmbeddingFused = EmbeddedParticipant;
     fn embed(
         &self,
@@ -26,7 +50,7 @@ impl Embeddable for Participant {
             .try_into()
             .unwrap(); //SAFEUNWRAP: 可以确定此处的Vec长度为2
         let fused_vec = raw_linear_blend(&name_vec, &role_vec, 0.7).unwrap(); //SAFEUNWRAP: 此处两向量的维度必然相同
-        Ok(SitParticipantEmbedding {
+        Ok(ParticipantEmbedding {
             name: name_vec,
             role: role_vec,
             fused: fused_vec,
@@ -44,6 +68,6 @@ impl Embeddable for Participant {
 }
 #[derive(Debug, Clone, PartialEq)]
 pub struct EmbeddedParticipant {
-    pub embedding: SitParticipantEmbedding,
+    pub embedding: ParticipantEmbedding,
     pub participant: Participant,
 }

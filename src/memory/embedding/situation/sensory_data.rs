@@ -1,5 +1,5 @@
 use crate::memory::{
-    embedding::{Embeddable, EmbeddingVec},
+    embedding::{Embeddable, EmbeddingCalcError, EmbeddingCalcResult, EmbeddingVec},
     memory_note::situation_mem::SensoryData,
 };
 #[derive(Debug, Clone, PartialEq)]
@@ -13,6 +13,27 @@ impl SensoryDataEmbedding {
     }
     pub fn intensity(&self) -> f32 {
         self.intensity
+    }
+    pub fn weight_pooling(datas: &[SensoryDataEmbedding]) -> EmbeddingCalcResult<Option<Self>> {
+        if datas.is_empty() {
+            return Ok(None);
+        }
+        let intensity_sum = datas.iter().map(|e| e.intensity).sum::<f32>();
+        let len = datas[0].sensory.len();
+        if !datas.iter().all(|vec| vec.sensory.len() == len) {
+            return Err(EmbeddingCalcError::ShapeMismatch);
+        }
+        let fused_emotion = datas.iter().fold(vec![0.0; len], |acc, vec| {
+            acc.iter()
+                .zip(vec.sensory.iter())
+                .map(|(&a, &b)| a + b * vec.intensity / intensity_sum)
+                .collect()
+        });
+
+        Ok(Some(SensoryDataEmbedding {
+            sensory: fused_emotion,
+            intensity: intensity_sum,
+        }))
     }
 }
 

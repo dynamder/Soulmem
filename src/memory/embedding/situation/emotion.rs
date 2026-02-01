@@ -1,5 +1,5 @@
 use crate::memory::{
-    embedding::{Embeddable, EmbeddingVec},
+    embedding::{Embeddable, EmbeddingCalcError, EmbeddingCalcResult, EmbeddingVec, mean_pooling},
     memory_note::situation_mem::Emotion,
 };
 
@@ -14,6 +14,27 @@ impl EmotionEmbedding {
     }
     pub fn intensity(&self) -> f32 {
         self.intensity
+    }
+    pub fn weight_pooling(emotions: &[EmotionEmbedding]) -> EmbeddingCalcResult<Option<Self>> {
+        if emotions.is_empty() {
+            return Ok(None);
+        }
+        let intensity_sum = emotions.iter().map(|e| e.intensity).sum::<f32>();
+        let len = emotions[0].emotion.len();
+        if !emotions.iter().all(|vec| vec.emotion.len() == len) {
+            return Err(EmbeddingCalcError::ShapeMismatch);
+        }
+        let fused_emotion = emotions.iter().fold(vec![0.0; len], |acc, vec| {
+            acc.iter()
+                .zip(vec.emotion.iter())
+                .map(|(&a, &b)| a + b * vec.intensity / intensity_sum)
+                .collect()
+        });
+
+        Ok(Some(EmotionEmbedding {
+            emotion: fused_emotion,
+            intensity: intensity_sum,
+        }))
     }
 }
 impl Embeddable for Emotion {

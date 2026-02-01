@@ -19,11 +19,11 @@ impl From<SpecificSituation> for SituationType {
 }
 
 //抽象性情景记忆（地点、人物、情境、事件）
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum AbstractSituation {
     Location(Location),
     Participant(Participant),
-    Situation(Environment),
+    Environment(Environment),
     Event(Event),
 }
 
@@ -39,7 +39,7 @@ impl From<Participant> for AbstractSituation {
 }
 impl From<Environment> for AbstractSituation {
     fn from(situation: Environment) -> Self {
-        AbstractSituation::Situation(situation)
+        AbstractSituation::Environment(situation)
     }
 }
 impl From<Event> for AbstractSituation {
@@ -91,7 +91,8 @@ pub struct Context {
     participants: Vec<Participant>,
     emotions: Vec<Emotion>,
     sensory_data: Vec<SensoryData>,
-    situation: Environment,
+    environment: Environment,
+    events: Vec<Event>,
 }
 
 impl Context {
@@ -101,13 +102,15 @@ impl Context {
         emotions: Vec<Emotion>,
         sensory_data: Vec<SensoryData>,
         situation: Environment,
+        events: Vec<Event>,
     ) -> Self {
         Context {
             location,
             participants,
             emotions,
             sensory_data,
-            situation,
+            environment: situation,
+            events,
         }
     }
     pub fn get_mut_location(&mut self) -> &mut Option<Location> {
@@ -123,15 +126,33 @@ impl Context {
         &mut self.sensory_data
     }
     pub fn get_mut_situation(&mut self) -> &mut Environment {
-        &mut self.situation
+        &mut self.environment
+    }
+    pub fn location(&self) -> &Option<Location> {
+        &self.location
+    }
+    pub fn participants(&self) -> &Vec<Participant> {
+        &self.participants
+    }
+    pub fn emotions(&self) -> &Vec<Emotion> {
+        &self.emotions
+    }
+    pub fn sensory_data(&self) -> &Vec<SensoryData> {
+        &self.sensory_data
+    }
+    pub fn environment(&self) -> &Environment {
+        &self.environment
+    }
+    pub fn events(&self) -> &Vec<Event> {
+        &self.events
     }
 }
 
 //事件（动作，动作强度）（抽象）
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Event {
     pub action: String,
-    pub action_intensity: i32,
+    pub action_intensity: f32,
 }
 impl TryFrom<AbstractSituation> for Event {
     type Error = String;
@@ -161,7 +182,7 @@ impl TryFrom<AbstractSituation> for Environment {
 
     fn try_from(value: AbstractSituation) -> Result<Self, Self::Error> {
         match value {
-            AbstractSituation::Situation(Environment { atmosphere, tone }) => {
+            AbstractSituation::Environment(Environment { atmosphere, tone }) => {
                 Ok(Environment { atmosphere, tone })
             }
             _ => Err("Cannot convert AbstractSituation to Situation".to_string()),
@@ -171,8 +192,8 @@ impl TryFrom<AbstractSituation> for Environment {
 impl From<Context> for Environment {
     fn from(context: Context) -> Self {
         Environment {
-            atmosphere: context.situation.atmosphere,
-            tone: context.situation.tone,
+            atmosphere: context.environment.atmosphere,
+            tone: context.environment.tone,
         }
     }
 }
