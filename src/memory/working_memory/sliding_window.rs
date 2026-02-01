@@ -19,7 +19,7 @@ impl<Information> SlidingWindow {
         }
     }
     //信息滑入，若滑出时信息有标记则发送摘要用片段
-    pub fn push(&mut self, value: Information) -> Option<Vec<Information>> {
+    pub fn push(&mut self, value: Information) -> Vec<Information> {
         value = self.auto_tag(value);
         let is_tagged: bool = false;
         let target: Option<Information> = None;
