@@ -64,10 +64,7 @@ impl SlidingWindow {
     pub fn get(&self, index: usize) -> Option<&Information> {
         self.window.get(index)
     }
-    //获取摘要记忆
-    pub fn get_summary(&self) -> Arc<RwLock<String>> {
-        self.summary.clone()
-    }
+
     //判断窗口是否为空
     pub fn is_empty(&self) -> bool {
         self.window.is_empty()
@@ -76,7 +73,6 @@ impl SlidingWindow {
     pub fn clear(&mut self) {
         self.window.clear();
         self.tag_count = 0;
-        self.clear_summary();
     }
     //标记用
     pub fn tag_information(&mut self, index: usize) {
@@ -102,7 +98,13 @@ impl SlidingWindow {
 
     //将摘要记忆和当前滑动窗口信息合并提供LLM
     async fn summarize(&self) -> Result<Arc<RwLock<String>>, Box<dyn Error>> {
-        let mut summary_text = self.summary.write().unwrap().clone();
+        let mut summary_text = match self.summary.write() {
+            Ok(mut value) => value.clone(),
+            Err(e) => {
+                eprintln!("Summary Error: {}", e);
+                String::new()
+            }
+        };
 
         for (index, i) in self.window.iter().enumerate() {
             summary_text.push_str(&index.to_string());
@@ -113,18 +115,18 @@ impl SlidingWindow {
 
         match call_llm(&summary_text).await {
             Ok(response) => {
-                *summary_arc.write().unwrap() = response;
-                println!("Summary updated in background.");
+                match summary_arc.write() {
+                    Ok(mut value) => {
+                        println!("Summary updated in background.");
+                        *value = response
+                    },
+                    Err(e) => eprintln!("LLM Error: {}", e),
+                }
             }
             Err(e) => eprintln!("LLM Error: {}", e),
         }
 
         Ok(summary_arc)
-    }
-
-    //将摘要记忆清空
-    fn clear_summary(&mut self) {
-        self.summary.write().unwrap().clear();
     }
 
 }
@@ -186,9 +188,6 @@ async fn call_llm(summary: &String) -> Result<String, Box<dyn std::error::Error 
 mod slidingwindow_test{
     use super::*;
 
-    // async fn SlidingWindowtest_call(summary: String) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-    //     Ok("success".to_string())
-    // }
     #[tokio::test]
     async fn sliding_window_test_push(){
         let mut window = SlidingWindow::new(10);
@@ -196,8 +195,8 @@ mod slidingwindow_test{
         window.push(info).await;
         let info2 = Information::new("test2".to_string());
         window.push(info2).await;
-        assert_eq!(window.get(0).unwrap().text, "test1");
-        assert_eq!(window.get(1).unwrap().text, "test2");
+        assert_eq!(window.get(0).expect("not found this information").text, "test1");
+        assert_eq!(window.get(1).expect("not found this information").text, "test2");
     }
     #[tokio::test]
     async fn sliding_window_test_pop(){
@@ -207,7 +206,7 @@ mod slidingwindow_test{
         let info2 = Information::new("test2".to_string());
         window.push(info2).await;
         window.pop().await;
-        assert_eq!(window.get(0).unwrap().text, "test2");
+        assert_eq!(window.get(0).expect("not found this information").text, "test2");
     }
     #[tokio::test]
     async fn sliding_window_test_summary_and_tag(){
@@ -218,7 +217,7 @@ mod slidingwindow_test{
         window.push(info2).await;
         let info3 = Information::new("test3".to_string());
         window.push(info3).await;
-        assert_eq!(window.get_summary().write().unwrap().as_str(), "0test21test3");
+        assert_eq!(window.summary.read().unwrap().as_str(), "0test21test3");
         let test = window.get(1);
         if let Some(value) = test {
             assert!(value.is_tagged());
