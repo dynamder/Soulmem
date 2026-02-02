@@ -1,47 +1,53 @@
 use std::collections::VecDeque;
 use tokio::sync::mpsc;
-use async_openai::{
-    types::{CreateChatCompletionRequest, ChatCompletionRequestMessage},
-    Client,
-};
+// use async_openai::{
+//     types::{CreateChatCompletionRequest, ChatCompletionRequestMessage},
+//     Client,
+// };
+
 
 //滑动窗口（容器、容量、标记计数、摘要用临时储存）
-pub struct SlidingWindow<Information> {
+pub struct SlidingWindow {
     window: VecDeque<Information>,
     capacity: usize,
     tag_count: usize,
     summary: String,
 }
 
-impl<Information> SlidingWindow {
+impl SlidingWindow {
     //新建
     pub fn new(capacity: usize) -> Self {
         Self {
-            window: VecDeque::with_capacity(capacity),
+            window: VecDeque::with_capacity(capacity+1),
             capacity,
-            tag_count: 0,
+            tag_count: capacity,
             summary: String::new(),
         }
     }
     //信息滑入
-    pub fn push(&mut self, value: Information) {
+    pub fn push(&mut self, mut value: Information) {
         value = self.auto_tag(value);
-        if self.window.len() == self.capacity {
+        self.window.push_back(value);
+        if self.window.len() == (self.capacity+1) {
             self.pop();
         }
-        self.window.push_back(value);
     }
     //信息滑出，若信息被标记则进行摘要
     pub fn pop(&mut self) {
         let target = self.window.pop_front();
-        if target.is_tagged() {
-            let summary = self.summarize();
-            tokio::spawn(async move {
-                match call_llm(summary).await {
-                    Ok(response) => {
-                        self.set_summary(response);
-                    }
-                    Err(e) => eprintln!("LLM error for id {}: {}", id, e),
+        if let Some(value) = target {
+            if value.is_tagged() {
+                let summary = self.summarize();
+                self.set_summary(test_summary(summary));
+                // tokio::spawn(async move {
+                //     match call_llm(summary).await {
+                //         Ok(response) => {
+                //             self.set_summary(response);
+                //         }
+                //         Err(e) => eprintln!("LLM Error"),
+                //     }
+                // });
+            }
         }
     }
     //获取窗口大小
@@ -55,6 +61,14 @@ impl<Information> SlidingWindow {
     //获取窗口容量（可变）
     pub fn get_mut_capacity(&mut self) -> &mut usize {
         &mut self.capacity
+    }
+    //获取窗口中指定索引的信息
+    pub fn get(&self, index: usize) -> Option<&Information> {
+        self.window.get(index)
+    }
+    //获取摘要记忆
+    pub fn get_summary(&self) -> &String {
+        &self.summary
     }
     //判断窗口是否为空
     pub fn is_empty(&self) -> bool {
@@ -79,7 +93,7 @@ impl<Information> SlidingWindow {
         }
     }
     //每滑入capacity次信息时进行一次标记
-    fn auto_tag(&mut self, value: Information) -> Information {
+    fn auto_tag(&mut self, mut value: Information) -> Information {
         self.tag_count += 1;
         if self.tag_count >= self.capacity {
             value.tag_information();
@@ -90,10 +104,10 @@ impl<Information> SlidingWindow {
 
     //将摘要记忆和当前滑动窗口信息合并
     pub fn summarize(&mut self) -> String {
-        let mut summary = self.summary;
+        let mut summary = self.summary.clone();
         for (index, i) in self.window.iter().enumerate() {
-            summary.push_str(index.to_string());
-            summary.push_str(&i.text);
+            summary.push_str(&index.to_string());
+            summary.push_str(&i.to_string());
         }
         summary
     }
@@ -115,46 +129,90 @@ pub struct Information {
 
 impl Information {
     pub fn new(text: String) -> Self {
-        Self { text, false }
+        Self { text, tag: false }
     }
     pub fn tag_information(&mut self) {
-        self.tag = true;
+        self.tag = true
     }
     pub fn untag_information(&mut self) {
-        self.tag = false;
+        self.tag = false
     }
     pub fn is_tagged(&self) -> bool {
         self.tag
     }
-    pub fn get_mut_capacity(&mut self) -> &mut usize {
-        &mut self.capacity
+    pub fn to_string(&self) -> String {
+        self.text.clone()
     }
 }
 
-async fn call_llm(summary: String) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-    let client = Client::new();
-
-    let request = CreateChatCompletionRequest {
-        model: "unknown".to_string(),
-        messages: vec![ChatCompletionRequestMessage {
-            role: "user".to_string(),
-            content: summary,
-            ..Default::default()
-        }],
-        ..Default::default()
-    };
-    let response = client.chat().create(request).await?;
-    let output = response
-        .choices
-        .first()
-        .and_then(|c| c.message.content.clone())
-        .unwrap_or_default();
-
-    Ok(output)
+fn test_summary(summary: String) -> String {
+    println!("{}", summary.clone());
+    summary
 }
+
+// async fn call_llm(summary: String) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+//     let client = Client::new();
+
+//     let request = CreateChatCompletionRequest {
+//         model: "unknown".to_string(),
+//         messages: vec![ChatCompletionRequestMessage {
+//             role: "user".to_string(),
+//             content: summary,
+//             ..Default::default()
+//         }],
+//         ..Default::default()
+//     };
+//     let response = client.chat().create(request).await?;
+//     let output = response
+//         .choices
+//         .first()
+//         .and_then(|c| c.message.content.clone())
+//         .unwrap_or_default();
+
+//     Ok(output)
+// }
 
 
 #[cfg(test)]
-fn test_call(summary: String) -> Result<String, Err>{
-    Ok("success".to_string())
+mod slidingwindow_test{
+    use super::*;
+
+    async fn SlidingWindowtest_call(summary: String) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+        Ok("success".to_string())
+    }
+    #[test]
+    fn SlidingWindowtest_push(){
+        let mut window = SlidingWindow::new(10);
+        let info = Information::new("test1".to_string());
+        window.push(info);
+        let info2 = Information::new("test2".to_string());
+        window.push(info2);
+        assert_eq!(window.get(0).unwrap().text, "test1");
+        assert_eq!(window.get(1).unwrap().text, "test2");
+    }
+    #[test]
+    fn SlidingWindowtest_pop(){
+        let mut window = SlidingWindow::new(10);
+        let info = Information::new("test1".to_string());
+        window.push(info);
+        let info2 = Information::new("test2".to_string());
+        window.push(info2);
+        let _ = window.pop();
+        assert_eq!(window.get(0).unwrap().text, "test2");
+    }
+    #[test]
+    fn SlidingWindowtest_summary_and_tag(){
+        let mut window = SlidingWindow::new(2);
+        let info = Information::new("test1".to_string());
+        window.push(info);
+        let info2 = Information::new("test2".to_string());
+        window.push(info2);
+        let info3 = Information::new("test3".to_string());
+        window.push(info3);
+        assert_eq!(window.get_summary(), "0test21test3");
+        let test = window.get(1);
+        if let Some(value) = test {
+            assert!(value.is_tagged());
+        }
+    }
 }
