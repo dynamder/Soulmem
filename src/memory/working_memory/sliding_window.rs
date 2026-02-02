@@ -177,11 +177,11 @@ fn test_summary(summary: String) -> String {
 mod slidingwindow_test{
     use super::*;
 
-    async fn SlidingWindowtest_call(summary: String) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-        Ok("success".to_string())
+    // async fn SlidingWindowtest_call(summary: String) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    //     Ok("success".to_string())
     }
     #[test]
-    fn SlidingWindowtest_push(){
+    fn sliding_window_test_push(){
         let mut window = SlidingWindow::new(10);
         let info = Information::new("test1".to_string());
         window.push(info);
@@ -191,7 +191,7 @@ mod slidingwindow_test{
         assert_eq!(window.get(1).unwrap().text, "test2");
     }
     #[test]
-    fn SlidingWindowtest_pop(){
+    fn sliding_window_test_pop(){
         let mut window = SlidingWindow::new(10);
         let info = Information::new("test1".to_string());
         window.push(info);
@@ -201,7 +201,7 @@ mod slidingwindow_test{
         assert_eq!(window.get(0).unwrap().text, "test2");
     }
     #[test]
-    fn SlidingWindowtest_summary_and_tag(){
+    fn sliding_window_test_summary_and_tag(){
         let mut window = SlidingWindow::new(2);
         let info = Information::new("test1".to_string());
         window.push(info);
