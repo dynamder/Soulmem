@@ -38,8 +38,8 @@ impl From<Participant> for AbstractSituation {
     }
 }
 impl From<Environment> for AbstractSituation {
-    fn from(situation: Environment) -> Self {
-        AbstractSituation::Environment(situation)
+    fn from(environment: Environment) -> Self {
+        AbstractSituation::Environment(environment)
     }
 }
 impl From<Event> for AbstractSituation {
@@ -84,7 +84,7 @@ impl SpecificSituation {
     }
 }
 
-//描述（地点、人物、情感、感官数据、情境）
+//描述（地点、人物、情感、感官数据、环境、事件）
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Context {
     location: Option<Location>,
@@ -92,7 +92,7 @@ pub struct Context {
     emotions: Vec<Emotion>,
     sensory_data: Vec<SensoryData>,
     environment: Environment,
-    events: Vec<Event>,
+    event: Vec<Event>,
 }
 
 impl Context {
@@ -101,102 +101,74 @@ impl Context {
         participants: Vec<Participant>,
         emotions: Vec<Emotion>,
         sensory_data: Vec<SensoryData>,
-        situation: Environment,
-        events: Vec<Event>,
+        environment: Environment,
+        event: Vec<Event>,
     ) -> Self {
         Context {
             location,
             participants,
             emotions,
             sensory_data,
-            environment: situation,
-            events,
+            environment,
+            event,
         }
     }
     pub fn get_mut_location(&mut self) -> &mut Option<Location> {
         &mut self.location
     }
+    pub fn get_location(&self) -> &Option<Location> {
+        &self.location
+    }
     pub fn get_mut_participants(&mut self) -> &mut Vec<Participant> {
         &mut self.participants
+    }
+    pub fn get_participants(&self) -> &Vec<Participant> {
+        &self.participants
     }
     pub fn get_mut_emotions(&mut self) -> &mut Vec<Emotion> {
         &mut self.emotions
     }
+    pub fn get_emotions(&self) -> &Vec<Emotion> {
+        &self.emotions
+    }
     pub fn get_mut_sensory_data(&mut self) -> &mut Vec<SensoryData> {
         &mut self.sensory_data
     }
-    pub fn get_mut_situation(&mut self) -> &mut Environment {
-        &mut self.environment
-    }
-    pub fn location(&self) -> &Option<Location> {
-        &self.location
-    }
-    pub fn participants(&self) -> &Vec<Participant> {
-        &self.participants
-    }
-    pub fn emotions(&self) -> &Vec<Emotion> {
-        &self.emotions
-    }
-    pub fn sensory_data(&self) -> &Vec<SensoryData> {
+    pub fn get_sensory_data(&self) -> &Vec<SensoryData> {
         &self.sensory_data
     }
-    pub fn environment(&self) -> &Environment {
+    pub fn get_mut_environment(&mut self) -> &mut Environment {
+        &mut self.environment
+    }
+    pub fn get_environment(&self) -> &Environment {
         &self.environment
     }
-    pub fn events(&self) -> &Vec<Event> {
-        &self.events
+    pub fn get_mut_event(&mut self) -> &mut Vec<Event> {
+        &mut self.event
+    }
+    pub fn get_event(&self) -> &Vec<Event> {
+        &self.event
     }
 }
 
-//事件（动作，动作强度）（抽象）
+
+
+//事件（动作，动作强度，单个发起者，单个目标）（抽象）
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Event {
     pub action: String,
     pub action_intensity: f32,
-}
-impl TryFrom<AbstractSituation> for Event {
-    type Error = String;
-
-    fn try_from(value: AbstractSituation) -> Result<Self, Self::Error> {
-        match value {
-            AbstractSituation::Event(Event {
-                action,
-                action_intensity,
-            }) => Ok(Event {
-                action,
-                action_intensity,
-            }),
-            _ => Err("Cannot convert AbstractSituation to Event".to_string()),
-        }
-    }
+    pub initiator: String,
+    pub target: String,
 }
 
-//情景（氛围，环境色调）（抽象、描述）
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
+//环境（氛围，环境色调）（抽象、描述）
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Environment {
     pub atmosphere: String,
     pub tone: String,
 }
-impl TryFrom<AbstractSituation> for Environment {
-    type Error = String;
 
-    fn try_from(value: AbstractSituation) -> Result<Self, Self::Error> {
-        match value {
-            AbstractSituation::Environment(Environment { atmosphere, tone }) => {
-                Ok(Environment { atmosphere, tone })
-            }
-            _ => Err("Cannot convert AbstractSituation to Situation".to_string()),
-        }
-    }
-}
-impl From<Context> for Environment {
-    fn from(context: Context) -> Self {
-        Environment {
-            atmosphere: context.environment.atmosphere,
-            tone: context.environment.tone,
-        }
-    }
-}
 
 //智能体情绪（名称，强度）（描述）
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
@@ -204,94 +176,27 @@ pub struct Emotion {
     pub name: String,
     pub intensity: f32,
 }
-impl From<Context> for Vec<Emotion> {
-    fn from(context: Context) -> Vec<Emotion> {
-        context
-            .emotions
-            .into_iter()
-            .map(|emotion| Emotion {
-                name: emotion.name,
-                intensity: emotion.intensity,
-            })
-            .collect()
-    }
-}
+
 
 //记忆时间主动参与者（名称，角色）(抽象、描述)
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Participant {
     pub name: String,
     pub role: String,
 }
-impl TryFrom<AbstractSituation> for Participant {
-    type Error = String;
 
-    fn try_from(value: AbstractSituation) -> Result<Self, Self::Error> {
-        match value {
-            AbstractSituation::Participant(Participant { name, role }) => {
-                Ok(Participant { name, role })
-            }
-            _ => Err("Cannot convert AbstractParticipant to Participant".to_string()),
-        }
-    }
-}
-impl From<Context> for Vec<Participant> {
-    fn from(context: Context) -> Vec<Participant> {
-        context
-            .participants
-            .into_iter()
-            .map(|participant| Participant {
-                name: participant.name,
-                role: participant.role,
-            })
-            .collect()
-    }
-}
 
 //地点（名称，坐标）(抽象、描述)
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Location {
     pub name: String,
     pub coordinates: String,
 }
-impl TryFrom<AbstractSituation> for Location {
-    type Error = String;
 
-    fn try_from(value: AbstractSituation) -> Result<Self, Self::Error> {
-        match value {
-            AbstractSituation::Location(Location { name, coordinates }) => {
-                Ok(Location { name, coordinates })
-            }
-            _ => Err("Cannot convert AbstractSituation to Location".to_string()),
-        }
-    }
-}
-impl TryFrom<Context> for Location {
-    type Error = String;
-
-    fn try_from(context: Context) -> Result<Self, Self::Error> {
-        match context.location {
-            Some(Location { name, coordinates }) => Ok(Location { name, coordinates }),
-            None => Err("Cannot convert Context to Location".to_string()),
-        }
-    }
-}
 
 //传感数据（名称，强度）（描述）
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct SensoryData {
     pub name: String,
     pub intensity: f32,
-}
-impl From<Context> for Vec<SensoryData> {
-    fn from(context: Context) -> Vec<SensoryData> {
-        context
-            .sensory_data
-            .into_iter()
-            .map(|sensory_data| SensoryData {
-                name: sensory_data.name,
-                intensity: sensory_data.intensity,
-            })
-            .collect()
-    }
 }
