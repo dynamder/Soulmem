@@ -48,36 +48,36 @@ impl Embeddable for Context {
         model: &dyn crate::memory::embedding::EmbeddingModel,
     ) -> crate::memory::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
         let location_vec = self
-            .location()
+            .get_location()
             .as_ref()
             .map(|location| location.embed(model))
             .transpose()?;
 
         let participants_vecs = self
-            .participants()
+            .get_participants()
             .iter()
             .map(|p| p.embed(model))
             .collect::<Result<Vec<_>, _>>()?;
         let fused_participant_vec = ParticipantEmbedding::mean_pooling(&participants_vecs)?;
 
         let emotions_vecs = self
-            .emotions()
+            .get_emotions()
             .iter()
             .map(|e| e.embed(model))
             .collect::<Result<Vec<_>, _>>()?;
         let fused_emotion_vec = EmotionEmbedding::weight_pooling(&emotions_vecs)?;
 
         let sensory_data_vecs = self
-            .sensory_data()
+            .get_sensory_data()
             .iter()
             .map(|s| s.embed(model))
             .collect::<Result<Vec<_>, _>>()?;
         let fused_sensory_data_vec = SensoryDataEmbedding::weight_pooling(&sensory_data_vecs)?;
 
-        let environment_vec = self.environment().embed(model)?;
+        let environment_vec = self.get_environment().embed(model)?;
 
         let event_vecs = self
-            .events()
+            .get_event()
             .iter()
             .map(|e| e.embed(model))
             .collect::<Result<Vec<_>, _>>()?;
@@ -165,6 +165,8 @@ mod tests {
         let event = Event {
             action: "上课".to_string(),
             action_intensity: 0.7,
+            initiator: "小明".to_string(),
+            target: "小红".to_string(),
         };
         Context::new(
             Some(location),
