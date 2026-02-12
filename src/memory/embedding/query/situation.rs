@@ -1,6 +1,6 @@
 use crate::memory::{
     embedding::{
-        Embeddable,
+        Embeddable, EmbeddingVec,
         query::situation::{
             environment::EnvironmentQueryUnitEmbedding, event::EventQueryUnitEmbedding,
             location::LocationQueryUnitEmbedding, participant::ParticipantQueryUnitEmbedding,
@@ -17,10 +17,28 @@ pub mod participant;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct SituationQueryUnitEmbedding {
+    narrative: Option<EmbeddingVec>,
     location: Option<LocationQueryUnitEmbedding>,
     participants: Option<ParticipantQueryUnitEmbedding>,
     environment: Option<EnvironmentQueryUnitEmbedding>,
     event: Option<EventQueryUnitEmbedding>,
+}
+impl SituationQueryUnitEmbedding {
+    pub fn narrative(&self) -> Option<&EmbeddingVec> {
+        self.narrative.as_ref()
+    }
+    pub fn location(&self) -> Option<&LocationQueryUnitEmbedding> {
+        self.location.as_ref()
+    }
+    pub fn participants(&self) -> Option<&ParticipantQueryUnitEmbedding> {
+        self.participants.as_ref()
+    }
+    pub fn environment(&self) -> Option<&EnvironmentQueryUnitEmbedding> {
+        self.environment.as_ref()
+    }
+    pub fn event(&self) -> Option<&EventQueryUnitEmbedding> {
+        self.event.as_ref()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -36,6 +54,12 @@ impl Embeddable for SituationQueryUnit {
         &self,
         model: &dyn crate::memory::embedding::EmbeddingModel,
     ) -> crate::memory::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
+        //narrative
+        let narrative_vec = self
+            .narrative()
+            .map(|narrative| model.infer_with_chunk(narrative))
+            .transpose()?;
+
         //location
         let location_vecs = self
             .location()
@@ -76,6 +100,7 @@ impl Embeddable for SituationQueryUnit {
             .flatten();
 
         Ok(SituationQueryUnitEmbedding {
+            narrative: narrative_vec,
             location: fused_location_vec,
             participants: fused_participant_vec,
             environment: environment_vec,

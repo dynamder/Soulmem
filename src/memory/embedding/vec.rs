@@ -116,6 +116,17 @@ impl EmbeddingVec {
             .sum::<f32>()
             .sqrt())
     }
+    pub fn cosine_similarity(&self, other: &Self) -> EmbeddingCalcResult<f32> {
+        if self.shape() != other.shape() {
+            return Err(super::EmbeddingCalcError::ShapeMismatch);
+        }
+        if self.0.iter().all(|&i| i == 0.0) || other.0.iter().all(|&i| i == 0.0) {
+            return Ok(0.0);
+        }
+        let dot_product = self.dot(other)?;
+        let norm_product = self.norm()? * other.norm()?;
+        Ok(dot_product / norm_product)
+    }
 }
 ////////////////////////////////////////////////////////////////
 pub fn raw_linear_blend(

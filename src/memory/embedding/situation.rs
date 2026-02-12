@@ -46,6 +46,14 @@ pub struct SpecificSituationEmbedding {
     narrative: EmbeddingVec,
     context: ContextEmbedding,
 }
+impl SpecificSituationEmbedding {
+    pub fn narrative(&self) -> &EmbeddingVec {
+        &self.narrative
+    }
+    pub fn context(&self) -> &ContextEmbedding {
+        &self.context
+    }
+}
 impl Embeddable for SpecificSituation {
     type EmbeddingGen = SpecificSituationEmbedding;
     type EmbeddingFused = EmbeddedSpecificSituation;

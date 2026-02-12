@@ -1,7 +1,8 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 //一种抽象性情景记忆、一种具体性情景记忆
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Serialize, Deserialize)]
 pub enum SituationType {
     AbstractSituation(AbstractSituation),
     SpecificSituation(SpecificSituation),
@@ -19,7 +20,7 @@ impl From<SpecificSituation> for SituationType {
 }
 
 //抽象性情景记忆（地点、人物、情境、事件）
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Serialize, Deserialize)]
 pub enum AbstractSituation {
     Location(Location),
     Participant(Participant),
@@ -49,7 +50,7 @@ impl From<Event> for AbstractSituation {
 }
 
 //具体性情景记忆（叙述、时间、描述）
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Serialize, Deserialize)]
 pub struct SpecificSituation {
     narrative: String,
     time_span: DateTime<Utc>,
@@ -85,7 +86,7 @@ impl SpecificSituation {
 }
 
 //描述（地点、人物、情感、感官数据、环境、事件）
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Serialize, Deserialize)]
 pub struct Context {
     location: Option<Location>,
     participants: Vec<Participant>,
@@ -151,10 +152,8 @@ impl Context {
     }
 }
 
-
-
 //事件（动作，动作强度，单个发起者，单个目标）（抽象）
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Serialize, Deserialize)]
 pub struct Event {
     pub action: String,
     pub action_intensity: f32,
@@ -163,39 +162,35 @@ pub struct Event {
 }
 
 //环境（氛围，环境色调）（抽象、描述）
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Serialize, Deserialize)]
 pub struct Environment {
     pub atmosphere: String,
     pub tone: String,
 }
 
-
 //智能体情绪（名称，强度）（描述）
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Serialize, Deserialize)]
 pub struct Emotion {
     pub name: String,
     pub intensity: f32,
 }
 
-
 //记忆时间主动参与者（名称，角色）(抽象、描述)
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Serialize, Deserialize)]
 pub struct Participant {
     pub name: String,
     pub role: String,
 }
 
-
 //地点（名称，坐标）(抽象、描述)
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Serialize, Deserialize)]
 pub struct Location {
     pub name: String,
     pub coordinates: String,
 }
 
-
 //传感数据（名称，强度）（描述）
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Serialize, Deserialize)]
 pub struct SensoryData {
     pub name: String,
     pub intensity: f32,

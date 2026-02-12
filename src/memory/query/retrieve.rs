@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PrioritizedMemoryRetrieveQuery {
-    priority: u32,
+    priority: u32, //优先级将决定最终混合一个MemoryNote的检索分数时的权重
     query: MemoryRetrieveQuery,
 }
 
@@ -83,6 +83,7 @@ impl SemanticQueryUnit {
 //情境查询单元，一个单元代表一个情境或事件，一个单元内的信息在查询时是“与”关系
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SituationQueryUnit {
+    narrative: Option<String>,
     location: Option<Vec<LocationQueryUnit>>,
     participants: Option<Vec<ParticipantQueryUnit>>,
     time_span: Option<Vec<TimeSpanQueryUnit>>,
@@ -92,6 +93,7 @@ pub struct SituationQueryUnit {
 impl SituationQueryUnit {
     pub fn new() -> Self {
         SituationQueryUnit {
+            narrative: None,
             location: None,
             participants: None,
             time_span: None,
@@ -118,6 +120,13 @@ impl SituationQueryUnit {
     pub fn with_event(mut self, event: Vec<EventQueryUnit>) -> Self {
         self.event = Some(event);
         self
+    }
+    pub fn with_narrative(mut self, narrative: String) -> Self {
+        self.narrative = Some(narrative);
+        self
+    }
+    pub fn narrative(&self) -> Option<&String> {
+        self.narrative.as_ref()
     }
     pub fn location(&self) -> Option<&Vec<LocationQueryUnit>> {
         self.location.as_ref()

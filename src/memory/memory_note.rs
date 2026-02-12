@@ -11,6 +11,9 @@ pub mod situation_mem;
 
 use crate::memory::embedding::Embeddable;
 use crate::memory::embedding::MemoryEmbedding;
+use crate::memory::memory_note::proc_mem::ProcMemory;
+use crate::memory::memory_note::sem_mem::SemMemory;
+use crate::memory::memory_note::situation_mem::SituationType;
 
 use super::embedding::EmbeddingGenError;
 use super::embedding::EmbeddingModel;
@@ -67,9 +70,11 @@ impl MemoryNote {
         &self.mem_links
     }
 }
+
+//TODO: add the embedding logic
 impl Embeddable for MemoryNote {
-    type EmbeddingGen = ();
-    type EmbeddingFused = ();
+    type EmbeddingGen = MemoryEmbedding;
+    type EmbeddingFused = EmbedMemoryNote;
     fn embed_and_fuse(
         self,
         embedding_model: &dyn EmbeddingModel,
@@ -80,9 +85,11 @@ impl Embeddable for MemoryNote {
         todo!("Add the embedding logic")
     }
 }
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum MemoryType {
-    //TODO:三种记忆类型枚举，这是需要实现的
+    Semantic(SemMemory),
+    Situation(SituationType),
+    Procedure(ProcMemory),
 }
 
 //Builder pattern

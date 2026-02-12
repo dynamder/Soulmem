@@ -20,20 +20,20 @@ pub struct ContextEmbedding {
     fused_event: Option<EventEmbedding>,
 }
 impl ContextEmbedding {
-    pub fn location(&self) -> &Option<LocationEmbedding> {
-        &self.location
+    pub fn location(&self) -> Option<&LocationEmbedding> {
+        self.location.as_ref()
     }
-    pub fn fused_participant(&self) -> &Option<ParticipantEmbedding> {
-        &self.fused_participant
+    pub fn fused_participant(&self) -> Option<&ParticipantEmbedding> {
+        self.fused_participant.as_ref()
     }
-    pub fn fused_emotion(&self) -> &Option<EmotionEmbedding> {
-        &self.fused_emotion
+    pub fn fused_emotion(&self) -> Option<&EmotionEmbedding> {
+        self.fused_emotion.as_ref()
     }
-    pub fn fused_event(&self) -> &Option<EventEmbedding> {
-        &self.fused_event
+    pub fn fused_event(&self) -> Option<&EventEmbedding> {
+        self.fused_event.as_ref()
     }
-    pub fn fused_sensory_data(&self) -> &Option<SensoryDataEmbedding> {
-        &self.fused_sensory_data
+    pub fn fused_sensory_data(&self) -> Option<&SensoryDataEmbedding> {
+        self.fused_sensory_data.as_ref()
     }
     pub fn environment(&self) -> &EnvironmentEmbedding {
         &self.environment

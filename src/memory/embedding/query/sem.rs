@@ -8,6 +8,15 @@ pub struct SemanticQueryUnitEmbedding {
     concept_identifier: Option<EmbeddingVec>,
     description: Option<EmbeddingVec>,
 }
+impl SemanticQueryUnitEmbedding {
+    pub fn concept_identifier(&self) -> Option<&EmbeddingVec> {
+        self.concept_identifier.as_ref()
+    }
+
+    pub fn description(&self) -> Option<&EmbeddingVec> {
+        self.description.as_ref()
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct EmbeddedSemanticQueryUnit {

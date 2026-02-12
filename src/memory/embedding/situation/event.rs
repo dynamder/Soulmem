@@ -6,6 +6,8 @@ use crate::memory::{
 #[derive(Debug, Clone, PartialEq)]
 pub struct EventEmbedding {
     action: EmbeddingVec,
+    initiator: EmbeddingVec,
+    target: EmbeddingVec,
     intensity: f32,
 }
 impl EventEmbedding {
@@ -14,6 +16,12 @@ impl EventEmbedding {
     }
     pub fn intensity(&self) -> f32 {
         self.intensity
+    }
+    pub fn initiator(&self) -> &EmbeddingVec {
+        &self.initiator
+    }
+    pub fn target(&self) -> &EmbeddingVec {
+        &self.target
     }
     pub fn weight_pooling(events: &[EventEmbedding]) -> EmbeddingCalcResult<Option<Self>> {
         if events.is_empty() {
@@ -30,10 +38,24 @@ impl EventEmbedding {
                 .map(|(&a, &b)| a + b * vec.intensity / intensity_sum)
                 .collect()
         });
+        let fused_initiator = events.iter().fold(vec![0.0; len], |acc, vec| {
+            acc.iter()
+                .zip(vec.initiator.iter())
+                .map(|(&a, &b)| a + b * vec.intensity / intensity_sum)
+                .collect()
+        });
+        let fused_target = events.iter().fold(vec![0.0; len], |acc, vec| {
+            acc.iter()
+                .zip(vec.target.iter())
+                .map(|(&a, &b)| a + b * vec.intensity / intensity_sum)
+                .collect()
+        });
 
         Ok(Some(EventEmbedding {
             action: EmbeddingVec::new(fused_action),
             intensity: intensity_sum,
+            initiator: EmbeddingVec::new(fused_initiator),
+            target: EmbeddingVec::new(fused_target),
         }))
     }
 }
@@ -48,9 +70,22 @@ impl Embeddable for Event {
             .infer_batch(&vec![self.action.as_str()])?
             .try_into()
             .unwrap(); // SAFEUNWRAP: 此处长度必为1
+
+        let [initiator_vec] = model
+            .infer_batch(&vec![self.initiator.as_str()])?
+            .try_into()
+            .unwrap(); // SAFEUNWRAP: 此处长度必为1
+
+        let [target_vec] = model
+            .infer_batch(&vec![self.target.as_str()])?
+            .try_into()
+            .unwrap(); // SAFEUNWRAP: 此处长度必为1
+
         Ok(EventEmbedding {
             action: action_vec,
             intensity: self.action_intensity,
+            initiator: initiator_vec,
+            target: target_vec,
         })
     }
     fn embed_and_fuse(
