@@ -5,14 +5,17 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use uuid::Uuid;
 
-mod proc_mem;
-mod sem_mem;
-mod situation_mem;
+pub mod proc_mem;
+pub mod sem_mem;
+pub mod situation_mem;
 
 use crate::memory::embedding::Embeddable;
 use crate::memory::embedding::MemoryEmbedding;
+use crate::memory::memory_note::proc_mem::ProcMemory;
+use crate::memory::memory_note::sem_mem::SemMemory;
+use crate::memory::memory_note::situation_mem::SituationType;
 
-use super::embedding::EmbeddingError;
+use super::embedding::EmbeddingGenError;
 use super::embedding::EmbeddingModel;
 use super::memory_links::MemoryLink;
 
@@ -67,17 +70,26 @@ impl MemoryNote {
         &self.mem_links
     }
 }
+
+//TODO: add the embedding logic
 impl Embeddable for MemoryNote {
-    fn embed(&self, embedding_model: &EmbeddingModel) -> Result<EmbedMemoryNote, EmbeddingError> {
+    type EmbeddingGen = MemoryEmbedding;
+    type EmbeddingFused = EmbedMemoryNote;
+    fn embed_and_fuse(
+        self,
+        embedding_model: &dyn EmbeddingModel,
+    ) -> Result<Self::EmbeddingFused, EmbeddingGenError> {
         todo!("Add the embedding logic")
     }
-    fn embed_vec(&self, model: &EmbeddingModel) -> Result<MemoryEmbedding, EmbeddingError> {
+    fn embed(&self, model: &dyn EmbeddingModel) -> Result<Self::EmbeddingGen, EmbeddingGenError> {
         todo!("Add the embedding logic")
     }
 }
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum MemoryType {
-    //TODO:三种记忆类型枚举，这是需要实现的
+    Semantic(SemMemory),
+    Situation(SituationType),
+    Procedure(ProcMemory),
 }
 
 //Builder pattern
