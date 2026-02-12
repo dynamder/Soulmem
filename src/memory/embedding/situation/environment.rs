@@ -83,7 +83,7 @@ mod tests {
         };
         let model = BgeSmallZh::default_cpu().unwrap();
         let embedding = environment.embed(&model).unwrap();
-        assert_eq!(embedding.atmosphere.len(), 512);
-        assert_eq!(embedding.tone.len(), 512);
+        assert_eq!(embedding.atmosphere.shape(), 512);
+        assert_eq!(embedding.tone.shape(), 512);
     }
 }

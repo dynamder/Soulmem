@@ -60,7 +60,7 @@ mod tests {
         };
         let model = BgeSmallZh::default_cpu().unwrap();
         let embedding = location.embed(&model).unwrap();
-        assert_eq!(embedding.name.len(), 512);
-        assert_eq!(embedding.coordinates.len(), 512);
+        assert_eq!(embedding.name.shape(), 512);
+        assert_eq!(embedding.coordinates.shape(), 512);
     }
 }

@@ -20,8 +20,8 @@ impl EventEmbedding {
             return Ok(None);
         }
         let intensity_sum = events.iter().map(|e| e.intensity).sum::<f32>();
-        let len = events[0].action.len();
-        if !events.iter().all(|vec| vec.action.len() == len) {
+        let len = events[0].action.shape();
+        if !events.iter().all(|vec| vec.action.shape() == len) {
             return Err(EmbeddingCalcError::ShapeMismatch);
         }
         let fused_action = events.iter().fold(vec![0.0; len], |acc, vec| {
@@ -32,7 +32,7 @@ impl EventEmbedding {
         });
 
         Ok(Some(EventEmbedding {
-            action: fused_action,
+            action: EmbeddingVec::new(fused_action),
             intensity: intensity_sum,
         }))
     }

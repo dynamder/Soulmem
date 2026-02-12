@@ -104,9 +104,9 @@ mod tests {
 
         let sem_embedding = memory.embed(&model).unwrap();
         //println!("{:?}", embedding);
-        let dimension = sem_embedding.content.len();
+        let dimension = sem_embedding.content.shape();
         assert_eq!(dimension, 512);
-        assert_eq!(sem_embedding.description.len(), dimension);
-        assert_eq!(sem_embedding.fused_aliases.len(), dimension);
+        assert_eq!(sem_embedding.description.shape(), dimension);
+        assert_eq!(sem_embedding.fused_aliases.shape(), dimension);
     }
 }

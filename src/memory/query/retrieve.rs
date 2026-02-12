@@ -142,14 +142,14 @@ pub struct LocationQueryUnit {
     coordinates: Option<String>,
 }
 impl LocationQueryUnit {
-    pub fn new(name: String) -> Self {
+    pub fn new(name: impl Into<String>) -> Self {
         LocationQueryUnit {
-            name,
+            name: name.into(),
             coordinates: None,
         }
     }
-    pub fn with_coordinates(mut self, coordinates: String) -> Self {
-        self.coordinates = Some(coordinates);
+    pub fn with_coordinates(mut self, coordinates: impl Into<String>) -> Self {
+        self.coordinates = Some(coordinates.into());
         self
     }
     pub fn name(&self) -> &str {
@@ -172,12 +172,12 @@ impl ParticipantQueryUnit {
             role: None,
         }
     }
-    pub fn with_name(mut self, name: String) -> Self {
-        self.name = Some(name);
+    pub fn with_name(mut self, name: impl Into<String>) -> Self {
+        self.name = Some(name.into());
         self
     }
-    pub fn with_role(mut self, role: String) -> Self {
-        self.role = Some(role);
+    pub fn with_role(mut self, role: impl Into<String>) -> Self {
+        self.role = Some(role.into());
         self
     }
     pub fn name(&self) -> Option<&str> {
@@ -200,12 +200,12 @@ impl EnvironmentQueryUnit {
             tone: None,
         }
     }
-    pub fn with_atmosphere(mut self, atmosphere: String) -> Self {
-        self.atmosphere = Some(atmosphere);
+    pub fn with_atmosphere(mut self, atmosphere: impl Into<String>) -> Self {
+        self.atmosphere = Some(atmosphere.into());
         self
     }
-    pub fn with_tone(mut self, tone: String) -> Self {
-        self.tone = Some(tone);
+    pub fn with_tone(mut self, tone: impl Into<String>) -> Self {
+        self.tone = Some(tone.into());
         self
     }
     pub fn atmosphere(&self) -> Option<&str> {
@@ -223,19 +223,19 @@ pub struct EventQueryUnit {
     target: Option<String>,
 }
 impl EventQueryUnit {
-    pub fn new(action: String) -> Self {
+    pub fn new(action: impl Into<String>) -> Self {
         EventQueryUnit {
-            action,
+            action: action.into(),
             initiator: None,
             target: None,
         }
     }
-    pub fn with_initiator(mut self, initiator: String) -> Self {
-        self.initiator = Some(initiator);
+    pub fn with_initiator(mut self, initiator: impl Into<String>) -> Self {
+        self.initiator = Some(initiator.into());
         self
     }
-    pub fn with_target(mut self, target: String) -> Self {
-        self.target = Some(target);
+    pub fn with_target(mut self, target: impl Into<String>) -> Self {
+        self.target = Some(target.into());
         self
     }
     pub fn action(&self) -> &str {

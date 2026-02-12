@@ -4,8 +4,11 @@ use thiserror::Error;
 
 use crate::memory::embedding::{sem::SemanticEmbedding, situation::SituationEmbedding};
 pub mod embedding_model;
+pub mod query;
 pub mod sem;
 pub mod situation;
+pub mod vec;
+pub use vec::{EmbeddingVec, mean_pooling, raw_linear_blend};
 
 pub trait Embeddable {
     type EmbeddingFused;
@@ -41,7 +44,6 @@ pub enum EmbeddingCalcError {
     #[error("Invalid number value")] //数值无效，例如NaN，Inf等
     InvalidNumValue,
 }
-pub type EmbeddingVec = Vec<f32>;
 
 #[async_trait]
 pub trait EmbeddingModel {
@@ -119,37 +121,7 @@ impl MemoryEmbedding {
         }
     }
 }
-fn raw_linear_blend(
-    vec1: &EmbeddingVec,
-    vec2: &EmbeddingVec,
-    blend_factor: f32,
-) -> EmbeddingCalcResult<EmbeddingVec> {
-    if vec1.len() != vec2.len() {
-        return Err(EmbeddingCalcError::ShapeMismatch);
-    }
-    Ok(vec1
-        .iter()
-        .zip(vec2.iter())
-        .map(|(&a, &b)| a * blend_factor + b * (1.0 - blend_factor))
-        .collect())
-}
-fn mean_pooling(vecs: &[&EmbeddingVec]) -> EmbeddingCalcResult<EmbeddingVec> {
-    if vecs.is_empty() {
-        return Ok(Vec::new());
-    }
-    let len = vecs[0].len();
-    if !vecs.iter().all(|vec| vec.len() == len) {
-        return Err(EmbeddingCalcError::ShapeMismatch);
-    }
-    Ok(vecs
-        .iter()
-        .fold(vec![0.0; len], |acc, vec| {
-            acc.iter().zip(vec.iter()).map(|(&a, &b)| a + b).collect()
-        })
-        .iter()
-        .map(|&sum| sum / vecs.len() as f32)
-        .collect())
-}
+
 #[derive(Debug, Clone, Copy)]
 pub struct VecBlendHyperParams {
     // Placeholder for vector blending hyperparameters
@@ -160,4 +132,14 @@ impl Default for VecBlendHyperParams {
             // Placeholder for default values
         }
     }
+}
+
+//util function
+fn vec_batch_embed<T: Embeddable>(
+    vecs: &[T],
+    model: &dyn EmbeddingModel,
+) -> EmbeddingGenResult<Vec<<T as Embeddable>::EmbeddingGen>> {
+    vecs.iter()
+        .map(|vec| vec.embed(model))
+        .collect::<Result<Vec<_>, _>>()
 }

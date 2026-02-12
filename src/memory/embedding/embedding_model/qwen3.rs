@@ -59,7 +59,7 @@ impl Qwen3Embedding600M {
             .model
             .embed(&input, None, None)?
             .into_iter()
-            .map(|e| e.to_dense().unwrap()) //SAFEUNWRAP: qwen3 embedder在embed_anything的
+            .map(|e| EmbeddingVec::new(e.to_dense().unwrap())) //SAFEUNWRAP: qwen3 embedder在embed_anything的
             .collect())
     }
     //对于长文本，分块向量化后平均池化
@@ -98,8 +98,8 @@ impl Qwen3Embedding600M {
                 }
                 sum / embeddings.len() as f32
             })
-            .collect::<EmbeddingVec>();
-        Ok(fused_embedding)
+            .collect::<Vec<_>>();
+        Ok(EmbeddingVec::new(fused_embedding))
     }
 }
 impl EmbeddingModel for Qwen3Embedding600M {
@@ -166,6 +166,6 @@ mod test {
         let model = Qwen3Embedding600M::default_cpu().unwrap();
         let input = "SoulMem是一个专为角色扮演任务设计的记忆系统，它旨在使LLM的输出更拟人化成为可能，让模拟角色像人一样记住重要的、情感相关的、可驱动行为的事件，并建立关联。它不旨在精确无误地记忆事件的细节，或事实性知识。请注意！：SoulMem是针对于个人用户，在家用电脑上运行的记忆系统，并非企业级解决方案。";
         let embeddings = model.embed_gen_with_chunk_pooling(&input).unwrap();
-        assert_eq!(embeddings.len(), 1024);
+        assert_eq!(embeddings.shape(), 1024);
     }
 }

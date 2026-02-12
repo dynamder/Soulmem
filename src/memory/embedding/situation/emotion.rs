@@ -20,8 +20,8 @@ impl EmotionEmbedding {
             return Ok(None);
         }
         let intensity_sum = emotions.iter().map(|e| e.intensity).sum::<f32>();
-        let len = emotions[0].emotion.len();
-        if !emotions.iter().all(|vec| vec.emotion.len() == len) {
+        let len = emotions[0].emotion.shape();
+        if !emotions.iter().all(|vec| vec.emotion.shape() == len) {
             return Err(EmbeddingCalcError::ShapeMismatch);
         }
         let fused_emotion = emotions.iter().fold(vec![0.0; len], |acc, vec| {
@@ -32,7 +32,7 @@ impl EmotionEmbedding {
         });
 
         Ok(Some(EmotionEmbedding {
-            emotion: fused_emotion,
+            emotion: EmbeddingVec::new(fused_emotion),
             intensity: intensity_sum,
         }))
     }

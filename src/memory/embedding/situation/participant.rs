@@ -85,8 +85,8 @@ mod tests {
         };
         let model = BgeSmallZh::default_cpu().unwrap();
         let embedding = participant.embed(&model).unwrap();
-        assert_eq!(embedding.name.len(), 512);
-        assert_eq!(embedding.role.len(), 512);
-        assert_eq!(embedding.fused.len(), 512);
+        assert_eq!(embedding.name.shape(), 512);
+        assert_eq!(embedding.role.shape(), 512);
+        assert_eq!(embedding.fused.shape(), 512);
     }
 }

@@ -19,8 +19,8 @@ impl SensoryDataEmbedding {
             return Ok(None);
         }
         let intensity_sum = datas.iter().map(|e| e.intensity).sum::<f32>();
-        let len = datas[0].sensory.len();
-        if !datas.iter().all(|vec| vec.sensory.len() == len) {
+        let len = datas[0].sensory.shape();
+        if !datas.iter().all(|vec| vec.sensory.shape() == len) {
             return Err(EmbeddingCalcError::ShapeMismatch);
         }
         let fused_emotion = datas.iter().fold(vec![0.0; len], |acc, vec| {
@@ -31,7 +31,7 @@ impl SensoryDataEmbedding {
         });
 
         Ok(Some(SensoryDataEmbedding {
-            sensory: fused_emotion,
+            sensory: EmbeddingVec::new(fused_emotion),
             intensity: intensity_sum,
         }))
     }
