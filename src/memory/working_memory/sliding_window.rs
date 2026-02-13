@@ -1,14 +1,15 @@
 use std::collections::VecDeque;
 use tokio::sync::mpsc;
 use std::sync::{Arc, RwLock};
-use std::error::Error;
 use tokio::time::{sleep, Duration};
 use tokio::runtime::Runtime;
-
-// use async_openai::{
-//     types::{CreateChatCompletionRequest, ChatCompletionRequestMessage},
-//     Client,
-// };
+use anyhow::{Error, Result, Context};
+use super::llm::{MyConfig, AIConfig, LlmClient, PromptBuilder};
+use async_openai::{
+    types::chat::{CreateChatCompletionRequest, ChatCompletionRequestMessage, ChatCompletionRequestUserMessageContentPart,
+        ChatCompletionRequestUserMessageContent, ChatCompletionRequestMessageContentPartText, ChatCompletionRequestUserMessage},
+    Client, config::Config,
+};
 
 
 //滑动窗口（容器、容量、标记计数、摘要用临时储存）
@@ -16,21 +17,23 @@ pub struct SlidingWindow {
     window: VecDeque<Information>,
     capacity: usize,
     tag_count: usize,
-    summary: Arc<RwLock<String>>,
+    summary: Arc<RwLock<MergedInformation>>,
+    llm_config: MyConfig,
 }
 
 impl SlidingWindow {
     //新建
     pub fn new(capacity: usize) -> Self {
         Self {
-            window: VecDeque::with_capacity(capacity+1),
+            window: VecDeque::with_capacity(capacity + 1),
             capacity,
             tag_count: capacity,
-            summary: Arc::new(RwLock::new(String::new())),
+            summary: Arc::new(RwLock::new(MergedInformation::new())),
+            llm_config: MyConfig::new(),
         }
     }
     //信息滑入
-    pub async fn push(&mut self, mut value: Information) -> Result<(), Box<dyn Error>> {
+    pub async fn push(&mut self, mut value: Information) -> Result<()> {
         value = self.auto_tag(value);
         self.window.push_back(value);
         if self.window.len() == (self.capacity+1) {
@@ -39,11 +42,11 @@ impl SlidingWindow {
         Ok(())
     }
     //信息滑出，若信息被标记则进行摘要
-    pub async fn pop(&mut self) -> Result<(), Box<dyn Error>> {
+    pub async fn pop(&mut self) -> Result<()> {
         let target = self.window.pop_front();
         if let Some(value) = target {
             if value.is_tagged() {
-                self.summarize().await?;
+                let _ = self.summarize().await?;
             }
         }
         Ok(())
@@ -95,38 +98,24 @@ impl SlidingWindow {
         }
         value
     }
+    //整合摘要记忆和窗口信息
+    fn merge(&self) {
+        let mut summary_text = self.summary.write().unwrap_or_else(|e| e.into_inner());
+        let mut merged_info = String::new();
+        for (index, i) in self.window.iter().enumerate() {
+            merged_info.push_str(&index.to_string());
+            merged_info.push_str(&i.to_string());
+        }
+        summary_text.text = merged_info;
+
+    }
 
     //将摘要记忆和当前滑动窗口信息合并提供LLM
-    async fn summarize(&self) -> Result<Arc<RwLock<String>>, Box<dyn Error>> {
-        let mut summary_text = match self.summary.write() {
-            Ok(mut value) => value.clone(),
-            Err(e) => {
-                eprintln!("Summary Error: {}", e);
-                String::new()
-            }
-        };
-
-        for (index, i) in self.window.iter().enumerate() {
-            summary_text.push_str(&index.to_string());
-            summary_text.push_str(&i.to_string());
-        }
-
-        let summary_arc = self.summary.clone();
-
-        match call_llm(&summary_text).await {
-            Ok(response) => {
-                match summary_arc.write() {
-                    Ok(mut value) => {
-                        println!("Summary updated in background.");
-                        *value = response
-                    },
-                    Err(e) => eprintln!("LLM Error: {}", e),
-                }
-            }
-            Err(e) => eprintln!("LLM Error: {}", e),
-        }
-
-        Ok(summary_arc)
+    async fn summarize(&self) -> Result<String> {
+        self.merge();
+        let mut summary_arc = self.summary.write().unwrap_or_else(|e| e.into_inner());
+        let response = summary_arc.call_llm(self.llm_config.clone()).await?;
+        Ok(response)
     }
 
 }
@@ -154,34 +143,42 @@ impl Information {
     }
 }
 
-fn test_summary(summary: String) -> String {
-    println!("{}", summary.clone());
-    summary
+struct MergedInformation {
+    text: String,
+    Array: Vec<ChatCompletionRequestUserMessageContentPart>,
+}
+impl MergedInformation {
+    pub fn new() -> Self {
+        Self { text: String::new(), Array: Vec::new() }
+    }
+    pub fn push_content(&mut self, content: ChatCompletionRequestUserMessageContentPart) {
+        self.Array.push(content);
+    }
+    //将整合后的自身交给call_llm处理，并根据结果自动更新自身
+    async fn call_llm(&mut self, config: MyConfig) -> Result<String> {
+        let client:LlmClient<MyConfig> = LlmClient::new(config);
+        let response = client.call_llm(self).await?;
+        let output = response.join(" ");
+        self.merge_summary(&output);
+        Ok(output)
+    }
+    pub fn merge_summary(&mut self, content: &str) {
+        self.Array.push(ChatCompletionRequestUserMessageContentPart::Text(ChatCompletionRequestMessageContentPartText::from(content)));
+    }
+}
+impl PromptBuilder for MergedInformation {
+    fn build_prompt(&self) -> Vec<ChatCompletionRequestMessage> {
+        let mut messages = Vec::new();
+        messages.push(
+            ChatCompletionRequestMessage::from(<ChatCompletionRequestUserMessage as From<&str>>::from(&self.text)));
+        messages.push(
+            ChatCompletionRequestMessage::from(<ChatCompletionRequestUserMessage as From<ChatCompletionRequestUserMessageContent>>::from(ChatCompletionRequestUserMessageContent::from(self.Array.clone()))));
+        messages
+    }
 }
 
 
-async fn call_llm(summary: &String) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-    // let client = Client::new();
 
-    // let request = CreateChatCompletionRequest {
-    //     model: "unknown".to_string(),
-    //     messages: vec![ChatCompletionRequestMessage {
-    //         role: "user".to_string(),
-    //         content: summary,
-    //         ..Default::default()
-    //     }],
-    //     ..Default::default()
-    // };
-    // let response = client.chat().create(request).await?;
-    // let output = response
-    //     .choices
-    //     .first()
-    //     .and_then(|c| c.message.content.clone())
-    //     .unwrap_or_default();
-    sleep(Duration::from_millis(500)).await;
-    let output = summary.clone();
-    Ok(output)
-}
 
 
 #[cfg(test)]

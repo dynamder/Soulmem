@@ -31,7 +31,9 @@ dotenvy = "0.15.7"
 tokio-util = "0.7.16"
 toml = "0.9.5"
 thiserror = "2.0.17"
-async-openai = "0.32.4"
+async-openai = { version = "0.32.4", features = ["chat-completion"] }
+http = "1.4.0"
+secrecy = "0.10.3"
 
 [profile.release]
 lto = true
