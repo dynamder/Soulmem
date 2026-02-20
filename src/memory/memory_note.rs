@@ -6,6 +6,8 @@ use thiserror::Error;
 use uuid::Uuid;
 
 mod proc_mem;
+mod sem_mem;
+mod situation_mem;
 
 use crate::memory::embedding::Embeddable;
 use crate::memory::embedding::MemoryEmbedding;
