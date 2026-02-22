@@ -5,14 +5,16 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use uuid::Uuid;
 
-mod proc_mem;
-mod sem_mem;
-mod situation_mem;
+pub mod proc_mem;
+pub mod sem_mem;
+pub mod situation_mem;
 
 use crate::memory::embedding::Embeddable;
-use crate::memory::embedding::MemoryEmbedding;
+use crate::memory::memory_note::proc_mem::ProcMemory;
+use crate::memory::memory_note::sem_mem::SemMemory;
+use crate::memory::memory_note::situation_mem::SituationType;
 
-use super::embedding::EmbeddingError;
+use super::embedding::EmbeddingGenError;
 use super::embedding::EmbeddingModel;
 use super::memory_links::MemoryLink;
 
@@ -59,25 +61,35 @@ impl MemoryNote {
     pub fn id(&self) -> MemoryId {
         self.id
     }
-    pub fn retrieval_increment(&mut self) {
-        self.retrieval_count += 1;
-        self.last_accessed_time = Utc::now();
+    pub fn tags(&self) -> &[String] {
+        &self.tags
+    }
+    pub fn retrieval_count(&self) -> usize {
+        self.retrieval_count
+    }
+    pub fn creation_time(&self) -> DateTime<Utc> {
+        self.create_time
+    }
+    pub fn last_accessed_time(&self) -> DateTime<Utc> {
+        self.last_accessed_time
+    }
+    pub fn mem_type(&self) -> &MemoryType {
+        &self.mem_type
     }
     pub fn links(&self) -> &Vec<MemoryLink> {
         &self.mem_links
     }
-}
-impl Embeddable for MemoryNote {
-    fn embed(&self, embedding_model: &EmbeddingModel) -> Result<EmbedMemoryNote, EmbeddingError> {
-        todo!("Add the embedding logic")
-    }
-    fn embed_vec(&self, model: &EmbeddingModel) -> Result<MemoryEmbedding, EmbeddingError> {
-        todo!("Add the embedding logic")
+    pub fn retrieval_increment(&mut self) {
+        self.retrieval_count += 1;
+        self.last_accessed_time = Utc::now();
     }
 }
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Serialize, Deserialize)]
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum MemoryType {
-    //TODO:三种记忆类型枚举，这是需要实现的
+    Semantic(SemMemory),
+    Situation(SituationType),
+    Procedure(ProcMemory),
 }
 
 //Builder pattern
@@ -144,39 +156,111 @@ impl MemoryNoteBuilder {
     }
 }
 
-pub struct EmbedMemoryNote {
-    note: MemoryNote,
-    embedding: MemoryEmbedding,
-}
-impl EmbedMemoryNote {
-    pub fn note(&self) -> &MemoryNote {
-        &self.note
-    }
-    pub fn embedding(&self) -> &MemoryEmbedding {
-        &self.embedding
-    }
-    pub fn into_tuple(self) -> (MemoryNote, MemoryEmbedding) {
-        (self.note, self.embedding)
-    }
-}
-impl From<EmbedMemoryNote> for MemoryNote {
-    fn from(embed: EmbedMemoryNote) -> Self {
-        embed.note
-    }
-}
-impl From<EmbedMemoryNote> for MemoryEmbedding {
-    fn from(embed: EmbedMemoryNote) -> Self {
-        embed.embedding
-    }
-}
-impl From<(MemoryNote, MemoryEmbedding)> for EmbedMemoryNote {
-    fn from((note, embedding): (MemoryNote, MemoryEmbedding)) -> Self {
-        EmbedMemoryNote { note, embedding }
-    }
-}
 //定义错误类型，更健壮的处理
 #[derive(Debug, Error)]
 pub enum MemoryNoteBuildError {
     #[error("The last_accessed_time is earlier than create_time")]
     TimeConflict, //last_accessed_time比create_time更早
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::memory::memory_note::sem_mem::ConceptType;
+    use chrono::TimeZone;
+
+    #[test]
+    fn test_memory_note_builder_basic() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let note = MemoryNoteBuilder::new(mem_type)
+            .tags(vec!["test".to_string()])
+            .build()
+            .unwrap();
+
+        assert_eq!(note.tags(), &vec!["test".to_string()]);
+        assert_eq!(note.retrieval_count(), 0);
+    }
+
+    #[test]
+    fn test_memory_note_builder_with_time() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let create_time = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+        let last_accessed = Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap();
+
+        let note = MemoryNoteBuilder::new(mem_type)
+            .create_time(create_time)
+            .last_accessed_time(last_accessed)
+            .build()
+            .unwrap();
+
+        assert_eq!(note.creation_time(), create_time);
+        assert_eq!(note.last_accessed_time(), last_accessed);
+    }
+
+    #[test]
+    fn test_memory_note_builder_time_conflict() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let create_time = Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap();
+        let last_accessed = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+
+        let result = MemoryNoteBuilder::new(mem_type)
+            .create_time(create_time)
+            .last_accessed_time(last_accessed)
+            .build();
+
+        assert!(matches!(result, Err(MemoryNoteBuildError::TimeConflict)));
+    }
+
+    #[test]
+    fn test_memory_note_retrieval_increment() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let mut note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+
+        assert_eq!(note.retrieval_count(), 0);
+
+        note.retrieval_increment();
+        assert_eq!(note.retrieval_count(), 1);
+
+        note.retrieval_increment();
+        assert_eq!(note.retrieval_count(), 2);
+    }
+
+    #[test]
+    fn test_memory_note_builder_with_all_fields() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let create_time = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+        let last_accessed = Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap();
+
+        let note = MemoryNoteBuilder::new(mem_type)
+            .tags(vec!["tag1".to_string(), "tag2".to_string()])
+            .retrieval_count(5)
+            .create_time(create_time)
+            .last_accessed_time(last_accessed)
+            .mem_links(vec![])
+            .build()
+            .unwrap();
+
+        assert_eq!(note.tags().len(), 2);
+        assert_eq!(note.retrieval_count(), 5);
+    }
 }
