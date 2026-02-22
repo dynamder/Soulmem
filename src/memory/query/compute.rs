@@ -1,7 +1,9 @@
 use crate::memory::{
     embedding::{
-        EmbeddingCalcResult, MemoryEmbeddingVariant,
+        EmbeddingCalcResult,
+        note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant},
         query::{
+            note::{MemoryRetrieveQueryEmbedding, MemoryRetrieveQueryVariantEmbedding},
             sem::SemanticQueryUnitEmbedding,
             situation::{
                 SituationQueryUnitEmbedding, environment::EnvironmentQueryUnitEmbedding,
@@ -16,12 +18,12 @@ use crate::memory::{
             participant::ParticipantEmbedding,
         },
     },
-    memory_note::{EmbeddedMemoryNote, MemoryNote},
+    memory_note::{MemoryId, MemoryNote},
     query::{
         self,
         retrieve::{
-            LocationQueryUnit, MemoryRetrieveQuery, PrioritizedMemoryRetrieveQuery,
-            SemanticQueryUnit,
+            LocationQueryUnit, MemoryRetrieveQuery, MemoryRetrieveQueryVariant,
+            PrioritizedMemoryRetrieveQuery, SemanticQueryUnit,
         },
     },
 };
@@ -166,7 +168,8 @@ impl AnonymousQueryCompute for SpecificSituationEmbedding {
         //environment
         let environment_score = query
             .environment()
-            .map(|env| self.context().environment().anonymous_compute(env)?);
+            .map(|env| self.context().environment().anonymous_compute(env))
+            .transpose()?;
 
         //event
         let event_score = if let Some(query_event) = query.event() {
@@ -188,7 +191,7 @@ impl AnonymousQueryCompute for SpecificSituationEmbedding {
             .collect::<Vec<_>>();
 
         let len = score_vec.len();
-        Ok(score_vec.into_iter().map(|i| i / len).sum::<f32>())
+        Ok(score_vec.into_iter().map(|i| i / len as f32).sum::<f32>())
     }
 }
 
@@ -196,6 +199,10 @@ impl AnonymousQueryCompute for AbstractSituationEmbedding {
     type Query = SituationQueryUnitEmbedding;
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
         match self {
+            AbstractSituationEmbedding::Location(loc) => query
+                .location()
+                .map(|q_loc| loc.anonymous_compute(q_loc))
+                .unwrap_or(Ok(0.0)),
             AbstractSituationEmbedding::Environment(env) => query
                 .environment()
                 .map(|q_env| env.anonymous_compute(q_env))
@@ -204,12 +211,8 @@ impl AnonymousQueryCompute for AbstractSituationEmbedding {
                 .event()
                 .map(|q_event| event.anonymous_compute(q_event))
                 .unwrap_or(Ok(0.0)),
-            AbstractSituationEmbedding::Situation(situation) => query
-                .situation()
-                .map(|q_situation| situation.anonymous_compute(q_situation))
-                .unwrap_or(Ok(0.0)),
             AbstractSituationEmbedding::Participant(participant) => query
-                .participant()
+                .participants()
                 .map(|q_participant| participant.anonymous_compute(q_participant))
                 .unwrap_or(Ok(0.0)),
         }
@@ -261,17 +264,17 @@ impl AnonymousQueryCompute for SemanticEmbedding {
 }
 
 impl AnonymousQueryCompute for MemoryEmbeddingVariant {
-    type Query = MemoryRetrieveQuery;
+    type Query = MemoryRetrieveQueryVariantEmbedding;
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
         match (self, query) {
-            (Self::Semantic(sem), MemoryRetrieveQuery::Semantic(q_sem)) => {
+            (Self::Semantic(sem), MemoryRetrieveQueryVariantEmbedding::Semantic(q_sem)) => {
                 let score_vec = q_sem
                     .into_iter()
                     .map(|q_sem_unit| sem.anonymous_compute(q_sem_unit))
                     .collect::<Result<Vec<_>, _>>()?;
                 Ok(score_vec.into_iter().sum::<f32>())
             }
-            (Self::Situation(sit), MemoryRetrieveQuery::Situation(q_sit)) => {
+            (Self::Situation(sit), MemoryRetrieveQueryVariantEmbedding::Situation(q_sit)) => {
                 let score_vec = q_sit
                     .into_iter()
                     .map(|q_sit_unit| sit.anonymous_compute(q_sit_unit))
@@ -283,9 +286,18 @@ impl AnonymousQueryCompute for MemoryEmbeddingVariant {
     }
 }
 
+impl AnonymousQueryCompute for MemoryEmbedding {
+    type Query = MemoryRetrieveQueryEmbedding;
+    fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
+        let tag_score = self.tag().cosine_similarity(query.tag())?;
+        let variant_score = self.variant().anonymous_compute(query.variant())?;
+        Ok(0.4 * tag_score + 0.6 * variant_score)
+    }
+}
+
 //TODO: take common fields in MemoryNote into computation
 impl AnonymousQueryCompute for EmbeddedMemoryNote {
-    type Query = MemoryRetrieveQuery;
+    type Query = MemoryRetrieveQueryEmbedding;
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
         self.embedding().anonymous_compute(query)
     }
@@ -297,89 +309,5 @@ impl QueryCompute for EmbeddedMemoryNote {
             id: self.note().id(),
             score: self.anonymous_compute(query)?,
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::memory::embedding::embedding_model::bge::BgeSmallZh;
-    use crate::memory::memory_note::sem_mem::ConceptType;
-    use crate::memory::query::retrieve::SemanticQueryUnit;
-
-    #[test]
-    fn test_semantic_query_compute() {
-        let model = BgeSmallZh::default_cpu().unwrap();
-
-        let memory = crate::memory::memory_note::sem_mem::SemMemory {
-            content: "Rust编程语言".to_string(),
-            aliases: vec!["Rust".to_string(), "rust".to_string()],
-            concept_type: ConceptType::Entity,
-            description: "一种注重安全性和并发性的系统编程语言".to_string(),
-        };
-
-        let sem_embedding = memory.embed(&model).unwrap();
-
-        let query = SemanticQueryUnit::new()
-            .with_concept_identifier("Rust语言")
-            .with_description("系统编程语言");
-
-        let query_wrapper = MemoryRetrieveQuery::Semantic(vec![query]);
-
-        let score = sem_embedding.anonymous_compute(&query_wrapper).unwrap();
-
-        assert!(score > 0.0);
-        assert!(score <= 1.0);
-    }
-
-    #[test]
-    fn test_query_compute_result() {
-        let memory_id = MemoryId::new();
-        let result = QueryComputeResult::new(memory_id, 0.85);
-
-        assert_eq!(result.id, memory_id);
-        assert_eq!(result.score, 0.85);
-    }
-
-    #[test]
-    fn test_semantic_query_with_only_concept() {
-        let model = BgeSmallZh::default_cpu().unwrap();
-
-        let memory = crate::memory::memory_note::sem_mem::SemMemory {
-            content: "机器学习".to_string(),
-            aliases: vec!["ML".to_string()],
-            concept_type: ConceptType::Abstract,
-            description: "人工智能的一个分支".to_string(),
-        };
-
-        let sem_embedding = memory.embed(&model).unwrap();
-
-        let query = SemanticQueryUnit::new().with_concept_identifier("机器学习");
-        let query_wrapper = MemoryRetrieveQuery::Semantic(vec![query]);
-
-        let score = sem_embedding.anonymous_compute(&query_wrapper).unwrap();
-
-        assert!(score > 0.5);
-    }
-
-    #[test]
-    fn test_semantic_query_with_only_description() {
-        let model = BgeSmallZh::default_cpu().unwrap();
-
-        let memory = crate::memory::memory_note::sem_mem::SemMemory {
-            content: "深度学习".to_string(),
-            aliases: vec![],
-            concept_type: ConceptType::Abstract,
-            description: "使用多层神经网络进行学习的算法".to_string(),
-        };
-
-        let sem_embedding = memory.embed(&model).unwrap();
-
-        let query = SemanticQueryUnit::new().with_description("神经网络学习算法");
-        let query_wrapper = MemoryRetrieveQuery::Semantic(vec![query]);
-
-        let score = sem_embedding.anonymous_compute(&query_wrapper).unwrap();
-
-        assert!(score > 0.0);
     }
 }

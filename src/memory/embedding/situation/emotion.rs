@@ -1,5 +1,5 @@
 use crate::memory::{
-    embedding::{Embeddable, EmbeddingCalcError, EmbeddingCalcResult, EmbeddingVec, mean_pooling},
+    embedding::{mean_pooling, Embeddable, EmbeddingCalcError, EmbeddingCalcResult, EmbeddingVec},
     memory_note::situation_mem::Emotion,
 };
 

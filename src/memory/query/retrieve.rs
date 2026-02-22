@@ -22,31 +22,45 @@ impl PrioritizedMemoryRetrieveQuery {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum MemoryRetrieveQuery {
+pub struct MemoryRetrieveQuery {
+    tag: Vec<String>,
+    variant: MemoryRetrieveQueryVariant,
+}
+impl MemoryRetrieveQuery {
+    pub fn tag(&self) -> &[String] {
+        &self.tag
+    }
+    pub fn variant(&self) -> &MemoryRetrieveQueryVariant {
+        &self.variant
+    }
+    pub fn with_priority(self, priority: u32) -> PrioritizedMemoryRetrieveQuery {
+        PrioritizedMemoryRetrieveQuery::new(priority, self)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum MemoryRetrieveQueryVariant {
     Semantic(Vec<SemanticQueryUnit>),
     Situation(Vec<SituationQueryUnit>),
 }
-impl MemoryRetrieveQuery {
+impl MemoryRetrieveQueryVariant {
     pub fn make_semantic(units: Vec<SemanticQueryUnit>) -> Self {
-        MemoryRetrieveQuery::Semantic(units)
+        MemoryRetrieveQueryVariant::Semantic(units)
     }
     pub fn make_situation(units: Vec<SituationQueryUnit>) -> Self {
-        MemoryRetrieveQuery::Situation(units)
+        MemoryRetrieveQueryVariant::Situation(units)
     }
     pub fn as_semantic(&self) -> Option<&Vec<SemanticQueryUnit>> {
         match self {
-            MemoryRetrieveQuery::Semantic(units) => Some(units),
+            MemoryRetrieveQueryVariant::Semantic(units) => Some(units),
             _ => None,
         }
     }
     pub fn as_situation(&self) -> Option<&Vec<SituationQueryUnit>> {
         match self {
-            MemoryRetrieveQuery::Situation(units) => Some(units),
+            MemoryRetrieveQueryVariant::Situation(units) => Some(units),
             _ => None,
         }
-    }
-    pub fn with_priority(self, priority: u32) -> PrioritizedMemoryRetrieveQuery {
-        PrioritizedMemoryRetrieveQuery::new(priority, self)
     }
 }
 

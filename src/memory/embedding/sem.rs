@@ -2,10 +2,10 @@ use super::EmbeddingGenResult;
 use super::EmbeddingModel;
 use super::EmbeddingVec;
 
-use crate::memory::embedding::Embeddable;
-use crate::memory::embedding::EmbeddingCalcResult;
 use crate::memory::embedding::note::MemoryEmbeddingVariant;
 use crate::memory::embedding::raw_linear_blend;
+use crate::memory::embedding::Embeddable;
+use crate::memory::embedding::EmbeddingCalcResult;
 use crate::memory::memory_note::sem_mem::SemMemory;
 #[derive(Debug, Clone, PartialEq)]
 pub struct SemanticEmbedding {
@@ -108,5 +108,50 @@ mod tests {
         assert_eq!(dimension, 512);
         assert_eq!(sem_embedding.description.shape(), dimension);
         assert_eq!(sem_embedding.fused_aliases.shape(), dimension);
+    }
+
+    #[test]
+    fn test_semantic_embed_linear_blend() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let memory1 = SemMemory {
+            content: "人工智能".to_string(),
+            aliases: vec!["AI".to_string()],
+            concept_type: ConceptType::Abstract,
+            description: "让机器具有人类智能的技术".to_string(),
+        };
+
+        let memory2 = SemMemory {
+            content: "机器学习".to_string(),
+            aliases: vec!["ML".to_string()],
+            concept_type: ConceptType::Abstract,
+            description: "人工智能的一个分支".to_string(),
+        };
+
+        let embedding1 = memory1.embed(&model).unwrap();
+        let embedding2 = memory2.embed(&model).unwrap();
+
+        let blended = embedding1.linear_blend(&embedding2, 0.5).unwrap();
+
+        assert_eq!(blended.content.shape(), 512);
+        assert_eq!(blended.fused_aliases.shape(), 512);
+        assert_eq!(blended.description.shape(), 512);
+    }
+
+    #[test]
+    fn test_semantic_embed_with_aliases() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let memory = SemMemory {
+            content: "测试内容".to_string(),
+            aliases: vec!["alias1".to_string(), "alias2".to_string()],
+            concept_type: ConceptType::Entity,
+            description: "测试描述".to_string(),
+        };
+
+        let sem_embedding = memory.embed(&model).unwrap();
+
+        assert_eq!(sem_embedding.content.shape(), 512);
+        assert_eq!(sem_embedding.fused_aliases.shape(), 512);
     }
 }

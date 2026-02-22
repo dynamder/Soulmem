@@ -7,11 +7,11 @@ pub mod participant;
 pub mod sensory_data;
 use crate::memory::{
     embedding::{
-        Embeddable, EmbeddingVec,
         situation::{
             context::ContextEmbedding, environment::EnvironmentEmbedding, event::EventEmbedding,
             participant::ParticipantEmbedding,
         },
+        Embeddable, EmbeddingVec,
     },
     memory_note::situation_mem::{AbstractSituation, SituationType, SpecificSituation},
 };
@@ -211,4 +211,93 @@ impl Embeddable for SituationType {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::memory::embedding::embedding_model::bge::BgeSmallZh;
+    use crate::memory::memory_note::situation_mem::{
+        Context, Emotion, Environment, Event, Location, Participant, SensoryData,
+    };
+
+    #[test]
+    fn test_specific_situation_embed() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let context = Context::new(
+            Some(Location {
+                name: "学校".to_string(),
+                coordinates: "北京".to_string(),
+            }),
+            vec![Participant {
+                name: "张三".to_string(),
+                role: "学生".to_string(),
+            }],
+            vec![Emotion {
+                name: "开心".to_string(),
+                intensity: 0.8,
+            }],
+            vec![SensoryData {
+                name: "明亮".to_string(),
+                intensity: 0.6,
+            }],
+            Environment {
+                atmosphere: "温暖".to_string(),
+                tone: "舒适".to_string(),
+            },
+            vec![Event {
+                action: "学习".to_string(),
+                action_intensity: 0.7,
+                initiator: "张三".to_string(),
+                target: "知识".to_string(),
+            }],
+        );
+
+        let situation = SpecificSituation::new(
+            "今天在学校学习了很多知识".to_string(),
+            chrono::Utc::now(),
+            context,
+        );
+
+        let embedding = situation.embed(&model).unwrap();
+        assert_eq!(embedding.narrative().shape(), 512);
+    }
+
+    #[test]
+    fn test_abstract_situation_embed() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let location = AbstractSituation::Location(Location {
+            name: "图书馆".to_string(),
+            coordinates: "学校内".to_string(),
+        });
+
+        let embedding = location.embed(&model).unwrap();
+        assert!(embedding.to_location().is_some());
+    }
+
+    #[test]
+    fn test_environment_embed() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let env = Environment {
+            atmosphere: "紧张".to_string(),
+            tone: "严肃".to_string(),
+        };
+
+        let embedding = env.embed(&model).unwrap();
+        assert_eq!(embedding.atmosphere().shape(), 512);
+        assert_eq!(embedding.tone().shape(), 512);
+    }
+
+    #[test]
+    fn test_situation_type_embed() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let location = AbstractSituation::Location(Location {
+            name: "公园".to_string(),
+            coordinates: "市中心".to_string(),
+        });
+
+        let situation_type: SituationType = location.into();
+        let embedding = situation_type.embed(&model).unwrap();
+
+        assert!(embedding.to_abstract().is_some());
+    }
 }

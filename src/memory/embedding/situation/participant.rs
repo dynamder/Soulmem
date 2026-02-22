@@ -1,5 +1,5 @@
 use crate::memory::{
-    embedding::{Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling, raw_linear_blend},
+    embedding::{mean_pooling, raw_linear_blend, Embeddable, EmbeddingCalcResult, EmbeddingVec},
     memory_note::situation_mem::Participant,
 };
 
@@ -88,5 +88,41 @@ mod tests {
         assert_eq!(embedding.name.shape(), 512);
         assert_eq!(embedding.role.shape(), 512);
         assert_eq!(embedding.fused.shape(), 512);
+    }
+
+    #[test]
+    fn test_participant_mean_pooling() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let p1 = Participant {
+            name: "张三".to_string(),
+            role: "学生".to_string(),
+        };
+        let p2 = Participant {
+            name: "李四".to_string(),
+            role: "老师".to_string(),
+        };
+        let p3 = Participant {
+            name: "王五".to_string(),
+            role: "医生".to_string(),
+        };
+
+        let emb1 = p1.embed(&model).unwrap();
+        let emb2 = p2.embed(&model).unwrap();
+        let emb3 = p3.embed(&model).unwrap();
+
+        let pooled = ParticipantEmbedding::mean_pooling(&[emb1, emb2, emb3])
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(pooled.name.shape(), 512);
+        assert_eq!(pooled.role.shape(), 512);
+        assert_eq!(pooled.fused.shape(), 512);
+    }
+
+    #[test]
+    fn test_participant_mean_pooling_empty() {
+        let result = ParticipantEmbedding::mean_pooling(&[]);
+        assert!(result.unwrap().is_none());
     }
 }

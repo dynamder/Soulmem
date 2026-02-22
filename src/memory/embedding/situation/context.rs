@@ -1,11 +1,11 @@
 use crate::memory::{
     embedding::{
-        Embeddable, EmbeddingVec,
         situation::{
             emotion::EmotionEmbedding, environment::EnvironmentEmbedding, event::EventEmbedding,
             location::LocationEmbedding, participant::ParticipantEmbedding,
             sensory_data::SensoryDataEmbedding,
         },
+        Embeddable, EmbeddingVec,
     },
     memory_note::situation_mem::Context,
 };
