@@ -162,3 +162,105 @@ pub enum MemoryNoteBuildError {
     #[error("The last_accessed_time is earlier than create_time")]
     TimeConflict, //last_accessed_time比create_time更早
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::memory::memory_note::sem_mem::ConceptType;
+    use chrono::TimeZone;
+
+    #[test]
+    fn test_memory_note_builder_basic() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let note = MemoryNoteBuilder::new(mem_type)
+            .tags(vec!["test".to_string()])
+            .build()
+            .unwrap();
+
+        assert_eq!(note.tags(), &vec!["test".to_string()]);
+        assert_eq!(note.retrieval_count(), 0);
+    }
+
+    #[test]
+    fn test_memory_note_builder_with_time() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let create_time = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+        let last_accessed = Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap();
+
+        let note = MemoryNoteBuilder::new(mem_type)
+            .create_time(create_time)
+            .last_accessed_time(last_accessed)
+            .build()
+            .unwrap();
+
+        assert_eq!(note.creation_time(), create_time);
+        assert_eq!(note.last_accessed_time(), last_accessed);
+    }
+
+    #[test]
+    fn test_memory_note_builder_time_conflict() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let create_time = Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap();
+        let last_accessed = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+
+        let result = MemoryNoteBuilder::new(mem_type)
+            .create_time(create_time)
+            .last_accessed_time(last_accessed)
+            .build();
+
+        assert!(matches!(result, Err(MemoryNoteBuildError::TimeConflict)));
+    }
+
+    #[test]
+    fn test_memory_note_retrieval_increment() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let mut note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+
+        assert_eq!(note.retrieval_count(), 0);
+
+        note.retrieval_increment();
+        assert_eq!(note.retrieval_count(), 1);
+
+        note.retrieval_increment();
+        assert_eq!(note.retrieval_count(), 2);
+    }
+
+    #[test]
+    fn test_memory_note_builder_with_all_fields() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let create_time = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+        let last_accessed = Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap();
+
+        let note = MemoryNoteBuilder::new(mem_type)
+            .tags(vec!["tag1".to_string(), "tag2".to_string()])
+            .retrieval_count(5)
+            .create_time(create_time)
+            .last_accessed_time(last_accessed)
+            .mem_links(vec![])
+            .build()
+            .unwrap();
+
+        assert_eq!(note.tags().len(), 2);
+        assert_eq!(note.retrieval_count(), 5);
+    }
+}

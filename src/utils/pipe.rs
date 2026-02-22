@@ -1,10 +1,6 @@
-
 enum PipeIfState<I, F, R> {
     Original(I),
-    LazyTransform {
-        iter: Option<I>,
-        func: Option<F>
-    },
+    LazyTransform { iter: Option<I>, func: Option<F> },
     Transformed(R),
 }
 
@@ -21,7 +17,7 @@ pub trait IteratorPipe: Iterator + Sized {
     fn pipe<F, R>(self, f: F) -> PipeIf<Self, F, R>
     where
         F: FnOnce(Self) -> R,
-        R: Iterator<Item = Self::Item>
+        R: Iterator<Item = Self::Item>,
     {
         self.pipe_if(true, f)
     }
@@ -39,7 +35,7 @@ impl<I: Iterator> IteratorPipe for I {
                 state: PipeIfState::LazyTransform {
                     iter: Some(self),
                     func: Some(f),
-                }
+                },
             }
         } else {
             PipeIf {

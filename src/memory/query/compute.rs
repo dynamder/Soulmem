@@ -299,3 +299,87 @@ impl QueryCompute for EmbeddedMemoryNote {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::memory::embedding::embedding_model::bge::BgeSmallZh;
+    use crate::memory::memory_note::sem_mem::ConceptType;
+    use crate::memory::query::retrieve::SemanticQueryUnit;
+
+    #[test]
+    fn test_semantic_query_compute() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let memory = crate::memory::memory_note::sem_mem::SemMemory {
+            content: "Rust编程语言".to_string(),
+            aliases: vec!["Rust".to_string(), "rust".to_string()],
+            concept_type: ConceptType::Entity,
+            description: "一种注重安全性和并发性的系统编程语言".to_string(),
+        };
+
+        let sem_embedding = memory.embed(&model).unwrap();
+
+        let query = SemanticQueryUnit::new()
+            .with_concept_identifier("Rust语言")
+            .with_description("系统编程语言");
+
+        let query_wrapper = MemoryRetrieveQuery::Semantic(vec![query]);
+
+        let score = sem_embedding.anonymous_compute(&query_wrapper).unwrap();
+
+        assert!(score > 0.0);
+        assert!(score <= 1.0);
+    }
+
+    #[test]
+    fn test_query_compute_result() {
+        let memory_id = MemoryId::new();
+        let result = QueryComputeResult::new(memory_id, 0.85);
+
+        assert_eq!(result.id, memory_id);
+        assert_eq!(result.score, 0.85);
+    }
+
+    #[test]
+    fn test_semantic_query_with_only_concept() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let memory = crate::memory::memory_note::sem_mem::SemMemory {
+            content: "机器学习".to_string(),
+            aliases: vec!["ML".to_string()],
+            concept_type: ConceptType::Abstract,
+            description: "人工智能的一个分支".to_string(),
+        };
+
+        let sem_embedding = memory.embed(&model).unwrap();
+
+        let query = SemanticQueryUnit::new().with_concept_identifier("机器学习");
+        let query_wrapper = MemoryRetrieveQuery::Semantic(vec![query]);
+
+        let score = sem_embedding.anonymous_compute(&query_wrapper).unwrap();
+
+        assert!(score > 0.5);
+    }
+
+    #[test]
+    fn test_semantic_query_with_only_description() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let memory = crate::memory::memory_note::sem_mem::SemMemory {
+            content: "深度学习".to_string(),
+            aliases: vec![],
+            concept_type: ConceptType::Abstract,
+            description: "使用多层神经网络进行学习的算法".to_string(),
+        };
+
+        let sem_embedding = memory.embed(&model).unwrap();
+
+        let query = SemanticQueryUnit::new().with_description("神经网络学习算法");
+        let query_wrapper = MemoryRetrieveQuery::Semantic(vec![query]);
+
+        let score = sem_embedding.anonymous_compute(&query_wrapper).unwrap();
+
+        assert!(score > 0.0);
+    }
+}

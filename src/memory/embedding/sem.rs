@@ -91,6 +91,7 @@ impl From<SemanticEmbedding> for MemoryEmbeddingVariant {
 mod tests {
     use super::*;
     use crate::memory::embedding::embedding_model::bge::BgeSmallZh;
+    use crate::memory::memory_note::sem_mem::ConceptType;
 
     #[test]
     fn test_semantic_embed() {
@@ -99,11 +100,10 @@ mod tests {
             content: "Rustacean".to_string(),
             aliases: vec!["Ruster".to_string(), "Rust programmer".to_string(), "Rust开发者".to_string(), "Rust程序员".to_string(), "Rust爱好者".to_string()],
             description: "使用Rust编程语言的程序员。它们中的一些热衷于重写各类本来由其他语言编写的代码，以提高性能。他们偶尔会被Rust编译器的严格而搞得脑子疼。部分狂热分子热衷于在社交媒体上宣传Rust，引起了部分开发者对这些狂热分子的不满。".to_string(),
-            concept_type: crate::memory::memory_note::sem_mem::ConceptType::Entity,
+            concept_type: ConceptType::Entity,
         };
 
         let sem_embedding = memory.embed(&model).unwrap();
-        //println!("{:?}", embedding);
         let dimension = sem_embedding.content.shape();
         assert_eq!(dimension, 512);
         assert_eq!(sem_embedding.description.shape(), dimension);
