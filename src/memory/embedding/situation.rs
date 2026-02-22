@@ -13,7 +13,7 @@ use crate::memory::{
             participant::ParticipantEmbedding,
         },
     },
-    memory_note::situation_mem::{AbstractSituation, SpecificSituation},
+    memory_note::situation_mem::{AbstractSituation, SituationType, SpecificSituation},
 };
 use location::LocationEmbedding;
 #[derive(Debug, Clone, PartialEq)]
@@ -173,6 +173,39 @@ impl From<EventEmbedding> for AbstractSituationEmbedding {
 pub struct EmbeddedAbstractSituation {
     pub embedding: AbstractSituationEmbedding,
     pub abstract_situation: AbstractSituation,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct EmbeddedSituationType {
+    pub embedding: SituationEmbedding,
+    pub situation: SituationType,
+}
+
+impl Embeddable for SituationType {
+    type EmbeddingGen = SituationEmbedding;
+    type EmbeddingFused = EmbeddedSituationType;
+    fn embed(
+        &self,
+        model: &dyn super::EmbeddingModel,
+    ) -> super::EmbeddingGenResult<Self::EmbeddingGen> {
+        match self {
+            Self::AbstractSituation(abstract_sit) => {
+                Ok(SituationEmbedding::Abstract(abstract_sit.embed(model)?))
+            }
+            Self::SpecificSituation(specific) => {
+                Ok(SituationEmbedding::Specific(specific.embed(model)?))
+            }
+        }
+    }
+    fn embed_and_fuse(
+        self,
+        model: &dyn super::EmbeddingModel,
+    ) -> super::EmbeddingGenResult<Self::EmbeddingFused> {
+        Ok(EmbeddedSituationType {
+            embedding: self.embed(model)?,
+            situation: self,
+        })
+    }
 }
 
 #[cfg(test)]

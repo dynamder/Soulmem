@@ -2,13 +2,17 @@ use async_trait::async_trait;
 use petgraph::Direction::Outgoing;
 use thiserror::Error;
 
-use crate::memory::embedding::{sem::SemanticEmbedding, situation::SituationEmbedding};
+use crate::memory::{
+    embedding::{sem::SemanticEmbedding, situation::SituationEmbedding},
+    memory_note::{MemoryNote, MemoryType},
+};
 pub mod embedding_model;
 pub mod query;
 pub mod sem;
 pub mod situation;
 pub mod vec;
 pub use vec::{EmbeddingVec, mean_pooling, raw_linear_blend};
+pub mod note;
 
 pub trait Embeddable {
     type EmbeddingFused;
@@ -51,87 +55,6 @@ pub trait EmbeddingModel {
     fn infer_with_chunk(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec>;
     fn infer_and_fuse(&self, input: &[&str]) -> EmbeddingGenResult<EmbeddingVec>;
     fn max_input_token(&self) -> usize;
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum MemoryEmbedding {
-    Situation(SituationEmbedding),
-    Procedure(),
-    Semantic(SemanticEmbedding),
-}
-impl MemoryEmbedding {
-    pub fn to_situation(self) -> Option<SituationEmbedding> {
-        match self {
-            MemoryEmbedding::Situation(embedding) => Some(embedding),
-            _ => None,
-        }
-    }
-    pub fn to_procedure(self) {
-        todo!()
-    }
-    pub fn to_semantic(self) -> Option<SemanticEmbedding> {
-        match self {
-            MemoryEmbedding::Semantic(embedding) => Some(embedding),
-            _ => None,
-        }
-    }
-}
-
-impl MemoryEmbedding {
-    pub fn euclidean_distance(
-        &self,
-        _other: &MemoryEmbedding,
-        _hyperparams: VecBlendHyperParams,
-    ) -> EmbeddingCalcResult<f32> {
-        todo!("Euclidean distance")
-    }
-    pub fn cosine_similarity(
-        &self,
-        _other: &MemoryEmbedding,
-        _hyperparams: VecBlendHyperParams,
-    ) -> EmbeddingCalcResult<f32> {
-        todo!("Cosine similarity")
-    }
-    pub fn manhattan_distance(
-        &self,
-        _other: &MemoryEmbedding,
-        _hyperparams: VecBlendHyperParams,
-    ) -> EmbeddingCalcResult<f32> {
-        todo!("Manhattan distance")
-    }
-    pub fn linear_blend(
-        &self,
-        other: &MemoryEmbedding,
-        blend_factor: f32,
-    ) -> EmbeddingCalcResult<MemoryEmbedding> {
-        match (self, other) {
-            (MemoryEmbedding::Semantic(embedding1), MemoryEmbedding::Semantic(embedding2)) => {
-                embedding1
-                    .linear_blend(embedding2, blend_factor)
-                    .map(MemoryEmbedding::from)
-            }
-            (MemoryEmbedding::Situation(embedding1), MemoryEmbedding::Situation(embedding2)) => {
-                // embedding1
-                //     .linear_blend(embedding2, blend_factor)
-                //     .map(MemoryEmbedding::from)
-                todo!()
-            }
-
-            _ => Err(EmbeddingCalcError::IncompatibleEmbeddingTypes),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct VecBlendHyperParams {
-    // Placeholder for vector blending hyperparameters
-}
-impl Default for VecBlendHyperParams {
-    fn default() -> Self {
-        VecBlendHyperParams {
-            // Placeholder for default values
-        }
-    }
 }
 
 //util function

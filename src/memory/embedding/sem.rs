@@ -1,10 +1,10 @@
 use super::EmbeddingGenResult;
 use super::EmbeddingModel;
 use super::EmbeddingVec;
-use super::MemoryEmbedding;
 
 use crate::memory::embedding::Embeddable;
 use crate::memory::embedding::EmbeddingCalcResult;
+use crate::memory::embedding::note::MemoryEmbeddingVariant;
 use crate::memory::embedding::raw_linear_blend;
 use crate::memory::memory_note::sem_mem::SemMemory;
 #[derive(Debug, Clone, PartialEq)]
@@ -81,9 +81,9 @@ pub struct EmbeddedSemanticMemory {
     pub memory: SemMemory,
 }
 
-impl From<SemanticEmbedding> for MemoryEmbedding {
+impl From<SemanticEmbedding> for MemoryEmbeddingVariant {
     fn from(value: SemanticEmbedding) -> Self {
-        MemoryEmbedding::Semantic(value)
+        MemoryEmbeddingVariant::Semantic(value)
     }
 }
 

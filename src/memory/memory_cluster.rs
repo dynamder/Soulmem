@@ -11,13 +11,12 @@ use std::sync::Arc;
 use thiserror::Error;
 use uuid::Uuid;
 
+use crate::memory::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding};
 use crate::memory::embedding::{Embeddable, EmbeddingModel, EmbeddingVec};
 use crate::memory::memory_links::{LinkId, MemoryLinkType};
-use crate::memory::memory_note::EmbedMemoryNote;
 
 use super::memory_note::MemoryId;
 
-use super::embedding::MemoryEmbedding;
 use super::memory_links::MemoryLink;
 use super::memory_note::MemoryNote;
 
@@ -86,7 +85,7 @@ impl MemoryCluster {
     fn add_embeddings(&mut self, node_id: MemoryId, embeddings: MemoryEmbedding) {
         self.embedding_store.insert(node_id, embeddings);
     }
-    pub fn add_single_node(&mut self, embed_node: EmbedMemoryNote) {
+    pub fn add_single_node(&mut self, embed_node: EmbeddedMemoryNote) {
         let (id, links) = (embed_node.note().id(), embed_node.note().links().to_owned());
         self.merge_node(embed_node);
         if let Some(&node_index) = self.mem_id_to_index.get(&id) {
@@ -183,7 +182,7 @@ impl MemoryCluster {
             None
         }
     }
-    pub fn merge(&mut self, other: Vec<EmbedMemoryNote>) {
+    pub fn merge(&mut self, other: Vec<EmbeddedMemoryNote>) {
         let to_merged_edge = other
             .iter()
             .map(|x| (x.note().id(), x.note().links().to_owned()))
@@ -216,7 +215,7 @@ impl MemoryCluster {
             super_cluster: &self,
         }
     }
-    fn merge_node(&mut self, embed_node: EmbedMemoryNote) -> NodeIndex {
+    fn merge_node(&mut self, embed_node: EmbeddedMemoryNote) -> NodeIndex {
         let node_id = embed_node.note().id();
 
         match self.mem_id_to_index.get(&node_id) {
@@ -259,7 +258,7 @@ impl MemoryCluster {
             }
         }
     }
-    fn merge_nodes(&mut self, nodes: Vec<EmbedMemoryNote>) -> Vec<NodeIndex> {
+    fn merge_nodes(&mut self, nodes: Vec<EmbeddedMemoryNote>) -> Vec<NodeIndex> {
         nodes
             .into_iter()
             .map(|x| self.merge_node(x))

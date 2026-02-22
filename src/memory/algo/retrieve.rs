@@ -1,4 +1,3 @@
-use crate::memory::embedding::MemoryEmbedding;
 pub mod association;
 pub mod deep_thought;
 pub mod short_only;

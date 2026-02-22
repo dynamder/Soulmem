@@ -1,19 +1,28 @@
 use crate::memory::{
     embedding::{
-        EmbeddingCalcResult, MemoryEmbedding, query::{sem::SemanticQueryUnitEmbedding, situation::{
-            SituationQueryUnitEmbedding, environment::EnvironmentQueryUnitEmbedding,
-            event::EventQueryUnitEmbedding, location::LocationQueryUnitEmbedding,
-            participant::ParticipantQueryUnitEmbedding,
-        }}, sem::SemanticEmbedding, situation::{
+        EmbeddingCalcResult, MemoryEmbeddingVariant,
+        query::{
+            sem::SemanticQueryUnitEmbedding,
+            situation::{
+                SituationQueryUnitEmbedding, environment::EnvironmentQueryUnitEmbedding,
+                event::EventQueryUnitEmbedding, location::LocationQueryUnitEmbedding,
+                participant::ParticipantQueryUnitEmbedding,
+            },
+        },
+        sem::SemanticEmbedding,
+        situation::{
             AbstractSituationEmbedding, SituationEmbedding, SpecificSituationEmbedding,
             environment::EnvironmentEmbedding, event::EventEmbedding, location::LocationEmbedding,
             participant::ParticipantEmbedding,
-        }
+        },
     },
-    memory_note::{EmbedMemoryNote, MemoryNote},
+    memory_note::{EmbeddedMemoryNote, MemoryNote},
     query::{
         self,
-        retrieve::{LocationQueryUnit, MemoryRetrieveQuery, PrioritizedMemoryRetrieveQuery, SemanticQueryUnit},
+        retrieve::{
+            LocationQueryUnit, MemoryRetrieveQuery, PrioritizedMemoryRetrieveQuery,
+            SemanticQueryUnit,
+        },
     },
 };
 
@@ -213,7 +222,7 @@ impl AnonymousQueryCompute for SituationEmbedding {
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
         match self {
             Self::Specific(specific) => specific.anonymous_compute(query),
-            Self::Abstract(abstract) => abstract.anonymous_compute(query),
+            Self::Abstract(abstract_sit) => abstract_sit.anonymous_compute(query),
         }
     }
 }
@@ -221,15 +230,26 @@ impl AnonymousQueryCompute for SituationEmbedding {
 impl AnonymousQueryCompute for SemanticEmbedding {
     type Query = SemanticQueryUnitEmbedding;
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
-        let concept_main_score = query.concept_identifier().map(|con| con.cosine_similarity(self.content())).transpose()?;
-        let concept_aliases_score = query.concept_identifier().map(|con| con.cosine_similarity(self.fused_aliases())).transpose()?;
+        let concept_main_score = query
+            .concept_identifier()
+            .map(|con| con.cosine_similarity(self.content()))
+            .transpose()?;
+        let concept_aliases_score = query
+            .concept_identifier()
+            .map(|con| con.cosine_similarity(self.fused_aliases()))
+            .transpose()?;
 
-        let description_score = query.description().map(|description| description.cosine_similarity(self.description())).transpose()?;
+        let description_score = query
+            .description()
+            .map(|description| description.cosine_similarity(self.description()))
+            .transpose()?;
 
         let concept_score = match (concept_main_score, concept_aliases_score) {
             (Some(main_score), Some(aliases_score)) => 0.7 * main_score + 0.3 * aliases_score,
             (None, None) => 0.0,
-            _ => unreachable!("main_score and aliases_score all compute from query.concept_identifier(), so they must be Some or None simultaneously")
+            _ => unreachable!(
+                "main_score and aliases_score all compute from query.concept_identifier(), so they must be Some or None simultaneously"
+            ),
         };
 
         if let Some(description_score) = description_score {
@@ -240,33 +260,42 @@ impl AnonymousQueryCompute for SemanticEmbedding {
     }
 }
 
-impl AnonymousQueryCompute for MemoryEmbedding {
+impl AnonymousQueryCompute for MemoryEmbeddingVariant {
     type Query = MemoryRetrieveQuery;
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
         match (self, query) {
             (Self::Semantic(sem), MemoryRetrieveQuery::Semantic(q_sem)) => {
-                let score_vec = q_sem.into_iter().map(|q_sem_unit| sem.anonymous_compute(q_sem_unit)).collect::<Result<Vec<_>, _>>()?;
-                Ok(score_vec.into_iter().sum::<f32>())
-            },
-            (Self::Situation(sit), MemoryRetrieveQuery::Situation(q_sit)) => {
-                let score_vec = q_sit.into_iter().map(|q_sit_unit| sit.anonymous_compute(q_sit_unit)).collect::<Result<Vec<_>, _>>()?;
+                let score_vec = q_sem
+                    .into_iter()
+                    .map(|q_sem_unit| sem.anonymous_compute(q_sem_unit))
+                    .collect::<Result<Vec<_>, _>>()?;
                 Ok(score_vec.into_iter().sum::<f32>())
             }
-            (_, _) => Ok(0.0)
+            (Self::Situation(sit), MemoryRetrieveQuery::Situation(q_sit)) => {
+                let score_vec = q_sit
+                    .into_iter()
+                    .map(|q_sit_unit| sit.anonymous_compute(q_sit_unit))
+                    .collect::<Result<Vec<_>, _>>()?;
+                Ok(score_vec.into_iter().sum::<f32>())
+            }
+            (_, _) => Ok(0.0),
         }
     }
 }
 
 //TODO: take common fields in MemoryNote into computation
-impl AnonymousQueryCompute for EmbedMemoryNote {
+impl AnonymousQueryCompute for EmbeddedMemoryNote {
     type Query = MemoryRetrieveQuery;
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
         self.embedding().anonymous_compute(query)
     }
 }
 
-impl QueryCompute for EmbedMemoryNote {
+impl QueryCompute for EmbeddedMemoryNote {
     fn compute(&self, query: &Self::Query) -> EmbeddingCalcResult<QueryComputeResult> {
-        Ok(QueryComputeResult { id: self.note().id(), score: self.anonymous_compute(query)? })
+        Ok(QueryComputeResult {
+            id: self.note().id(),
+            score: self.anonymous_compute(query)?,
+        })
     }
 }

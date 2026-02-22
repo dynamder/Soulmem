@@ -10,7 +10,6 @@ pub mod sem_mem;
 pub mod situation_mem;
 
 use crate::memory::embedding::Embeddable;
-use crate::memory::embedding::MemoryEmbedding;
 use crate::memory::memory_note::proc_mem::ProcMemory;
 use crate::memory::memory_note::sem_mem::SemMemory;
 use crate::memory::memory_note::situation_mem::SituationType;
@@ -62,29 +61,30 @@ impl MemoryNote {
     pub fn id(&self) -> MemoryId {
         self.id
     }
-    pub fn retrieval_increment(&mut self) {
-        self.retrieval_count += 1;
-        self.last_accessed_time = Utc::now();
+    pub fn tags(&self) -> &[String] {
+        &self.tags
+    }
+    pub fn retrieval_count(&self) -> usize {
+        self.retrieval_count
+    }
+    pub fn creation_time(&self) -> DateTime<Utc> {
+        self.create_time
+    }
+    pub fn last_accessed_time(&self) -> DateTime<Utc> {
+        self.last_accessed_time
+    }
+    pub fn mem_type(&self) -> &MemoryType {
+        &self.mem_type
     }
     pub fn links(&self) -> &Vec<MemoryLink> {
         &self.mem_links
     }
+    pub fn retrieval_increment(&mut self) {
+        self.retrieval_count += 1;
+        self.last_accessed_time = Utc::now();
+    }
 }
 
-//TODO: add the embedding logic
-impl Embeddable for MemoryNote {
-    type EmbeddingGen = MemoryEmbedding;
-    type EmbeddingFused = EmbedMemoryNote;
-    fn embed_and_fuse(
-        self,
-        embedding_model: &dyn EmbeddingModel,
-    ) -> Result<Self::EmbeddingFused, EmbeddingGenError> {
-        todo!("Add the embedding logic")
-    }
-    fn embed(&self, model: &dyn EmbeddingModel) -> Result<Self::EmbeddingGen, EmbeddingGenError> {
-        todo!("Add the embedding logic")
-    }
-}
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum MemoryType {
     Semantic(SemMemory),
@@ -156,36 +156,6 @@ impl MemoryNoteBuilder {
     }
 }
 
-pub struct EmbedMemoryNote {
-    note: MemoryNote,
-    embedding: MemoryEmbedding,
-}
-impl EmbedMemoryNote {
-    pub fn note(&self) -> &MemoryNote {
-        &self.note
-    }
-    pub fn embedding(&self) -> &MemoryEmbedding {
-        &self.embedding
-    }
-    pub fn into_tuple(self) -> (MemoryNote, MemoryEmbedding) {
-        (self.note, self.embedding)
-    }
-}
-impl From<EmbedMemoryNote> for MemoryNote {
-    fn from(embed: EmbedMemoryNote) -> Self {
-        embed.note
-    }
-}
-impl From<EmbedMemoryNote> for MemoryEmbedding {
-    fn from(embed: EmbedMemoryNote) -> Self {
-        embed.embedding
-    }
-}
-impl From<(MemoryNote, MemoryEmbedding)> for EmbedMemoryNote {
-    fn from((note, embedding): (MemoryNote, MemoryEmbedding)) -> Self {
-        EmbedMemoryNote { note, embedding }
-    }
-}
 //定义错误类型，更健壮的处理
 #[derive(Debug, Error)]
 pub enum MemoryNoteBuildError {
