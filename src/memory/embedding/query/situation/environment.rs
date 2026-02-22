@@ -1,5 +1,3 @@
-use toml::de;
-
 use crate::memory::{
     embedding::{Embeddable, EmbeddingVec},
     query::retrieve::EnvironmentQueryUnit,

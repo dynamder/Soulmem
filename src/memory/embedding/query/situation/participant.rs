@@ -1,5 +1,5 @@
 use crate::memory::{
-    embedding::{Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling},
+    embedding::{mean_pooling, Embeddable, EmbeddingCalcResult, EmbeddingVec},
     query::retrieve::ParticipantQueryUnit,
 };
 

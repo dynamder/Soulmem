@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct PrioritizedMemoryRetrieveQuery {
     priority: u32, //优先级将决定最终混合一个MemoryNote的检索分数时的权重
     query: MemoryRetrieveQuery,
@@ -21,7 +22,7 @@ impl PrioritizedMemoryRetrieveQuery {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct MemoryRetrieveQuery {
     tag: Vec<String>,
     variant: MemoryRetrieveQueryVariant,
@@ -38,7 +39,7 @@ impl MemoryRetrieveQuery {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum MemoryRetrieveQueryVariant {
     Semantic(Vec<SemanticQueryUnit>),
     Situation(Vec<SituationQueryUnit>),
@@ -65,7 +66,7 @@ impl MemoryRetrieveQueryVariant {
 }
 
 //语义查询单元，一个单元代表一个概念或实体
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct SemanticQueryUnit {
     concept_identifier: Option<String>,
     description: Option<String>,
@@ -95,7 +96,7 @@ impl SemanticQueryUnit {
 }
 
 //情境查询单元，一个单元代表一个情境或事件，一个单元内的信息在查询时是“与”关系
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct SituationQueryUnit {
     narrative: Option<String>,
     location: Option<Vec<LocationQueryUnit>>,
@@ -159,7 +160,7 @@ impl SituationQueryUnit {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct LocationQueryUnit {
     name: String,
     coordinates: Option<String>,
@@ -183,7 +184,7 @@ impl LocationQueryUnit {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ParticipantQueryUnit {
     name: Option<String>,
     role: Option<String>,
@@ -211,7 +212,7 @@ impl ParticipantQueryUnit {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct EnvironmentQueryUnit {
     atmosphere: Option<String>,
     tone: Option<String>,
@@ -239,7 +240,7 @@ impl EnvironmentQueryUnit {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct EventQueryUnit {
     action: String,
     initiator: Option<String>,
@@ -272,7 +273,7 @@ impl EventQueryUnit {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct TimeSpanQueryUnit {
     start: Option<DateTime<Utc>>,
     end: Option<DateTime<Utc>>,

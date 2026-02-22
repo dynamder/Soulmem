@@ -1,8 +1,10 @@
 use std::ops::{Add, Div, Mul, Sub};
 
+use serde::{Deserialize, Serialize};
+
 use crate::memory::embedding::EmbeddingCalcResult;
 
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct EmbeddingVec(Vec<f32>);
 
 impl EmbeddingVec {

@@ -1,11 +1,10 @@
 use crate::memory::{
     embedding::{
-        Embeddable, EmbeddingVec,
         query::situation::{
             environment::EnvironmentQueryUnitEmbedding, event::EventQueryUnitEmbedding,
             location::LocationQueryUnitEmbedding, participant::ParticipantQueryUnitEmbedding,
         },
-        vec_batch_embed,
+        vec_batch_embed, Embeddable, EmbeddingVec,
     },
     query::retrieve::SituationQueryUnit,
 };
