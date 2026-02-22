@@ -1,7 +1,7 @@
 use crate::memory::{
     embedding::{
-        Embeddable, EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
         query::{sem::SemanticQueryUnitEmbedding, situation::SituationQueryUnitEmbedding},
+        Embeddable, EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
     },
     query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant},
 };
@@ -92,5 +92,66 @@ impl Embeddable for MemoryRetrieveQuery {
             embedding: self.embed(model)?,
             query: self,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::memory::embedding::embedding_model::bge::BgeSmallZh;
+    use crate::memory::query::retrieve::MemoryRetrieveQueryVariant;
+
+    #[test]
+    fn test_memory_retrieve_query_variant_embedding_semantic() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let query_variant = MemoryRetrieveQueryVariant::Semantic(vec![
+            crate::memory::query::retrieve::SemanticQueryUnit::new()
+                .with_concept_identifier("测试".to_string()),
+        ]);
+
+        let embedding = query_variant.embed(&model).unwrap();
+
+        assert!(matches!(
+            embedding,
+            MemoryRetrieveQueryVariantEmbedding::Semantic(_)
+        ));
+    }
+
+    #[test]
+    fn test_memory_retrieve_query_variant_embedding_situation() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let query_variant = MemoryRetrieveQueryVariant::Situation(vec![
+            crate::memory::query::retrieve::SituationQueryUnit::new()
+                .with_narrative("在学校学习".to_string()),
+        ]);
+
+        let embedding = query_variant.embed(&model).unwrap();
+
+        assert!(matches!(
+            embedding,
+            MemoryRetrieveQueryVariantEmbedding::Situation(_)
+        ));
+    }
+
+    #[test]
+    fn test_memory_retrieve_query_variant_with_multiple_semantic_units() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let query_variant = MemoryRetrieveQueryVariant::Semantic(vec![
+            crate::memory::query::retrieve::SemanticQueryUnit::new()
+                .with_concept_identifier("Rust".to_string()),
+            crate::memory::query::retrieve::SemanticQueryUnit::new()
+                .with_concept_identifier("编程".to_string()),
+        ]);
+
+        let embedding = query_variant.embed(&model).unwrap();
+
+        if let MemoryRetrieveQueryVariantEmbedding::Semantic(units) = embedding {
+            assert_eq!(units.len(), 2);
+        } else {
+            panic!("Expected Semantic variant");
+        }
     }
 }

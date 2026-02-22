@@ -1,29 +1,31 @@
 use crate::memory::{
     embedding::{
-        EmbeddingCalcResult,
         note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant},
         query::{
             note::{MemoryRetrieveQueryEmbedding, MemoryRetrieveQueryVariantEmbedding},
             sem::SemanticQueryUnitEmbedding,
             situation::{
-                SituationQueryUnitEmbedding, environment::EnvironmentQueryUnitEmbedding,
-                event::EventQueryUnitEmbedding, location::LocationQueryUnitEmbedding,
-                participant::ParticipantQueryUnitEmbedding,
+                environment::EnvironmentQueryUnitEmbedding, event::EventQueryUnitEmbedding,
+                location::LocationQueryUnitEmbedding, participant::ParticipantQueryUnitEmbedding,
+                SituationQueryUnitEmbedding,
             },
         },
         sem::SemanticEmbedding,
         situation::{
-            AbstractSituationEmbedding, SituationEmbedding, SpecificSituationEmbedding,
             environment::EnvironmentEmbedding, event::EventEmbedding, location::LocationEmbedding,
-            participant::ParticipantEmbedding,
+            participant::ParticipantEmbedding, AbstractSituationEmbedding, SituationEmbedding,
+            SpecificSituationEmbedding,
         },
+        Embeddable, EmbeddingCalcResult, EmbeddingModel,
     },
+    memory_note::situation_mem::{Environment, Event, Location, Participant},
     memory_note::{MemoryId, MemoryNote},
     query::{
         self,
         retrieve::{
-            LocationQueryUnit, MemoryRetrieveQuery, MemoryRetrieveQueryVariant,
-            PrioritizedMemoryRetrieveQuery, SemanticQueryUnit,
+            EnvironmentQueryUnit, EventQueryUnit, LocationQueryUnit, MemoryRetrieveQuery,
+            MemoryRetrieveQueryVariant, ParticipantQueryUnit, PrioritizedMemoryRetrieveQuery,
+            SemanticQueryUnit,
         },
     },
 };
@@ -309,5 +311,125 @@ impl QueryCompute for EmbeddedMemoryNote {
             id: self.note().id(),
             score: self.anonymous_compute(query)?,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::memory::embedding::embedding_model::bge::BgeSmallZh;
+    use crate::memory::memory_note::sem_mem::ConceptType;
+    use crate::memory::memory_note::situation_mem::{Environment, Event, Location, Participant};
+
+    #[test]
+    fn test_query_compute_result() {
+        let memory_id = MemoryId::new();
+        let result = QueryComputeResult::new(memory_id, 0.85);
+        assert_eq!(result.id, memory_id);
+        assert_eq!(result.score, 0.85);
+    }
+
+    #[test]
+    fn test_semantic_embedding_compute() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let memory = crate::memory::memory_note::sem_mem::SemMemory {
+            content: "Rust编程语言".to_string(),
+            aliases: vec!["Rust".to_string()],
+            concept_type: ConceptType::Entity,
+            description: "一种注重安全性的系统编程语言".to_string(),
+        };
+
+        let sem_embedding = memory.embed(&model).unwrap();
+
+        let query = SemanticQueryUnit::new()
+            .with_concept_identifier("Rust".to_string())
+            .with_description("系统编程语言".to_string());
+
+        let query_emb = query.embed(&model).unwrap();
+
+        let score = sem_embedding.anonymous_compute(&query_emb).unwrap();
+        assert!(score > 0.0);
+        assert!(score <= 1.0);
+    }
+
+    #[test]
+    fn test_location_query_compute() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let location = Location {
+            name: "北京".to_string(),
+            coordinates: "中国".to_string(),
+        };
+        let location_emb = location.embed(&model).unwrap();
+
+        let location_query = LocationQueryUnit::new("北京").with_coordinates("中国".to_string());
+        let location_query_emb = location_query.embed(&model).unwrap();
+
+        let score = location_emb.anonymous_compute(&location_query_emb).unwrap();
+        assert!(score > 0.0);
+    }
+
+    #[test]
+    fn test_participant_query_compute() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let participant = Participant {
+            name: "张三".to_string(),
+            role: "学生".to_string(),
+        };
+        let participant_emb = participant.embed(&model).unwrap();
+
+        let participant_query = ParticipantQueryUnit::new()
+            .with_name("张三".to_string())
+            .with_role("学生".to_string());
+        let participant_query_emb = participant_query.embed(&model).unwrap();
+
+        let score = participant_emb
+            .anonymous_compute(&participant_query_emb)
+            .unwrap();
+        assert!(score > 0.5);
+    }
+
+    #[test]
+    fn test_environment_query_compute() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let environment = Environment {
+            atmosphere: "安静".to_string(),
+            tone: "舒适".to_string(),
+        };
+        let environment_emb = environment.embed(&model).unwrap();
+
+        let environment_query = EnvironmentQueryUnit::new()
+            .with_atmosphere("安静".to_string())
+            .with_tone("舒适".to_string());
+        let environment_query_emb = environment_query.embed(&model).unwrap();
+
+        let score = environment_emb
+            .anonymous_compute(&environment_query_emb)
+            .unwrap();
+        assert!(score > 0.5);
+    }
+
+    #[test]
+    fn test_event_query_compute() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let event = Event {
+            action: "跑步".to_string(),
+            action_intensity: 0.8,
+            initiator: "张三".to_string(),
+            target: "操场".to_string(),
+        };
+        let event_emb = event.embed(&model).unwrap();
+
+        let event_query = EventQueryUnit::new("跑步".to_string())
+            .with_initiator("张三".to_string())
+            .with_target("操场".to_string());
+        let event_query_emb = event_query.embed(&model).unwrap();
+
+        let score = event_emb.anonymous_compute(&event_query_emb).unwrap();
+        assert!(score > 0.0);
     }
 }

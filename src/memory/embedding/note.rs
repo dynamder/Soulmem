@@ -1,7 +1,7 @@
 use crate::memory::{
     embedding::{
-        Embeddable, EmbeddingCalcResult, EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
-        sem::SemanticEmbedding, situation::SituationEmbedding,
+        sem::SemanticEmbedding, situation::SituationEmbedding, Embeddable, EmbeddingCalcResult,
+        EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
     },
     memory_note::{MemoryNote, MemoryType},
 };
@@ -164,5 +164,72 @@ impl Embeddable for MemoryNote {
             embedding: self.embed(model)?,
             note: self,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::memory::embedding::embedding_model::bge::BgeSmallZh;
+    use crate::memory::memory_note::sem_mem::{ConceptType, SemMemory};
+    use crate::memory::memory_note::MemoryNoteBuilder;
+
+    #[test]
+    fn test_memory_note_embedding() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let mem_type = crate::memory::memory_note::MemoryType::Semantic(SemMemory {
+            content: "Rust编程".to_string(),
+            aliases: vec!["Rust".to_string()],
+            concept_type: ConceptType::Entity,
+            description: "系统编程语言".to_string(),
+        });
+
+        let note = MemoryNoteBuilder::new(mem_type)
+            .tags(vec!["编程".to_string(), "语言".to_string()])
+            .build()
+            .unwrap();
+
+        let embedding = note.embed(&model).unwrap();
+
+        assert_eq!(embedding.tag().shape(), 512);
+        let variant = embedding.variant().clone();
+        assert!(variant.to_semantic().is_some());
+    }
+
+    #[test]
+    fn test_memory_embedding_variant_semantic() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let mem_type = crate::memory::memory_note::MemoryType::Semantic(SemMemory {
+            content: "测试".to_string(),
+            aliases: vec!["test".to_string()],
+            concept_type: ConceptType::Entity,
+            description: "测试描述".to_string(),
+        });
+
+        let variant_emb = mem_type.embed(&model).unwrap();
+
+        assert!(variant_emb.to_semantic().is_some());
+    }
+
+    #[test]
+    fn test_memory_embedding_variant_situation() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let location = crate::memory::memory_note::situation_mem::Location {
+            name: "学校".to_string(),
+            coordinates: "北京".to_string(),
+        };
+
+        let mem_type = crate::memory::memory_note::MemoryType::Situation(
+            crate::memory::memory_note::situation_mem::SituationType::AbstractSituation(
+                location.into(),
+            ),
+        );
+
+        let variant_emb = mem_type.embed(&model).unwrap();
+
+        assert!(variant_emb.to_situation().is_some());
     }
 }
