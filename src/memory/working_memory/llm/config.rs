@@ -8,10 +8,10 @@ use std::collections::HashMap;
 use secrecy::{SecretString, ExposeSecret};
 
 
-pub trait AIConfig{
+pub trait AIConfig: Config{
     fn get_config(&self) -> OpenAIConfig;
     fn get_model(&self) -> &str;
-    fn get_temp(&self) -> f32;
+    fn get_temperature(&self) -> f32;
 }
 
 #[derive(Debug, Clone)]
@@ -19,19 +19,17 @@ pub struct MyConfig {
     api_key: SecretString,
     api_base: String,
     model: String,
-    temp: f32,
+    temprerature: f32,
     ai_config: OpenAIConfig,
 }
 
 impl MyConfig {
-    pub fn new() -> Self {
-        let key = std::env::var("OPENAI_API_KEY").unwrap_or_default();
-        let base = std::env::var("OPENAI_API_BASE").unwrap_or_default();
+    pub fn new(key: &str, base: &str) -> Self {
         Self {
-            api_key: SecretString::from(key.clone()),
-            api_base: base.clone(),
+            api_key: SecretString::from(key),
+            api_base: base.to_string(),
             model: std::env::var("MODEL").unwrap_or_default(),
-            temp: std::env::var("TEMPERATURE").unwrap_or_default().parse().unwrap_or_default(),
+            temprerature: std::env::var("TEMPERATURE").unwrap_or_default().parse().unwrap_or_default(),
             ai_config: OpenAIConfig::new()
                 .with_api_key(key)
                 .with_api_base(base)
@@ -53,6 +51,22 @@ impl MyConfig {
 
 }
 
+
+
+impl AIConfig for MyConfig {
+    fn get_config(&self) -> OpenAIConfig {
+        self.ai_config.clone()
+    }
+
+    fn get_model(&self) -> &str {
+        &self.model
+    }
+
+    fn get_temperature(&self) -> f32 {
+        self.temprerature
+    }
+}
+    //Config
 impl Config for MyConfig {
     fn headers(&self) -> HeaderMap {
         self.ai_config.headers()
@@ -72,19 +86,5 @@ impl Config for MyConfig {
 
     fn api_key(&self) -> &SecretString {
         &self.api_key
-    }
-}
-
-impl AIConfig for MyConfig {
-    fn get_config(&self) -> OpenAIConfig {
-        self.ai_config.clone()
-    }
-
-    fn get_model(&self) -> &str {
-        &self.model
-    }
-
-    fn get_temp(&self) -> f32 {
-        self.temp
     }
 }

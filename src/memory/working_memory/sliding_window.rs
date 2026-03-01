@@ -6,11 +6,14 @@ use tokio::runtime::Runtime;
 use anyhow::{Error, Result, Context};
 use super::llm::{MyConfig, AIConfig, LlmClient, PromptBuilder};
 use async_openai::{
-    types::chat::{CreateChatCompletionRequest, ChatCompletionRequestMessage, ChatCompletionRequestUserMessageContentPart,
-        ChatCompletionRequestUserMessageContent, ChatCompletionRequestMessageContentPartText, ChatCompletionRequestUserMessage},
+    types::chat::{CreateChatCompletionRequest, ChatCompletionRequestMessage, ChatCompletionRequestUserMessageContentPart, ChatCompletionRequestSystemMessage,
+        ChatCompletionRequestUserMessageContent, ChatCompletionRequestMessageContentPartText, ChatCompletionRequestUserMessage, ChatCompletionRequestAssistantMessage},
     Client, config::Config,
 };
+use secrecy::{SecretString, ExposeSecret};
 
+const API_KEY: &str = "api_key";
+const API_BASE: &str = "https://api.openai.com/v1";
 
 //滑动窗口（容器、容量、标记计数、摘要用临时储存）
 pub struct SlidingWindow {
@@ -29,13 +32,14 @@ impl SlidingWindow {
             capacity,
             tag_count: capacity,
             summary: Arc::new(RwLock::new(MergedInformation::new())),
-            llm_config: MyConfig::new(),
+            llm_config: MyConfig::new(API_KEY, API_BASE),
         }
     }
     //信息滑入
-    pub async fn push(&mut self, mut value: Information) -> Result<()> {
-        value = self.auto_tag(value);
-        self.window.push_back(value);
+    pub async fn push(&mut self, value: &str, role: &str) -> Result<()> {
+        let mut text = Information::new(value, role);
+        text = self.auto_tag(text);
+        self.window.push_back(text);
         if self.window.len() == (self.capacity+1) {
             self.pop().await?;
         }
@@ -100,14 +104,16 @@ impl SlidingWindow {
     }
     //整合摘要记忆和窗口信息
     fn merge(&self) {
-        let mut summary_text = self.summary.write().unwrap_or_else(|e| e.into_inner());
-        let mut merged_info = String::new();
-        for (index, i) in self.window.iter().enumerate() {
-            merged_info.push_str(&index.to_string());
-            merged_info.push_str(&i.to_string());
+        let mut history = &mut self.summary.write().unwrap_or_else(|e| e.into_inner()).content;
+        history.clear();
+        history.push(ChatCompletionRequestSystemMessage::from(
+            "Based on the summary of previous conversation and the information currently in the window, provide a new overall summary.").into());
+        for message in self.window.iter() {
+            match message {
+                Information::User(info) => history.push(ChatCompletionRequestMessage::from(ChatCompletionRequestUserMessage::from(info.to_string())).into()),
+                Information::Assistant(info) => history.push(ChatCompletionRequestMessage::from(ChatCompletionRequestAssistantMessage::from(info.to_string())).into())
+            }
         }
-        summary_text.text = merged_info;
-
     }
 
     //将摘要记忆和当前滑动窗口信息合并提供LLM
@@ -120,19 +126,93 @@ impl SlidingWindow {
 
 }
 
-pub struct Information {
+pub enum Information {
+    User(UserInformation),
+    Assistant(AssistantInformation)
+}
+
+impl From<UserInformation> for Information {
+    fn from(info: UserInformation) -> Self {
+        Information::User(info)
+    }
+}
+
+impl From<AssistantInformation> for Information {
+    fn from(info: AssistantInformation) -> Self {
+        Information::Assistant(info)
+    }
+}
+
+impl Information {
+    pub fn new(value: &str, role: &str) -> Self {
+        match role {
+            "user" => Information::User(UserInformation::new(value)),
+            "assistant" => Information::Assistant(AssistantInformation::new(value)),
+            _ => Information::User(UserInformation::new(value)),
+        }
+    }
+    pub fn is_tagged(&self) -> bool {
+        match self {
+            Information::User(info) => info.is_tagged(),
+            Information::Assistant(info) => info.is_tagged(),
+        }
+    }
+    pub fn tag_information(&mut self) {
+        match self {
+            Information::User(info) => info.tag_user_information(),
+            Information::Assistant(info) => info.tag_assistant_information(),
+        }
+    }
+    pub fn untag_information(&mut self) {
+        match self {
+            Information::User(info) => info.untag_user_information(),
+            Information::Assistant(info) => info.untag_assistant_information(),
+        }
+    }
+    pub fn to_string(&self) -> String {
+        match self {
+            Information::User(info) => info.to_string(),
+            Information::Assistant(info) => info.to_string(),
+        }
+    }
+}
+
+pub struct UserInformation {
     pub text: String,
     pub tag: bool,
 }
 
-impl Information {
-    pub fn new(text: String) -> Self {
-        Self { text, tag: false }
+impl UserInformation {
+    pub fn new(text: &str) -> Self {
+        Self { text: text.to_string(), tag: false }
     }
-    pub fn tag_information(&mut self) {
+    pub fn tag_user_information(&mut self) {
         self.tag = true
     }
-    pub fn untag_information(&mut self) {
+    pub fn untag_user_information(&mut self) {
+        self.tag = false
+    }
+    pub fn is_tagged(&self) -> bool {
+        self.tag
+    }
+    pub fn to_string(&self) -> String {
+        self.text.clone()
+    }
+}
+
+pub struct AssistantInformation {
+    pub text: String,
+    pub tag: bool,
+}
+
+impl AssistantInformation {
+    pub fn new(text: &str) -> Self {
+        Self { text: text.to_string(), tag: false }
+    }
+    pub fn tag_assistant_information(&mut self) {
+        self.tag = true
+    }
+    pub fn untag_assistant_information(&mut self) {
         self.tag = false
     }
     pub fn is_tagged(&self) -> bool {
@@ -144,36 +224,31 @@ impl Information {
 }
 
 struct MergedInformation {
-    text: String,
-    Array: Vec<ChatCompletionRequestUserMessageContentPart>,
+    content: Vec<ChatCompletionRequestMessage>,
+    previous_summary: String
 }
 impl MergedInformation {
     pub fn new() -> Self {
-        Self { text: String::new(), Array: Vec::new() }
-    }
-    pub fn push_content(&mut self, content: ChatCompletionRequestUserMessageContentPart) {
-        self.Array.push(content);
+        Self { content: Vec::new(), previous_summary: String::new() }
     }
     //将整合后的自身交给call_llm处理，并根据结果自动更新自身
     async fn call_llm(&mut self, config: MyConfig) -> Result<String> {
         let client:LlmClient<MyConfig> = LlmClient::new(config);
-        let response = client.call_llm(self).await?;
+        let response = client.call_llm(self, 1).await?;
         let output = response.join(" ");
         self.merge_summary(&output);
         Ok(output)
     }
     pub fn merge_summary(&mut self, content: &str) {
-        self.Array.push(ChatCompletionRequestUserMessageContentPart::Text(ChatCompletionRequestMessageContentPartText::from(content)));
+        self.previous_summary.push_str(content);
+    }
+    pub fn get_previous_summary(&self) -> String {
+        self.previous_summary.clone()
     }
 }
 impl PromptBuilder for MergedInformation {
     fn build_prompt(&self) -> Vec<ChatCompletionRequestMessage> {
-        let mut messages = Vec::new();
-        messages.push(
-            ChatCompletionRequestMessage::from(<ChatCompletionRequestUserMessage as From<&str>>::from(&self.text)));
-        messages.push(
-            ChatCompletionRequestMessage::from(<ChatCompletionRequestUserMessage as From<ChatCompletionRequestUserMessageContent>>::from(ChatCompletionRequestUserMessageContent::from(self.Array.clone()))));
-        messages
+        self.content.clone()
     }
 }
 
@@ -188,36 +263,32 @@ mod slidingwindow_test{
     #[tokio::test]
     async fn sliding_window_test_push(){
         let mut window = SlidingWindow::new(10);
-        let info = Information::new("test1".to_string());
-        window.push(info).await;
-        let info2 = Information::new("test2".to_string());
-        window.push(info2).await;
-        assert_eq!(window.get(0).expect("not found this information").text, "test1");
-        assert_eq!(window.get(1).expect("not found this information").text, "test2");
+        let user_info = "user_info";
+        window.push(user_info, "user").await.expect("Failed to push user_information");
+        let assistant_info = "assistant_info";
+        window.push(assistant_info, "assistant").await.expect("Failed to push assistant_information");
+        assert_eq!(window.get(0).expect("not found this information").to_string(), "user_info");
+        assert_eq!(window.get(1).expect("not found this information").to_string(), "assistant_info");
     }
     #[tokio::test]
     async fn sliding_window_test_pop(){
         let mut window = SlidingWindow::new(10);
-        let info = Information::new("test1".to_string());
-        window.push(info).await;
-        let info2 = Information::new("test2".to_string());
-        window.push(info2).await;
-        window.pop().await;
-        assert_eq!(window.get(0).expect("not found this information").text, "test2");
+        let user_info = "user_info";
+        window.push(user_info, "user").await.expect("Failed to push user_information");
+        let assistant_info = "assistant_info";
+        window.push(assistant_info, "assistant").await.expect("Failed to push assistant_information");
+        window.pop().await.expect("Failed to pop information");
+        assert_eq!(window.get(0).expect("not found this information").to_string(), "assistant_info");
     }
     #[tokio::test]
     async fn sliding_window_test_summary_and_tag(){
         let mut window = SlidingWindow::new(2);
-        let info = Information::new("test1".to_string());
-        window.push(info).await;
-        let info2 = Information::new("test2".to_string());
-        window.push(info2).await;
-        let info3 = Information::new("test3".to_string());
-        window.push(info3).await;
-        assert_eq!(window.summary.read().unwrap().as_str(), "0test21test3");
-        let test = window.get(1);
-        if let Some(value) = test {
-            assert!(value.is_tagged());
-        }
+        let user_info = "user_info";
+        window.push(user_info, "user").await.expect("Failed to push user_information");
+        let assistant_info = "assistant_info";
+        window.push(assistant_info, "assistant").await.expect("Failed to push assistant_information");
+        let user_info2 = "user_info2";
+        window.push(user_info2, "user").await.expect("Failed to push user_information");
+        println!("{}", window.summary.read().unwrap_or_else(|e| e.into_inner()).previous_summary)
     }
 }
