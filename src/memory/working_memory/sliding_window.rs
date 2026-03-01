@@ -1,10 +1,11 @@
 use std::collections::VecDeque;
 use tokio::sync::mpsc;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 use tokio::time::{sleep, Duration};
 use tokio::runtime::Runtime;
 use anyhow::{Error, Result, Context};
-use super::llm::{MyConfig, AIConfig, LlmClient, PromptBuilder};
+use crate::memory::working_memory::llm::{config::MyConfig, client::LlmClient, prompt::PromptBuilder};
 use async_openai::{
     types::chat::{CreateChatCompletionRequest, ChatCompletionRequestMessage, ChatCompletionRequestUserMessageContentPart, ChatCompletionRequestSystemMessage,
         ChatCompletionRequestUserMessageContent, ChatCompletionRequestMessageContentPartText, ChatCompletionRequestUserMessage, ChatCompletionRequestAssistantMessage},
@@ -103,15 +104,15 @@ impl SlidingWindow {
         value
     }
     //整合摘要记忆和窗口信息
-    fn merge(&self) {
-        let mut history = &mut self.summary.write().unwrap_or_else(|e| e.into_inner()).content;
+    async fn merge(&self) {
+        let mut history = &mut self.summary.write().await.content;
         history.clear();
         history.push(ChatCompletionRequestSystemMessage::from(
             "Based on the summary of previous conversation and the information currently in the window, provide a new overall summary.").into());
         for message in self.window.iter() {
             match message {
-                Information::User(info) => history.push(ChatCompletionRequestMessage::from(ChatCompletionRequestUserMessage::from(info.to_string())).into()),
-                Information::Assistant(info) => history.push(ChatCompletionRequestMessage::from(ChatCompletionRequestAssistantMessage::from(info.to_string())).into())
+                Information::User(info) => history.push(ChatCompletionRequestMessage::from(ChatCompletionRequestUserMessage::from(info.get_str())).into()),
+                Information::Assistant(info) => history.push(ChatCompletionRequestMessage::from(ChatCompletionRequestAssistantMessage::from(info.get_str())).into())
             }
         }
     }
@@ -119,7 +120,7 @@ impl SlidingWindow {
     //将摘要记忆和当前滑动窗口信息合并提供LLM
     async fn summarize(&self) -> Result<String> {
         self.merge();
-        let mut summary_arc = self.summary.write().unwrap_or_else(|e| e.into_inner());
+        let mut summary_arc = self.summary.write().await;
         let response = summary_arc.call_llm(self.llm_config.clone()).await?;
         Ok(response)
     }
@@ -169,10 +170,10 @@ impl Information {
             Information::Assistant(info) => info.untag_assistant_information(),
         }
     }
-    pub fn to_string(&self) -> String {
+    pub fn get_str(&self) -> &str {
         match self {
-            Information::User(info) => info.to_string(),
-            Information::Assistant(info) => info.to_string(),
+            Information::User(info) => info.get_str(),
+            Information::Assistant(info) => info.get_str(),
         }
     }
 }
@@ -195,8 +196,8 @@ impl UserInformation {
     pub fn is_tagged(&self) -> bool {
         self.tag
     }
-    pub fn to_string(&self) -> String {
-        self.text.clone()
+    pub fn get_str(&self) -> &str {
+        &self.text
     }
 }
 
@@ -218,8 +219,8 @@ impl AssistantInformation {
     pub fn is_tagged(&self) -> bool {
         self.tag
     }
-    pub fn to_string(&self) -> String {
-        self.text.clone()
+    pub fn get_str(&self) -> &str {
+        &self.text
     }
 }
 
@@ -267,8 +268,8 @@ mod slidingwindow_test{
         window.push(user_info, "user").await.expect("Failed to push user_information");
         let assistant_info = "assistant_info";
         window.push(assistant_info, "assistant").await.expect("Failed to push assistant_information");
-        assert_eq!(window.get(0).expect("not found this information").to_string(), "user_info");
-        assert_eq!(window.get(1).expect("not found this information").to_string(), "assistant_info");
+        assert_eq!(window.get(0).expect("not found this information").get_str(), "user_info");
+        assert_eq!(window.get(1).expect("not found this information").get_str(), "assistant_info");
     }
     #[tokio::test]
     async fn sliding_window_test_pop(){
@@ -278,7 +279,7 @@ mod slidingwindow_test{
         let assistant_info = "assistant_info";
         window.push(assistant_info, "assistant").await.expect("Failed to push assistant_information");
         window.pop().await.expect("Failed to pop information");
-        assert_eq!(window.get(0).expect("not found this information").to_string(), "assistant_info");
+        assert_eq!(window.get(0).expect("not found this information").get_str(), "assistant_info");
     }
     #[tokio::test]
     async fn sliding_window_test_summary_and_tag(){
@@ -289,6 +290,6 @@ mod slidingwindow_test{
         window.push(assistant_info, "assistant").await.expect("Failed to push assistant_information");
         let user_info2 = "user_info2";
         window.push(user_info2, "user").await.expect("Failed to push user_information");
-        println!("{}", window.summary.read().unwrap_or_else(|e| e.into_inner()).previous_summary)
+        println!("{}", window.summary.read().await.previous_summary)
     }
 }
