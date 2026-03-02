@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use anyhow::{Error, Result, Context};
-use std::env;
-use dotenvy::dotenv;
+use dotenvy::{dotenv, var};
 use async_openai::config::{Config, OpenAIConfig};
 use http::header::{HeaderMap, IntoHeaderName, HeaderValue, InvalidHeaderValue};
 use std::collections::HashMap;
@@ -15,21 +14,17 @@ pub trait AIConfig: Config{
 }
 
 #[derive(Debug, Clone)]
-pub struct MyConfig {
-    api_key: SecretString,
-    api_base: String,
+pub struct LLMConfig {
     model: String,
     temprerature: f32,
     ai_config: OpenAIConfig,
 }
 
-impl MyConfig {
+impl LLMConfig {
     pub fn new(key: &str, base: &str) -> Self {
         Self {
-            api_key: SecretString::from(key),
-            api_base: base.to_string(),
-            model: std::env::var("MODEL").unwrap_or_default(),
-            temprerature: std::env::var("TEMPERATURE").unwrap_or_default().parse().unwrap_or_default(),
+            model: var("MODEL").unwrap_or_default(),
+            temprerature: var("TEMPERATURE").unwrap_or_default().parse().unwrap_or_default(),
             ai_config: OpenAIConfig::new()
                 .with_api_key(key)
                 .with_api_base(base)
@@ -53,7 +48,7 @@ impl MyConfig {
 
 
 
-impl AIConfig for MyConfig {
+impl AIConfig for LLMConfig {
     fn get_config(&self) -> OpenAIConfig {
         self.ai_config.clone()
     }
@@ -67,7 +62,7 @@ impl AIConfig for MyConfig {
     }
 }
     //Config
-impl Config for MyConfig {
+impl Config for LLMConfig {
     fn headers(&self) -> HeaderMap {
         self.ai_config.headers()
     }
@@ -81,10 +76,10 @@ impl Config for MyConfig {
     }
 
     fn api_base(&self) -> &str {
-        &self.api_base
+        &self.ai_config.api_base()
     }
 
     fn api_key(&self) -> &SecretString {
-        &self.api_key
+        &self.ai_config.api_key()
     }
 }

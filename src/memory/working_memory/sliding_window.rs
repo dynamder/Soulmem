@@ -5,15 +5,16 @@ use tokio::sync::RwLock;
 use tokio::time::{sleep, Duration};
 use tokio::runtime::Runtime;
 use anyhow::{Error, Result, Context};
-use crate::memory::working_memory::llm::{config::MyConfig, client::LlmClient, prompt::PromptBuilder};
+use crate::memory::working_memory::llm::{config::LLMConfig, client::LlmClient, prompt::PromptBuilder};
 use async_openai::{
     types::chat::{CreateChatCompletionRequest, ChatCompletionRequestMessage, ChatCompletionRequestUserMessageContentPart, ChatCompletionRequestSystemMessage,
         ChatCompletionRequestUserMessageContent, ChatCompletionRequestMessageContentPartText, ChatCompletionRequestUserMessage, ChatCompletionRequestAssistantMessage},
     Client, config::Config,
 };
 use secrecy::{SecretString, ExposeSecret};
+use std::mem::take;
 
-const API_KEY: &str = "api_key";
+const API_KEY: &str = "your_api_key_here";
 const API_BASE: &str = "https://api.openai.com/v1";
 
 //滑动窗口（容器、容量、标记计数、摘要用临时储存）
@@ -22,7 +23,7 @@ pub struct SlidingWindow {
     capacity: usize,
     tag_count: usize,
     summary: Arc<RwLock<MergedInformation>>,
-    llm_config: MyConfig,
+    llm_client: LlmClient,
 }
 
 impl SlidingWindow {
@@ -33,7 +34,7 @@ impl SlidingWindow {
             capacity,
             tag_count: capacity,
             summary: Arc::new(RwLock::new(MergedInformation::new())),
-            llm_config: MyConfig::new(API_KEY, API_BASE),
+            llm_client: LlmClient::new(LLMConfig::new(API_KEY, API_BASE)),
         }
     }
     //信息滑入
@@ -105,26 +106,31 @@ impl SlidingWindow {
     }
     //整合摘要记忆和窗口信息
     async fn merge(&self) {
-        let mut history = &mut self.summary.write().await.content;
-        history.clear();
-        history.push(ChatCompletionRequestSystemMessage::from(
+        let mut messages = self.summary.write().await;
+        let mut previous = ChatCompletionRequestUserMessage::from(messages.previous_summary.as_str()).into();
+        messages.content.clear();
+        messages.content.push(ChatCompletionRequestSystemMessage::from(
             "Based on the summary of previous conversation and the information currently in the window, provide a new overall summary.").into());
+        messages.content.push(previous);
         for message in self.window.iter() {
-            match message {
-                Information::User(info) => history.push(ChatCompletionRequestMessage::from(ChatCompletionRequestUserMessage::from(info.get_str())).into()),
-                Information::Assistant(info) => history.push(ChatCompletionRequestMessage::from(ChatCompletionRequestAssistantMessage::from(info.get_str())).into())
-            }
+            messages.content.push(message.to_message())
         }
     }
 
     //将摘要记忆和当前滑动窗口信息合并提供LLM
     async fn summarize(&self) -> Result<String> {
-        self.merge();
+        self.merge().await;
         let mut summary_arc = self.summary.write().await;
-        let response = summary_arc.call_llm(self.llm_config.clone()).await?;
+        let response = self.call_llm(&mut *summary_arc).await?;
         Ok(response)
     }
 
+    async fn call_llm(&self, merged: &mut MergedInformation) -> Result<String> {
+        let response = self.llm_client.call_llm(merged, 1).await?;
+        let output = response.join(" ");
+        merged.merge_summary(&output);
+        Ok(output)
+    }
 }
 
 pub enum Information {
@@ -154,26 +160,32 @@ impl Information {
     }
     pub fn is_tagged(&self) -> bool {
         match self {
-            Information::User(info) => info.is_tagged(),
-            Information::Assistant(info) => info.is_tagged(),
+            Information::User(info) => info.tag,
+            Information::Assistant(info) => info.tag,
         }
     }
     pub fn tag_information(&mut self) {
         match self {
-            Information::User(info) => info.tag_user_information(),
-            Information::Assistant(info) => info.tag_assistant_information(),
+            Information::User(info) => info.tag = true,
+            Information::Assistant(info) => info.tag = true,
         }
     }
     pub fn untag_information(&mut self) {
         match self {
-            Information::User(info) => info.untag_user_information(),
-            Information::Assistant(info) => info.untag_assistant_information(),
+            Information::User(info) => info.tag = false,
+            Information::Assistant(info) => info.tag = false,
         }
     }
     pub fn get_str(&self) -> &str {
         match self {
-            Information::User(info) => info.get_str(),
-            Information::Assistant(info) => info.get_str(),
+            Information::User(info) => &info.text,
+            Information::Assistant(info) => &info.text,
+        }
+    }
+    pub fn to_message(&self) -> ChatCompletionRequestMessage {
+        match self {
+            Information::User(info) => ChatCompletionRequestMessage::from(ChatCompletionRequestUserMessage::from(info.get_str())).into(),
+                Information::Assistant(info) => ChatCompletionRequestMessage::from(ChatCompletionRequestAssistantMessage::from(info.get_str())).into()
         }
     }
 }
@@ -187,17 +199,11 @@ impl UserInformation {
     pub fn new(text: &str) -> Self {
         Self { text: text.to_string(), tag: false }
     }
-    pub fn tag_user_information(&mut self) {
-        self.tag = true
-    }
-    pub fn untag_user_information(&mut self) {
-        self.tag = false
-    }
-    pub fn is_tagged(&self) -> bool {
-        self.tag
-    }
     pub fn get_str(&self) -> &str {
         &self.text
+    }
+    pub fn get_mut_str(&mut self) -> &mut String {
+        &mut self.text
     }
 }
 
@@ -210,17 +216,11 @@ impl AssistantInformation {
     pub fn new(text: &str) -> Self {
         Self { text: text.to_string(), tag: false }
     }
-    pub fn tag_assistant_information(&mut self) {
-        self.tag = true
-    }
-    pub fn untag_assistant_information(&mut self) {
-        self.tag = false
-    }
-    pub fn is_tagged(&self) -> bool {
-        self.tag
-    }
     pub fn get_str(&self) -> &str {
         &self.text
+    }
+    pub fn get_mut_str(&mut self) -> &mut String {
+        &mut self.text
     }
 }
 
@@ -232,14 +232,14 @@ impl MergedInformation {
     pub fn new() -> Self {
         Self { content: Vec::new(), previous_summary: String::new() }
     }
-    //将整合后的自身交给call_llm处理，并根据结果自动更新自身
-    async fn call_llm(&mut self, config: MyConfig) -> Result<String> {
-        let client:LlmClient<MyConfig> = LlmClient::new(config);
-        let response = client.call_llm(self, 1).await?;
-        let output = response.join(" ");
-        self.merge_summary(&output);
-        Ok(output)
-    }
+    // //将整合后的自身交给call_llm处理，并根据结果自动更新自身
+    // async fn call_llm(&mut self, config: MyConfig) -> Result<String> {
+    //     let client:LlmClient<MyConfig> = LlmClient::new(config);
+    //     let response = client.call_llm(self, 1).await?;
+    //     let output = response.join(" ");
+    //     self.merge_summary(&output);
+    //     Ok(output)
+    // }
     pub fn merge_summary(&mut self, content: &str) {
         self.previous_summary.push_str(content);
     }
@@ -248,8 +248,8 @@ impl MergedInformation {
     }
 }
 impl PromptBuilder for MergedInformation {
-    fn build_prompt(&self) -> Vec<ChatCompletionRequestMessage> {
-        self.content.clone()
+    fn build_prompt(&mut self) -> Vec<ChatCompletionRequestMessage> {
+        take(&mut self.content)
     }
 }
 

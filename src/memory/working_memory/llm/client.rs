@@ -1,4 +1,4 @@
-use super::{config::{MyConfig, AIConfig}, prompt::PromptBuilder};
+use super::{config::{LLMConfig, AIConfig}, prompt::PromptBuilder};
 use async_openai::{
     types::chat::{ChatCompletionRequestMessage, CreateChatCompletionRequestArgs, CreateChatCompletionResponse,
         ChatCompletionRequestSystemMessage, Role, CreateChatCompletionRequest},
@@ -8,22 +8,22 @@ use serde::de::DeserializeOwned;
 use anyhow::{Result, Error, Context};
 use async_openai::config::{Config, OpenAIConfig};
 
-pub struct LlmClient<C: AIConfig + Clone> {
-    client: Client<C>,
-    config: C,
+pub struct LlmClient {
+    client: Client<OpenAIConfig>,
+    config: LLMConfig,
 }
 
-impl<C: AIConfig + Clone> LlmClient<C> {
-    pub fn new(config: C) -> Self {
-        let client = Client::with_config(config.clone());
+impl LlmClient {
+    pub fn new(config: LLMConfig) -> Self {
+        let client = Client::with_config(config.get_config());
         Self { client, config }
     }
-    pub async fn call_llm<T: PromptBuilder>(&self, content: &T, n: u8) -> Result<Vec<String>> {
+    pub async fn call_llm<T: PromptBuilder>(&self, content: &mut T, n: u8) -> Result<Vec<String>> {
         let request = self.structed(content, n)?;
         let response = self.client.chat().create(request).await?;
         Ok(self.unstructed(response))
     }
-    pub fn structed<T: PromptBuilder>(&self, content: &T, n: u8) -> Result<CreateChatCompletionRequest> {
+    pub fn structed<T: PromptBuilder>(&self, content: &mut T, n: u8) -> Result<CreateChatCompletionRequest> {
         let messages = content.build_prompt();
         let request = CreateChatCompletionRequestArgs::default()
             .max_tokens(512u32)
