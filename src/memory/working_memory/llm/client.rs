@@ -19,11 +19,11 @@ impl LlmClient {
         Self { client, config }
     }
     pub async fn call_llm<T: PromptBuilder>(&self, content: &mut T, n: u8) -> Result<Vec<String>> {
-        let request = self.structed(content, n)?;
+        let request = self.structured(content, n)?;
         let response = self.client.chat().create(request).await?;
-        Ok(self.unstructed(response))
+        Ok(self.unstructured(response))
     }
-    pub fn structed<T: PromptBuilder>(&self, content: &mut T, n: u8) -> Result<CreateChatCompletionRequest> {
+    pub fn structured<T: PromptBuilder>(&self, content: &mut T, n: u8) -> Result<CreateChatCompletionRequest> {
         let messages = content.build_prompt();
         let request = CreateChatCompletionRequestArgs::default()
             .max_tokens(512u32)
@@ -33,7 +33,7 @@ impl LlmClient {
             .build()?;
         Ok(request)
     }
-    pub fn unstructed(&self, response: CreateChatCompletionResponse) -> Vec<String> {
+    pub fn unstructured(&self, response: CreateChatCompletionResponse) -> Vec<String> {
         response
             .choices
             .into_iter()
