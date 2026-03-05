@@ -9,7 +9,7 @@ pub mod sliding_window;
 use self::sliding_window::{Information, SlidingWindow};
 use self::record::{Record, UserFeedback};
 use crate::memory::memory_cluster::MemoryCluster;
-use crate::memory::memory_note::{MemoryId, EmbedMemoryNote};
+use crate::memory::memory_note::{EmbedMemoryNote, MemoryId};
 
 // 工作记忆状态
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -217,5 +217,3 @@ impl WorkingMemory {
         self.records.iter()
     }
 }
-pub mod sliding_window;
-pub mod llm;
