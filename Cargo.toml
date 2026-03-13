@@ -35,6 +35,9 @@ candle-core = {version = "0.9.1"}
 embed_anything = "0.6.7"
 text-splitter = "0.29.3"
 
+async-openai = { version = "0.32.4", features = ["chat-completion"] }
+http = "1.4.0"
+secrecy = "0.10.3"
 
 [profile.release]
 lto = true
