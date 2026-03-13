@@ -1,5 +1,7 @@
+use serde::{Deserialize, Serialize};
+
 //动作类型
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Serialize, Deserialize)]
 pub enum ActionType {
     Speak,              //语气类，说话方式
     Skill(SkillRecord), //技能类，例如使用外部工具
@@ -16,13 +18,13 @@ impl ActionType {
         Self::Think
     }
 }
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Serialize, Deserialize)]
 pub struct SkillRecord {
     //TODO: 后续版本功能，仅做PlaceHolder
 }
 
 ///程序性记忆的动作节点(Action)
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Serialize, serde::Deserialize)]
 pub struct Action {
     content: String,
     action_type: ActionType,
@@ -42,7 +44,7 @@ impl Action {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Serialize, Deserialize)]
 pub struct ProcMemory {
     action: Action,
 }

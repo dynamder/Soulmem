@@ -1,5 +1,4 @@
 use chrono::{DateTime, Utc};
-use fastembed::{Embedding, TextEmbedding};
 use petgraph::prelude::{EdgeIndex, NodeIndex, StableDiGraph};
 use petgraph::visit::EdgeRef;
 use petgraph::{Direction, Undirected};
@@ -9,17 +8,15 @@ use serde_json::{Map, json};
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Display};
 use std::sync::Arc;
-use surrealdb::RecordId;
 use thiserror::Error;
 use uuid::Uuid;
 
-use crate::memory::embedding::{Embeddable, EmbeddingModel};
+use crate::memory::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding};
+use crate::memory::embedding::{Embeddable, EmbeddingModel, EmbeddingVec};
 use crate::memory::memory_links::{LinkId, MemoryLinkType};
-use crate::memory::memory_note::EmbedMemoryNote;
 
 use super::memory_note::MemoryId;
 
-use super::embedding::MemoryEmbedding;
 use super::memory_links::MemoryLink;
 use super::memory_note::MemoryNote;
 
@@ -63,7 +60,7 @@ pub struct MemoryCluster {
     embedding_store: HashMap<MemoryId, MemoryEmbedding>, //由于link储存在source节点，source节点不在图中，link则不可知，因此source节点通常总是有效
 }
 impl MemoryCluster {
-    pub fn new(embedding_model: TextEmbedding) -> Self {
+    pub fn new() -> Self {
         Self {
             graph: StableDiGraph::new(),
             mem_id_to_index: HashMap::new(),
@@ -88,7 +85,7 @@ impl MemoryCluster {
     fn add_embeddings(&mut self, node_id: MemoryId, embeddings: MemoryEmbedding) {
         self.embedding_store.insert(node_id, embeddings);
     }
-    pub fn add_single_node(&mut self, embed_node: EmbedMemoryNote) {
+    pub fn add_single_node(&mut self, embed_node: EmbeddedMemoryNote) {
         let (id, links) = (embed_node.note().id(), embed_node.note().links().to_owned());
         self.merge_node(embed_node);
         if let Some(&node_index) = self.mem_id_to_index.get(&id) {
@@ -122,8 +119,11 @@ impl MemoryCluster {
                     //SAFEUNWRAP: 以下的unwrap是安全的，因为edge_ref中的source和target在这个时间点总存在
                     let source_id = self.graph.node_weight(edge_ref.source()).unwrap().id();
                     let target_id = self.graph.node_weight(edge_ref.target()).unwrap().id();
-                    let mem_link =
-                        MemoryLink::new(source_id, target_id, edge_ref.weight().to_owned().link_type);
+                    let mem_link = MemoryLink::new(
+                        source_id,
+                        target_id,
+                        edge_ref.weight().to_owned().link_type,
+                    );
                     (edge_ref.source(), mem_link)
                 })
                 .collect::<Vec<_>>();
@@ -182,7 +182,7 @@ impl MemoryCluster {
             None
         }
     }
-    pub fn merge(&mut self, other: Vec<EmbedMemoryNote>) {
+    pub fn merge(&mut self, other: Vec<EmbeddedMemoryNote>) {
         let to_merged_edge = other
             .iter()
             .map(|x| (x.note().id(), x.note().links().to_owned()))
@@ -215,7 +215,7 @@ impl MemoryCluster {
             super_cluster: &self,
         }
     }
-    fn merge_node(&mut self, embed_node: EmbedMemoryNote) -> NodeIndex {
+    fn merge_node(&mut self, embed_node: EmbeddedMemoryNote) -> NodeIndex {
         let node_id = embed_node.note().id();
 
         match self.mem_id_to_index.get(&node_id) {
@@ -258,7 +258,7 @@ impl MemoryCluster {
             }
         }
     }
-    fn merge_nodes(&mut self, nodes: Vec<EmbedMemoryNote>) -> Vec<NodeIndex> {
+    fn merge_nodes(&mut self, nodes: Vec<EmbeddedMemoryNote>) -> Vec<NodeIndex> {
         nodes
             .into_iter()
             .map(|x| self.merge_node(x))
@@ -319,12 +319,12 @@ impl Debug for MemoryCluster {
 pub enum LTQueryType {
     Text(String),
     Id(MemoryId),
-    Embedding(Embedding),
+    Embedding(EmbeddingVec),
 }
 pub enum BatchLTQueryType {
     Text(Vec<String>),
     Id(Vec<MemoryId>),
-    Embedding(Vec<Embedding>), // TODO: 待实现
+    Embedding(Vec<EmbeddingVec>), // TODO: 待实现
 }
 impl BatchLTQueryType {
     pub fn as_text(&self) -> Option<&Vec<String>> {
