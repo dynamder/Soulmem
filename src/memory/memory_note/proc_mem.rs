@@ -1,10 +1,9 @@
-
 //动作类型
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub enum ActionType {
-    Speak, //语气类，说话方式
+    Speak,              //语气类，说话方式
     Skill(SkillRecord), //技能类，例如使用外部工具
-    Think, //思维类，复杂任务中的思考方式倾向等
+    Think,              //思维类，复杂任务中的思考方式倾向等
 }
 impl ActionType {
     pub fn new_speak() -> Self {
@@ -45,13 +44,11 @@ impl Action {
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone)]
 pub struct ProcMemory {
-    action: Action
+    action: Action,
 }
 impl ProcMemory {
     pub fn new(action: Action) -> Self {
-        Self {
-            action,
-        }
+        Self { action }
     }
 }
 impl From<Action> for ProcMemory {
