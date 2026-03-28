@@ -1,4 +1,4 @@
-use crate::memory::{embedding::MemoryEmbedding, memory_note::MemoryId};
+use crate::memory::{embedding::note::MemoryEmbedding, memory_note::MemoryId};
 pub mod association;
 pub mod cached_path;
 pub mod deep_thought;
