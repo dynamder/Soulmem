@@ -1,5 +1,6 @@
 //采用dfs，通过边权中的记忆向量来快速扩展子图信息，详见ReMindRAG
 
+use crate::memory::memory_note::MemoryId;
 use crate::memory::working_memory::WorkingMemory;
 use std::sync::Arc;
 
@@ -18,7 +19,8 @@ impl RetrRequest for CachedPathRequest {}
 
 impl RetrStrategy for RetrCachedPath {
     type Request = CachedPathRequest;
-    fn retrieve(&self, request: Self::Request) -> Vec<crate::memory::memory_note::MemoryId> {
+    type Return<'a> = Vec<MemoryId>;
+    fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
         todo!()
     }
 }

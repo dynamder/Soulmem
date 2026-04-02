@@ -14,14 +14,9 @@ pub struct SimilarityRequest {
 impl RetrRequest for SimilarityRequest {}
 impl RetrStrategy for RetrSimilarity {
     type Request = SimilarityRequest;
-    fn retrieve(&self, request: Self::Request) -> Vec<MemoryId> {
-        //TODO: 减少计算量，以下只是一个最初步的实现
-        let cos_similarities: Vec<(f64, MemoryId)> = vec![]; //TODO: 计算出各个节点的余弦相似度
-        cos_similarities
-            .into_iter()
-            .filter(|(similarity, _)| *similarity > self.similarity_threshold)
-            .map(|(_, id)| id)
-            .take(self.max_results)
-            .collect()
+    type Return<'a> = Vec<MemoryId>;
+
+    fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
+        todo!("This will only be a wrapper for database operation.")
     }
 }

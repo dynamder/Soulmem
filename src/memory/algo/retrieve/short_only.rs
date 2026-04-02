@@ -1,5 +1,7 @@
 use crate::memory::{
-    algo::retrieve::RetrRequest, memory_note::MemoryId, working_memory::WorkingMemory,
+    algo::retrieve::RetrRequest,
+    memory_note::MemoryId,
+    working_memory::{sliding_window::Information, WorkingMemory},
 };
 use std::sync::Arc;
 
@@ -17,7 +19,11 @@ impl RetrRequest for ShortOnlyRequest {}
 
 impl RetrStrategy for RetrShortOnly {
     type Request = ShortOnlyRequest;
-    fn retrieve(&self, request: Self::Request) -> Vec<MemoryId> {
+    type Return<'a>
+        = &'a [Information]
+    where
+        Self: 'a;
+    fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
         todo!()
     }
 }
