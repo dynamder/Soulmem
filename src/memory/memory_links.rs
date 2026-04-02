@@ -34,6 +34,7 @@ pub struct MemoryLink {
     id: LinkId,
     from: MemoryId,
     to: MemoryId,
+    pub intensity: f64,
     link_type: MemoryLinkType,
 }
 
@@ -50,6 +51,7 @@ impl MemoryLink {
             from,
             to,
             link_type,
+            intensity: 1.0,
         }
     }
     pub fn id(&self) -> LinkId {
@@ -67,23 +69,29 @@ impl MemoryLink {
     pub fn link_type_mut(&mut self) -> &mut MemoryLinkType {
         &mut self.link_type
     }
-    pub fn into_tuple(self) -> (MemoryId, MemoryId, MemoryLinkType) {
-        (self.from, self.to, self.link_type)
+    pub fn into_tuple(self) -> (MemoryId, MemoryId, MemoryLinkType, f64) {
+        (self.from, self.to, self.link_type, self.intensity)
     }
-    pub fn from_tuple(from: MemoryId, to: MemoryId, link_type: MemoryLinkType) -> Self {
+    pub fn from_tuple(
+        from: MemoryId,
+        to: MemoryId,
+        link_type: MemoryLinkType,
+        intensity: f64,
+    ) -> Self {
         MemoryLink {
             id: LinkId::default(),
             from,
             to,
             link_type,
+            intensity,
         }
     }
     pub fn into_link_type(self) -> MemoryLinkType {
         self.link_type
     }
 }
-impl From<(MemoryId, MemoryId, MemoryLinkType)> for MemoryLink {
-    fn from(tuple: (MemoryId, MemoryId, MemoryLinkType)) -> Self {
-        MemoryLink::from_tuple(tuple.0, tuple.1, tuple.2)
+impl From<(MemoryId, MemoryId, MemoryLinkType, f64)> for MemoryLink {
+    fn from(tuple: (MemoryId, MemoryId, MemoryLinkType, f64)) -> Self {
+        MemoryLink::from_tuple(tuple.0, tuple.1, tuple.2, tuple.3)
     }
 }
