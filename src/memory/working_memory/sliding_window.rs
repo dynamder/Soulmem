@@ -54,6 +54,9 @@ impl SlidingWindow {
         }
         Ok(())
     }
+    pub fn get_windows(&self) -> &[Information] {
+        &self.window
+    }
     //获取窗口大小
     pub fn len(&self) -> usize {
         self.window.len()
