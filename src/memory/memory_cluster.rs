@@ -24,6 +24,7 @@ use super::memory_note::MemoryNote;
 pub struct GraphMemoryLink {
     id: LinkId,
     link_type: MemoryLinkType,
+    intensity: f64,
 }
 impl GraphMemoryLink {
     pub fn id(&self) -> LinkId {
@@ -32,24 +33,20 @@ impl GraphMemoryLink {
     pub fn link_type(&self) -> &MemoryLinkType {
         &self.link_type
     }
+    pub fn intensity(&self) -> f64 {
+        self.intensity
+    }
 }
 impl From<MemoryLink> for GraphMemoryLink {
     fn from(link: MemoryLink) -> Self {
         GraphMemoryLink {
             id: link.id(),
+            intensity: link.intensity,
             link_type: link.into_link_type(), // extract the link type
         }
     }
 }
 
-impl From<(LinkId, MemoryLinkType)> for GraphMemoryLink {
-    fn from(link: (LinkId, MemoryLinkType)) -> Self {
-        GraphMemoryLink {
-            id: link.0,
-            link_type: link.1,
-        }
-    }
-}
 #[derive(Clone)]
 //TODO: test it, the embedding injection and link store has changed
 pub struct MemoryCluster {
@@ -78,6 +75,12 @@ impl MemoryCluster {
     pub fn graph_mut(&mut self) -> &mut StableDiGraph<MemoryNote, GraphMemoryLink> {
         //Be careful when using this
         &mut self.graph
+    }
+    pub fn get_mem_index(&self, mem_id: MemoryId) -> Option<NodeIndex> {
+        self.mem_id_to_index.get(&mem_id).copied()
+    }
+    pub fn get_link_index(&self, link_id: LinkId) -> Option<EdgeIndex> {
+        self.link_id_to_index.get(&link_id).copied()
     }
     pub fn has_edge(&self, link_id: LinkId) -> bool {
         self.link_id_to_index.contains_key(&link_id)
