@@ -54,8 +54,10 @@ impl SlidingWindow {
         }
         Ok(())
     }
-    pub fn get_windows(&self) -> &[Information] {
-        &self.window
+    pub fn get_windows(&mut self) -> &[Information] {
+        self.window.make_contiguous();
+        let (front, back) = self.window.as_slices();
+        front
     }
     //获取窗口大小
     pub fn len(&self) -> usize {
@@ -273,6 +275,8 @@ mod slidingwindow_test{
         window.push(assistant_info, "assistant", &client).await.expect("Failed to push assistant_information");
         assert_eq!(window.get(0).expect("not found this information").get_str(), "user_info");
         assert_eq!(window.get(1).expect("not found this information").get_str(), "assistant_info");
+        assert_eq!(window.get_windows()[0].get_str(), "user_info");
+        assert_eq!(window.get_windows()[1].get_str(), "assistant_info");
     }
     #[tokio::test]
     async fn sliding_window_test_pop(){
@@ -301,6 +305,8 @@ mod slidingwindow_test{
         window.push(user_info2, "user", &client).await.expect("Failed to push user_information");
         println!("{}", window.summary.read().await.previous_summary)
     }
+
+
     // #[tokio::test]
     // async fn sliding_window_test_summary2(){
     //     dotenvy::dotenv().ok();
