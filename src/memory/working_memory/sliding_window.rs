@@ -1,19 +1,26 @@
-use std::collections::VecDeque;
-use tokio::sync::mpsc;
-use std::sync::Arc;
-use tokio::sync::RwLock;
-use tokio::time::{sleep, Duration};
-use tokio::runtime::Runtime;
-use anyhow::{Error, Result, Context};
-use crate::memory::working_memory::llm::{config::LLMConfig, client::LlmClient, prompt::PromptBuilder};
-use async_openai::{
-    types::chat::{CreateChatCompletionRequest, ChatCompletionRequestMessage, ChatCompletionRequestUserMessageContentPart, ChatCompletionRequestSystemMessage,
-        ChatCompletionRequestUserMessageContent, ChatCompletionRequestMessageContentPartText, ChatCompletionRequestUserMessage, ChatCompletionRequestAssistantMessage},
-    Client, config::Config,
+use crate::memory::working_memory::llm::{
+    client::LlmClient, config::LLMConfig, prompt::PromptBuilder,
 };
-use secrecy::{SecretString, ExposeSecret};
-use std::mem::take;
+use anyhow::{Context, Error, Result};
+use async_openai::{
+    Client,
+    config::Config,
+    types::chat::{
+        ChatCompletionRequestAssistantMessage, ChatCompletionRequestMessage,
+        ChatCompletionRequestMessageContentPartText, ChatCompletionRequestSystemMessage,
+        ChatCompletionRequestUserMessage, ChatCompletionRequestUserMessageContent,
+        ChatCompletionRequestUserMessageContentPart, CreateChatCompletionRequest,
+    },
+};
 use dotenvy::{dotenv, var};
+use secrecy::{ExposeSecret, SecretString};
+use std::collections::VecDeque;
+use std::mem::take;
+use std::sync::Arc;
+use tokio::runtime::Runtime;
+use tokio::sync::RwLock;
+use tokio::sync::mpsc;
+use tokio::time::{Duration, sleep};
 
 //滑动窗口（容器、容量、标记计数、摘要用临时储存）
 pub struct SlidingWindow {
@@ -39,7 +46,7 @@ impl SlidingWindow {
         let mut text = Information::new(value, role);
         text = self.auto_tag(text);
         self.window.push_back(text);
-        if self.window.len() == (self.capacity+1) {
+        if self.window.len() == (self.capacity + 1) {
             self.pop(client).await?;
         }
         Ok(())
@@ -109,7 +116,8 @@ impl SlidingWindow {
     //整合摘要记忆和窗口信息
     async fn merge(&self) {
         let mut messages = self.summary.write().await;
-        let mut previous = ChatCompletionRequestUserMessage::from(messages.previous_summary.as_str()).into();
+        let mut previous =
+            ChatCompletionRequestUserMessage::from(messages.previous_summary.as_str()).into();
         messages.content.clear();
         messages.content.push(ChatCompletionRequestSystemMessage::from(
             "Based on the summary of previous conversation and the information currently in the window, provide a new overall summary.").into());
@@ -137,7 +145,7 @@ impl SlidingWindow {
 
 pub enum Information {
     User(UserInformation),
-    Assistant(AssistantInformation)
+    Assistant(AssistantInformation),
 }
 
 impl From<UserInformation> for Information {
@@ -186,8 +194,14 @@ impl Information {
     }
     pub fn to_message(&self) -> ChatCompletionRequestMessage {
         match self {
-            Information::User(info) => ChatCompletionRequestMessage::from(ChatCompletionRequestUserMessage::from(info.get_str())).into(),
-                Information::Assistant(info) => ChatCompletionRequestMessage::from(ChatCompletionRequestAssistantMessage::from(info.get_str())).into()
+            Information::User(info) => ChatCompletionRequestMessage::from(
+                ChatCompletionRequestUserMessage::from(info.get_str()),
+            )
+            .into(),
+            Information::Assistant(info) => ChatCompletionRequestMessage::from(
+                ChatCompletionRequestAssistantMessage::from(info.get_str()),
+            )
+            .into(),
         }
     }
 }
@@ -199,7 +213,10 @@ pub struct UserInformation {
 
 impl UserInformation {
     pub fn new(text: &str) -> Self {
-        Self { text: text.to_string(), tag: false }
+        Self {
+            text: text.to_string(),
+            tag: false,
+        }
     }
     pub fn get_str(&self) -> &str {
         &self.text
@@ -216,7 +233,10 @@ pub struct AssistantInformation {
 
 impl AssistantInformation {
     pub fn new(text: &str) -> Self {
-        Self { text: text.to_string(), tag: false }
+        Self {
+            text: text.to_string(),
+            tag: false,
+        }
     }
     pub fn get_str(&self) -> &str {
         &self.text
@@ -228,11 +248,14 @@ impl AssistantInformation {
 
 struct MergedInformation {
     content: Vec<ChatCompletionRequestMessage>,
-    previous_summary: String
+    previous_summary: String,
 }
 impl MergedInformation {
     pub fn new() -> Self {
-        Self { content: Vec::new(), previous_summary: String::new() }
+        Self {
+            content: Vec::new(),
+            previous_summary: String::new(),
+        }
     }
     // //将整合后的自身交给call_llm处理，并根据结果自动更新自身
     // async fn call_llm(&mut self, config: MyConfig) -> Result<String> {
@@ -255,57 +278,94 @@ impl PromptBuilder for MergedInformation {
     }
 }
 
-
-
-
-
 #[cfg(test)]
-mod slidingwindow_test{
+mod slidingwindow_test {
     use super::*;
 
     #[tokio::test]
-    async fn sliding_window_test_push(){
+    async fn sliding_window_test_push() {
         dotenvy::dotenv().ok();
-        let client = LlmClient::new(LLMConfig::new(&var("API_KEY").unwrap_or_default(), &var("API_BASE").unwrap_or_default(),
-            &var("MODEL").unwrap_or_default()));
+        let client = LlmClient::new(LLMConfig::new(
+            &var("API_KEY").unwrap_or_default(),
+            &var("API_BASE").unwrap_or_default(),
+            &var("MODEL").unwrap_or_default(),
+        ));
         let mut window = SlidingWindow::new(10);
         let user_info = "user_info";
-        window.push(user_info, "user", &client).await.expect("Failed to push user_information");
+        window
+            .push(user_info, "user", &client)
+            .await
+            .expect("Failed to push user_information");
         let assistant_info = "assistant_info";
-        window.push(assistant_info, "assistant", &client).await.expect("Failed to push assistant_information");
-        assert_eq!(window.get(0).expect("not found this information").get_str(), "user_info");
-        assert_eq!(window.get(1).expect("not found this information").get_str(), "assistant_info");
+        window
+            .push(assistant_info, "assistant", &client)
+            .await
+            .expect("Failed to push assistant_information");
+        assert_eq!(
+            window.get(0).expect("not found this information").get_str(),
+            "user_info"
+        );
+        assert_eq!(
+            window.get(1).expect("not found this information").get_str(),
+            "assistant_info"
+        );
         assert_eq!(window.get_windows()[0].get_str(), "user_info");
         assert_eq!(window.get_windows()[1].get_str(), "assistant_info");
     }
     #[tokio::test]
-    async fn sliding_window_test_pop(){
+    async fn sliding_window_test_pop() {
         dotenvy::dotenv().ok();
-        let client = LlmClient::new(LLMConfig::new(&var("API_KEY").unwrap_or_default(), &var("API_BASE").unwrap_or_default(),
-            &var("MODEL").unwrap_or_default()));
+        let client = LlmClient::new(LLMConfig::new(
+            &var("API_KEY").unwrap_or_default(),
+            &var("API_BASE").unwrap_or_default(),
+            &var("MODEL").unwrap_or_default(),
+        ));
         let mut window = SlidingWindow::new(10);
         let user_info = "user_info";
-        window.push(user_info, "user", &client).await.expect("Failed to push user_information");
+        window
+            .push(user_info, "user", &client)
+            .await
+            .expect("Failed to push user_information");
         let assistant_info = "assistant_info";
-        window.push(assistant_info, "assistant", &client).await.expect("Failed to push assistant_information");
-        window.pop(&client).await.expect("Failed to pop information");
-        assert_eq!(window.get(0).expect("not found this information").get_str(), "assistant_info");
+        window
+            .push(assistant_info, "assistant", &client)
+            .await
+            .expect("Failed to push assistant_information");
+        window
+            .pop(&client)
+            .await
+            .expect("Failed to pop information");
+        assert_eq!(
+            window.get(0).expect("not found this information").get_str(),
+            "assistant_info"
+        );
     }
     #[tokio::test]
-    async fn sliding_window_test_summary(){
+    async fn sliding_window_test_summary() {
         dotenvy::dotenv().ok();
-        let client = LlmClient::new(LLMConfig::new(&var("API_KEY").unwrap_or_default(), &var("API_BASE").unwrap_or_default(),
-            &var("MODEL").unwrap_or_default()));
+        let client = LlmClient::new(LLMConfig::new(
+            &var("API_KEY").unwrap_or_default(),
+            &var("API_BASE").unwrap_or_default(),
+            &var("MODEL").unwrap_or_default(),
+        ));
         let mut window = SlidingWindow::new(2);
         let user_info = "user_info";
-        window.push(user_info, "user", &client).await.expect("Failed to push user_information");
+        window
+            .push(user_info, "user", &client)
+            .await
+            .expect("Failed to push user_information");
         let assistant_info = "assistant_info";
-        window.push(assistant_info, "assistant", &client).await.expect("Failed to push assistant_information");
+        window
+            .push(assistant_info, "assistant", &client)
+            .await
+            .expect("Failed to push assistant_information");
         let user_info2 = "user_info2";
-        window.push(user_info2, "user", &client).await.expect("Failed to push user_information");
+        window
+            .push(user_info2, "user", &client)
+            .await
+            .expect("Failed to push user_information");
         println!("{}", window.summary.read().await.previous_summary)
     }
-
 
     // #[tokio::test]
     // async fn sliding_window_test_summary2(){
