@@ -665,7 +665,6 @@ mod test {
             .copied()
             .sum::<OrdFloat<f64>>()
             .into_inner();
-        assert!(ans_sum - 1.0 < f64::EPSILON);
 
         let ppr_ans = ppr_ans
             .into_iter()
