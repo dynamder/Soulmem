@@ -1,7 +1,7 @@
 use crate::memory::{
     algo::retrieve::RetrRequest,
     memory_note::MemoryId,
-    working_memory::{sliding_window::Information, WorkingMemory},
+    working_memory::{WorkingMemory, sliding_window::Information},
 };
 use std::sync::Arc;
 
@@ -20,10 +20,10 @@ impl RetrRequest for ShortOnlyRequest {}
 impl RetrStrategy for RetrShortOnly {
     type Request = ShortOnlyRequest;
     type Return<'a>
-        = &'a [Information]
+        = Arc<[Information]>
     where
         Self: 'a;
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
-        todo!()
+        todo!("Wait for sliding window refactor")
     }
 }

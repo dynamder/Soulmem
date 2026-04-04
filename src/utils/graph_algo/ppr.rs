@@ -316,9 +316,9 @@ pub fn weighted_ppr_fp<G, D, Q>(
     damping_factor: D,
     personalized_vec: HashMap<G::NodeId, D>,
     residue_threshold: D,
-    weight_calc: impl Fn(&G::EdgeRef, &Q) -> D,
-    dynamic_query: &Q,
-) -> HashMap<G::NodeId, D>
+    weight_calc: impl Fn(&G::EdgeRef, Option<&Q>) -> D,
+    dynamic_query: Option<&Q>,
+) -> Vec<(G::NodeId, D)>
 where
     G: NodeCount + IntoEdges + NodeIndexable + IntoNodeIdentifiers,
     D: UnitMeasure + Copy + AddAssign + Ord,
@@ -440,6 +440,7 @@ mod test {
 
     use mockall::predicate::float;
     use petgraph::{matrix_graph::NodeIndex, prelude::StableDiGraph};
+    use rayon::iter::IntoParallelIterator;
 
     use super::*;
     fn diff(actual: f64, expected: f64) -> f64 {
@@ -612,14 +613,19 @@ mod test {
             source_bias,
             OrdFloat::from_f64(0.002),
             |_, _| OrdFloat::from_f64(1.0),
-            &"1",
+            Some(&"1"),
         );
         let ans_sum: f64 = ppr_ans
-            .values()
+            .iter()
+            .map(|(_, score)| score)
             .copied()
             .sum::<OrdFloat<f64>>()
             .into_inner();
         assert!(ans_sum - 1.0 < f64::EPSILON);
+
+        let ppr_ans = ppr_ans
+            .into_iter()
+            .collect::<HashMap<NodeIndex<u32>, OrdFloat<f64>>>();
 
         let avg_diff = 0.25
             * indexes
@@ -651,13 +657,19 @@ mod test {
             source_bias,
             OrdFloat::from_f64(0.002),
             |_, _| OrdFloat::from_f64(1.0),
-            &"1",
+            Some(&"1"),
         );
         let ans_sum: f64 = ppr_ans
-            .values()
+            .iter()
+            .map(|(_, score)| score)
             .copied()
             .sum::<OrdFloat<f64>>()
             .into_inner();
+        assert!(ans_sum - 1.0 < f64::EPSILON);
+
+        let ppr_ans = ppr_ans
+            .into_iter()
+            .collect::<HashMap<NodeIndex<u32>, OrdFloat<f64>>>();
         assert!(ans_sum - 1.0 < 1e-5, "the sum is: {ans_sum}");
 
         let avg_diff = 0.25
@@ -691,13 +703,19 @@ mod test {
             source_bias,
             OrdFloat::from_f64(0.002),
             |_, _| OrdFloat::from_f64(1.0),
-            &"1",
+            Some(&"1"),
         );
         let ans_sum: f64 = ppr_ans
-            .values()
+            .iter()
+            .map(|(_, score)| score)
             .copied()
             .sum::<OrdFloat<f64>>()
             .into_inner();
+        assert!(ans_sum - 1.0 < f64::EPSILON);
+
+        let ppr_ans = ppr_ans
+            .into_iter()
+            .collect::<HashMap<NodeIndex<u32>, OrdFloat<f64>>>();
         assert!(ans_sum - 1.0 < 1e-5, "the sum is: {ans_sum}");
 
         let avg_diff = 0.25

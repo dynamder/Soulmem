@@ -69,7 +69,7 @@ fn create_large_test_graph(
 /// 简单的边权重计算函数（用于forward push算法）
 fn simple_weight_calc(
     _edge: &petgraph::stable_graph::EdgeReference<OrdFloat<f64>>,
-    _query: &(),
+    _query: Option<&()>,
 ) -> OrdFloat<f64> {
     OrdFloat::from(1.0)
 }
@@ -143,7 +143,7 @@ fn bench_basic_comparison(c: &mut Criterion) {
                 black_box(source_bias.clone()),
                 black_box(OrdFloat::from(0.0001)),
                 black_box(simple_weight_calc),
-                black_box(&()),
+                black_box(Some(&())),
             );
             black_box(result);
         });
@@ -198,7 +198,7 @@ fn bench_forward_push_variants(c: &mut Criterion) {
                     black_box(source_bias.clone()),
                     black_box(OrdFloat::from(*threshold)),
                     black_box(simple_weight_calc),
-                    black_box(&()),
+                    black_box(Some(&())),
                 );
                 black_box(result);
             });
@@ -239,7 +239,7 @@ fn bench_damping_factors(c: &mut Criterion) {
                     black_box(source_bias.clone()),
                     black_box(OrdFloat::from(0.0001)),
                     black_box(simple_weight_calc),
-                    black_box(&()),
+                    black_box(Some(&())),
                 );
                 black_box(result);
             });
@@ -284,7 +284,7 @@ fn bench_medium_scale_performance(c: &mut Criterion) {
                     black_box(source_bias.clone()),
                     black_box(OrdFloat::from(0.0001)),
                     black_box(simple_weight_calc),
-                    black_box(&()),
+                    black_box(Some(&())),
                 );
                 black_box(result);
             });
@@ -316,7 +316,7 @@ fn bench_large_scale_performance(c: &mut Criterion) {
                     black_box(source_bias.clone()),
                     black_box(OrdFloat::from(0.0001)),
                     black_box(simple_weight_calc),
-                    black_box(&()),
+                    black_box(Some(&())),
                 );
                 black_box(result);
             });

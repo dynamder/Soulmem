@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct PrioritizedMemoryRetrieveQuery {
-    priority: u32, //优先级将决定最终混合一个MemoryNote的检索分数时的权重
+    priority: u32, //优先级将决定最终混合一个MemoryNote的检索分数时的权重, similarity和cached_path检索策略会使用
     query: MemoryRetrieveQuery,
 }
 
