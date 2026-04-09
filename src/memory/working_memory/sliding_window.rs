@@ -193,36 +193,30 @@ impl Information {
 }
 
 pub struct UserInformation {
-    pub text: String,
+    pub text: Arc<str>,
     pub tag: bool,
 }
 
 impl UserInformation {
     pub fn new(text: &str) -> Self {
-        Self { text: text.to_string(), tag: false }
+        Self { text: Arc::from(text), tag: false }
     }
     pub fn get_str(&self) -> &str {
         &self.text
     }
-    pub fn get_mut_str(&mut self) -> &mut String {
-        &mut self.text
-    }
 }
 
 pub struct AssistantInformation {
-    pub text: String,
+    pub text: Arc<str>,
     pub tag: bool,
 }
 
 impl AssistantInformation {
     pub fn new(text: &str) -> Self {
-        Self { text: text.to_string(), tag: false }
+        Self { text: Arc::from(text), tag: false }
     }
     pub fn get_str(&self) -> &str {
         &self.text
-    }
-    pub fn get_mut_str(&mut self) -> &mut String {
-        &mut self.text
     }
 }
 
