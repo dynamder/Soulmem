@@ -15,10 +15,10 @@ use crate::memory::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding};
 use crate::memory::embedding::{Embeddable, EmbeddingModel, EmbeddingVec};
 use crate::memory::memory_links::{LinkId, MemoryLinkType};
 
-use super::memory_note::MemoryId;
+use crate::memory::memory_note::MemoryId;
 
-use super::memory_links::MemoryLink;
-use super::memory_note::MemoryNote;
+use crate::memory::memory_links::MemoryLink;
+use crate::memory::memory_note::MemoryNote;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct GraphMemoryLink {
@@ -316,31 +316,6 @@ impl Debug for MemoryCluster {
     }
 }
 
-pub enum LTQueryType {
-    Text(String),
-    Id(MemoryId),
-    Embedding(EmbeddingVec),
-}
-pub enum BatchLTQueryType {
-    Text(Vec<String>),
-    Id(Vec<MemoryId>),
-    Embedding(Vec<EmbeddingVec>), // TODO: 待实现
-}
-impl BatchLTQueryType {
-    pub fn as_text(&self) -> Option<&Vec<String>> {
-        match self {
-            BatchLTQueryType::Text(text) => Some(text),
-            _ => None,
-        }
-    }
-    pub fn as_id(&self) -> Option<&Vec<MemoryId>> {
-        match self {
-            BatchLTQueryType::Id(id) => Some(id),
-            _ => None,
-        }
-    }
-}
-
 //TODO: test it
 #[derive(Debug, Clone)]
 pub struct MemorySubCluster<'a> {
@@ -386,6 +361,7 @@ pub enum ClusterError {
     EdgeNotContained(LinkId),
     //PlaceHolder for now
 }
+
 //WARNING: Legacy Code below, maybe useful for later reuse
 
 // pub struct LTMemoryQuery {
@@ -459,6 +435,7 @@ pub enum ClusterError {
 //     }
 // }
 
+#[cfg(test)]
 mod test {
     // #[allow(unused_imports)]
     // use super::*;

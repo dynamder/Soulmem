@@ -1,13 +1,13 @@
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 pub mod llm;
 pub mod record;
 pub mod sliding_window;
 
-use self::sliding_window::SlidingWindow;
 use self::record::{Record, UserFeedback};
-use crate::memory::memory_cluster::MemoryCluster;
+use self::sliding_window::SlidingWindow;
+use crate::memory::cluster::memory_cluster::MemoryCluster;
 use crate::memory::embedding::note::EmbeddedMemoryNote;
 use crate::memory::memory_note::MemoryId;
 
@@ -17,7 +17,6 @@ pub enum WorkingState {
     Idle,
     Working,
 }
-
 
 // 工作记忆结构体(SlidingWindow & MemoryCluster & records)
 pub struct WorkingMemory {
@@ -37,7 +36,6 @@ impl WorkingMemory {
         }
     }
 
-
     // 状态机
     pub fn state(&self) -> &WorkingState {
         &self.state
@@ -55,7 +53,6 @@ impl WorkingMemory {
         self.state == WorkingState::Working
     }
 
-
     // 滑动窗口引用
     pub fn sliding_window(&self) -> &SlidingWindow {
         &self.sliding_window
@@ -65,19 +62,21 @@ impl WorkingMemory {
         &mut self.sliding_window
     }
 
-
     // Cluster
     pub fn add_node(&mut self, node: EmbeddedMemoryNote) {
         let node_id = node.note().id();
         self.memory_cluster.add_single_node(node);
-        
+
         if !self.records.contains_key(&node_id) {
             self.records.insert(node_id, Record::new(node_id));
         }
     }
 
     /// 移除节点，同时移除对应的记录
-    pub fn remove_node(&mut self, node_id: MemoryId) -> Option<crate::memory::memory_note::MemoryNote> {
+    pub fn remove_node(
+        &mut self,
+        node_id: MemoryId,
+    ) -> Option<crate::memory::memory_note::MemoryNote> {
         self.records.remove(&node_id);
         self.memory_cluster.remove_single_node(node_id)
     }
@@ -89,7 +88,6 @@ impl WorkingMemory {
     pub fn memory_cluster_mut(&mut self) -> &mut MemoryCluster {
         &mut self.memory_cluster
     }
-
 
     // Record
     pub fn record_retrieval(&mut self, node_id: MemoryId) {
