@@ -38,6 +38,18 @@ impl SemanticEmbedding {
     pub fn description(&self) -> &EmbeddingVec {
         &self.description
     }
+    #[cfg(test)]
+    pub fn new_for_test(
+        content: EmbeddingVec,
+        fused_aliases: EmbeddingVec,
+        description: EmbeddingVec,
+    ) -> Self {
+        Self {
+            content,
+            fused_aliases,
+            description,
+        }
+    }
 }
 
 impl Embeddable for SemMemory {

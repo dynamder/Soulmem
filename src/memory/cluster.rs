@@ -1,4 +1,4 @@
-pub mod cluster_actor;
+pub mod cluster_handle;
 pub mod memory_cluster;
 
 #[cfg(test)]

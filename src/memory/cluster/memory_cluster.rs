@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use parking_lot::RwLock;
 use petgraph::prelude::{EdgeIndex, NodeIndex, StableDiGraph};
 use petgraph::visit::EdgeRef;
 use petgraph::{Direction, Undirected};
@@ -11,6 +12,7 @@ use std::sync::Arc;
 use thiserror::Error;
 use uuid::Uuid;
 
+use crate::memory::cluster::cluster_handle::MemoryClusterHandle;
 use crate::memory::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding};
 use crate::memory::embedding::{Embeddable, EmbeddingModel, EmbeddingVec};
 use crate::memory::memory_links::{LinkId, MemoryLinkType};
@@ -79,6 +81,13 @@ impl MemoryCluster {
         //Be careful when using this
         &mut self.graph
     }
+
+    pub fn into_handle(self) -> MemoryClusterHandle {
+        MemoryClusterHandle {
+            cluster: Arc::new(RwLock::new(self)),
+        }
+    }
+
     pub fn has_edge(&self, link_id: LinkId) -> bool {
         self.link_id_to_index.contains_key(&link_id)
     }
