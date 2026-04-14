@@ -1,5 +1,6 @@
 pub mod algo;
 pub mod cluster;
+pub mod consolidation;
 pub mod embedding;
 pub mod memory_links;
 pub mod memory_note;
