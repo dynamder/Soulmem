@@ -52,35 +52,41 @@ impl RetrStrategy for RetrAssociation {
             .option_confidence_factor(request.confidence_factor)
             .build();
 
-        let graph = request.working_mem.memory_cluster().graph();
-        let personalized_vec = request
-            .source
-            .into_iter()
-            .filter_map(|(id, weight)| {
-                request
-                    .working_mem
-                    .memory_cluster()
-                    .get_mem_index(id)
-                    .map(|index| (index, OrdFloat::from_f64(weight)))
-            })
-            .collect();
+        let mem_cluster = request.working_mem.memory_cluster();
 
-        let res = weighted_ppr_fp(
-            graph,
-            OrdFloat::from_f64(request.damping_factor),
-            personalized_vec,
-            OrdFloat::from_f64(request.residue_threshold),
-            dyn_weight_func,
-            None,
-        );
-        let mut res = res
-            .into_iter()
-            .filter_map(|(index, score)| {
-                graph
-                    .node_weight(index)
-                    .map(|memory_note| (memory_note.note().id(), score))
-            })
-            .collect::<Vec<(MemoryId, OrdFloat<f64>)>>();
+        let personalized_vec = mem_cluster.read_or_compute(|cluster| {
+            request
+                .source
+                .into_iter()
+                .filter_map(|(id, weight)| {
+                    cluster
+                        .get_mem_index(id)
+                        .map(|index| (index, OrdFloat::from_f64(weight)))
+                })
+                .collect()
+        });
+
+        let res = mem_cluster.read_or_compute(|cluster| {
+            weighted_ppr_fp(
+                cluster.graph(),
+                OrdFloat::from_f64(request.damping_factor),
+                personalized_vec,
+                OrdFloat::from_f64(request.residue_threshold),
+                dyn_weight_func,
+                None,
+            )
+        });
+
+        let mut res = mem_cluster.read_or_compute(|cluster| {
+            res.into_iter()
+                .filter_map(|(index, score)| {
+                    cluster
+                        .graph()
+                        .node_weight(index)
+                        .map(|memory_note| (memory_note.note().id(), score))
+                })
+                .collect::<Vec<(MemoryId, OrdFloat<f64>)>>()
+        });
 
         res.sort_by(|x, y| y.1.partial_cmp(&x.1).unwrap_or(std::cmp::Ordering::Equal));
 
