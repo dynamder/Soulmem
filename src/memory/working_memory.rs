@@ -73,10 +73,7 @@ impl WorkingMemory {
     }
 
     /// 移除节点，同时移除对应的记录
-    pub fn remove_node(
-        &mut self,
-        node_id: MemoryId,
-    ) -> Option<crate::memory::memory_note::MemoryNote> {
+    pub fn remove_node(&mut self, node_id: MemoryId) -> Option<EmbeddedMemoryNote> {
         self.records.remove(&node_id);
         self.memory_cluster.remove_single_node(node_id)
     }

@@ -55,11 +55,11 @@ impl From<(LinkId, MemoryLinkType)> for GraphMemoryLink {
 #[derive(Clone)]
 //TODO: test it, the embedding injection and link store has changed
 pub struct MemoryCluster {
-    graph: StableDiGraph<MemoryNote, GraphMemoryLink>,
+    graph: StableDiGraph<EmbeddedMemoryNote, GraphMemoryLink>,
     mem_id_to_index: HashMap<MemoryId, NodeIndex>,
     link_id_to_index: HashMap<LinkId, EdgeIndex>,
     incompletely_linked_note: HashMap<MemoryId, Vec<(NodeIndex, MemoryLink)>>, //目标节点的uuid，Vec<(源节点的index，关系)>，TODO：或许这里可以直接用GraphMemoryLink减少不必要的构造
-    embedding_store: HashMap<MemoryId, MemoryEmbedding>, //由于link储存在source节点，source节点不在图中，link则不可知，因此source节点通常总是有效
+                                                                               //embedding_store: HashMap<MemoryId, MemoryEmbedding>, //由于link储存在source节点，source节点不在图中，link则不可知，因此source节点通常总是有效
 }
 impl MemoryCluster {
     pub fn new() -> Self {
@@ -68,16 +68,16 @@ impl MemoryCluster {
             mem_id_to_index: HashMap::new(),
             link_id_to_index: HashMap::new(),
             incompletely_linked_note: HashMap::new(),
-            embedding_store: HashMap::new(),
+            //embedding_store: HashMap::new(),
         }
     }
     // 获取内部图的不可变引用
-    pub fn graph(&self) -> &StableDiGraph<MemoryNote, GraphMemoryLink> {
+    pub fn graph(&self) -> &StableDiGraph<EmbeddedMemoryNote, GraphMemoryLink> {
         &self.graph
     }
 
     // 获取内部图的可变引用
-    pub fn graph_mut(&mut self) -> &mut StableDiGraph<MemoryNote, GraphMemoryLink> {
+    pub fn graph_mut(&mut self) -> &mut StableDiGraph<EmbeddedMemoryNote, GraphMemoryLink> {
         //Be careful when using this
         &mut self.graph
     }
@@ -91,9 +91,9 @@ impl MemoryCluster {
     pub fn has_edge(&self, link_id: LinkId) -> bool {
         self.link_id_to_index.contains_key(&link_id)
     }
-    fn add_embeddings(&mut self, node_id: MemoryId, embeddings: MemoryEmbedding) {
-        self.embedding_store.insert(node_id, embeddings);
-    }
+    // fn add_embeddings(&mut self, node_id: MemoryId, embeddings: MemoryEmbedding) {
+    //     self.embedding_store.insert(node_id, embeddings);
+    // }
     pub fn add_single_node(&mut self, embed_node: EmbeddedMemoryNote) {
         let (id, links) = (embed_node.note().id(), embed_node.note().links().to_owned());
         self.merge_node(embed_node);
@@ -105,15 +105,15 @@ impl MemoryCluster {
     pub fn refresh_node(&mut self, node: &MemoryId) {
         if let Some(node_index) = self.mem_id_to_index.get(node) {
             if let Some(node) = self.graph.node_weight(*node_index) {
-                self.merge_edges(*node_index, node.links().to_owned());
+                self.merge_edges(*node_index, node.note.links().to_owned());
             }
         }
     }
     /// 删除单个节点，返回被删除的节点，并清理冗余项目，添加pending边
-    pub fn remove_single_node(&mut self, node_id: MemoryId) -> Option<MemoryNote> {
+    pub fn remove_single_node(&mut self, node_id: MemoryId) -> Option<EmbeddedMemoryNote> {
         //TODO: test it
         if let Some(idx) = self.mem_id_to_index.remove(&node_id) {
-            self.embedding_store.remove(&node_id);
+            //self.embedding_store.remove(&node_id);
             //清理所有pending的边中，源节点是node_id的项
             self.incompletely_linked_note
                 .values_mut()
@@ -126,8 +126,18 @@ impl MemoryCluster {
                 .edges_directed(idx, Direction::Incoming)
                 .map(|edge_ref| {
                     //SAFEUNWRAP: 以下的unwrap是安全的，因为edge_ref中的source和target在这个时间点总存在
-                    let source_id = self.graph.node_weight(edge_ref.source()).unwrap().id();
-                    let target_id = self.graph.node_weight(edge_ref.target()).unwrap().id();
+                    let source_id = self
+                        .graph
+                        .node_weight(edge_ref.source())
+                        .unwrap()
+                        .note()
+                        .id();
+                    let target_id = self
+                        .graph
+                        .node_weight(edge_ref.target())
+                        .unwrap()
+                        .note()
+                        .id();
                     let mem_link = MemoryLink::new(
                         source_id,
                         target_id,
@@ -144,15 +154,16 @@ impl MemoryCluster {
             None
         }
     }
-    pub fn get_node(&self, node_id: MemoryId) -> Option<&MemoryNote> {
+    pub fn get_node(&self, node_id: MemoryId) -> Option<&EmbeddedMemoryNote> {
         self.mem_id_to_index
             .get(&node_id)
             .and_then(|&index| self.graph.node_weight(index))
     }
     pub fn get_embedding(&self, node_id: MemoryId) -> Option<&MemoryEmbedding> {
-        self.embedding_store.get(&node_id)
+        let idx = self.mem_id_to_index.get(&node_id)?;
+        self.graph.node_weight(*idx).map(|node| &node.embedding)
     }
-    pub fn get_node_mut(&mut self, node_id: MemoryId) -> Option<&mut MemoryNote> {
+    pub fn get_node_mut(&mut self, node_id: MemoryId) -> Option<&mut EmbeddedMemoryNote> {
         self.mem_id_to_index
             .get(&node_id)
             .and_then(|&index| self.graph.node_weight_mut(index))
@@ -231,20 +242,20 @@ impl MemoryCluster {
             Some(&index) if self.graph.contains_node(index) => {
                 // 节点存在且有效
                 if let Some(existing_node) = self.graph.node_weight_mut(index) {
-                    existing_node.retrieval_increment();
+                    existing_node.note.retrieval_increment();
                 }
                 index
             }
             _ => {
                 // 节点不存在或索引无效
-                self.add_new_node(embed_node.into_tuple())
+                self.add_new_node(embed_node)
             }
         }
     }
-    fn add_new_node(&mut self, embed_node: (MemoryNote, MemoryEmbedding)) -> NodeIndex {
-        let node_id = embed_node.0.id();
+    fn add_new_node(&mut self, embed_node: EmbeddedMemoryNote) -> NodeIndex {
+        let node_id = embed_node.note().id();
 
-        let index = self.graph.add_node(embed_node.0);
+        let index = self.graph.add_node(embed_node);
 
         // 清理可能存在的无效索引
         //self.id_to_index.remove(&node_id);
