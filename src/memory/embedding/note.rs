@@ -18,6 +18,10 @@ impl MemoryEmbedding {
     pub fn variant(&self) -> &MemoryEmbeddingVariant {
         &self.variant
     }
+    #[cfg(test)]
+    pub fn new_for_test(tag: EmbeddingVec, variant: MemoryEmbeddingVariant) -> Self {
+        Self { tag, variant }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
