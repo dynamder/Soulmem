@@ -24,6 +24,6 @@ impl RetrStrategy for RetrShortOnly {
     where
         Self: 'a;
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
-        todo!("Wait for sliding window refactor")
+        request.working_mem.sliding_window().get_windows()
     }
 }

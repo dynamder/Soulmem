@@ -21,6 +21,6 @@ impl RetrStrategy for RetrCachedPath {
     type Request = CachedPathRequest;
     type Return<'a> = Vec<MemoryId>;
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
-        todo!()
+        todo!("This will not be included in the MVP.")
     }
 }

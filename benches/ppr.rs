@@ -68,6 +68,7 @@ fn create_large_test_graph(
 
 /// 简单的边权重计算函数（用于forward push算法）
 fn simple_weight_calc(
+    _graph: &StableDiGraph<String, OrdFloat<f64>>,
     _edge: &petgraph::stable_graph::EdgeReference<OrdFloat<f64>>,
     _query: Option<&()>,
 ) -> OrdFloat<f64> {

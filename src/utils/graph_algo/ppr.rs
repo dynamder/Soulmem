@@ -316,7 +316,7 @@ pub fn weighted_ppr_fp<G, D, Q>(
     damping_factor: D,
     personalized_vec: HashMap<G::NodeId, D>,
     residue_threshold: D,
-    weight_calc: impl Fn(&G::EdgeRef, Option<&Q>) -> D,
+    weight_calc: impl Fn(G, &G::EdgeRef, Option<&Q>) -> D,
     dynamic_query: Option<&Q>,
 ) -> Vec<(G::NodeId, D)>
 where
@@ -373,7 +373,7 @@ where
             //println!("Calculating edge weights for node {}", residue_i.idx);
             let weights = out_edges
                 .map(|edge| {
-                    let weight = weight_calc(&edge, dynamic_query);
+                    let weight = weight_calc(graph, &edge, dynamic_query);
                     EdgeWeightUnit {
                         target_node: edge.target(),
                         idx: edge.id(),
@@ -612,7 +612,7 @@ mod test {
             OrdFloat::from_f64(0.15),
             source_bias,
             OrdFloat::from_f64(0.002),
-            |_, _| OrdFloat::from_f64(1.0),
+            |_, _, _| OrdFloat::from_f64(1.0),
             Some(&"1"),
         );
         let ans_sum: f64 = ppr_ans
@@ -656,7 +656,7 @@ mod test {
             OrdFloat::from_f64(0.15),
             source_bias,
             OrdFloat::from_f64(0.002),
-            |_, _| OrdFloat::from_f64(1.0),
+            |_, _, _| OrdFloat::from_f64(1.0),
             Some(&"1"),
         );
         let ans_sum: f64 = ppr_ans
@@ -701,7 +701,7 @@ mod test {
             OrdFloat::from_f64(0.15),
             source_bias,
             OrdFloat::from_f64(0.002),
-            |_, _| OrdFloat::from_f64(1.0),
+            |_, _, _| OrdFloat::from_f64(1.0),
             Some(&"1"),
         );
         let ans_sum: f64 = ppr_ans

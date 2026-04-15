@@ -1,5 +1,6 @@
 use crate::memory::{embedding::note::MemoryEmbedding, memory_note::MemoryId};
 pub mod association;
+pub mod bayesian_action;
 pub mod cached_path;
 pub mod short_only;
 pub mod similarity;

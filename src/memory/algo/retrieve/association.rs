@@ -1,7 +1,11 @@
 use crate::{
-    memory::cluster::memory_cluster::GraphMemoryLink, utils::graph_algo::ord_float::OrdFloat,
+    memory::{
+        cluster::memory_cluster::GraphMemoryLink, embedding::note::EmbeddedMemoryNote,
+        memory_note::MemoryType,
+    },
+    utils::graph_algo::ord_float::OrdFloat,
 };
-use petgraph::algo::UnitMeasure;
+use petgraph::{algo::UnitMeasure, visit::EdgeRef};
 use std::sync::Arc;
 
 use petgraph::{
@@ -24,9 +28,8 @@ use crate::{
 use super::RetrStrategy;
 
 //用PPR变种算法进行联想
-pub struct RetrAssociation {
-    pub max_results: usize,
-}
+pub struct RetrAssociation;
+
 pub struct AssociationRequest {
     working_mem: Arc<WorkingMemory>,
     source: Vec<(MemoryId, f64)>,
@@ -94,6 +97,7 @@ pub enum TypePreference {
 }
 
 type MemClusterEdgeRef<'a> = EdgeReference<'a, GraphMemoryLink>;
+type MemClusterGraph = StableDiGraph<EmbeddedMemoryNote, GraphMemoryLink>;
 
 pub struct DynWeightFuncBuilder {
     intensity_factor: Option<f64>,
@@ -133,10 +137,23 @@ impl DynWeightFuncBuilder {
     //TODO: 测试其是否正确工作
     pub fn build(
         self,
-    ) -> impl Fn(&MemClusterEdgeRef, Option<&PrioritizedMemoryRetrieveQuery>) -> OrdFloat<f64> {
+    ) -> impl Fn(
+        &MemClusterGraph,
+        &MemClusterEdgeRef,
+        Option<&PrioritizedMemoryRetrieveQuery>,
+    ) -> OrdFloat<f64> {
         let intensity_factor = self.intensity_factor.unwrap_or(1.0);
         let confidence_factor = self.confidence_factor.unwrap_or(0.8);
-        move |edge: &MemClusterEdgeRef, _query: Option<&PrioritizedMemoryRetrieveQuery>| {
+        move |graph: &MemClusterGraph,
+              edge: &MemClusterEdgeRef,
+              _query: Option<&PrioritizedMemoryRetrieveQuery>| {
+            if let Some(target_weight) = graph.node_weight(edge.target()) {
+                match target_weight.note().mem_type() {
+                    // Proc类型不能被ppr联想，将由触发的情境进行贝叶斯推理
+                    MemoryType::Procedure(_) => return OrdFloat::from_f64(0.0),
+                    _ => {}
+                }
+            }
             let intensity = edge.weight().intensity();
             let (confidence_boost, type_boost) = match edge.weight().link_type() {
                 MemoryLinkType::Proc(_) => (0.0, 0.0), // Proc类型记忆不提升置信度, 设想一定程度抑制直接的Proc提取。

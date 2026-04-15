@@ -256,7 +256,7 @@ mod tests {
                 OrdFloat::from_f64(0.85),
                 source_bias,
                 OrdFloat::from_f64(0.001),
-                |_, _| OrdFloat::from_f64(1.0),
+                |_, _, _| OrdFloat::from_f64(1.0),
                 Some(&"query"),
             )
         });
