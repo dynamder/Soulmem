@@ -13,6 +13,7 @@ use async_openai::{
     },
 };
 use dotenvy::{dotenv, var};
+use parking_lot::RwLock as ParkRwLock;
 use secrecy::{ExposeSecret, SecretString};
 use std::mem::take;
 use std::sync::Arc;
@@ -24,7 +25,7 @@ use tokio::time::{Duration, sleep};
 
 //滑动窗口（容器、容量、标记计数、摘要用临时储存）
 pub struct SlidingWindow {
-    window: Arc<RwLock<VecDeque<Information>>>,
+    window: Arc<ParkRwLock<VecDeque<Information>>>,
     capacity: AtomicUsize,
     tag_count: AtomicUsize,
     summary: Arc<RwLock<MergedInformation>>,
@@ -35,7 +36,7 @@ impl SlidingWindow {
     pub fn new(capacity: usize) -> Self {
         dotenv().ok();
         Self {
-            window: Arc::new(RwLock::new(VecDeque::with_capacity(capacity + 1))),
+            window: Arc::new(ParkRwLock::new(VecDeque::with_capacity(capacity + 1))),
             capacity: AtomicUsize::from(capacity),
             tag_count: AtomicUsize::from(capacity),
             summary: Arc::new(RwLock::new(MergedInformation::new())),
@@ -46,14 +47,20 @@ impl SlidingWindow {
         let mut text = Information::new(value, role);
         text = self.auto_tag(text);
 
-        let mut window = self.window.write().await;
-        window.push_back(text);
+        {
+            let mut window = self.window.write();
+            window.push_back(text);
+        }
+
+        let window_len = {
+            let window = self.window.read();
+            window.len()
+        };
 
         //TODO: may have problem with the memory ordering, test it.
         let window_capacity = self.capacity.load(std::sync::atomic::Ordering::Relaxed);
 
-        if window.len() == window_capacity + 1 {
-            drop(window);
+        if window_len == window_capacity + 1 {
             self.pop(client).await?;
         }
         Ok(())
@@ -61,7 +68,7 @@ impl SlidingWindow {
     //信息滑出，若信息被标记则进行摘要
     pub async fn pop(&self, client: &LlmClient) -> Result<()> {
         let target = {
-            let mut window = self.window.write().await;
+            let mut window = self.window.write();
             window.pop_front()
         };
         if let Some(value) = target {
@@ -71,13 +78,13 @@ impl SlidingWindow {
         }
         Ok(())
     }
-    pub async fn get_windows(&self) -> Arc<[Information]> {
-        let window = self.window.read().await;
+    pub fn get_windows(&self) -> Arc<[Information]> {
+        let window = self.window.read();
         Arc::from(window.iter().cloned().collect::<Vec<_>>())
     }
     //获取窗口大小
-    pub async fn len(&self) -> usize {
-        self.window.read().await.len()
+    pub fn len(&self) -> usize {
+        self.window.read().len()
     }
     //获取窗口容量
     pub fn get_capacity(&self) -> usize {
@@ -90,31 +97,31 @@ impl SlidingWindow {
             .store(val, std::sync::atomic::Ordering::Release);
     }
     //获取窗口中指定索引的信息
-    pub async fn get(&self, index: usize) -> Option<Information> {
-        self.window.read().await.get(index).cloned()
+    pub fn get(&self, index: usize) -> Option<Information> {
+        self.window.read().get(index).cloned()
     }
 
     //判断窗口是否为空
-    pub async fn is_empty(&self) -> bool {
-        self.window.read().await.is_empty()
+    pub fn is_empty(&self) -> bool {
+        self.window.read().is_empty()
     }
     //清空窗口内容
-    pub async fn clear(&self) {
-        self.window.write().await.clear();
+    pub fn clear(&self) {
+        self.window.write().clear();
         self.tag_count
             .store(0, std::sync::atomic::Ordering::Release);
     }
     //标记用
-    pub async fn tag_information(&self, index: usize) {
+    pub fn tag_information(&self, index: usize) {
         if index < self.capacity.load(std::sync::atomic::Ordering::Relaxed) {
-            let mut window = self.window.write().await;
+            let mut window = self.window.write();
             window[index].tag_information();
         }
     }
     //取消标记用
-    pub async fn untag_information(&self, index: usize) {
+    pub fn untag_information(&self, index: usize) {
         if index < self.capacity.load(std::sync::atomic::Ordering::Relaxed) {
-            let mut window = self.window.write().await;
+            let mut window = self.window.write();
             window[index].untag_information();
         }
     }
@@ -141,7 +148,7 @@ impl SlidingWindow {
             "Based on the summary of previous conversation and the information currently in the window, provide a new overall summary.").into());
         messages.content.push(previous);
 
-        let window = self.window.read().await;
+        let window = self.window.read();
         for message in window.iter() {
             messages.content.push(message.to_message())
         }
@@ -320,23 +327,15 @@ mod slidingwindow_test {
             .await
             .expect("Failed to push assistant_information");
         assert_eq!(
-            window
-                .get(0)
-                .await
-                .expect("not found this information")
-                .get_str(),
+            window.get(0).expect("not found this information").get_str(),
             "user_info"
         );
         assert_eq!(
-            window
-                .get(1)
-                .await
-                .expect("not found this information")
-                .get_str(),
+            window.get(1).expect("not found this information").get_str(),
             "assistant_info"
         );
-        assert_eq!(window.get_windows().await[0].get_str(), "user_info");
-        assert_eq!(window.get_windows().await[1].get_str(), "assistant_info");
+        assert_eq!(window.get_windows()[0].get_str(), "user_info");
+        assert_eq!(window.get_windows()[1].get_str(), "assistant_info");
     }
     #[tokio::test]
     async fn sliding_window_test_pop() {
@@ -362,11 +361,7 @@ mod slidingwindow_test {
             .await
             .expect("Failed to pop information");
         assert_eq!(
-            window
-                .get(0)
-                .await
-                .expect("not found this information")
-                .get_str(),
+            window.get(0).expect("not found this information").get_str(),
             "assistant_info"
         );
     }
@@ -450,7 +445,7 @@ mod slidingwindow_test {
         }
 
         handle.await.expect("Task join failed");
-        assert_eq!(window.len().await, 100);
+        assert_eq!(window.len(), 100);
     }
 
     #[tokio::test]
@@ -476,13 +471,13 @@ mod slidingwindow_test {
 
         let read_handle = tokio::spawn(async move {
             sleep(Duration::from_millis(10)).await;
-            window_read.len().await
+            window_read.len()
         });
 
         write_handle.await.expect("Write task join failed");
         let len = read_handle.await.expect("Read task join failed");
         assert!(len > 0);
-        assert_eq!(window.len().await, 25);
+        assert_eq!(window.len(), 25);
     }
 
     #[tokio::test]
@@ -510,8 +505,8 @@ mod slidingwindow_test {
         });
 
         pop_handle.await.expect("Pop task join failed");
-        
-        let len = window.len().await;
+
+        let len = window.len();
         assert_eq!(len, 2);
     }
 
@@ -534,14 +529,18 @@ mod slidingwindow_test {
 
         let handle1 = tokio::spawn(async move {
             for i in 0..5 {
-                (&*window1).push(&format!("t1_{}", i), "user", &client1).await?;
+                (&*window1)
+                    .push(&format!("t1_{}", i), "user", &client1)
+                    .await?;
             }
             Ok::<(), anyhow::Error>(())
         });
 
         let handle2 = tokio::spawn(async move {
             for i in 0..5 {
-                (&*window2).push(&format!("t2_{}", i), "user", &client2).await?;
+                (&*window2)
+                    .push(&format!("t2_{}", i), "user", &client2)
+                    .await?;
             }
             Ok::<(), anyhow::Error>(())
         });
@@ -555,7 +554,7 @@ mod slidingwindow_test {
             .expect("Task 2 join failed")
             .expect("Task 2 failed");
 
-        assert_eq!(window.len().await, 10);
+        assert_eq!(window.len(), 10);
     }
 
     #[tokio::test]
