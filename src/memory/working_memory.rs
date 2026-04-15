@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 pub mod llm;
 pub mod record;
@@ -7,6 +8,7 @@ pub mod sliding_window;
 
 use self::record::{Record, UserFeedback};
 use self::sliding_window::SlidingWindow;
+use crate::memory::cluster::cluster_handle::MemoryClusterHandle;
 use crate::memory::cluster::memory_cluster::MemoryCluster;
 use crate::memory::embedding::note::EmbeddedMemoryNote;
 use crate::memory::memory_note::MemoryId;
@@ -22,7 +24,7 @@ pub enum WorkingState {
 pub struct WorkingMemory {
     state: WorkingState,
     sliding_window: SlidingWindow,
-    memory_cluster: MemoryCluster,
+    memory_cluster: MemoryClusterHandle,
     records: HashMap<MemoryId, Record>,
 }
 
@@ -31,7 +33,7 @@ impl WorkingMemory {
         Self {
             state: WorkingState::Idle,
             sliding_window: SlidingWindow::new(window_capacity),
-            memory_cluster: MemoryCluster::new(),
+            memory_cluster: MemoryCluster::new().into_handle(),
             records: HashMap::new(),
         }
     }
@@ -65,7 +67,8 @@ impl WorkingMemory {
     // Cluster
     pub fn add_node(&mut self, node: EmbeddedMemoryNote) {
         let node_id = node.note().id();
-        self.memory_cluster.add_single_node(node);
+        self.memory_cluster
+            .write(|cluster| cluster.add_single_node(node));
 
         if !self.records.contains_key(&node_id) {
             self.records.insert(node_id, Record::new(node_id));
@@ -75,15 +78,12 @@ impl WorkingMemory {
     /// 移除节点，同时移除对应的记录
     pub fn remove_node(&mut self, node_id: MemoryId) -> Option<EmbeddedMemoryNote> {
         self.records.remove(&node_id);
-        self.memory_cluster.remove_single_node(node_id)
+        self.memory_cluster
+            .write(|cluster| cluster.remove_single_node(node_id))
     }
 
-    pub fn memory_cluster(&self) -> &MemoryCluster {
-        &self.memory_cluster
-    }
-
-    pub fn memory_cluster_mut(&mut self) -> &mut MemoryCluster {
-        &mut self.memory_cluster
+    pub fn memory_cluster(&self) -> MemoryClusterHandle {
+        self.memory_cluster.clone()
     }
 
     // Record
