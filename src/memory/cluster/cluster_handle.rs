@@ -229,11 +229,8 @@ mod tests {
             cluster.add_single_node(make_note(id2, "B"));
             cluster.add_single_node(make_note(id3, "C"));
 
-            let sem_link = crate::memory::memory_links::sem_mem::SemMemLink::new(
-                "related".to_string(),
-                1.0,
-                1.0,
-            );
+            let sem_link =
+                crate::memory::memory_links::sem_mem::SemMemLink::new("related".to_string(), 1.0);
             let link_type = MemoryLinkType::Sem(sem_link);
             let _link1 = MemoryLink::new(id1, id2, link_type.clone());
             let _link2 = MemoryLink::new(id2, id3, link_type.clone());
@@ -260,11 +257,11 @@ mod tests {
                 source_bias,
                 OrdFloat::from_f64(0.001),
                 |_, _| OrdFloat::from_f64(1.0),
-                &"query",
+                Some(&"query"),
             )
         });
 
-        let sum: f64 = ppr_result.values().copied().map(|v| v.into_inner()).sum();
+        let sum: f64 = ppr_result.iter().copied().map(|v| v.1.into_inner()).sum();
         assert!(
             (sum - 1.0).abs() < 1e-5,
             "PPR values should sum to 1, got {}",

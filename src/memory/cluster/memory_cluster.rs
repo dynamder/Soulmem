@@ -79,6 +79,13 @@ impl MemoryCluster {
         &mut self.graph
     }
 
+    pub fn get_mem_index(&self, id: MemoryId) -> Option<NodeIndex> {
+        self.mem_id_to_index.get(&id).copied()
+    }
+    pub fn get_link_index(&self, link_id: LinkId) -> Option<EdgeIndex> {
+        self.link_id_to_index.get(&link_id).copied()
+    }
+
     pub fn into_handle(self) -> MemoryClusterHandle {
         MemoryClusterHandle {
             cluster: Arc::new(RwLock::new(self)),

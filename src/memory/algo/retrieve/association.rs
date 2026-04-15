@@ -1,4 +1,6 @@
-use crate::utils::graph_algo::ord_float::OrdFloat;
+use crate::{
+    memory::cluster::memory_cluster::GraphMemoryLink, utils::graph_algo::ord_float::OrdFloat,
+};
 use petgraph::algo::UnitMeasure;
 use std::sync::Arc;
 
@@ -11,7 +13,6 @@ use petgraph::{
 use crate::{
     memory::{
         algo::retrieve::RetrRequest,
-        memory_cluster::GraphMemoryLink,
         memory_links::MemoryLinkType,
         memory_note::{MemoryId, MemoryNote},
         query::retrieve::PrioritizedMemoryRetrieveQuery,
@@ -74,7 +75,7 @@ impl RetrStrategy for RetrAssociation {
             .filter_map(|(index, score)| {
                 graph
                     .node_weight(index)
-                    .map(|memory_note| (memory_note.id(), score))
+                    .map(|memory_note| (memory_note.note().id(), score))
             })
             .collect::<Vec<(MemoryId, OrdFloat<f64>)>>();
 
