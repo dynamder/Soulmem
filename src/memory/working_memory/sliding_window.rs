@@ -155,6 +155,19 @@ impl SlidingWindow {
         Ok(response)
     }
 
+    // 获取当前摘要
+    pub async fn get_summary_text(&self) -> String {
+        let summary = self.summary.read().await;
+        summary.get_previous_summary()
+    }
+
+    // 清空当前摘要
+    pub async fn clear_summary(&self) {
+        let mut summary = self.summary.write().await;
+        summary.previous_summary.clear();
+        summary.content.clear();
+    }
+
     async fn call_llm(&self, client: &LlmClient, merged: &mut MergedInformation) -> Result<String> {
         let response = client.call_llm(merged).await?;
         let output = response.join(" ");
