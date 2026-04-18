@@ -19,9 +19,23 @@ use crate::memory::{
 pub struct RetrBayesAction;
 
 pub struct BayesActionRequest {
-    working_mem: Arc<WorkingMemory>,
-    source: Vec<(MemoryId, f64)>, //source应该被归一化
-    top_k: usize,
+    pub working_mem: Arc<WorkingMemory>,
+    pub source: Vec<(MemoryId, f64)>, //source应该被归一化
+    pub top_k: usize,
+}
+
+impl BayesActionRequest {
+    pub fn new(working_mem: Arc<WorkingMemory>, source: Vec<(MemoryId, f64)>) -> Self {
+        Self {
+            working_mem,
+            source,
+            top_k: 5,
+        }
+    }
+    pub fn with_top_k(mut self, top_k: usize) -> Self {
+        self.top_k = top_k;
+        self
+    }
 }
 
 impl RetrRequest for BayesActionRequest {}

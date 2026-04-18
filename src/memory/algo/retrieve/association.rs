@@ -6,6 +6,7 @@ use crate::{
     utils::graph_algo::ord_float::OrdFloat,
 };
 use petgraph::{algo::UnitMeasure, visit::EdgeRef};
+use qdrant_client::qdrant::ScoredPoint;
 use std::sync::Arc;
 
 use petgraph::{
@@ -31,21 +32,61 @@ use super::RetrStrategy;
 pub struct RetrAssociation;
 
 pub struct AssociationRequest {
-    working_mem: Arc<WorkingMemory>,
-    source: Vec<(MemoryId, f64)>,
-    intensity_factor: Option<f64>,
-    confidence_factor: Option<f64>,
-    damping_factor: f64,
-    residue_threshold: f64,
-    preference: TypePreference,
-    top_k: usize,
+    pub working_mem: Arc<WorkingMemory>,
+    pub source: Vec<(MemoryId, f64)>,
+    pub intensity_factor: Option<f64>,
+    pub confidence_factor: Option<f64>,
+    pub damping_factor: f64,
+    pub residue_threshold: f64,
+    pub preference: TypePreference,
+    pub top_k: usize,
 }
+
+impl AssociationRequest {
+    pub fn new(working_mem: Arc<WorkingMemory>, source: Vec<(MemoryId, f64)>) -> Self {
+        Self {
+            working_mem,
+            source,
+            intensity_factor: None,
+            confidence_factor: None,
+            damping_factor: 0.15,
+            residue_threshold: 1e-5,
+            preference: TypePreference::default(),
+            top_k: 8,
+        }
+    }
+    pub fn with_preference(mut self, preference: TypePreference) -> Self {
+        self.preference = preference;
+        self
+    }
+    pub fn with_top_k(mut self, top_k: usize) -> Self {
+        self.top_k = top_k;
+        self
+    }
+    pub fn with_intensity_factor(mut self, intensity_factor: Option<f64>) -> Self {
+        self.intensity_factor = intensity_factor;
+        self
+    }
+    pub fn with_confidence_factor(mut self, confidence_factor: Option<f64>) -> Self {
+        self.confidence_factor = confidence_factor;
+        self
+    }
+    pub fn with_damping_factor(mut self, damping_factor: f64) -> Self {
+        self.damping_factor = damping_factor;
+        self
+    }
+    pub fn with_residue_threshold(mut self, residue_threshold: f64) -> Self {
+        self.residue_threshold = residue_threshold;
+        self
+    }
+}
+
 
 impl RetrRequest for AssociationRequest {}
 
 impl RetrStrategy for RetrAssociation {
     type Request = AssociationRequest;
-    type Return<'a> = Vec<MemoryId>;
+    type Return<'a> = Vec<(MemoryId, f64)>;
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
         let dyn_weight_func = DynWeightFuncBuilder::new(request.preference)
             .option_intensity_factor(request.intensity_factor)
@@ -92,13 +133,15 @@ impl RetrStrategy for RetrAssociation {
 
         res.into_iter()
             .take(request.top_k)
-            .map(|(id, _)| id)
+            .map(|(id, score)| (id, score.into_inner()))
             .collect()
     }
 }
 
+#[derive(Debug, Default)]
 pub enum TypePreference {
     Semantic,
+    #[default]
     Situation,
 }
 
