@@ -1,5 +1,7 @@
 use crate::memory::working_memory::llm::{
-    client::LlmClient, config::LLMConfig, prompt::PromptBuilder,
+    client::LlmClient,
+    config::LLMConfig,
+    prompt::{PromptBuilder, PromptHistoryBuilder},
 };
 use anyhow::{Context, Error, Result};
 use async_openai::{
@@ -9,7 +11,7 @@ use async_openai::{
         ChatCompletionRequestAssistantMessage, ChatCompletionRequestMessage,
         ChatCompletionRequestMessageContentPartText, ChatCompletionRequestSystemMessage,
         ChatCompletionRequestUserMessage, ChatCompletionRequestUserMessageContent,
-        ChatCompletionRequestUserMessageContentPart, CreateChatCompletionRequest,
+        ChatCompletionRequestUserMessageContentPart, CreateChatCompletionRequest, Role,
     },
 };
 use dotenvy::{dotenv, var};
@@ -28,7 +30,12 @@ pub struct SlidingWindow {
     window: Arc<ParkRwLock<VecDeque<Information>>>,
     capacity: AtomicUsize,
     tag_count: AtomicUsize,
-    summary: Arc<RwLock<MergedInformation>>,
+    summary: Arc<ParkRwLock<Summary>>,
+}
+impl Default for SlidingWindow {
+    fn default() -> Self {
+        Self::new(20)
+    }
 }
 
 impl SlidingWindow {
@@ -39,7 +46,7 @@ impl SlidingWindow {
             window: Arc::new(ParkRwLock::new(VecDeque::with_capacity(capacity + 1))),
             capacity: AtomicUsize::from(capacity),
             tag_count: AtomicUsize::from(capacity),
-            summary: Arc::new(RwLock::new(MergedInformation::new())),
+            summary: Arc::new(ParkRwLock::new(Summary::new())),
         }
     }
     //信息滑入
@@ -82,6 +89,10 @@ impl SlidingWindow {
         let window = self.window.read();
         Arc::from(window.iter().cloned().collect::<Vec<_>>())
     }
+    pub fn get_summary(&self) -> Arc<str> {
+        Arc::from(self.summary.read().get())
+    }
+
     //获取窗口大小
     pub fn len(&self) -> usize {
         self.window.read().len()
@@ -139,34 +150,48 @@ impl SlidingWindow {
         value
     }
     //整合摘要记忆和窗口信息
-    async fn merge(&self) {
-        let mut messages = self.summary.write().await;
-        let mut previous =
-            ChatCompletionRequestUserMessage::from(messages.previous_summary.as_str()).into();
-        messages.content.clear();
-        messages.content.push(ChatCompletionRequestSystemMessage::from(
-            "Based on the summary of previous conversation and the information currently in the window, provide a new overall summary.").into());
-        messages.content.push(previous);
+    fn prepare_prompt(&self) -> Vec<ChatCompletionRequestMessage> {
+        let system_prompt = std::iter::once(
+            ChatCompletionRequestSystemMessage::from(
+                "You are a summary and compact agent. Based on the following conversation (which is happened before), provide a new summary.\n Only Output the summary content, no other text."
+            ).into()
+        );
 
-        let window = self.window.read();
-        for message in window.iter() {
-            messages.content.push(message.to_message())
-        }
+        let snapshot = std::iter::once(self.summary.read().build_raw_prompt())
+            .chain(self.window.read().iter().map(|msg| msg.build_raw_prompt()))
+            .fold(String::new(), |acc, item| {
+                acc + &format!("[{}]: {}\n", item.0, item.1)
+            });
+
+        system_prompt
+            .chain(std::iter::once(
+                ChatCompletionRequestUserMessage::from(snapshot).into(),
+            ))
+            .collect()
     }
 
     //将摘要记忆和当前滑动窗口信息合并提供LLM
-    async fn summarize(&self, client: &LlmClient) -> Result<String> {
-        self.merge().await;
-        let mut summary_arc = self.summary.write().await;
-        let response = self.call_llm(client, &mut *summary_arc).await?;
-        Ok(response)
-    }
+    async fn summarize(&self, client: &LlmClient) -> Result<()> {
+        let prompt_history = self.prepare_prompt();
+        let mut response = client.call_llm(prompt_history).await?;
 
-    async fn call_llm(&self, client: &LlmClient, merged: &mut MergedInformation) -> Result<String> {
-        let response = client.call_llm(merged).await?;
-        let output = response.join(" ");
-        merged.merge_summary(&output);
-        Ok(output)
+        if response.is_empty() {
+            return Err(anyhow::anyhow!("Expected at least 1 response, got empty"));
+        }
+
+        self.summary
+            .write()
+            .update(std::mem::take(&mut response[0]));
+
+        Ok(())
+    }
+}
+
+impl PromptHistoryBuilder for SlidingWindow {
+    fn build_history(&self) -> Vec<ChatCompletionRequestMessage> {
+        std::iter::once(self.summary.read().build_prompt())
+            .chain(self.window.read().iter().map(|msg| msg.build_prompt()))
+            .collect()
     }
 }
 
@@ -235,6 +260,18 @@ impl Information {
     }
 }
 
+impl PromptBuilder for Information {
+    fn build_prompt(&self) -> ChatCompletionRequestMessage {
+        self.to_message()
+    }
+    fn build_raw_prompt(&self) -> (&str, Role) {
+        match self {
+            Information::User(info) => (info.get_str(), Role::User),
+            Information::Assistant(info) => (info.get_str(), Role::Assistant),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct UserInformation {
     pub text: Arc<str>,
@@ -271,15 +308,13 @@ impl AssistantInformation {
     }
 }
 
-struct MergedInformation {
-    content: Vec<ChatCompletionRequestMessage>,
-    previous_summary: String,
+pub struct Summary {
+    summary: String,
 }
-impl MergedInformation {
+impl Summary {
     pub fn new() -> Self {
         Self {
-            content: Vec::new(),
-            previous_summary: String::new(),
+            summary: String::new(),
         }
     }
     // //将整合后的自身交给call_llm处理，并根据结果自动更新自身
@@ -290,16 +325,20 @@ impl MergedInformation {
     //     self.merge_summary(&output);
     //     Ok(output)
     // }
-    pub fn merge_summary(&mut self, content: &str) {
-        self.previous_summary.push_str(content);
+    pub fn update(&mut self, content: impl Into<String>) {
+        self.summary = content.into();
     }
-    pub fn get_previous_summary(&self) -> String {
-        self.previous_summary.clone()
+    pub fn get(&self) -> &str {
+        self.summary.as_str()
     }
 }
-impl PromptBuilder for MergedInformation {
-    fn build_prompt(&mut self) -> Vec<ChatCompletionRequestMessage> {
-        take(&mut self.content)
+impl PromptBuilder for Summary {
+    fn build_prompt(&self) -> ChatCompletionRequestMessage {
+        //这是Agent的Summary，由LLM生成
+        ChatCompletionRequestAssistantMessage::from(self.summary.as_str()).into()
+    }
+    fn build_raw_prompt(&self) -> (&str, Role) {
+        (self.summary.as_str(), Role::Assistant)
     }
 }
 
@@ -374,22 +413,22 @@ mod slidingwindow_test {
             &var("MODEL").unwrap_or_default(),
         ));
         let mut window = SlidingWindow::new(2);
-        let user_info = "user_info";
+        let user_info = "What is Rust?";
         window
             .push(user_info, "user", &client)
             .await
             .expect("Failed to push user_information");
-        let assistant_info = "assistant_info";
+        let assistant_info = "Rust is a systems programming language that runs blazingly fast, it emphasize on memory safety.";
         window
             .push(assistant_info, "assistant", &client)
             .await
             .expect("Failed to push assistant_information");
-        let user_info2 = "user_info2";
+        let user_info2 = "Is Rust hard to learn?";
         window
             .push(user_info2, "user", &client)
             .await
             .expect("Failed to push user_information");
-        println!("{}", window.summary.read().await.previous_summary)
+        println!("{}", window.summary.read().summary)
     }
 
     // #[tokio::test]
