@@ -44,7 +44,7 @@ impl RetrRequest for ShortOnlyRequest {}
 impl RetrStrategy for RetrShortOnly {
     type Request = ShortOnlyRequest;
     type Return<'a>
-        = Arc<[Information]>
+        = (Arc<[Information]>, Arc<str>)
     where
         Self: 'a;
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
@@ -61,6 +61,7 @@ impl RetrStrategy for RetrShortOnly {
             }
             window
         };
-        window
+        let summary = request.working_mem.sliding_window().get_summary();
+        (window, summary)
     }
 }
