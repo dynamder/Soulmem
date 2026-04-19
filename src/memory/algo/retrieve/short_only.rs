@@ -1,3 +1,5 @@
+use serde::Deserialize;
+
 use crate::memory::{
     algo::retrieve::RetrRequest,
     memory_note::MemoryId,
@@ -5,14 +7,36 @@ use crate::memory::{
 };
 use std::sync::Arc;
 
-//仅提取短期记忆策略，即仅提取滑动窗口
 use super::RetrStrategy;
-pub struct RetrShortOnly {
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ShortOnlyConfig {
+    #[serde(default)]
     pub clipping_length: Option<usize>,
+    #[serde(default = "default_include_summary")]
     pub include_summary: bool,
 }
+
+fn default_include_summary() -> bool {
+    false
+}
+
+impl ShortOnlyConfig {
+    pub fn into_request(self, working_mem: Arc<WorkingMemory>) -> ShortOnlyRequest {
+        ShortOnlyRequest {
+            working_mem,
+            clipping_length: self.clipping_length,
+            include_summary: self.include_summary,
+        }
+    }
+}
+
+pub struct RetrShortOnly;
+
 pub struct ShortOnlyRequest {
-    working_mem: Arc<WorkingMemory>, //因为检索算法很可能需要并发执行，使用Arc而非引用确保可以Send
+    working_mem: Arc<WorkingMemory>,
+    pub clipping_length: Option<usize>,
+    pub include_summary: bool,
 }
 
 impl RetrRequest for ShortOnlyRequest {}
@@ -24,6 +48,19 @@ impl RetrStrategy for RetrShortOnly {
     where
         Self: 'a;
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
-        request.working_mem.sliding_window().get_windows()
+        let window = {
+            let mut window = request.working_mem.sliding_window().get_windows();
+            if let Some(clipping_len) = request.clipping_length {
+                window = window
+                    .iter()
+                    .rev()
+                    .take(clipping_len)
+                    .rev()
+                    .cloned()
+                    .collect::<Arc<_>>()
+            }
+            window
+        };
+        window
     }
 }

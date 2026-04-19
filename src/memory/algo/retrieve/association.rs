@@ -1,12 +1,14 @@
 use crate::{
     memory::{
-        cluster::memory_cluster::GraphMemoryLink, embedding::note::EmbeddedMemoryNote,
-        memory_note::MemoryType,
+        cluster::memory_cluster::GraphMemoryLink,
+        embedding::note::EmbeddedMemoryNote,
+        memory_note::{MemoryId, MemoryType},
     },
     utils::graph_algo::ord_float::OrdFloat,
 };
 use petgraph::{algo::UnitMeasure, visit::EdgeRef};
 use qdrant_client::qdrant::ScoredPoint;
+use serde::Deserialize;
 use std::sync::Arc;
 
 use petgraph::{
@@ -17,19 +19,58 @@ use petgraph::{
 
 use crate::{
     memory::{
-        algo::retrieve::RetrRequest,
-        memory_links::MemoryLinkType,
-        memory_note::{MemoryId, MemoryNote},
-        query::retrieve::PrioritizedMemoryRetrieveQuery,
-        working_memory::WorkingMemory,
+        algo::retrieve::RetrRequest, memory_links::MemoryLinkType, memory_note::MemoryNote,
+        query::retrieve::PrioritizedMemoryRetrieveQuery, working_memory::WorkingMemory,
     },
     utils::graph_algo::ppr::weighted_ppr_fp,
 };
 
 use super::RetrStrategy;
 
-//用PPR变种算法进行联想
-pub struct RetrAssociation;
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct AssociationConfig {
+    #[serde(default)]
+    pub intensity_factor: Option<f64>,
+    #[serde(default)]
+    pub confidence_factor: Option<f64>,
+    #[serde(default = "default_damping_factor")]
+    pub damping_factor: f64,
+    #[serde(default = "default_residue_threshold")]
+    pub residue_threshold: f64,
+    #[serde(default)]
+    pub preference: TypePreference,
+    #[serde(default = "default_top_k")]
+    pub top_k: usize,
+}
+
+fn default_damping_factor() -> f64 {
+    0.15
+}
+fn default_residue_threshold() -> f64 {
+    1e-5
+}
+fn default_top_k() -> usize {
+    8
+}
+
+impl AssociationConfig {
+    pub fn into_request(
+        self,
+        working_mem: Arc<WorkingMemory>,
+        source: Vec<(MemoryId, f64)>,
+    ) -> AssociationRequest {
+        AssociationRequest {
+            working_mem,
+            source,
+            intensity_factor: self.intensity_factor,
+            confidence_factor: self.confidence_factor,
+            damping_factor: self.damping_factor,
+            residue_threshold: self.residue_threshold,
+            preference: self.preference,
+            top_k: self.top_k,
+        }
+    }
+}
 
 pub struct AssociationRequest {
     pub working_mem: Arc<WorkingMemory>,
@@ -81,6 +122,7 @@ impl AssociationRequest {
     }
 }
 
+pub struct RetrAssociation;
 
 impl RetrRequest for AssociationRequest {}
 
@@ -138,7 +180,7 @@ impl RetrStrategy for RetrAssociation {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default, serde::Deserialize)]
 pub enum TypePreference {
     Semantic,
     #[default]

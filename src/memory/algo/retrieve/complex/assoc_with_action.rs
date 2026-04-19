@@ -1,13 +1,43 @@
 use std::sync::Arc;
 
+use serde::Deserialize;
+
 use crate::memory::{
     algo::retrieve::{
-        RetrRequest, RetrStrategy,
-        association::{AssociationRequest, RetrAssociation},
+        association::{AssociationConfig, AssociationRequest, RetrAssociation},
         bayesian_action::{BayesActionRequest, RetrBayesAction},
+        RetrRequest, RetrStrategy,
     },
     memory_note::MemoryId,
+    working_memory::WorkingMemory,
 };
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct AssociateWithActionConfig {
+    #[serde(default)]
+    pub association: AssociationConfig,
+    #[serde(default = "default_action_top_k")]
+    pub action_top_k: usize,
+}
+
+fn default_action_top_k() -> usize {
+    3
+}
+
+impl AssociateWithActionConfig {
+    pub fn into_request(
+        self,
+        working_mem: Arc<WorkingMemory>,
+        source: Vec<(MemoryId, f64)>,
+    ) -> AssociateWithActionRequest {
+        AssociateWithActionRequest {
+            association: self
+                .association
+                .into_request(Arc::clone(&working_mem), source),
+            action_top_k: self.action_top_k,
+        }
+    }
+}
 
 pub struct RetrAssociateWithAction;
 

@@ -5,6 +5,8 @@ use petgraph::{
     visit::{EdgeRef, NodeRef},
 };
 
+use serde::Deserialize;
+
 use crate::memory::{
     algo::retrieve::{RetrRequest, RetrStrategy},
     cluster::memory_cluster::MemoryCluster,
@@ -16,11 +18,27 @@ use crate::memory::{
     working_memory::WorkingMemory,
 };
 
-pub struct RetrBayesAction;
+#[derive(Debug, Clone, Deserialize)]
+pub struct BayesActionConfig {
+    #[serde(default = "default_action_top_k")]
+    pub top_k: usize,
+}
+
+fn default_action_top_k() -> usize { 5 }
+
+impl BayesActionConfig {
+    pub fn into_request(self, working_mem: Arc<WorkingMemory>, source: Vec<(MemoryId, f64)>) -> BayesActionRequest {
+        BayesActionRequest {
+            working_mem,
+            source,
+            top_k: self.top_k,
+        }
+    }
+}
 
 pub struct BayesActionRequest {
     pub working_mem: Arc<WorkingMemory>,
-    pub source: Vec<(MemoryId, f64)>, //source应该被归一化
+    pub source: Vec<(MemoryId, f64)>,
     pub top_k: usize,
 }
 
@@ -37,6 +55,8 @@ impl BayesActionRequest {
         self
     }
 }
+
+pub struct RetrBayesAction;
 
 impl RetrRequest for BayesActionRequest {}
 
