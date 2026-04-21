@@ -18,7 +18,8 @@ impl RetrRequest for AssociationRequest {}
 
 impl RetrStrategy for RetrAssociation {
     type Request = AssociationRequest;
-    fn retrieve(&self, request: Self::Request) -> Vec<MemoryId> {
+    type Return<'a> = Vec<MemoryId>;
+    fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
         todo!()
     }
 }

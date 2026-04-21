@@ -1,13 +1,18 @@
-use super::{config::{LLMConfig, AIConfig}, prompt::PromptBuilder};
+use super::{
+    config::{AIConfig, LLMConfig},
+    prompt::{PromptBuilder, PromptHistoryBuilder},
+};
+use anyhow::{Context, Error, Result};
+use async_openai::config::{Config, OpenAIConfig};
 use async_openai::{
-    types::chat::{ChatCompletionRequestMessage, CreateChatCompletionRequestArgs, CreateChatCompletionResponse,
-        ChatCompletionRequestSystemMessage, Role, CreateChatCompletionRequest},
     Client,
+    types::chat::{
+        ChatCompletionRequestMessage, ChatCompletionRequestSystemMessage,
+        CreateChatCompletionRequest, CreateChatCompletionRequestArgs, CreateChatCompletionResponse,
+        Role,
+    },
 };
 use serde::de::DeserializeOwned;
-use anyhow::{Result, Error, Context};
-use async_openai::config::{Config, OpenAIConfig};
-
 
 pub struct LlmClient {
     client: Client<OpenAIConfig>,
@@ -19,13 +24,30 @@ impl LlmClient {
         let client = Client::with_config(config.get_config());
         Self { client, config }
     }
-    pub async fn call_llm<T: PromptBuilder>(&self, content: &mut T) -> Result<Vec<String>> {
+    pub async fn call_llm(
+        &self,
+        content: Vec<ChatCompletionRequestMessage>,
+    ) -> Result<Vec<String>> {
         let request = self.structured(content)?;
         let response = self.client.chat().create(request).await?;
         Ok(self.unstructured(response))
     }
-    pub fn structured<T: PromptBuilder>(&self, content: &mut T) -> Result<CreateChatCompletionRequest> {
-        let messages = content.build_prompt();
+
+    pub async fn simple_call(&self, message: ChatCompletionRequestMessage) -> Result<Vec<String>> {
+        let request = CreateChatCompletionRequestArgs::default()
+            .max_tokens(self.config.get_max_tokens())
+            .model(self.config.get_model().to_string())
+            .messages(vec![message])
+            .n(self.config.get_n())
+            .build()?;
+        let response = self.client.chat().create(request).await?;
+        Ok(self.unstructured(response))
+    }
+
+    pub fn structured(
+        &self,
+        messages: Vec<ChatCompletionRequestMessage>,
+    ) -> Result<CreateChatCompletionRequest> {
         let request = CreateChatCompletionRequestArgs::default()
             .max_tokens(self.config.get_max_tokens())
             .model(self.config.get_model().to_string())
@@ -34,7 +56,7 @@ impl LlmClient {
             .build()?;
         Ok(request)
     }
-    pub fn unstructured(&self, response: CreateChatCompletionResponse) -> Vec<String> {
+    pub fn unstructured(&self, response: CreateChatCompletionResponse) -> Vec   <String> {
         response
             .choices
             .into_iter()
