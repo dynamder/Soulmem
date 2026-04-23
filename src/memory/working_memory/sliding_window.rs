@@ -26,6 +26,7 @@ use tokio::sync::mpsc;
 use tokio::time::{Duration, sleep};
 
 //滑动窗口（容器、容量、标记计数、摘要用临时储存）
+#[derive(Debug)]
 pub struct SlidingWindow {
     window: Arc<ParkRwLock<VecDeque<Information>>>,
     capacity: AtomicUsize,
@@ -84,6 +85,16 @@ impl SlidingWindow {
             }
         }
         Ok(())
+    }
+
+    #[cfg(test)]
+    pub fn window(&self) -> &Arc<ParkRwLock<VecDeque<Information>>> {
+        &self.window
+    }
+
+    #[cfg(test)]
+    pub fn summary(&self) -> &Arc<ParkRwLock<Summary>> {
+        &self.summary
     }
     pub fn get_windows(&self) -> Arc<[Information]> {
         let window = self.window.read();
@@ -308,6 +319,7 @@ impl AssistantInformation {
     }
 }
 
+#[derive(Debug)]
 pub struct Summary {
     summary: String,
 }

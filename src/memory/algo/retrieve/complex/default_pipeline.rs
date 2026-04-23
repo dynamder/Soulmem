@@ -4,15 +4,15 @@ use serde::Deserialize;
 
 use crate::memory::{
     algo::retrieve::{
-        RetrRequest, RetrStrategy,
         complex::{AssociateWithActionConfig, RetrAssociateWithAction},
         short_only::{RetrShortOnly, ShortOnlyConfig},
         similarity::{RetrSimilarity, SimilarityConfig},
+        RetrRequest, RetrStrategy,
     },
-    embedding::{Embeddable, EmbeddingModel, query::note::EmbeddedMemoryRetrieveQuery},
+    embedding::{query::note::EmbeddedMemoryRetrieveQuery, Embeddable, EmbeddingModel},
     memory_note::MemoryId,
     query::retrieve::PrioritizedMemoryRetrieveQuery,
-    working_memory::{WorkingMemory, sliding_window::Information},
+    working_memory::{sliding_window::Information, WorkingMemory},
 };
 
 #[derive(Debug, Clone, Deserialize)]
@@ -97,5 +97,191 @@ impl RetrStrategy for RetrDefaultPipeline {
             short_mem: short_mem_res.1,
             priority: request.priority,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::memory::embedding::note::{
+        EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
+    };
+    use crate::memory::embedding::query::note::MemoryRetrieveQueryEmbedding;
+    use crate::memory::embedding::sem::SemanticEmbedding;
+    use crate::memory::embedding::EmbeddingVec;
+    use crate::memory::memory_links::proc_mem::{ProcMemLink, TrigToAction};
+    use crate::memory::memory_links::sem_mem::SemMemLink;
+    use crate::memory::memory_links::{MemoryLink, MemoryLinkType};
+    use crate::memory::memory_note::{
+        proc_mem::{Action, ActionType, ProcMemory},
+        sem_mem::{ConceptType, SemMemory},
+        MemoryNoteBuilder, MemoryType,
+    };
+    use crate::memory::query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant};
+    use crate::memory::working_memory::sliding_window::{AssistantInformation, UserInformation};
+
+    fn create_mock_working_memory_full() -> WorkingMemory {
+        let mut wm = WorkingMemory::new(10);
+        let cluster = wm.memory_cluster();
+        let id1 = MemoryId::new();
+        let id2 = MemoryId::new();
+        let action_id = MemoryId::new();
+
+        let sem_link = SemMemLink::new("related".to_string(), 0.8);
+        let link_type = MemoryLinkType::Sem(sem_link);
+        let link1 = MemoryLink::new(id1, id2, link_type);
+
+        let proc_link = ProcMemLink::TrigToAction(TrigToAction::new(0.5));
+        let link_type2 = MemoryLinkType::Proc(proc_link);
+        let link2 = MemoryLink::new(id2, action_id, link_type2);
+
+        cluster.write(|c| {
+            let note1 = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+                content: "Memory 1".to_string(),
+                aliases: vec![],
+                concept_type: ConceptType::Entity,
+                description: String::new(),
+            }))
+            .id(id1)
+            .mem_links(vec![link1])
+            .build()
+            .unwrap();
+            let embedding1 = MemoryEmbedding::new_for_test(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new_for_test(
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                )),
+            );
+            c.add_single_node(EmbeddedMemoryNote {
+                note: note1,
+                embedding: embedding1,
+            });
+
+            let note2 = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+                content: "Memory 2".to_string(),
+                aliases: vec![],
+                concept_type: ConceptType::Entity,
+                description: String::new(),
+            }))
+            .id(id2)
+            .mem_links(vec![link2])
+            .build()
+            .unwrap();
+            let embedding2 = MemoryEmbedding::new_for_test(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new_for_test(
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                )),
+            );
+            c.add_single_node(EmbeddedMemoryNote {
+                note: note2,
+                embedding: embedding2,
+            });
+
+            let action_mem_type = MemoryType::Procedure(ProcMemory::new(Action::new(
+                "TestAction".to_string(),
+                ActionType::new_speak(),
+            )));
+            let action_note = MemoryNoteBuilder::new(action_mem_type)
+                .id(action_id)
+                .build()
+                .unwrap();
+            let action_embedding = MemoryEmbedding::new_for_test(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Procedure(),
+            );
+            c.add_single_node(EmbeddedMemoryNote {
+                note: action_note,
+                embedding: action_embedding,
+            });
+        });
+
+        let sw = wm.sliding_window_mut();
+        let window = sw.window();
+        let mut guard = window.write();
+        guard.push_back(Information::User(UserInformation::new("Hello")));
+        guard.push_back(Information::Assistant(AssistantInformation::new(
+            "Hi there!",
+        )));
+        drop(guard);
+
+        wm
+    }
+
+    fn create_default_pipeline_config() -> DefaultPipelineConfig {
+        DefaultPipelineConfig {
+            short_mem_with_history: ShortOnlyConfig {
+                clipping_length: None,
+                include_summary: true,
+            },
+            similarity: SimilarityConfig {
+                similarity_threshold: 0.5,
+                max_results: 10,
+            },
+            assoc_with_action: AssociateWithActionConfig {
+                association: Default::default(),
+                action_top_k: 3,
+            },
+        }
+    }
+
+    #[test]
+    fn test_retr_default_pipeline_basic() {
+        let wm = create_mock_working_memory_full();
+        let config = create_default_pipeline_config();
+        let query_embedding = MemoryRetrieveQueryEmbedding::new_for_test(EmbeddingVec::zero(128));
+        let embedded_query = EmbeddedMemoryRetrieveQuery {
+            embedding: query_embedding,
+            query: MemoryRetrieveQuery::new(
+                vec!["test".to_string()],
+                MemoryRetrieveQueryVariant::Semantic(vec![]),
+            ),
+        };
+        let request = config.into_request(Arc::new(wm), embedded_query, 1);
+        let result = RetrDefaultPipeline {}.retrieve(request);
+
+        assert_eq!(result.priority, 1);
+        assert!(result.short_history.len() >= 0);
+    }
+
+    #[test]
+    fn test_retr_default_pipeline_with_empty_cluster() {
+        let wm = WorkingMemory::new(10);
+        let config = create_default_pipeline_config();
+        let query_embedding = MemoryRetrieveQueryEmbedding::new_for_test(EmbeddingVec::zero(128));
+        let embedded_query = EmbeddedMemoryRetrieveQuery {
+            embedding: query_embedding,
+            query: MemoryRetrieveQuery::new(
+                vec!["test".to_string()],
+                MemoryRetrieveQueryVariant::Semantic(vec![]),
+            ),
+        };
+        let request = config.into_request(Arc::new(wm), embedded_query, 1);
+        let result = RetrDefaultPipeline {}.retrieve(request);
+
+        assert_eq!(result.priority, 1);
+        assert!(result.short_history.is_empty());
+        assert!(result.short_mem.is_empty());
+    }
+
+    #[test]
+    fn test_default_pipeline_config_into_request() {
+        let wm = WorkingMemory::new(10);
+        let config = create_default_pipeline_config();
+        let query_embedding = MemoryRetrieveQueryEmbedding::new_for_test(EmbeddingVec::zero(128));
+        let embedded_query = EmbeddedMemoryRetrieveQuery {
+            embedding: query_embedding,
+            query: MemoryRetrieveQuery::new(
+                vec!["test".to_string()],
+                MemoryRetrieveQueryVariant::Semantic(vec![]),
+            ),
+        };
+        let request = config.into_request(Arc::new(wm), embedded_query, 42);
+
+        assert_eq!(request.priority, 42);
     }
 }

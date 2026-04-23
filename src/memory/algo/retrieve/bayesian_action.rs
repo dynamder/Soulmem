@@ -11,10 +11,10 @@ use crate::memory::{
     algo::retrieve::{RetrRequest, RetrStrategy},
     cluster::memory_cluster::MemoryCluster,
     memory_links::{
-        MemoryLinkType,
+        MemoryLink, MemoryLinkType,
         proc_mem::{ProcMemLink, TrigToAction},
     },
-    memory_note::{MemoryId, MemoryType},
+    memory_note::{proc_mem::Action, MemoryId, MemoryType},
     working_memory::WorkingMemory,
 };
 
@@ -68,7 +68,6 @@ impl RetrStrategy for RetrBayesAction {
         let cluster = request.working_mem.memory_cluster();
 
         cluster.read_or_compute(|mem_cluster| {
-            //收集在当前source下所有可能被触发的action
             let mut possible_actions = get_possible_actions(mem_cluster, &request.source);
 
             request.source.iter().for_each(|&(id, weight)| {
@@ -96,7 +95,6 @@ impl RetrStrategy for RetrBayesAction {
                                         }) => {
                                             possible_actions
                                                 .get_mut(&note_id)
-                                                //P(act_i) = P(act_i | situation) * P(situation)
                                                 .map(|v| *v += prob * weight);
                                         }
                                     }
@@ -111,6 +109,116 @@ impl RetrStrategy for RetrBayesAction {
 
             actions_vec.into_iter().take(request.top_k).collect()
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::memory::embedding::note::{
+        EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
+    };
+    use crate::memory::embedding::sem::SemanticEmbedding;
+    use crate::memory::embedding::EmbeddingVec;
+    use crate::memory::memory_links::proc_mem::{ProcMemLink, TrigToAction};
+    use crate::memory::memory_note::{
+        MemoryNoteBuilder, MemoryType,
+        sem_mem::{ConceptType, SemMemory},
+    };
+    use crate::memory::memory_note::proc_mem::{Action, ActionType, ProcMemory};
+
+    fn create_mock_working_memory_with_actions() -> (WorkingMemory, MemoryId, MemoryId) {
+        let mut wm = WorkingMemory::new(10);
+        let cluster = wm.memory_cluster();
+        let source_id = MemoryId::new();
+        let action_id = MemoryId::new();
+
+        let proc_link = ProcMemLink::TrigToAction(TrigToAction::new(0.5));
+        let link_type = MemoryLinkType::Proc(proc_link);
+        let source_link = MemoryLink::new(source_id, action_id, link_type);
+
+        cluster.write(|c| {
+            let source_mem_type = MemoryType::Semantic(SemMemory {
+                content: "Source Memory".to_string(),
+                aliases: vec![],
+                concept_type: ConceptType::Entity,
+                description: String::new(),
+            });
+            let source_note = MemoryNoteBuilder::new(source_mem_type)
+                .id(source_id)
+                .mem_links(vec![source_link])
+                .build()
+                .unwrap();
+            let source_embedding = MemoryEmbedding::new_for_test(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new_for_test(
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                )),
+            );
+            c.add_single_node(EmbeddedMemoryNote {
+                note: source_note,
+                embedding: source_embedding,
+            });
+
+            let action_mem_type = MemoryType::Procedure(ProcMemory::new(Action::new("TestAction".to_string(), ActionType::new_speak())));
+            let action_note = MemoryNoteBuilder::new(action_mem_type)
+                .id(action_id)
+                .build()
+                .unwrap();
+            let action_embedding = MemoryEmbedding::new_for_test(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Procedure(),
+            );
+            c.add_single_node(EmbeddedMemoryNote {
+                note: action_note,
+                embedding: action_embedding,
+            });
+        });
+
+        (wm, source_id, action_id)
+    }
+
+    #[test]
+    fn test_retr_bayes_action_basic() {
+        let (wm, source_id, action_id) = create_mock_working_memory_with_actions();
+        let request = BayesActionRequest::new(Arc::new(wm), vec![(source_id, 1.0)]);
+        let result = RetrBayesAction {}.retrieve(request);
+
+        assert!(!result.is_empty());
+        let (id, score) = &result[0];
+        assert_eq!(id, &action_id);
+        assert!(*score > 0.0);
+    }
+
+    #[test]
+    fn test_retr_bayes_action_empty_source() {
+        let (wm, _, _) = create_mock_working_memory_with_actions();
+        let request = BayesActionRequest::new(Arc::new(wm), vec![]);
+        let result = RetrBayesAction {}.retrieve(request);
+
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_retr_bayes_action_top_k() {
+        let (wm, source_id, _) = create_mock_working_memory_with_actions();
+        let request = BayesActionRequest::new(Arc::new(wm), vec![(source_id, 1.0)]).with_top_k(1);
+        let result = RetrBayesAction {}.retrieve(request);
+
+        assert!(result.len() <= 1);
+    }
+
+    #[test]
+    fn test_get_possible_actions() {
+        let (wm, source_id, action_id) = create_mock_working_memory_with_actions();
+        let cluster = wm.memory_cluster();
+        let result = cluster.read_or_compute(|c| {
+            get_possible_actions(c, &[(source_id, 1.0)])
+        });
+
+        assert!(result.contains_key(&action_id));
     }
 }
 

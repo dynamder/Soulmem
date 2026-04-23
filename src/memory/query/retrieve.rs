@@ -28,6 +28,9 @@ pub struct MemoryRetrieveQuery {
     variant: MemoryRetrieveQueryVariant,
 }
 impl MemoryRetrieveQuery {
+    pub fn new(tag: Vec<String>, variant: MemoryRetrieveQueryVariant) -> Self {
+        Self { tag, variant }
+    }
     pub fn tag(&self) -> &[String] {
         &self.tag
     }

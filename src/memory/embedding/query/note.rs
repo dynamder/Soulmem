@@ -62,6 +62,13 @@ impl MemoryRetrieveQueryEmbedding {
     pub fn variant(&self) -> &MemoryRetrieveQueryVariantEmbedding {
         &self.variant
     }
+    #[cfg(test)]
+    pub fn new_for_test(tag: EmbeddingVec) -> Self {
+        Self {
+            tag,
+            variant: MemoryRetrieveQueryVariantEmbedding::Semantic(vec![]),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

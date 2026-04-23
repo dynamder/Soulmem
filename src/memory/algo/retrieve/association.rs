@@ -27,7 +27,7 @@ use crate::{
 
 use super::RetrStrategy;
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct AssociationConfig {
     #[serde(default)]
     pub intensity_factor: Option<f64>,
@@ -41,6 +41,18 @@ pub struct AssociationConfig {
     pub preference: TypePreference,
     #[serde(default = "default_top_k")]
     pub top_k: usize,
+}
+impl Default for AssociationConfig {
+    fn default() -> Self {
+        AssociationConfig {
+            intensity_factor: None,
+            confidence_factor: None,
+            damping_factor: 0.15,
+            residue_threshold: 1e-5,
+            preference: TypePreference::Situation,
+            top_k: 8,
+        }
+    }
 }
 
 fn default_damping_factor() -> f64 {
@@ -130,6 +142,10 @@ impl RetrStrategy for RetrAssociation {
     type Request = AssociationRequest;
     type Return<'a> = Vec<(MemoryId, f64)>;
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
+        if request.source.is_empty() {
+            return Vec::new();
+        }
+
         let dyn_weight_func = DynWeightFuncBuilder::new(request.preference)
             .option_intensity_factor(request.intensity_factor)
             .option_confidence_factor(request.confidence_factor)
@@ -259,5 +275,147 @@ impl DynWeightFuncBuilder {
                     / normalize_factor,
             )
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::memory::cluster::memory_cluster::MemoryCluster;
+    use crate::memory::embedding::note::{
+        EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
+    };
+    use crate::memory::embedding::sem::SemanticEmbedding;
+    use crate::memory::embedding::{Embeddable, EmbeddingVec};
+    use crate::memory::memory_links::MemoryLink;
+    use crate::memory::memory_links::sem_mem::SemMemLink;
+    use crate::memory::memory_note::{
+        MemoryNoteBuilder, MemoryType,
+        sem_mem::{ConceptType, SemMemory},
+    };
+    use crate::memory::working_memory::WorkingMemory;
+
+    fn create_mock_working_memory_with_links() -> (WorkingMemory, Vec<MemoryId>) {
+        let mut wm = WorkingMemory::new(10);
+        let cluster = wm.memory_cluster();
+        let ids: Vec<_> = (0..3).map(|_| MemoryId::new()).collect();
+
+        let sem_link = SemMemLink::new("related".to_string(), 0.8);
+        let link_type = MemoryLinkType::Sem(sem_link);
+        let link1 = MemoryLink::new(ids[0], ids[1], link_type.clone());
+        let link2 = MemoryLink::new(ids[1], ids[2], link_type);
+
+        cluster.write(|c| {
+            let note0 = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+                content: "Memory 0".to_string(),
+                aliases: vec![],
+                concept_type: ConceptType::Entity,
+                description: String::new(),
+            }))
+            .id(ids[0])
+            .mem_links(vec![link1])
+            .build()
+            .unwrap();
+            let embedding0 = MemoryEmbedding::new_for_test(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new_for_test(
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                )),
+            );
+            c.add_single_node(EmbeddedMemoryNote {
+                note: note0,
+                embedding: embedding0,
+            });
+
+            let note1 = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+                content: "Memory 1".to_string(),
+                aliases: vec![],
+                concept_type: ConceptType::Entity,
+                description: String::new(),
+            }))
+            .id(ids[1])
+            .mem_links(vec![link2])
+            .build()
+            .unwrap();
+            let embedding1 = MemoryEmbedding::new_for_test(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new_for_test(
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                )),
+            );
+            c.add_single_node(EmbeddedMemoryNote {
+                note: note1,
+                embedding: embedding1,
+            });
+
+            let note2 = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+                content: "Memory 2".to_string(),
+                aliases: vec![],
+                concept_type: ConceptType::Entity,
+                description: String::new(),
+            }))
+            .id(ids[2])
+            .build()
+            .unwrap();
+            let embedding2 = MemoryEmbedding::new_for_test(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new_for_test(
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                )),
+            );
+            c.add_single_node(EmbeddedMemoryNote {
+                note: note2,
+                embedding: embedding2,
+            });
+        });
+
+        (wm, ids)
+    }
+
+    #[test]
+    fn test_retr_association_basic() {
+        let (wm, ids) = create_mock_working_memory_with_links();
+        println!("wm: {:?}, ids: {:?}", wm, ids);
+        let config = AssociationConfig::default();
+        let request = config.into_request(Arc::new(wm), vec![(ids[0], 1.0)]);
+        let result = RetrAssociation {}.retrieve(request);
+
+        assert!(!result.is_empty(), "Result is: {:?}", result);
+    }
+
+    #[test]
+    fn test_retr_association_with_empty_source() {
+        let (wm, _ids) = create_mock_working_memory_with_links();
+        let config = AssociationConfig::default();
+        let request = config.into_request(Arc::new(wm), vec![]);
+        let result = RetrAssociation {}.retrieve(request);
+
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_retr_association_top_k() {
+        let (wm, ids) = create_mock_working_memory_with_links();
+        let config = AssociationConfig {
+            top_k: 1,
+            ..Default::default()
+        };
+        let request = config.into_request(Arc::new(wm), vec![(ids[0], 1.0)]);
+        let result = RetrAssociation {}.retrieve(request);
+
+        assert!(result.len() <= 1);
+    }
+
+    #[test]
+    fn test_dyn_weight_func_builder() {
+        let builder = DynWeightFuncBuilder::new(TypePreference::default());
+        let weight_func = builder.intensity_factor(0.5).confidence_factor(0.3).build();
+        let _weight = weight_func;
     }
 }

@@ -366,6 +366,9 @@ where
 
     //每次取残差最大的节点进行push，加速收敛
     while let Some(residue_i) = residue_vec.iter().copied().max() {
+        if residue_i.value <= residue_threshold {
+            break;
+        }
         //println!("Processing node {}", residue_i.idx);
         let out_edges = graph.edges(graph.from_index(residue_i.idx));
         //动态归一化的边权计算
@@ -382,14 +385,19 @@ where
                 })
                 .collect::<Vec<_>>();
             let sum = weights.iter().map(|v| v.value).sum::<D>();
-            let weights = weights
-                .into_iter()
-                .map(|w| EdgeWeightUnit {
-                    target_node: w.target_node,
-                    idx: w.idx,
-                    value: w.value / sum,
-                })
-                .collect::<Vec<_>>();
+            let weights = if sum != D::zero() {
+                //防止NaN
+                weights
+                    .into_iter()
+                    .map(|w| EdgeWeightUnit {
+                        target_node: w.target_node,
+                        idx: w.idx,
+                        value: w.value / sum,
+                    })
+                    .collect::<Vec<_>>()
+            } else {
+                weights
+            };
             ppr_edge_weight_cache.insert(graph.from_index(residue_i.idx), weights);
         }
 
