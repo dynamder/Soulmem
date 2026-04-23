@@ -5,17 +5,12 @@ use std::collections::HashSet;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ConsolidationOutput {
-    pub version: String,
     pub nodes: Vec<ConsolidatedNode>,
     pub edges: Vec<ConsolidatedEdge>,
 }
 
 impl ConsolidationOutput {
     pub fn validate(&self) -> Result<()> {
-        if self.version.trim().is_empty() {
-            return Err(anyhow!("version must not be empty"));
-        }
-
         if self.nodes.is_empty() {
             return Err(anyhow!("nodes must not be empty"));
         }
@@ -24,16 +19,6 @@ impl ConsolidationOutput {
         for node in &self.nodes {
             if node.node_id.trim().is_empty() {
                 return Err(anyhow!("node_id must not be empty"));
-            }
-            if node.title.trim().is_empty() {
-                return Err(anyhow!("node title must not be empty"));
-            }
-            if !(0.0..=1.0).contains(&node.confidence) {
-                return Err(anyhow!(
-                    "node confidence must be in [0, 1], got {} for node {}",
-                    node.confidence,
-                    node.node_id
-                ));
             }
             if !node_ids.insert(node.node_id.as_str()) {
                 return Err(anyhow!("duplicated node_id: {}", node.node_id));
@@ -80,11 +65,6 @@ impl ConsolidationOutput {
 pub struct ConsolidatedNode {
     pub node_id: String,
     pub memory_type: ConsolidatedMemoryType,
-    pub title: String,
-    #[serde(default)]
-    pub tags: Vec<String>,
-    pub confidence: f32,
-    #[serde(default)]
     pub payload: Value,
 }
 

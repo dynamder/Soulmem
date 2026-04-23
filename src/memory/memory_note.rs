@@ -79,6 +79,12 @@ impl MemoryNote {
     pub fn links(&self) -> &Vec<MemoryLink> {
         &self.mem_links
     }
+    pub fn links_mut(&mut self) -> &mut Vec<MemoryLink> {
+        &mut self.mem_links
+    }
+    pub fn add_link(&mut self, link: MemoryLink) {
+        self.mem_links.push(link);
+    }
     pub fn retrieval_increment(&mut self) {
         self.retrieval_count += 1;
         self.last_accessed_time = Utc::now();

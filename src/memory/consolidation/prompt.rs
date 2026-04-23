@@ -5,12 +5,9 @@ use std::mem::take;
 // ChatCompletionRequestSystemMessage: 系统角色消息，用于设定 LLM 的行为指令和角色。
 // ChatCompletionRequestUserMessage: 用户角色消息，用于向 LLM 提供具体的输入数据。
 use async_openai::types::chat::{
-    ChatCompletionRequestMessage,
-    ChatCompletionRequestSystemMessage,
+    ChatCompletionRequestMessage, ChatCompletionRequestSystemMessage,
     ChatCompletionRequestUserMessage,
 };
-
-use crate::memory::working_memory::llm::prompt::PromptBuilder;
 
 /// 记忆整合提示词构建器。
 ///
@@ -50,12 +47,22 @@ impl ConsolidationPrompt {
         self.content.clear();
 
         // system 消息：定义 LLM 的角色和行为约束
-        let system_prompt = r#"You are a memory consolidation engine.
-Task: split conversation summary into memory nodes and edges.
-Output must be strict JSON only. Do not output markdown, explanation, or extra text.
-All fields must conform to the provided JSON schema.
-If information is uncertain, lower confidence instead of inventing details.
-Every edge from/to must reference an existing node_id."#;
+        let system_prompt = r#"You are SoulMem's "Memory Consolidation Decomposer."
+Task: Split the given summary_text into memory-graph nodes and edges, and use hot_memories as context to build more reasonable relations.
+
+Hard requirements:
+1) Output exactly one JSON object. Do not output any explanation, Markdown, or comments.
+2) The output must strictly conform to the given json_schema.
+3) The top level must contain only: nodes, edges.
+4) node_id must use temporary IDs (n1, n2, n3, ...), and each must be unique.
+5) edges.from / edges.to must reference existing node_id values in nodes.
+6) memory_type must be one of: semantic | situation | procedure.
+7) Be conservative when uncertain: do not invent facts; if a relation is uncertain, you may omit that edge.
+8) intensity and confidence must be within [0, 1].
+9) Avoid semantically duplicated nodes within this output (e.g., merge synonyms like "like" and "really like" when appropriate).
+10) edges may be an empty array, but nodes must contain at least one item.
+
+Again: return only the JSON object itself."#;
 
         // 将热点记忆格式化为 JSON 数组字符串，空列表时输出 "[]"
         let hot_memories_text = if self.hot_memories.is_empty() {
@@ -73,7 +80,7 @@ Every edge from/to must reference an existing node_id."#;
 
         // user 消息：拼接摘要文本、热点记忆和 JSON Schema，供 LLM 处理
         let user_prompt = format!(
-            "summary_text:\n{}\n\nhot_memories:\n{}\n\njson_schema:\n{}",
+            "Input:\nsummary_text:\n{}\n\nhot_memories:\n{}\n\njson_schema:\n{}",
             self.summary_text,
             hot_memories_text,
             include_str!("consolidation.schema.json")
@@ -86,14 +93,9 @@ Every edge from/to must reference an existing node_id."#;
         self.content
             .push(ChatCompletionRequestUserMessage::from(user_prompt).into());
     }
-}
 
-impl PromptBuilder for ConsolidationPrompt {
     /// 构建并返回消息序列，供 LLM 客户端发送。
-    ///
-    /// 如果消息已被消费（content 为空），会重新构建。
-    /// 使用 `take` 取出内容后清空自身，避免重复发送。
-    fn build_prompt(&mut self) -> Vec<ChatCompletionRequestMessage> {
+    pub fn into_messages(mut self) -> Vec<ChatCompletionRequestMessage> {
         if self.content.is_empty() {
             self.rebuild_messages();
         }

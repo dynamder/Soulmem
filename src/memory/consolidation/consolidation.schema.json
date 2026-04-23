@@ -1,84 +1,39 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "ConsolidationOutput",
-  "type": "object",
-  "required": ["version", "nodes", "edges"],
-  "additionalProperties": false,
+  "required": ["nodes", "edges"],
   "properties": {
-    "version": {
-      "type": "string",
-      "const": "1.0"
-    },
     "nodes": {
-      "type": "array",
       "minItems": 1,
       "items": {
-        "type": "object",
-        "required": [
-          "node_id",
-          "memory_type",
-          "title",
-          "tags",
-          "confidence",
-          "payload"
-        ],
-        "additionalProperties": false,
+        "required": ["node_id", "memory_type", "payload"],
         "properties": {
           "node_id": {
-            "type": "string",
             "minLength": 1
           },
           "memory_type": {
-            "type": "string",
             "enum": ["semantic", "situation", "procedure"]
           },
-          "title": {
-            "type": "string",
-            "minLength": 1
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "confidence": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1
-          },
-          "payload": {
-            "type": "object"
-          }
+          "payload": {}
         }
       }
     },
     "edges": {
-      "type": "array",
       "items": {
-        "type": "object",
         "required": ["from", "to", "relation", "intensity", "confidence"],
-        "additionalProperties": false,
         "properties": {
           "from": {
-            "type": "string",
             "minLength": 1
           },
           "to": {
-            "type": "string",
             "minLength": 1
           },
           "relation": {
-            "type": "string",
             "minLength": 1
           },
           "intensity": {
-            "type": "number",
             "minimum": 0,
             "maximum": 1
           },
           "confidence": {
-            "type": "number",
             "minimum": 0,
             "maximum": 1
           }

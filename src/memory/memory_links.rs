@@ -4,13 +4,14 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::memory::{
-    memory_links::proc_mem::ProcMemLink, memory_links::sem_mem::SemMemLink, memory_note::MemoryId,
+    memory_links::proc_mem::ProcMemLink, memory_links::sem_mem::SemMemLink,
+    memory_links::situation_mem::SituationMemLink, memory_note::MemoryId,
 };
 
 pub mod proc_mem;
 pub mod sem_mem;
-
 pub mod situation_mem;
+
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Copy, Clone, Hash, Serialize, Deserialize)]
 pub struct LinkId(Uuid);
 impl LinkId {
@@ -42,6 +43,7 @@ pub struct MemoryLink {
 pub enum MemoryLinkType {
     Proc(ProcMemLink),
     Sem(SemMemLink),
+    Sit(SituationMemLink),
 }
 
 impl MemoryLink {

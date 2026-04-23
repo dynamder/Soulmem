@@ -21,8 +21,8 @@ impl ConsolidationService {
         summary_text: &str,
         hot_memories: &[String],
     ) -> Result<ConsolidationOutput> {
-        let mut prompt = ConsolidationPrompt::new(summary_text, hot_memories.to_vec());
-        let raw = llm.call_llm(&mut prompt).await?.join("\n");
+        let prompt = ConsolidationPrompt::new(summary_text, hot_memories.to_vec());
+        let raw = llm.call_llm(prompt.into_messages()).await?.join("\n");
 
         let output = parse_output(&raw)?;
         output.validate()?;

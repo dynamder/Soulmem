@@ -248,7 +248,7 @@ mod tests {
 
             for node_id in graph.node_identifiers() {
                 let note = graph.node_weight(node_id).unwrap();
-                if note.id() == id1 {
+                if note.note().id() == id1 {
                     source_bias.insert(node_id, OrdFloat::from_f64(1.0));
                     break;
                 }

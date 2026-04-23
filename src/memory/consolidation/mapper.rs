@@ -7,6 +7,7 @@ use crate::memory::{
         MemoryLink, MemoryLinkType,
         proc_mem::{ProcMemLink, TrigToAction},
         sem_mem::SemMemLink,
+        situation_mem::{AbstractToSpecific, SituationMemLink},
     },
     memory_note::{
         MemoryId, MemoryNote, MemoryNoteBuilder, MemoryType,
@@ -26,7 +27,6 @@ use super::dto::{
 
 pub struct MappedConsolidation {
     pub notes: Vec<MemoryNote>,
-    pub id_map: HashMap<String, MemoryId>,
 }
 
 pub fn map_output_to_notes(output: ConsolidationOutput) -> Result<MappedConsolidation> {
@@ -59,7 +59,6 @@ pub fn map_output_to_notes(output: ConsolidationOutput) -> Result<MappedConsolid
 
         let note = MemoryNoteBuilder::new(mem_type)
             .id(mem_id)
-            .tags(node.tags)
             .mem_links(links)
             .build()
             .with_context(|| format!("failed to build MemoryNote for node {}", node.node_id))?;
@@ -67,7 +66,7 @@ pub fn map_output_to_notes(output: ConsolidationOutput) -> Result<MappedConsolid
         notes.push(note);
     }
 
-    Ok(MappedConsolidation { notes, id_map })
+    Ok(MappedConsolidation { notes })
 }
 
 fn map_node_type(node: &ConsolidatedNode) -> Result<MemoryType> {
@@ -91,8 +90,8 @@ fn map_semantic(node: &ConsolidatedNode) -> Result<MemoryType> {
         SemanticConceptType::Abstract => ConceptType::Abstract,
     };
 
-    let content = payload.content.unwrap_or_else(|| node.title.clone());
-    let description = payload.description.unwrap_or_else(|| node.title.clone());
+    let content = payload.content.unwrap_or_else(|| "unknown".to_string());
+    let description = payload.description.unwrap_or_else(|| content.clone());
 
     let mut sem = SemMemory::new(content, concept_type, description);
     sem.aliases = payload.aliases;
@@ -114,7 +113,7 @@ fn map_procedure(node: &ConsolidatedNode) -> Result<MemoryType> {
         ProcedureActionType::Skill => ActionType::new_skill(SkillRecord {}),
     };
 
-    let content = payload.content.unwrap_or_else(|| node.title.clone());
+    let content = payload.content.unwrap_or_else(|| "unknown".to_string());
     let action = Action::new(content, action_type);
     Ok(MemoryType::Procedure(ProcMemory::new(action)))
 }
@@ -176,6 +175,9 @@ fn map_edge(
         Some(ConsolidatedMemoryType::Procedure) => {
             MemoryLinkType::Proc(ProcMemLink::TrigToAction(TrigToAction::new(edge.intensity)))
         }
+        Some(ConsolidatedMemoryType::Situation) => MemoryLinkType::Sit(
+            SituationMemLink::AbstractToSpecific(AbstractToSpecific::new(from, to)),
+        ),
         _ => MemoryLinkType::Sem(SemMemLink::new(
             edge.relation.clone(),
             edge.intensity,
@@ -196,14 +198,10 @@ mod tests {
     #[test]
     fn map_basic_semantic_output() {
         let output = ConsolidationOutput {
-            version: "1.0".to_string(),
             nodes: vec![
                 ConsolidatedNode {
                     node_id: "n1".to_string(),
                     memory_type: ConsolidatedMemoryType::Semantic,
-                    title: "user likes coffee".to_string(),
-                    tags: vec!["preference".to_string()],
-                    confidence: 0.9,
                     payload: serde_json::json!({
                         "content": "likes coffee",
                         "aliases": ["coffee lover"],
@@ -214,9 +212,6 @@ mod tests {
                 ConsolidatedNode {
                     node_id: "n2".to_string(),
                     memory_type: ConsolidatedMemoryType::Semantic,
-                    title: "coffee can calm user".to_string(),
-                    tags: vec!["effect".to_string()],
-                    confidence: 0.8,
                     payload: serde_json::json!({
                         "content": "coffee calms user",
                         "concept_type": "abstract"
@@ -234,10 +229,56 @@ mod tests {
 
         let mapped = map_output_to_notes(output).expect("mapping should succeed");
         assert_eq!(mapped.notes.len(), 2);
-        assert_eq!(mapped.id_map.len(), 2);
         assert!(matches!(
             mapped.notes[0].mem_type(),
             MemoryType::Semantic(_)
+        ));
+    }
+
+    #[test]
+    fn map_situation_edge_to_situation_link() {
+        let output = ConsolidationOutput {
+            nodes: vec![
+                ConsolidatedNode {
+                    node_id: "s1".to_string(),
+                    memory_type: ConsolidatedMemoryType::Situation,
+                    payload: serde_json::json!({
+                        "kind": "abstract_location",
+                        "name": "library",
+                        "coordinates": "campus"
+                    }),
+                },
+                ConsolidatedNode {
+                    node_id: "s2".to_string(),
+                    memory_type: ConsolidatedMemoryType::Situation,
+                    payload: serde_json::json!({
+                        "kind": "abstract_participant",
+                        "name": "alice",
+                        "role": "friend"
+                    }),
+                },
+            ],
+            edges: vec![ConsolidatedEdge {
+                from: "s1".to_string(),
+                to: "s2".to_string(),
+                relation: "co_occurs".to_string(),
+                intensity: 0.5,
+                confidence: 0.7,
+            }],
+        };
+
+        let mapped = map_output_to_notes(output).expect("mapping should succeed");
+        assert_eq!(mapped.notes.len(), 2);
+
+        let source_note = mapped
+            .notes
+            .iter()
+            .find(|note| note.links().len() == 1)
+            .expect("source note should exist");
+        assert_eq!(source_note.links().len(), 1);
+        assert!(matches!(
+            source_note.links()[0].link_type(),
+            MemoryLinkType::Sit(SituationMemLink::AbstractToSpecific(_))
         ));
     }
 }
