@@ -1,18 +1,13 @@
-use super::{
-    config::{AIConfig, LLMConfig},
-    prompt::{PromptBuilder, PromptHistoryBuilder},
-};
-use anyhow::{Context, Error, Result};
-use async_openai::config::{Config, OpenAIConfig};
+use super::config::{AIConfig, LLMConfig};
+use anyhow::Result;
+use async_openai::config::OpenAIConfig;
 use async_openai::{
     Client,
     types::chat::{
-        ChatCompletionRequestMessage, ChatCompletionRequestSystemMessage,
-        CreateChatCompletionRequest, CreateChatCompletionRequestArgs, CreateChatCompletionResponse,
-        Role,
+        ChatCompletionRequestMessage, CreateChatCompletionRequest, CreateChatCompletionRequestArgs,
+        CreateChatCompletionResponse,
     },
 };
-use serde::de::DeserializeOwned;
 
 pub struct LlmClient {
     client: Client<OpenAIConfig>,
@@ -56,7 +51,7 @@ impl LlmClient {
             .build()?;
         Ok(request)
     }
-    pub fn unstructured(&self, response: CreateChatCompletionResponse) -> Vec   <String> {
+    pub fn unstructured(&self, response: CreateChatCompletionResponse) -> Vec<String> {
         response
             .choices
             .into_iter()

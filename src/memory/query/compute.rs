@@ -1,33 +1,24 @@
 use crate::memory::{
     embedding::{
+        EmbeddingCalcResult,
         note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant},
         query::{
             note::{MemoryRetrieveQueryEmbedding, MemoryRetrieveQueryVariantEmbedding},
             sem::SemanticQueryUnitEmbedding,
             situation::{
-                environment::EnvironmentQueryUnitEmbedding, event::EventQueryUnitEmbedding,
-                location::LocationQueryUnitEmbedding, participant::ParticipantQueryUnitEmbedding,
-                SituationQueryUnitEmbedding,
+                SituationQueryUnitEmbedding, environment::EnvironmentQueryUnitEmbedding,
+                event::EventQueryUnitEmbedding, location::LocationQueryUnitEmbedding,
+                participant::ParticipantQueryUnitEmbedding,
             },
         },
         sem::SemanticEmbedding,
         situation::{
+            AbstractSituationEmbedding, SituationEmbedding, SpecificSituationEmbedding,
             environment::EnvironmentEmbedding, event::EventEmbedding, location::LocationEmbedding,
-            participant::ParticipantEmbedding, AbstractSituationEmbedding, SituationEmbedding,
-            SpecificSituationEmbedding,
-        },
-        Embeddable, EmbeddingCalcResult, EmbeddingModel,
-    },
-    memory_note::situation_mem::{Environment, Event, Location, Participant},
-    memory_note::{MemoryId, MemoryNote},
-    query::{
-        self,
-        retrieve::{
-            EnvironmentQueryUnit, EventQueryUnit, LocationQueryUnit, MemoryRetrieveQuery,
-            MemoryRetrieveQueryVariant, ParticipantQueryUnit, PrioritizedMemoryRetrieveQuery,
-            SemanticQueryUnit,
+            participant::ParticipantEmbedding,
         },
     },
+    memory_note::MemoryId,
 };
 
 pub trait AnonymousQueryCompute {
@@ -317,9 +308,14 @@ impl QueryCompute for EmbeddedMemoryNote {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::memory::embedding::Embeddable;
     use crate::memory::embedding::embedding_model::bge::BgeSmallZh;
     use crate::memory::memory_note::sem_mem::ConceptType;
     use crate::memory::memory_note::situation_mem::{Environment, Event, Location, Participant};
+    use crate::memory::query::retrieve::{
+        EnvironmentQueryUnit, EventQueryUnit, LocationQueryUnit, ParticipantQueryUnit,
+        SemanticQueryUnit,
+    };
 
     #[test]
     fn test_query_compute_result() {

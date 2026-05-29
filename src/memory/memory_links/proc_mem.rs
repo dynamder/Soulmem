@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use crate::memory::memory_note::MemoryId;
-
 ///Procedural Memory Link
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ProcMemLink {

@@ -10,6 +10,8 @@ use super::RetrStrategy;
 pub struct RetrAssociation {
     pub max_results: usize,
 }
+
+#[allow(dead_code)]
 pub struct AssociationRequest {
     working_mem: Arc<WorkingMemory>,
 }
@@ -19,7 +21,7 @@ impl RetrRequest for AssociationRequest {}
 impl RetrStrategy for RetrAssociation {
     type Request = AssociationRequest;
     type Return<'a> = Vec<MemoryId>;
-    fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
+    fn retrieve(&self, _request: Self::Request) -> Self::Return<'_> {
         todo!()
     }
 }

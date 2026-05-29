@@ -9,13 +9,10 @@ pub mod proc_mem;
 pub mod sem_mem;
 pub mod situation_mem;
 
-use crate::memory::embedding::Embeddable;
 use crate::memory::memory_note::proc_mem::ProcMemory;
 use crate::memory::memory_note::sem_mem::SemMemory;
 use crate::memory::memory_note::situation_mem::SituationType;
 
-use super::embedding::EmbeddingGenError;
-use super::embedding::EmbeddingModel;
 use super::memory_links::MemoryLink;
 
 //new-type pattern

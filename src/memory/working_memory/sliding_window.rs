@@ -1,29 +1,17 @@
 use crate::memory::working_memory::llm::{
     client::LlmClient,
-    config::LLMConfig,
     prompt::{PromptBuilder, PromptHistoryBuilder},
 };
-use anyhow::{Context, Error, Result};
-use async_openai::{
-    Client,
-    config::Config,
-    types::chat::{
-        ChatCompletionRequestAssistantMessage, ChatCompletionRequestMessage,
-        ChatCompletionRequestMessageContentPartText, ChatCompletionRequestSystemMessage,
-        ChatCompletionRequestUserMessage, ChatCompletionRequestUserMessageContent,
-        ChatCompletionRequestUserMessageContentPart, CreateChatCompletionRequest, Role,
-    },
+use anyhow::Result;
+use async_openai::types::chat::{
+    ChatCompletionRequestAssistantMessage, ChatCompletionRequestMessage,
+    ChatCompletionRequestSystemMessage, ChatCompletionRequestUserMessage, Role,
 };
-use dotenvy::{dotenv, var};
+use dotenvy::dotenv;
 use parking_lot::RwLock as ParkRwLock;
-use secrecy::{ExposeSecret, SecretString};
-use std::mem::take;
+
 use std::sync::Arc;
 use std::{collections::VecDeque, sync::atomic::AtomicUsize};
-use tokio::runtime::Runtime;
-use tokio::sync::RwLock;
-use tokio::sync::mpsc;
-use tokio::time::{Duration, sleep};
 
 //滑动窗口（容器、容量、标记计数、摘要用临时储存）
 pub struct SlidingWindow {
@@ -344,6 +332,13 @@ impl PromptBuilder for Summary {
 
 #[cfg(test)]
 mod slidingwindow_test {
+    use std::time::Duration;
+
+    use dotenvy::var;
+    use tokio::time::sleep;
+
+    use crate::memory::working_memory::llm::config::LLMConfig;
+
     use super::*;
 
     #[tokio::test]
@@ -354,7 +349,7 @@ mod slidingwindow_test {
             &var("API_BASE").unwrap_or_default(),
             &var("MODEL").unwrap_or_default(),
         ));
-        let mut window = SlidingWindow::new(10);
+        let window = SlidingWindow::new(10);
         let user_info = "user_info";
         window
             .push(user_info, "user", &client)
@@ -384,7 +379,7 @@ mod slidingwindow_test {
             &var("API_BASE").unwrap_or_default(),
             &var("MODEL").unwrap_or_default(),
         ));
-        let mut window = SlidingWindow::new(10);
+        let window = SlidingWindow::new(10);
         let user_info = "user_info";
         window
             .push(user_info, "user", &client)
@@ -412,7 +407,7 @@ mod slidingwindow_test {
             &var("API_BASE").unwrap_or_default(),
             &var("MODEL").unwrap_or_default(),
         ));
-        let mut window = SlidingWindow::new(2);
+        let window = SlidingWindow::new(2);
         let user_info = "What is Rust?";
         window
             .push(user_info, "user", &client)

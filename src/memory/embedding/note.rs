@@ -1,7 +1,7 @@
 use crate::memory::{
     embedding::{
-        sem::SemanticEmbedding, situation::SituationEmbedding, Embeddable, EmbeddingCalcResult,
-        EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
+        Embeddable, EmbeddingCalcResult, EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
+        sem::SemanticEmbedding, situation::SituationEmbedding,
     },
     memory_note::{MemoryNote, MemoryType},
 };
@@ -89,8 +89,8 @@ impl MemoryEmbedding {
     }
     pub fn linear_blend(
         &self,
-        other: &MemoryEmbeddingVariant,
-        blend_factor: f32,
+        _other: &MemoryEmbeddingVariant,
+        _blend_factor: f32,
     ) -> EmbeddingCalcResult<MemoryEmbeddingVariant> {
         todo!("linear blend")
     }
@@ -175,8 +175,8 @@ impl Embeddable for MemoryNote {
 mod tests {
     use super::*;
     use crate::memory::embedding::embedding_model::bge::BgeSmallZh;
-    use crate::memory::memory_note::sem_mem::{ConceptType, SemMemory};
     use crate::memory::memory_note::MemoryNoteBuilder;
+    use crate::memory::memory_note::sem_mem::{ConceptType, SemMemory};
 
     #[test]
     fn test_memory_note_embedding() {

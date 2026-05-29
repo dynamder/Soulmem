@@ -1,11 +1,11 @@
 use crate::memory::{
     embedding::{
+        Embeddable,
         situation::{
             emotion::EmotionEmbedding, environment::EnvironmentEmbedding, event::EventEmbedding,
             location::LocationEmbedding, participant::ParticipantEmbedding,
             sensory_data::SensoryDataEmbedding,
         },
-        Embeddable, EmbeddingVec,
     },
     memory_note::situation_mem::Context,
 };
@@ -182,6 +182,6 @@ mod tests {
     fn test_embed() {
         let context = test_context();
         let model = BgeSmallZh::default_cpu().unwrap();
-        let embedding = context.embed(&model).unwrap();
+        let _embedding = context.embed(&model).unwrap();
     }
 }

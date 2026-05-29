@@ -1,14 +1,6 @@
-use std::{
-    cmp::Ordering,
-    collections::{BinaryHeap, HashMap},
-    fmt::Debug,
-    hash::Hash,
-    ops::AddAssign,
-};
+use std::{cmp::Ordering, collections::HashMap, fmt::Debug, hash::Hash, ops::AddAssign};
 
-use super::ord_float::OrdFloat;
 use petgraph::{
-    Direction::Incoming,
     algo::UnitMeasure,
     visit::{EdgeRef, IntoEdges, IntoNodeIdentifiers, NodeCount, NodeIndexable},
 };
@@ -83,7 +75,7 @@ where
     });
     //println!("out_degrees: {:?}", out_degrees);
 
-    for i in 0..nb_iter {
+    for _ in 0..nb_iter {
         let ppr_vec_i = valid_index
             .iter()
             .map(|&computing_idx| {
@@ -144,14 +136,14 @@ where
 
 //残差单元表示
 #[derive(Debug, Clone, Copy)]
-struct ResidueUnit<Index: Copy, D_R: UnitMeasure + Copy> {
+struct ResidueUnit<Index: Copy, DR: UnitMeasure + Copy> {
     pub idx: Index,
-    pub value: D_R,
+    pub value: DR,
 }
-impl<Index, D_R> PartialOrd for ResidueUnit<Index, D_R>
+impl<Index, DR> PartialOrd for ResidueUnit<Index, DR>
 where
     Index: Copy,
-    D_R: UnitMeasure + Copy + PartialOrd,
+    DR: UnitMeasure + Copy + PartialOrd,
 {
     fn ge(&self, other: &Self) -> bool {
         self.value.ge(&other.value)
@@ -169,10 +161,10 @@ where
         self.value.partial_cmp(&other.value)
     }
 }
-impl<Index, D_R> PartialEq for ResidueUnit<Index, D_R>
+impl<Index, DR> PartialEq for ResidueUnit<Index, DR>
 where
     Index: Copy,
-    D_R: UnitMeasure + Copy + PartialEq,
+    DR: UnitMeasure + Copy + PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
         self.value.eq(&other.value)
@@ -181,16 +173,16 @@ where
         self.value.ne(&other.value)
     }
 }
-impl<Index, D_R> Eq for ResidueUnit<Index, D_R>
+impl<Index, DR> Eq for ResidueUnit<Index, DR>
 where
     Index: Copy,
-    D_R: UnitMeasure + Copy + Eq,
+    DR: UnitMeasure + Copy + Eq,
 {
 }
-impl<Index, D_R> Ord for ResidueUnit<Index, D_R>
+impl<Index, DR> Ord for ResidueUnit<Index, DR>
 where
     Index: Copy,
-    D_R: UnitMeasure + Copy + Ord + PartialOrd + Eq,
+    DR: UnitMeasure + Copy + Ord + PartialOrd + Eq,
 {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.value.cmp(&other.value)
@@ -438,8 +430,9 @@ where
 #[cfg(test)]
 mod test {
 
-    use mockall::predicate::float;
     use petgraph::{matrix_graph::NodeIndex, prelude::StableDiGraph};
+
+    use crate::utils::graph_algo::ord_float::OrdFloat;
 
     use super::*;
     fn diff(actual: f64, expected: f64) -> f64 {

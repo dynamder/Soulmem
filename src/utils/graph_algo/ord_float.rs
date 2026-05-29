@@ -1,5 +1,5 @@
 use core::iter::Sum;
-use ordered_float::{FloatCore, OrderedFloat, PrimitiveFloat};
+use ordered_float::{OrderedFloat, PrimitiveFloat};
 use petgraph::algo::UnitMeasure;
 use std::fmt::Debug;
 
@@ -111,7 +111,7 @@ where
     F: ordered_float::FloatCore + PrimitiveFloat + Debug + Sum + Default,
 {
     fn default_tol() -> Self {
-        OrdFloat(OrderedFloat((F::epsilon())))
+        OrdFloat(OrderedFloat(F::epsilon()))
     }
     ///如果F不能从f32转化，则变为NaN而非panic
     fn from_f32(val: f32) -> Self {

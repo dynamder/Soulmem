@@ -315,7 +315,7 @@ mod tests {
         let memory_id = create_test_memory_id();
         let mut record = Record::new(memory_id);
 
-        let now = Utc::now();
+        let _now = Utc::now();
 
         // 添加多个反馈
         record.add_feedback(UserFeedback::Positive);

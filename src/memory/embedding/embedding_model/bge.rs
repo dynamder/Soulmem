@@ -1,9 +1,6 @@
 use anyhow::Result;
-use async_trait::async_trait;
-use embed_anything::embeddings::{
-    embed::{Embedder, EmbedderBuilder},
-    local::bert::{BertEmbed, BertEmbedder},
-};
+
+use embed_anything::embeddings::local::bert::{BertEmbed, BertEmbedder};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use text_splitter::{Characters, TextSplitter};
 

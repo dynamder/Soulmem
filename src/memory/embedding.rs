@@ -1,11 +1,7 @@
 use async_trait::async_trait;
-use petgraph::Direction::Outgoing;
+
 use thiserror::Error;
 
-use crate::memory::{
-    embedding::{sem::SemanticEmbedding, situation::SituationEmbedding},
-    memory_note::{MemoryNote, MemoryType},
-};
 pub mod embedding_model;
 pub mod query;
 pub mod sem;

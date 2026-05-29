@@ -1,19 +1,8 @@
 use std::sync::Arc;
 
-use crate::memory::{
-    cluster::memory_cluster::MemoryCluster,
-    embedding::note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant},
-    memory_links::{MemoryLink, MemoryLinkType},
-    memory_note::{
-        MemoryId, MemoryNote, MemoryNoteBuilder, MemoryType,
-        sem_mem::{ConceptType, SemMemory},
-    },
-};
-use crate::utils::graph_algo::ord_float::OrdFloat;
-use crate::utils::graph_algo::ppr::weighted_ppr_fp;
+use crate::memory::cluster::memory_cluster::MemoryCluster;
+
 use parking_lot::RwLock;
-use petgraph::algo::UnitMeasure;
-use petgraph::visit::IntoNodeIdentifiers;
 
 #[derive(Debug, Clone)]
 pub struct MemoryClusterHandle {
@@ -33,8 +22,19 @@ impl MemoryClusterHandle {
 
 #[cfg(test)]
 mod tests {
+    use crate::memory::embedding::note::{
+        EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
+    };
+    use crate::memory::memory_links::{MemoryLink, MemoryLinkType};
+    use crate::memory::memory_note::sem_mem::{ConceptType, SemMemory};
+    use crate::memory::memory_note::{MemoryId, MemoryNoteBuilder, MemoryType};
+    use crate::utils::graph_algo::ord_float::OrdFloat;
+    use crate::utils::graph_algo::ppr::weighted_ppr_fp;
+
     use super::*;
     use parking_lot::Mutex;
+    use petgraph::algo::UnitMeasure;
+    use petgraph::visit::IntoNodeIdentifiers;
     use std::sync::Arc as StdArc;
     use std::sync::atomic::{AtomicUsize, Ordering};
 

@@ -1,26 +1,22 @@
-use chrono::{DateTime, Utc};
 use parking_lot::RwLock;
+use petgraph::Direction;
 use petgraph::prelude::{EdgeIndex, NodeIndex, StableDiGraph};
 use petgraph::visit::EdgeRef;
-use petgraph::{Direction, Undirected};
-use rayon::prelude::IntoParallelIterator;
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, json};
+
 use std::collections::{HashMap, HashSet};
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 use std::sync::Arc;
 use thiserror::Error;
-use uuid::Uuid;
 
 use crate::memory::cluster::cluster_handle::MemoryClusterHandle;
 use crate::memory::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding};
-use crate::memory::embedding::{Embeddable, EmbeddingModel, EmbeddingVec};
+
 use crate::memory::memory_links::{LinkId, MemoryLinkType};
 
 use crate::memory::memory_note::MemoryId;
 
 use crate::memory::memory_links::MemoryLink;
-use crate::memory::memory_note::MemoryNote;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct GraphMemoryLink {

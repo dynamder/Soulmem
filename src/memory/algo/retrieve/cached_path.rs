@@ -12,6 +12,7 @@ pub struct RetrCachedPath {
     pub expand_threshold: f64, //计算向量与查询向量的相似度大于此值，将被扩展
 }
 
+#[allow(dead_code)]
 pub struct CachedPathRequest {
     working_mem: Arc<WorkingMemory>, //计算向量与查询向量的相似度大于此值，将被扩展
 }
@@ -20,7 +21,7 @@ impl RetrRequest for CachedPathRequest {}
 impl RetrStrategy for RetrCachedPath {
     type Request = CachedPathRequest;
     type Return<'a> = Vec<MemoryId>;
-    fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
+    fn retrieve(&self, _request: Self::Request) -> Self::Return<'_> {
         todo!()
     }
 }

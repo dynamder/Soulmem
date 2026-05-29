@@ -1,9 +1,6 @@
 use anyhow::Result;
-use async_trait::async_trait;
-use embed_anything::embeddings::{
-    embed::{Embedder, EmbedderBuilder},
-    local::qwen3::{Qwen3Embed, Qwen3Embedder},
-};
+
+use embed_anything::embeddings::local::qwen3::{Qwen3Embed, Qwen3Embedder};
 
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use text_splitter::{Characters, TextSplitter};

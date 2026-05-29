@@ -1,13 +1,9 @@
-use serde::{Deserialize, Serialize};
-use anyhow::{Error, Result, Context};
-
 use async_openai::config::{Config, OpenAIConfig};
-use http::header::{HeaderMap, IntoHeaderName, HeaderValue, InvalidHeaderValue};
-use std::collections::HashMap;
-use secrecy::{SecretString, ExposeSecret};
+use http::header::HeaderMap;
 
+use secrecy::SecretString;
 
-pub trait AIConfig: Config{
+pub trait AIConfig: Config {
     fn get_config(&self) -> OpenAIConfig;
     fn get_model(&self) -> &str;
     fn get_temperature(&self) -> f32;
@@ -29,13 +25,10 @@ impl LLMConfig {
         Self {
             model: model.to_string(),
             temprerature: 0.7,
-            ai_config: OpenAIConfig::new()
-                .with_api_key(key)
-                .with_api_base(base),
+            ai_config: OpenAIConfig::new().with_api_key(key).with_api_base(base),
             n: 1,
             max_tokens: 512,
         }
-
     }
 
     pub fn with_temperature(mut self, temperature: f32) -> Self {
@@ -52,10 +45,7 @@ impl LLMConfig {
         self.max_tokens = max_tokens;
         self
     }
-
 }
-
-
 
 impl AIConfig for LLMConfig {
     fn get_config(&self) -> OpenAIConfig {
@@ -78,7 +68,7 @@ impl AIConfig for LLMConfig {
         self.max_tokens
     }
 }
-    //Config
+//Config
 impl Config for LLMConfig {
     fn headers(&self) -> HeaderMap {
         self.ai_config.headers()

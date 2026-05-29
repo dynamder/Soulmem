@@ -1,7 +1,6 @@
 use crate::memory::{
     algo::retrieve::RetrRequest,
-    memory_note::MemoryId,
-    working_memory::{sliding_window::Information, WorkingMemory},
+    working_memory::{WorkingMemory, sliding_window::Information},
 };
 use std::sync::Arc;
 
@@ -11,6 +10,7 @@ pub struct RetrShortOnly {
     pub clipping_length: Option<usize>,
     pub include_summary: bool,
 }
+#[allow(dead_code)]
 pub struct ShortOnlyRequest {
     working_mem: Arc<WorkingMemory>, //因为检索算法很可能需要并发执行，使用Arc而非引用确保可以Send
 }
@@ -23,7 +23,7 @@ impl RetrStrategy for RetrShortOnly {
         = &'a [Information]
     where
         Self: 'a;
-    fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
+    fn retrieve(&self, _request: Self::Request) -> Self::Return<'_> {
         todo!()
     }
 }
