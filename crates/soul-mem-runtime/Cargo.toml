@@ -1,0 +1,24 @@
+[package]
+name = "soul-mem-runtime"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+soul-mem-core = { path = "../soul-mem-core" }
+soul-mem-query = { path = "../soul-mem-query" }
+serde = { workspace = true }
+parking_lot = { workspace = true }
+thiserror = { workspace = true }
+petgraph = { workspace = true }
+log = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+async-openai = { workspace = true }
+serde_json = { workspace = true }
+dotenvy = { workspace = true }
+http = "1.4.0"
+secrecy = "0.10.3"
+
+[dev-dependencies]
+tokio = { workspace = true }
+soul-mem-algo = { path = "../soul-mem-algo" }
