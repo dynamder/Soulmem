@@ -26,7 +26,6 @@ pub enum AbstractSituation {
     Participant(Participant),
     Environment(Environment),
     Event(Event),
-    Narrative(String),
 }
 
 impl From<Location> for AbstractSituation {
@@ -47,11 +46,6 @@ impl From<Environment> for AbstractSituation {
 impl From<Event> for AbstractSituation {
     fn from(event: Event) -> Self {
         AbstractSituation::Event(event)
-    }
-}
-impl From<String> for AbstractSituation {
-    fn from(narrative: String) -> Self {
-        AbstractSituation::Narrative(narrative)
     }
 }
 
