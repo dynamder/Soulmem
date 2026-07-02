@@ -1,8 +1,8 @@
 use std::sync::LazyLock;
 
 use nucleo::{
-    Config,
     pattern::{Atom, AtomKind, CaseMatching, Normalization},
+    Config,
 };
 use parking_lot::Mutex;
 

@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use crate::{
     base::SoulTuneEvent,
-    utils::fuzzy::{FuzzyPatternBuilder, fuzzy_match},
+    utils::fuzzy::{fuzzy_match, FuzzyPatternBuilder},
 };
 
 pub struct UserCmd {
