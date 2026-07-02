@@ -28,6 +28,7 @@ pub struct DatasetState {
     pub entries: Vec<FileEntry>,
     pub selected: usize,
     pub scroll: usize,
+    #[allow(dead_code)]
     pub path_input: TextArea<'static>,
     pub active_panel: Panel,
     pub preview_content: Option<String>,

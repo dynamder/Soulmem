@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use ratatui::layout::Constraint;
 use ratatui::layout::Direction;
 use ratatui::layout::Layout;

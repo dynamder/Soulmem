@@ -1,6 +1,8 @@
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Stylize};
 use ratatui::widgets::Paragraph;
+#![allow(dead_code)]
+
 use ratatui::Frame;
 
 pub struct KvRow {

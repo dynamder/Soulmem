@@ -1,17 +1,18 @@
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 use crate::{
     base::SoulTuneEvent,
     utils::fuzzy::{fuzzy_match, FuzzyPatternBuilder},
 };
 
+#[allow(dead_code)]
 pub struct UserCmd {
-    name: String,
-    aliases: Vec<String>,
-    description: String,
-    usage: String,
-    args_completer: Option<Box<dyn Fn(&str) -> Vec<String>>>,
-    handler: Box<dyn Fn(&[String]) -> Option<SoulTuneEvent>>,
+    pub name: String,
+    pub aliases: Vec<String>,
+    pub description: String,
+    pub usage: String,
+    pub args_completer: Option<Box<dyn Fn(&str) -> Vec<String>>>,
+    pub handler: Box<dyn Fn(&[String]) -> Option<SoulTuneEvent>>,
 }
 
 impl UserCmd {
@@ -138,7 +139,7 @@ impl CmdRegistry {
             .map(|(cmd, _)| self.commands.get(cmd).unwrap()) //SAFETY: fuzzy_match ensures cmd is in self.commands
             .collect()
     }
-    pub fn fuzzy_cmd_completions(&self, query: &str) -> Vec<String> {
+    pub fn fuzzy_cmd_completions(&self, _query: &str) -> Vec<String> {
         todo!()
     }
 }

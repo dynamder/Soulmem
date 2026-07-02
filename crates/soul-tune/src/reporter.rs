@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ReportLevel {
     Debug,

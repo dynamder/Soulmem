@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use ratatui::layout::Rect;
 use ratatui::prelude::Widget;
 use ratatui::style::{Color, Style, Stylize};

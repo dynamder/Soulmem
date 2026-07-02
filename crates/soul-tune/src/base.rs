@@ -60,6 +60,7 @@ impl From<crossterm::event::Event> for SoulTuneEvent {
     }
 }
 
+#[allow(dead_code)]
 pub trait EventHandler {
     fn handle_event(&mut self, event: SoulTuneEvent) -> Option<SoulTuneEvent>;
 }

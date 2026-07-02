@@ -12,8 +12,3 @@ ratatui = "0.30.1"
 ratatui-textarea = "0.9.1"
 serde_json.workspace = true
 
-[profile.release]
-codegen-units = 1
-lto = true
-opt-level = "s"
-strip = true

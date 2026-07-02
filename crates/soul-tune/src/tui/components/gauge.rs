@@ -1,6 +1,8 @@
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Stylize};
 use ratatui::widgets::{Block, Gauge};
+#![allow(dead_code)]
+
 use ratatui::Frame;
 
 pub fn render_gauge(frame: &mut Frame, area: Rect, title: &str, current: usize, total: usize) {

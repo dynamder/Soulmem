@@ -3,7 +3,7 @@ use std::time::Duration;
 use ratatui::crossterm::event::{self, Event, KeyEvent, KeyEventKind};
 use ratatui::{DefaultTerminal, Frame};
 
-use crate::base::{AlgoType, TestReport, Transition};
+use crate::base::{AlgoType, Transition};
 use crate::cmd::CmdRegistry;
 use crate::metric::MetricRegistry;
 use crate::reporter::ReporterRegistry;
@@ -27,7 +27,9 @@ pub struct App {
     terminal: DefaultTerminal,
     app_state: AppState,
     cmd_registry: CmdRegistry,
+    #[allow(dead_code)]
     metric_registry: MetricRegistry,
+    #[allow(dead_code)]
     reporter_registry: ReporterRegistry,
 }
 

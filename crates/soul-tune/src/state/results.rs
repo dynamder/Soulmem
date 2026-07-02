@@ -3,7 +3,7 @@ use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::prelude::Widget;
 use ratatui::style::{Color, Style, Stylize};
 use ratatui::symbols::Marker;
-use ratatui::widgets::{Axis, Block, Chart, Dataset, GraphType, Paragraph, Tabs, Wrap};
+use ratatui::widgets::{Axis, Block, Chart, Dataset, GraphType, Paragraph, Tabs};
 use ratatui::Frame;
 
 use crate::base::{TestReport, Transition};
@@ -20,6 +20,7 @@ pub struct ResultsState {
     pub active_tab: ResultTab,
     pub kv_scroll: usize,
     pub metric_group_idx: usize,
+    #[allow(dead_code)]
     pub chart_scroll: usize,
     pub log_scroll: usize,
     pub log_filter: String,
