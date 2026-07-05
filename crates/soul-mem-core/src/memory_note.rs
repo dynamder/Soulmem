@@ -73,8 +73,14 @@ impl MemoryNote {
     pub fn mem_type(&self) -> &MemoryType {
         &self.mem_type
     }
+    pub fn mem_type_mut(&mut self) -> &mut MemoryType {
+        &mut self.mem_type
+    }
     pub fn links(&self) -> &Vec<MemoryLink> {
         &self.mem_links
+    }
+    pub fn links_mut(&mut self) -> &mut Vec<MemoryLink> {
+        &mut self.mem_links
     }
     pub fn retrieval_increment(&mut self) {
         self.retrieval_count += 1;

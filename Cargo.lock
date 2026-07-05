@@ -5330,8 +5330,10 @@ dependencies = [
 name = "soul-mem-algo"
 version = "0.1.0"
 dependencies = [
+ "async-openai",
  "chrono",
  "dashmap",
+ "dotenvy",
  "jieba-rs",
  "ordered-float",
  "parking_lot",
@@ -5340,6 +5342,7 @@ dependencies = [
  "soul-mem-core",
  "soul-mem-query",
  "soul-mem-runtime",
+ "tokio",
 ]
 
 [[package]]
