@@ -1,4 +1,5 @@
 //采用dfs，通过边权中的记忆向量来快速扩展子图信息，详见ReMindRAG
+use serde::Deserialize;
 
 use soul_mem_core::memory_note::MemoryId;
 use soul_mem_runtime::working_memory::WorkingMemory;
@@ -7,21 +8,46 @@ use std::sync::Arc;
 use super::RetrRequest;
 use super::RetrStrategy;
 
-pub struct RetrCachedPath {
-    pub max_depth: usize,      // dfs的最大深度
-    pub expand_threshold: f64, //计算向量与查询向量的相似度大于此值，将被扩展
+#[derive(Debug, Clone, Deserialize)]
+pub struct CachedPathConfig {
+    #[serde(default = "default_max_depth")]
+    pub max_depth: usize,
+    #[serde(default = "default_expand_threshold")]
+    pub expand_threshold: f64,
 }
 
-#[allow(dead_code)]
-pub struct CachedPathRequest {
-    working_mem: Arc<WorkingMemory>, //计算向量与查询向量的相似度大于此值，将被扩展
+fn default_max_depth() -> usize {
+    3
 }
+fn default_expand_threshold() -> f64 {
+    0.7
+}
+
+impl CachedPathConfig {
+    pub fn into_request(self, working_mem: Arc<WorkingMemory>) -> CachedPathRequest {
+        CachedPathRequest {
+            working_mem,
+            max_depth: self.max_depth,
+            expand_threshold: self.expand_threshold,
+        }
+    }
+}
+
+pub struct RetrCachedPath;
+
+pub struct CachedPathRequest {
+    #[allow(unused)]
+    working_mem: Arc<WorkingMemory>,
+    pub max_depth: usize,
+    pub expand_threshold: f64,
+}
+
 impl RetrRequest for CachedPathRequest {}
 
 impl RetrStrategy for RetrCachedPath {
     type Request = CachedPathRequest;
     type Return<'a> = Vec<MemoryId>;
     fn retrieve(&self, _request: Self::Request) -> Self::Return<'_> {
-        todo!()
+        todo!("This will not be included in the MVP.")
     }
 }

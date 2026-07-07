@@ -8,17 +8,17 @@ pub enum ProcMemLink {
 
 #[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TrigToAction {
-    pub prob: f32, //转移概率
+    pub prob: f64, //转移概率
 }
 impl TrigToAction {
-    pub fn new(prob: f32) -> Self {
+    pub fn new(prob: f64) -> Self {
         TrigToAction { prob }
     }
 
-    pub fn get_prob(&self) -> f32 {
+    pub fn get_prob(&self) -> f64 {
         self.prob
     }
-    pub fn set_prob(&mut self, prob: f32) {
+    pub fn set_prob(&mut self, prob: f64) {
         self.prob = prob;
     }
 }
