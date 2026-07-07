@@ -1,0 +1,13 @@
+[package]
+name = "soul-mem-algo"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+soul-mem-core = { path = "../soul-mem-core" }
+soul-mem-query = { path = "../soul-mem-query" }
+soul-mem-runtime = { path = "../soul-mem-runtime" }
+petgraph = { workspace = true }
+ordered-float = "5.0.0"
+serde = { workspace = true }
+rayon = "1.12.0"
