@@ -5,6 +5,7 @@ use uuid::Uuid;
 
 use crate::memory_links::proc_mem::ProcMemLink;
 use crate::memory_links::sem_mem::SemMemLink;
+use crate::memory_links::situation_mem::SituationMemLink;
 use crate::memory_note::MemoryId;
 
 pub mod proc_mem;
@@ -42,6 +43,7 @@ pub struct MemoryLink {
 pub enum MemoryLinkType {
     Proc(ProcMemLink),
     Sem(SemMemLink),
+    Situation(SituationMemLink),
 }
 
 impl MemoryLink {

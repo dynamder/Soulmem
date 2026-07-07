@@ -4,16 +4,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SemMemLink {
     pub verb: String,
-    pub intensity: f32,
     pub confidence: f32,
 }
 
 impl SemMemLink {
-    pub fn new(verb: String, intensity: f32, confidence: f32) -> Self {
-        Self {
-            verb,
-            intensity,
-            confidence,
-        }
+    pub fn new(verb: String, confidence: f32) -> Self {
+        Self { verb, confidence }
     }
 }

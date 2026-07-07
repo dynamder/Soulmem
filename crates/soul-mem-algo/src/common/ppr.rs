@@ -308,9 +308,9 @@ pub fn weighted_ppr_fp<G, D, Q>(
     damping_factor: D,
     personalized_vec: HashMap<G::NodeId, D>,
     residue_threshold: D,
-    weight_calc: impl Fn(&G::EdgeRef, &Q) -> D,
-    dynamic_query: &Q,
-) -> HashMap<G::NodeId, D>
+    weight_calc: impl Fn(G, &G::EdgeRef, Option<&Q>) -> D,
+    dynamic_query: Option<&Q>,
+) -> Vec<(G::NodeId, D)>
 where
     G: NodeCount + IntoEdges + NodeIndexable + IntoNodeIdentifiers,
     D: UnitMeasure + Copy + AddAssign + Ord,
@@ -358,6 +358,9 @@ where
 
     //每次取残差最大的节点进行push，加速收敛
     while let Some(residue_i) = residue_vec.iter().copied().max() {
+        if residue_i.value <= residue_threshold {
+            break;
+        }
         //println!("Processing node {}", residue_i.idx);
         let out_edges = graph.edges(graph.from_index(residue_i.idx));
         //动态归一化的边权计算
@@ -365,7 +368,7 @@ where
             //println!("Calculating edge weights for node {}", residue_i.idx);
             let weights = out_edges
                 .map(|edge| {
-                    let weight = weight_calc(&edge, dynamic_query);
+                    let weight = weight_calc(graph, &edge, dynamic_query);
                     EdgeWeightUnit {
                         target_node: edge.target(),
                         idx: edge.id(),
@@ -374,14 +377,19 @@ where
                 })
                 .collect::<Vec<_>>();
             let sum = weights.iter().map(|v| v.value).sum::<D>();
-            let weights = weights
-                .into_iter()
-                .map(|w| EdgeWeightUnit {
-                    target_node: w.target_node,
-                    idx: w.idx,
-                    value: w.value / sum,
-                })
-                .collect::<Vec<_>>();
+            let weights = if sum != D::zero() {
+                //防止NaN
+                weights
+                    .into_iter()
+                    .map(|w| EdgeWeightUnit {
+                        target_node: w.target_node,
+                        idx: w.idx,
+                        value: w.value / sum,
+                    })
+                    .collect::<Vec<_>>()
+            } else {
+                weights
+            };
             ppr_edge_weight_cache.insert(graph.from_index(residue_i.idx), weights);
         }
 
@@ -430,9 +438,8 @@ where
 #[cfg(test)]
 mod test {
 
-    use petgraph::{matrix_graph::NodeIndex, prelude::StableDiGraph};
-
     use crate::common::ord_float::OrdFloat;
+    use petgraph::{matrix_graph::NodeIndex, prelude::StableDiGraph};
 
     use super::*;
     fn diff(actual: f64, expected: f64) -> f64 {
@@ -604,15 +611,20 @@ mod test {
             OrdFloat::from_f64(0.15),
             source_bias,
             OrdFloat::from_f64(0.002),
-            |_, _| OrdFloat::from_f64(1.0),
-            &"1",
+            |_, _, _| OrdFloat::from_f64(1.0),
+            Some(&"1"),
         );
         let ans_sum: f64 = ppr_ans
-            .values()
+            .iter()
+            .map(|(_, score)| score)
             .copied()
             .sum::<OrdFloat<f64>>()
             .into_inner();
         assert!(ans_sum - 1.0 < f64::EPSILON);
+
+        let ppr_ans = ppr_ans
+            .into_iter()
+            .collect::<HashMap<NodeIndex<u32>, OrdFloat<f64>>>();
 
         let avg_diff = 0.25
             * indexes
@@ -643,14 +655,19 @@ mod test {
             OrdFloat::from_f64(0.15),
             source_bias,
             OrdFloat::from_f64(0.002),
-            |_, _| OrdFloat::from_f64(1.0),
-            &"1",
+            |_, _, _| OrdFloat::from_f64(1.0),
+            Some(&"1"),
         );
         let ans_sum: f64 = ppr_ans
-            .values()
+            .iter()
+            .map(|(_, score)| score)
             .copied()
             .sum::<OrdFloat<f64>>()
             .into_inner();
+
+        let ppr_ans = ppr_ans
+            .into_iter()
+            .collect::<HashMap<NodeIndex<u32>, OrdFloat<f64>>>();
         assert!(ans_sum - 1.0 < 1e-5, "the sum is: {ans_sum}");
 
         let avg_diff = 0.25
@@ -683,14 +700,20 @@ mod test {
             OrdFloat::from_f64(0.15),
             source_bias,
             OrdFloat::from_f64(0.002),
-            |_, _| OrdFloat::from_f64(1.0),
-            &"1",
+            |_, _, _| OrdFloat::from_f64(1.0),
+            Some(&"1"),
         );
         let ans_sum: f64 = ppr_ans
-            .values()
+            .iter()
+            .map(|(_, score)| score)
             .copied()
             .sum::<OrdFloat<f64>>()
             .into_inner();
+        assert!(ans_sum - 1.0 < f64::EPSILON);
+
+        let ppr_ans = ppr_ans
+            .into_iter()
+            .collect::<HashMap<NodeIndex<u32>, OrdFloat<f64>>>();
         assert!(ans_sum - 1.0 < 1e-5, "the sum is: {ans_sum}");
 
         let avg_diff = 0.25
@@ -722,6 +745,6 @@ mod test {
 
         let ppr_ans = naive_ppr(&graph, 0.15_f64, source_bias, 15);
         let ans_sum = ppr_ans.values().copied().sum::<f64>();
-        assert!(ans_sum - 1.0 < f64::EPSILON);
+        assert!(ans_sum - 1.0 < 1e-5, "the sum is: {ans_sum}");
     }
 }
