@@ -1,3 +1,5 @@
+// SurrealDB 的具体实现
+
 use std::{collections::HashMap, sync::Arc};
 
 use async_trait::async_trait;
@@ -16,7 +18,7 @@ use super::{
         SimilarityHit, SimilarityQuery,
     },
     repository::MemoryRepository,
-    surql::BOOTSTRAP_STATEMENTS,
+    surql,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -107,8 +109,8 @@ impl SurrealMemoryRepository {
         Ok(())
     }
 
-    pub fn bootstrap_statements(&self) -> &'static [&'static str] {
-        BOOTSTRAP_STATEMENTS
+    pub fn bootstrap_statements(&self) -> Vec<&'static str> {
+        surql::bootstrap_statements()
     }
 
     fn ensure_connected(&self) -> StorageResult<()> {

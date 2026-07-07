@@ -10,7 +10,7 @@ use self::record::{Record, UserFeedback};
 use self::sliding_window::SlidingWindow;
 use crate::cluster::cluster_handle::MemoryClusterHandle;
 use crate::cluster::memory_cluster::MemoryCluster;
-use soul_mem_core::memory_links::{proc_mem::ProcMemLink, MemoryLink, MemoryLinkType};
+use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType, proc_mem::ProcMemLink};
 use soul_mem_core::memory_note::{MemoryId, MemoryNote};
 use soul_mem_query::consolidation::service::ConsolidationService;
 use soul_mem_query::embedding::note::EmbeddedMemoryNote;
@@ -28,7 +28,6 @@ const LTP_STEP_MAX: f64 = 0.08;
 const LTD_STEP_MAX: f64 = 0.05;
 const LINK_INTENSITY_MIN: f64 = 0.0;
 const LINK_INTENSITY_MAX: f64 = 1.0;
-
 
 // 工作记忆状态
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -366,9 +365,9 @@ impl WorkingMemory {
         link.intensity = (link.intensity + delta).clamp(LINK_INTENSITY_MIN, LINK_INTENSITY_MAX);
         match link.link_type_mut() {
             MemoryLinkType::Sem(sem) => {
-                sem.intensity =
-                    (sem.intensity as f64 + delta).clamp(LINK_INTENSITY_MIN, LINK_INTENSITY_MAX)
-                        as f32;
+                sem.intensity = (sem.intensity as f64 + delta)
+                    .clamp(LINK_INTENSITY_MIN, LINK_INTENSITY_MAX)
+                    as f32;
             }
             MemoryLinkType::Proc(ProcMemLink::TrigToAction(trig)) => {
                 let next_prob = (trig.get_prob() as f64 + delta)

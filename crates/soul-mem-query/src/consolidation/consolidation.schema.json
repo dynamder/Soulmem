@@ -1,39 +1,157 @@
 {
+  "type": "object",
   "required": ["nodes", "edges"],
   "properties": {
     "nodes": {
+      "type": "array",
       "minItems": 1,
       "items": {
+        "type": "object",
         "required": ["node_id", "memory_type", "payload"],
         "properties": {
           "node_id": {
+            "type": "string",
             "minLength": 1
           },
           "memory_type": {
+            "type": "string",
             "enum": ["semantic", "situation", "procedure"]
           },
-          "payload": {}
-        }
+          "payload": {
+            "type": "object"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "memory_type": {
+                  "const": "situation"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "payload": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": ["kind", "name", "coordinates"],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "const": "abstract_location"
+                        },
+                        "name": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "coordinates": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": ["kind", "name", "role"],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "const": "abstract_participant"
+                        },
+                        "name": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "role": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": ["kind", "atmosphere", "tone"],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "const": "abstract_environment"
+                        },
+                        "atmosphere": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "tone": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "kind",
+                        "action",
+                        "action_intensity",
+                        "initiator",
+                        "target"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "const": "abstract_event"
+                        },
+                        "action": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "action_intensity": {
+                          "type": "number"
+                        },
+                        "initiator": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "target": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "edges": {
+      "type": "array",
       "items": {
+        "type": "object",
         "required": ["from", "to", "relation", "intensity", "confidence"],
         "properties": {
           "from": {
+            "type": "string",
             "minLength": 1
           },
           "to": {
+            "type": "string",
             "minLength": 1
           },
           "relation": {
+            "type": "string",
             "minLength": 1
           },
           "intensity": {
+            "type": "number",
             "minimum": 0,
             "maximum": 1
           },
           "confidence": {
+            "type": "number",
             "minimum": 0,
             "maximum": 1
           }

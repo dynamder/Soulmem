@@ -1,3 +1,6 @@
+// 数据库抽象接口，也就是仓储 trait
+
+
 use async_trait::async_trait;
 
 use crate::memory::{

@@ -1,3 +1,6 @@
+// 数据库记录模型
+
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -139,7 +142,6 @@ pub struct RetrievalEventRecord {
     pub id: Option<String>,
     pub memory_id: String,
     pub occurred_at: DateTime<Utc>,
-    pub query_fingerprint: Option<String>,
     pub score: Option<f32>,
 }
 
@@ -149,7 +151,6 @@ impl RetrievalEventRecord {
             id: None,
             memory_id: memory_id.to_string(),
             occurred_at: Utc::now(),
-            query_fingerprint: None,
             score: None,
         }
     }
