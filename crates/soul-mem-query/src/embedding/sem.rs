@@ -60,6 +60,16 @@ impl Embeddable for SemMemory {
     fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<Self::EmbeddingGen> {
         let content_vec = model.infer_with_chunk(&self.content)?;
 
+        let description_vec = model.infer_with_chunk(&self.description)?;
+
+        if self.aliases.is_empty() {
+            return Ok(SemanticEmbedding {
+                content: content_vec.clone(),
+                fused_aliases: content_vec,
+                description: description_vec,
+            });
+        }
+
         let aliases_vec = model.infer_and_fuse(
             &self
                 .aliases
@@ -68,8 +78,6 @@ impl Embeddable for SemMemory {
                 .collect::<Vec<&str>>(),
         )?;
         let fused_aliases_vec = raw_linear_blend(&content_vec, &aliases_vec, 0.6).unwrap(); //SAFEUNWRAP: 由同一个嵌入模型生成的嵌入向量，维度相同
-
-        let description_vec = model.infer_with_chunk(&self.description)?;
 
         Ok(SemanticEmbedding {
             content: content_vec,
