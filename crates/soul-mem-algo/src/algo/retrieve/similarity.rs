@@ -4,7 +4,10 @@ use super::RetrStrategy;
 use crate::algo::retrieve::RetrRequest;
 use soul_mem_core::memory_note::MemoryId;
 
+use rayon::iter::IntoParallelIterator;
+use rayon::iter::ParallelIterator;
 use soul_mem_query::embedding::query::note::MemoryRetrieveQueryEmbedding;
+use soul_mem_query::query::compute::QueryCompute;
 use soul_mem_runtime::working_memory::WorkingMemory;
 use std::sync::Arc;
 
@@ -27,7 +30,7 @@ impl SimilarityConfig {
     pub fn into_request(
         self,
         working_mem: Arc<WorkingMemory>,
-        query: Arc<MemoryRetrieveQueryEmbedding>,
+        query: MemoryRetrieveQueryEmbedding,
     ) -> SimilarityRequest {
         SimilarityRequest {
             working_mem,
@@ -42,7 +45,7 @@ pub struct RetrSimilarity;
 
 pub struct SimilarityRequest {
     working_mem: Arc<WorkingMemory>,
-    query: Arc<MemoryRetrieveQueryEmbedding>,
+    query: MemoryRetrieveQueryEmbedding,
     similarity_threshold: f64,
     max_results: usize,
 }
@@ -51,28 +54,39 @@ impl RetrRequest for SimilarityRequest {}
 
 impl RetrStrategy for RetrSimilarity {
     type Request = SimilarityRequest;
-    type Return<'a> = Vec<(MemoryId, f64)>;
+    type Return<'a> = Vec<(MemoryId, f32)>;
 
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
-        #[cfg(not(test))]
-        {
-            todo!("This will only be a wrapper for database operation.")
-        }
-        #[cfg(test)]
-        {
-            let cluster = request.working_mem.memory_cluster();
-            cluster.read_or_compute(|mem_cluster| {
-                mem_cluster
-                    .graph()
-                    .node_indices()
-                    .map(|idx| {
-                        let id = mem_cluster.graph().node_weight(idx).unwrap().note().id();
-                        (id, 0.5_f64)
-                    })
-                    .take(request.max_results)
-                    .collect()
-            })
-        }
+        //TODO: 添加从数据库的向量相似结果并混合
+        let cluster = request.working_mem.memory_cluster();
+        cluster.read_or_compute(|mem_cluster| {
+            let node_weights = mem_cluster.graph().node_weights().collect::<Vec<_>>();
+
+            let mut query_calc = node_weights
+                .into_par_iter()
+                .filter_map(|mem_note| {
+                    let compute_res = mem_note.compute(&request.query).ok();
+                    match compute_res {
+                        Some(res) => {
+                            if !res.score.is_finite() {
+                                None
+                            } else {
+                                Some(res)
+                            }
+                        }
+                        None => None,
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            query_calc.sort_by(|a, b| b.score.total_cmp(&a.score));
+
+            query_calc
+                .into_iter()
+                .take(request.max_results)
+                .map(|r| (r.id, r.score))
+                .collect()
+        })
     }
 }
 
@@ -127,7 +141,7 @@ mod tests {
             max_results: 3,
         };
         let query_embedding = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::zero(128));
-        let request = config.into_request(Arc::new(wm), Arc::new(query_embedding));
+        let request = config.into_request(Arc::new(wm), query_embedding);
         let result = RetrSimilarity {}.retrieve(request);
 
         assert!(!result.is_empty());
@@ -142,7 +156,7 @@ mod tests {
             max_results: 2,
         };
         let query_embedding = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::zero(128));
-        let request = config.into_request(Arc::new(wm), Arc::new(query_embedding));
+        let request = config.into_request(Arc::new(wm), query_embedding);
         let result = RetrSimilarity {}.retrieve(request);
 
         assert_eq!(result.len(), 2);
@@ -156,7 +170,7 @@ mod tests {
             max_results: 10,
         };
         let query_embedding = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::zero(128));
-        let request = config.into_request(Arc::new(wm), Arc::new(query_embedding));
+        let request = config.into_request(Arc::new(wm), query_embedding);
         let result = RetrSimilarity {}.retrieve(request);
 
         assert!(result.is_empty());
