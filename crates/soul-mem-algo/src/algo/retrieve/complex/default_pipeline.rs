@@ -71,12 +71,10 @@ impl RetrStrategy for RetrDefaultPipeline {
             embedding: query_embedding,
         } = request.query;
 
-        let query_embedding = Arc::new(query_embedding);
-
-        let similarity_request = request.pipeline_config.similarity.into_request(
-            Arc::clone(&request.working_mem),
-            Arc::clone(&query_embedding),
-        );
+        let similarity_request = request
+            .pipeline_config
+            .similarity
+            .into_request(Arc::clone(&request.working_mem), query_embedding);
         let similarity_res = RetrSimilarity {}.retrieve(similarity_request);
 
         //PPR联想及动作概率推理

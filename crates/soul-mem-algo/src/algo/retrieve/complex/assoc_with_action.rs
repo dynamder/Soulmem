@@ -26,7 +26,7 @@ impl AssociateWithActionConfig {
     pub fn into_request(
         self,
         working_mem: Arc<WorkingMemory>,
-        source: Vec<(MemoryId, f64)>,
+        source: Vec<(MemoryId, f32)>,
     ) -> AssociateWithActionRequest {
         AssociateWithActionRequest {
             association: self

@@ -14,12 +14,12 @@ use std::sync::Arc;
 #[derive(Debug, Clone, Deserialize)]
 pub struct SimilarityConfig {
     #[serde(default = "default_similarity_threshold")]
-    pub similarity_threshold: f64,
+    pub similarity_threshold: f32,
     #[serde(default = "default_max_results")]
     pub max_results: usize,
 }
 
-fn default_similarity_threshold() -> f64 {
+fn default_similarity_threshold() -> f32 {
     0.7
 }
 fn default_max_results() -> usize {
@@ -46,7 +46,7 @@ pub struct RetrSimilarity;
 pub struct SimilarityRequest {
     working_mem: Arc<WorkingMemory>,
     query: MemoryRetrieveQueryEmbedding,
-    similarity_threshold: f64,
+    similarity_threshold: f32,
     max_results: usize,
 }
 
@@ -71,7 +71,11 @@ impl RetrStrategy for RetrSimilarity {
                             if !res.score.is_finite() {
                                 None
                             } else {
-                                Some(res)
+                                if res.score < request.similarity_threshold {
+                                    None
+                                } else {
+                                    Some(res)
+                                }
                             }
                         }
                         None => None,

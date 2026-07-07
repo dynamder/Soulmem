@@ -60,7 +60,7 @@ impl AssociationConfig {
     pub fn into_request(
         self,
         working_mem: Arc<WorkingMemory>,
-        source: Vec<(MemoryId, f64)>,
+        source: Vec<(MemoryId, f32)>,
     ) -> AssociationRequest {
         AssociationRequest {
             working_mem,
@@ -77,7 +77,7 @@ impl AssociationConfig {
 
 pub struct AssociationRequest {
     pub working_mem: Arc<WorkingMemory>,
-    pub source: Vec<(MemoryId, f64)>,
+    pub source: Vec<(MemoryId, f32)>,
     pub intensity_factor: Option<f64>,
     pub confidence_factor: Option<f64>,
     pub damping_factor: f64,
@@ -87,7 +87,7 @@ pub struct AssociationRequest {
 }
 
 impl AssociationRequest {
-    pub fn new(working_mem: Arc<WorkingMemory>, source: Vec<(MemoryId, f64)>) -> Self {
+    pub fn new(working_mem: Arc<WorkingMemory>, source: Vec<(MemoryId, f32)>) -> Self {
         Self {
             working_mem,
             source,
@@ -151,7 +151,7 @@ impl RetrStrategy for RetrAssociation {
                 .filter_map(|(id, weight)| {
                     cluster
                         .get_mem_index(id)
-                        .map(|index| (index, OrdFloat::from_f64(weight)))
+                        .map(|index| (index, OrdFloat::from_f32(weight)))
                 })
                 .collect()
         });
