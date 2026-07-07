@@ -3,14 +3,14 @@ use std::sync::Arc;
 use serde::Deserialize;
 
 use crate::algo::retrieve::{
-    RetrRequest, RetrStrategy,
     complex::{AssociateWithActionConfig, RetrAssociateWithAction},
     short_only::{RetrShortOnly, ShortOnlyConfig},
     similarity::{RetrSimilarity, SimilarityConfig},
+    RetrRequest, RetrStrategy,
 };
 use soul_mem_core::memory_note::MemoryId;
 use soul_mem_query::embedding::query::note::EmbeddedMemoryRetrieveQuery;
-use soul_mem_runtime::working_memory::{WorkingMemory, sliding_window::Information};
+use soul_mem_runtime::working_memory::{sliding_window::Information, WorkingMemory};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct DefaultPipelineConfig {
@@ -102,16 +102,16 @@ mod tests {
     use soul_mem_core::memory_links::sem_mem::SemMemLink;
     use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType};
     use soul_mem_core::memory_note::{
-        MemoryNoteBuilder, MemoryType,
         proc_mem::{Action, ActionType, ProcMemory},
         sem_mem::{ConceptType, SemMemory},
+        MemoryNoteBuilder, MemoryType,
     };
-    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::embedding::note::{
         EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
     };
     use soul_mem_query::embedding::query::note::MemoryRetrieveQueryEmbedding;
     use soul_mem_query::embedding::sem::SemanticEmbedding;
+    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant};
     use soul_mem_runtime::working_memory::sliding_window::{AssistantInformation, UserInformation};
 
@@ -141,8 +141,10 @@ mod tests {
             .mem_links(vec![link1])
             .build()
             .unwrap();
+            let mut tag1 = vec![0.0f32; 128];
+            tag1[0] = 1.0;
             let embedding1 = MemoryEmbedding::new(
-                EmbeddingVec::zero(128),
+                EmbeddingVec::new(tag1),
                 MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
                     EmbeddingVec::zero(128),
                     EmbeddingVec::zero(128),
@@ -275,5 +277,31 @@ mod tests {
         let request = config.into_request(Arc::new(wm), embedded_query, 42);
 
         assert_eq!(request.priority, 42);
+    }
+
+    #[test]
+    fn test_default_pipeline_full_pipeline() {
+        let wm = create_mock_working_memory_full();
+        let mut config = create_default_pipeline_config();
+        config.similarity.similarity_threshold = 0.0;
+        let mut qt = vec![0.0f32; 128];
+        qt[0] = 1.0;
+        let query_embedding = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::new(qt));
+        let embedded_query = EmbeddedMemoryRetrieveQuery {
+            embedding: query_embedding,
+            query: MemoryRetrieveQuery::new(
+                vec!["test".to_string()],
+                MemoryRetrieveQueryVariant::Semantic(vec![]),
+            ),
+        };
+        let request = config.into_request(Arc::new(wm), embedded_query, 1);
+        let result = RetrDefaultPipeline {}.retrieve(request);
+
+        assert_eq!(result.priority, 1);
+        assert!(!result.short_history.is_empty());
+        assert!(!result.association.is_empty());
+
+        let assoc_scores: Vec<f64> = result.association.iter().map(|(_, s)| *s).collect();
+        insta::assert_debug_snapshot!("full_pipeline_association_scores", assoc_scores);
     }
 }

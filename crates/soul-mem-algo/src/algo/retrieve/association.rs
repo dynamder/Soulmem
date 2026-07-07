@@ -272,17 +272,17 @@ impl DynWeightFuncBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soul_mem_core::memory_links::MemoryLink;
     use soul_mem_core::memory_links::sem_mem::SemMemLink;
+    use soul_mem_core::memory_links::MemoryLink;
     use soul_mem_core::memory_note::{
-        MemoryNoteBuilder, MemoryType,
         sem_mem::{ConceptType, SemMemory},
+        MemoryNoteBuilder, MemoryType,
     };
-    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::embedding::note::{
         EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
     };
     use soul_mem_query::embedding::sem::SemanticEmbedding;
+    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_runtime::working_memory::WorkingMemory;
 
     fn create_mock_working_memory_with_links() -> (WorkingMemory, Vec<MemoryId>) {
@@ -403,9 +403,284 @@ mod tests {
     }
 
     #[test]
-    fn test_dyn_weight_func_builder() {
-        let builder = DynWeightFuncBuilder::new(TypePreference::default());
-        let weight_func = builder.intensity_factor(0.5).confidence_factor(0.3).build();
-        let _weight = weight_func;
+    fn test_dyn_weight_func_semantic_edge() {
+        use soul_mem_core::memory_links::sem_mem::SemMemLink;
+
+        let wm = WorkingMemory::new(10);
+        let cluster = wm.memory_cluster();
+        let id_a = MemoryId::new();
+        let id_b = MemoryId::new();
+        let link = MemoryLink::new(
+            id_a,
+            id_b,
+            MemoryLinkType::Sem(SemMemLink::new("knows".into(), 0.7)),
+        );
+
+        cluster.write(|c| {
+            let na = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+                content: "a".into(),
+                aliases: vec![],
+                concept_type: ConceptType::Entity,
+                description: String::new(),
+            }))
+            .id(id_a)
+            .mem_links(vec![link])
+            .build()
+            .unwrap();
+            let ea = MemoryEmbedding::new(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                )),
+            );
+            c.add_single_node(EmbeddedMemoryNote {
+                note: na,
+                embedding: ea,
+            });
+
+            let nb = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+                content: "b".into(),
+                aliases: vec![],
+                concept_type: ConceptType::Entity,
+                description: String::new(),
+            }))
+            .id(id_b)
+            .build()
+            .unwrap();
+            let eb = MemoryEmbedding::new(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                )),
+            );
+            c.add_single_node(EmbeddedMemoryNote {
+                note: nb,
+                embedding: eb,
+            });
+        });
+
+        let weight = cluster.read_or_compute(|mem_cluster| {
+            let graph = mem_cluster.graph();
+            let edge = graph
+                .edges(mem_cluster.get_mem_index(id_a).unwrap())
+                .find(|e| e.target() == mem_cluster.get_mem_index(id_b).unwrap())
+                .unwrap();
+
+            let weight_fn = DynWeightFuncBuilder::new(TypePreference::Semantic)
+                .intensity_factor(1.0)
+                .confidence_factor(1.0)
+                .build();
+
+            let w: f64 = weight_fn(graph, &edge, None).into_inner();
+            w
+        });
+
+        insta::assert_debug_snapshot!("dyn_weight_semantic_edge", weight);
+    }
+
+    fn create_graph_with_type_preference() -> (WorkingMemory, MemoryId) {
+        let wm = WorkingMemory::new(10);
+        let cluster = wm.memory_cluster();
+        let src_id = MemoryId::new();
+        let id_b = MemoryId::new();
+        let id_c = MemoryId::new();
+
+        use soul_mem_core::memory_links::situation_mem::{AbstractToSpecific, SituationMemLink};
+        let sem_link = MemoryLinkType::Sem(SemMemLink::new("related".into(), 0.8));
+        let sit_link = MemoryLinkType::Situation(SituationMemLink::AbstractToSpecific(
+            AbstractToSpecific::new(),
+        ));
+        let link1 = MemoryLink::new(src_id, id_b, sem_link);
+        let link2 = MemoryLink::new(src_id, id_c, sit_link);
+
+        cluster.write(|c| {
+            for (i, (nid, links)) in [(src_id, vec![link1, link2]), (id_b, vec![]), (id_c, vec![])]
+                .into_iter()
+                .enumerate()
+            {
+                let note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+                    content: format!("Mem {i}"),
+                    aliases: vec![],
+                    concept_type: ConceptType::Entity,
+                    description: String::new(),
+                }))
+                .id(nid)
+                .mem_links(links)
+                .build()
+                .unwrap();
+                let embedding = MemoryEmbedding::new(
+                    EmbeddingVec::zero(128),
+                    MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                        EmbeddingVec::zero(128),
+                        EmbeddingVec::zero(128),
+                        EmbeddingVec::zero(128),
+                    )),
+                );
+                c.add_single_node(EmbeddedMemoryNote { note, embedding });
+            }
+        });
+        (wm, src_id)
+    }
+
+    #[test]
+    fn test_type_preference_affects_ranking() {
+        let (wm_sem, src_a) = create_graph_with_type_preference();
+        let (wm_sit, src_b) = create_graph_with_type_preference();
+
+        let sem_config = AssociationConfig {
+            preference: TypePreference::Semantic,
+            top_k: 5,
+            ..Default::default()
+        };
+        let sem_req = sem_config.into_request(Arc::new(wm_sem), vec![(src_a, 1.0)]);
+        let sem_result = RetrAssociation {}.retrieve(sem_req);
+
+        let sit_config = AssociationConfig {
+            preference: TypePreference::Situation,
+            top_k: 5,
+            ..Default::default()
+        };
+        let sit_req = sit_config.into_request(Arc::new(wm_sit), vec![(src_b, 1.0)]);
+        let sit_result = RetrAssociation {}.retrieve(sit_req);
+
+        assert!(!sem_result.is_empty());
+        assert!(!sit_result.is_empty());
+
+        let sem_scores: Vec<f64> = sem_result.iter().map(|(_, s)| *s).collect();
+        let sit_scores: Vec<f64> = sit_result.iter().map(|(_, s)| *s).collect();
+        insta::assert_debug_snapshot!("type_preference_semantic", sem_scores);
+        insta::assert_debug_snapshot!("type_preference_situation", sit_scores);
+    }
+
+    #[test]
+    fn test_multi_source_ppr() {
+        let (wm, ids) = create_mock_working_memory_with_links();
+        let sources = vec![(ids[0], 0.6), (ids[1], 0.4)];
+        let config = AssociationConfig::default();
+        let request = config.into_request(Arc::new(wm), sources);
+        let result = RetrAssociation {}.retrieve(request);
+
+        assert!(!result.is_empty());
+        let scores: Vec<f64> = result.iter().map(|(_, s)| *s).collect();
+        insta::assert_debug_snapshot!("multi_source_ppr", scores);
+    }
+
+    #[test]
+    fn test_procedure_node_exclusion_in_ppr() {
+        use soul_mem_core::memory_links::proc_mem::{ProcMemLink, TrigToAction};
+        use soul_mem_core::memory_note::proc_mem::{Action, ActionType, ProcMemory};
+
+        let wm = WorkingMemory::new(10);
+        let cluster = wm.memory_cluster();
+        let sem_id = MemoryId::new();
+        let proc_id = MemoryId::new();
+
+        let proc_link = MemoryLinkType::Proc(ProcMemLink::TrigToAction(TrigToAction::new(0.5)));
+        let link = MemoryLink::new(sem_id, proc_id, proc_link);
+
+        cluster.write(|c| {
+            let sem_note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+                content: "sem".into(),
+                aliases: vec![],
+                concept_type: ConceptType::Entity,
+                description: String::new(),
+            }))
+            .id(sem_id)
+            .mem_links(vec![link])
+            .build()
+            .unwrap();
+            let sem_emb = MemoryEmbedding::new(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                )),
+            );
+            c.add_single_node(EmbeddedMemoryNote {
+                note: sem_note,
+                embedding: sem_emb,
+            });
+
+            let proc_note = MemoryNoteBuilder::new(MemoryType::Procedure(ProcMemory::new(
+                Action::new("act".into(), ActionType::new_speak()),
+            )))
+            .id(proc_id)
+            .build()
+            .unwrap();
+            let proc_emb =
+                MemoryEmbedding::new(EmbeddingVec::zero(128), MemoryEmbeddingVariant::Procedure());
+            c.add_single_node(EmbeddedMemoryNote {
+                note: proc_note,
+                embedding: proc_emb,
+            });
+        });
+
+        let config = AssociationConfig::default();
+        let request = config.into_request(Arc::new(wm), vec![(sem_id, 1.0)]);
+        let result = RetrAssociation {}.retrieve(request);
+
+        let result_ids: Vec<MemoryId> = result
+            .iter()
+            .filter(|(_, s)| *s > 0.0)
+            .map(|(id, _)| *id)
+            .collect();
+        assert!(
+            !result_ids.contains(&proc_id),
+            "Procedure nodes should have zero PPR score, but got nonzero in: {:?}",
+            result
+        );
+    }
+
+    #[test]
+    fn test_ppr_forward_push_vs_naive_consistency() {
+        use crate::common::ppr::{naive_ppr, weighted_ppr_fp};
+        use petgraph::stable_graph::StableDiGraph;
+
+        let mut g: StableDiGraph<(), ()> = StableDiGraph::new();
+        let n0 = g.add_node(());
+        let n1 = g.add_node(());
+        let n2 = g.add_node(());
+        let n3 = g.add_node(());
+        g.add_edge(n0, n1, ());
+        g.add_edge(n0, n2, ());
+        g.add_edge(n1, n2, ());
+        g.add_edge(n2, n3, ());
+
+        let mut source: std::collections::HashMap<_, OrdFloat<f64>> =
+            std::collections::HashMap::new();
+        source.insert(n0, OrdFloat::from_f64(1.0));
+
+        let naive = naive_ppr(&g, OrdFloat::from_f64(0.15), source.clone(), 20);
+        let no_query: Option<&()> = None;
+        let fp = weighted_ppr_fp(
+            &g,
+            OrdFloat::from_f64(0.15),
+            source,
+            OrdFloat::from_f64(1e-6),
+            |_, _, _| OrdFloat::from_f64(1.0),
+            no_query,
+        );
+
+        let mut naive_sorted: Vec<_> = naive.into_iter().collect();
+        naive_sorted.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        let mut fp_sorted: Vec<_> = fp.into_iter().collect();
+        fp_sorted.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        let _ = (naive_sorted.len(), fp_sorted.len());
+
+        assert_eq!(naive_sorted.len(), fp_sorted.len());
+        for ((_, ns), (_, fs)) in naive_sorted.iter().zip(fp_sorted.iter()) {
+            let diff = f64::abs(ns.into_inner() - fs.into_inner());
+            assert!(
+                diff < 0.05,
+                "PPR difference too large: {diff} (naive={}, fp={})",
+                ns.into_inner(),
+                fs.into_inner()
+            );
+        }
     }
 }

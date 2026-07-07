@@ -98,16 +98,16 @@ impl RetrStrategy for RetrSimilarity {
 mod tests {
     use super::*;
     use soul_mem_core::memory_note::{
-        MemoryId, MemoryNoteBuilder, MemoryType,
         sem_mem::{ConceptType, SemMemory},
+        MemoryId, MemoryNoteBuilder, MemoryType,
     };
-    use soul_mem_query::embedding::Embeddable;
-    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::embedding::embedding_model::bge::BgeSmallZh;
     use soul_mem_query::embedding::note::{
         EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
     };
     use soul_mem_query::embedding::sem::SemanticEmbedding;
+    use soul_mem_query::embedding::Embeddable;
+    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::query::retrieve::{
         MemoryRetrieveQuery, MemoryRetrieveQueryVariant, SemanticQueryUnit,
     };
@@ -262,6 +262,99 @@ mod tests {
         assert_eq!(result[1].0, ids[1]);
     }
 
+    fn make_sem_embedding(content: f32, aliases: f32, desc: f32) -> SemanticEmbedding {
+        SemanticEmbedding::new(
+            EmbeddingVec::new(vec![content, 0.0, 0.0, 0.0]),
+            EmbeddingVec::new(vec![aliases, 0.0, 0.0, 0.0]),
+            EmbeddingVec::new(vec![desc, 0.0, 0.0, 0.0]),
+        )
+    }
+
+    #[test]
+    fn test_retr_similarity_variant_affects_score() {
+        let wm = WorkingMemory::new(10);
+        let cluster = wm.memory_cluster();
+        let id = MemoryId::new();
+        cluster.write(|c| {
+            let note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+                content: "test".into(),
+                aliases: vec![],
+                concept_type: ConceptType::Entity,
+                description: String::new(),
+            }))
+            .id(id)
+            .build()
+            .unwrap();
+            let embedding = MemoryEmbedding::new(
+                EmbeddingVec::zero(EMB_DIM),
+                MemoryEmbeddingVariant::Semantic(make_sem_embedding(0.8, 0.0, 0.6)),
+            );
+            c.add_single_node(EmbeddedMemoryNote { note, embedding });
+        });
+        let config = SimilarityConfig {
+            similarity_threshold: 0.0,
+            max_results: 10,
+        };
+        let query = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::zero(EMB_DIM));
+        let request = config.into_request(Arc::new(wm), query);
+        let result = RetrSimilarity {}.retrieve(request);
+
+        assert!(!result.is_empty());
+        let (_, score) = result[0];
+        insta::assert_debug_snapshot!("variant_affects_score", score);
+    }
+
+    #[test]
+    fn test_retr_similarity_ranking_by_tag_and_variant() {
+        let wm = WorkingMemory::new(10);
+        let cluster = wm.memory_cluster();
+        let best_id = MemoryId::new();
+        let mid_id = MemoryId::new();
+        let worst_id = MemoryId::new();
+
+        cluster.write(|c| {
+            for (i, (note_id, tag_val, content_val)) in [
+                (best_id, 1.0f32, 0.9f32),
+                (mid_id, 1.0f32, 0.5f32),
+                (worst_id, 0.0f32, 0.0f32),
+            ]
+            .into_iter()
+            .enumerate()
+            {
+                let note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+                    content: format!("mem_{i}"),
+                    aliases: vec![],
+                    concept_type: ConceptType::Entity,
+                    description: String::new(),
+                }))
+                .id(note_id)
+                .build()
+                .unwrap();
+                let embedding = MemoryEmbedding::new(
+                    unit_tag_vec(0) * tag_val,
+                    MemoryEmbeddingVariant::Semantic(make_sem_embedding(content_val, 0.0, 0.0)),
+                );
+                c.add_single_node(EmbeddedMemoryNote { note, embedding });
+            }
+        });
+
+        let config = SimilarityConfig {
+            similarity_threshold: 0.0,
+            max_results: 10,
+        };
+        let query = MemoryRetrieveQueryEmbedding::new(unit_tag_vec(0));
+        let request = config.into_request(Arc::new(wm), query);
+        let result = RetrSimilarity {}.retrieve(request);
+
+        assert_eq!(result.len(), 3);
+        assert_eq!(result[0].0, best_id);
+        assert_eq!(result[1].0, mid_id);
+        assert_eq!(result[2].0, worst_id);
+
+        let scores: Vec<f32> = result.iter().map(|(_, s)| *s).collect();
+        insta::assert_debug_snapshot!("ranking_by_tag_and_variant", scores);
+    }
+
     #[test]
     fn test_retr_similarity_with_bge_embedding() {
         let model = BgeSmallZh::default_cpu().unwrap();
@@ -288,7 +381,7 @@ mod tests {
         let retrieve_query = MemoryRetrieveQuery::new(
             vec!["Rust".to_string(), "编程".to_string()],
             MemoryRetrieveQueryVariant::Semantic(vec![
-                SemanticQueryUnit::new().with_concept_identifier("Rust编程语言".to_string()),
+                SemanticQueryUnit::new().with_concept_identifier("Rust编程语言".to_string())
             ]),
         );
         let query_embedding = retrieve_query.embed(&model).unwrap();

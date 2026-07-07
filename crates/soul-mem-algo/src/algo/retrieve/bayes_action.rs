@@ -222,6 +222,193 @@ mod tests {
 
         assert!(result.contains_key(&action_id));
     }
+
+    #[test]
+    fn test_multi_action_inference() {
+        let wm = WorkingMemory::new(10);
+        let cluster = wm.memory_cluster();
+        let source_id = MemoryId::new();
+        let action_a = MemoryId::new();
+        let action_b = MemoryId::new();
+
+        cluster.write(|c| {
+            let source_note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+                content: "source".into(),
+                aliases: vec![],
+                concept_type: ConceptType::Entity,
+                description: String::new(),
+            }))
+            .id(source_id)
+            .mem_links(vec![
+                MemoryLink::new(
+                    source_id,
+                    action_a,
+                    MemoryLinkType::Proc(ProcMemLink::TrigToAction(TrigToAction::new(0.7))),
+                ),
+                MemoryLink::new(
+                    source_id,
+                    action_b,
+                    MemoryLinkType::Proc(ProcMemLink::TrigToAction(TrigToAction::new(0.3))),
+                ),
+            ])
+            .build()
+            .unwrap();
+            let source_emb = MemoryEmbedding::new(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                )),
+            );
+            c.add_single_node(EmbeddedMemoryNote {
+                note: source_note,
+                embedding: source_emb,
+            });
+
+            for (aid, name) in [(action_a, "ActionA"), (action_b, "ActionB")] {
+                let note = MemoryNoteBuilder::new(MemoryType::Procedure(ProcMemory::new(
+                    Action::new(name.into(), ActionType::new_speak()),
+                )))
+                .id(aid)
+                .build()
+                .unwrap();
+                let emb = MemoryEmbedding::new(
+                    EmbeddingVec::zero(128),
+                    MemoryEmbeddingVariant::Procedure(),
+                );
+                c.add_single_node(EmbeddedMemoryNote { note, embedding: emb });
+            }
+        });
+
+        let request = BayesActionRequest::new(Arc::new(wm), vec![(source_id, 1.0)]);
+        let result = RetrBayesAction {}.retrieve(request);
+
+        assert_eq!(result.len(), 2);
+        let scores: Vec<f64> = result.iter().map(|(_, s)| *s).collect();
+        insta::assert_debug_snapshot!(scores);
+    }
+
+    #[test]
+    fn test_multi_source_action_aggregation() {
+        let wm = WorkingMemory::new(10);
+        let cluster = wm.memory_cluster();
+        let src_a = MemoryId::new();
+        let src_b = MemoryId::new();
+        let action_id = MemoryId::new();
+
+        cluster.write(|c| {
+            for (sid, prob) in [(src_a, 0.6f64), (src_b, 0.4f64)] {
+                let note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+                    content: "source".into(),
+                    aliases: vec![],
+                    concept_type: ConceptType::Entity,
+                    description: String::new(),
+                }))
+                .id(sid)
+                .mem_links(vec![MemoryLink::new(
+                    sid,
+                    action_id,
+                    MemoryLinkType::Proc(ProcMemLink::TrigToAction(TrigToAction::new(prob))),
+                )])
+                .build()
+                .unwrap();
+                let emb = MemoryEmbedding::new(
+                    EmbeddingVec::zero(128),
+                    MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                        EmbeddingVec::zero(128),
+                        EmbeddingVec::zero(128),
+                        EmbeddingVec::zero(128),
+                    )),
+                );
+                c.add_single_node(EmbeddedMemoryNote { note, embedding: emb });
+            }
+
+            let action_note = MemoryNoteBuilder::new(MemoryType::Procedure(ProcMemory::new(
+                Action::new("AggregateAction".into(), ActionType::new_speak()),
+            )))
+            .id(action_id)
+            .build()
+            .unwrap();
+            let action_emb = MemoryEmbedding::new(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Procedure(),
+            );
+            c.add_single_node(EmbeddedMemoryNote {
+                note: action_note,
+                embedding: action_emb,
+            });
+        });
+
+        let sources = vec![(src_a, 0.8), (src_b, 0.5)];
+        let request = BayesActionRequest::new(Arc::new(wm), sources);
+        let result = RetrBayesAction {}.retrieve(request);
+
+        assert_eq!(result.len(), 1);
+        let (id, score) = result[0];
+        assert_eq!(id, action_id);
+        insta::assert_debug_snapshot!(score);
+    }
+
+    #[test]
+    fn test_bayes_action_prob_accuracy() {
+        let wm = WorkingMemory::new(10);
+        let cluster = wm.memory_cluster();
+        let source_id = MemoryId::new();
+        let action_id = MemoryId::new();
+
+        cluster.write(|c| {
+            let note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+                content: "source".into(),
+                aliases: vec![],
+                concept_type: ConceptType::Entity,
+                description: String::new(),
+            }))
+            .id(source_id)
+            .mem_links(vec![MemoryLink::new(
+                source_id,
+                action_id,
+                MemoryLinkType::Proc(ProcMemLink::TrigToAction(TrigToAction::new(0.5))),
+            )])
+            .build()
+            .unwrap();
+            let emb = MemoryEmbedding::new(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                )),
+            );
+            c.add_single_node(EmbeddedMemoryNote { note, embedding: emb });
+
+            let a_note = MemoryNoteBuilder::new(MemoryType::Procedure(ProcMemory::new(
+                Action::new("Test".into(), ActionType::new_speak()),
+            )))
+            .id(action_id)
+            .build()
+            .unwrap();
+            let a_emb = MemoryEmbedding::new(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Procedure(),
+            );
+            c.add_single_node(EmbeddedMemoryNote {
+                note: a_note,
+                embedding: a_emb,
+            });
+        });
+
+        let request = BayesActionRequest::new(Arc::new(wm), vec![(source_id, 1.0)]);
+        let result = RetrBayesAction {}.retrieve(request);
+
+        assert!(!result.is_empty());
+        let score = result[0].1;
+        let expected = 0.5 * 1.0;
+        assert!(
+            (score - expected).abs() < 1e-6,
+            "Expected {expected}, got {score}"
+        );
+    }
 }
 
 fn get_possible_actions(

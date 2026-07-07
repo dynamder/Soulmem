@@ -1,6 +1,7 @@
 pub(crate) mod app;
 pub(crate) mod base;
 pub(crate) mod cmd;
+pub(crate) mod eval;
 pub(crate) mod metric;
 pub(crate) mod reporter;
 pub(crate) mod state;

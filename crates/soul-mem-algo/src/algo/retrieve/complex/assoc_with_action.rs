@@ -3,9 +3,9 @@ use std::sync::Arc;
 use serde::Deserialize;
 
 use crate::algo::retrieve::{
-    RetrRequest, RetrStrategy,
     association::{AssociationConfig, AssociationRequest, RetrAssociation},
     bayes_action::{BayesActionRequest, RetrBayesAction},
+    RetrRequest, RetrStrategy,
 };
 use soul_mem_core::memory_note::MemoryId;
 use soul_mem_runtime::working_memory::WorkingMemory;
@@ -114,23 +114,23 @@ fn softmax(logits: &[(MemoryId, f64)]) -> Vec<(MemoryId, f64)> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soul_mem_core::memory_links::MemoryLink;
-    use soul_mem_core::memory_links::MemoryLinkType;
     use soul_mem_core::memory_links::proc_mem::{ProcMemLink, TrigToAction};
     use soul_mem_core::memory_links::sem_mem::SemMemLink;
+    use soul_mem_core::memory_links::MemoryLink;
+    use soul_mem_core::memory_links::MemoryLinkType;
     use soul_mem_core::memory_note::{
-        MemoryNoteBuilder, MemoryType,
         proc_mem::{Action, ActionType, ProcMemory},
         sem_mem::{ConceptType, SemMemory},
+        MemoryNoteBuilder, MemoryType,
     };
-    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::embedding::note::EmbeddedMemoryNote;
     use soul_mem_query::embedding::note::MemoryEmbedding;
     use soul_mem_query::embedding::note::MemoryEmbeddingVariant;
     use soul_mem_query::embedding::sem::SemanticEmbedding;
+    use soul_mem_query::embedding::EmbeddingVec;
 
-    fn create_mock_working_memory_with_assoc_and_action()
-    -> (WorkingMemory, MemoryId, MemoryId, MemoryId) {
+    fn create_mock_working_memory_with_assoc_and_action(
+    ) -> (WorkingMemory, MemoryId, MemoryId, MemoryId) {
         let wm = WorkingMemory::new(10);
         let cluster = wm.memory_cluster();
         let id1 = MemoryId::new();
@@ -269,5 +269,29 @@ mod tests {
         let input: Vec<(MemoryId, f64)> = vec![];
         let result = softmax(&input);
         assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_softmax_extreme_values() {
+        let huge = vec![(MemoryId::new(), 1e10), (MemoryId::new(), 1e10 + 1.0)];
+        let result = softmax(&huge);
+        let sum: f64 = result.iter().map(|(_, p)| p).sum();
+        assert!((sum - 1.0).abs() < 1e-5);
+        assert!(result.iter().all(|(_, p)| *p >= 0.0 && *p <= 1.0));
+
+        let tiny = vec![(MemoryId::new(), -1e10), (MemoryId::new(), -1e10)];
+        let result2 = softmax(&tiny);
+        let sum2: f64 = result2.iter().map(|(_, p)| p).sum();
+        assert!((sum2 - 1.0).abs() < 1e-5);
+
+        let uniform = vec![
+            (MemoryId::new(), 5.0),
+            (MemoryId::new(), 5.0),
+            (MemoryId::new(), 5.0),
+        ];
+        let result3 = softmax(&uniform);
+        let sum3: f64 = result3.iter().map(|(_, p)| p).sum();
+        assert!((sum3 - 1.0).abs() < 1e-5);
+        assert!(result3.iter().all(|(_, p)| (*p - 1.0 / 3.0).abs() < 1e-5));
     }
 }
