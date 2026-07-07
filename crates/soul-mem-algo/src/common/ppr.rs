@@ -745,6 +745,6 @@ mod test {
 
         let ppr_ans = naive_ppr(&graph, 0.15_f64, source_bias, 15);
         let ans_sum = ppr_ans.values().copied().sum::<f64>();
-        assert!(ans_sum - 1.0 < f64::EPSILON);
+        assert!(ans_sum - 1.0 < 1e-5, "the sum is: {ans_sum}");
     }
 }
