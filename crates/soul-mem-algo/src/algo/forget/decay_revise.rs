@@ -100,7 +100,7 @@ where
 
     // 缺失度高，遮罩并调 LLM 猜测
     let masked_text = mask_result.masked_text;
-    let system_prompt = "You are Sakuya Izayoi, the perfect and elegant maid of the Scarlet Devil Mansion. You have the ability to manipulate time. A segment of your memory has been partially masked. As yourself, recall and reconstruct the complete memory naturally based on the remaining fragments. Stay in character as a composed maiden with a touch of elegance and pride. Output only the completed memory text in first person, no explanation.";
+    let system_prompt = "You are Sakuya Izayoi, the perfect and elegant maid of the Scarlet Devil Mansion. You have the ability to manipulate time. Your character card defines who you are, but certain sections have been deliberately removed — memories of specific individuals, particularly those connected to Eientei and the moon, are no longer part of your recorded past. A segment of your memory has been partially masked. As yourself, recall and reconstruct the complete memory naturally based on the remaining fragments, relying only on what your current character card contains. Stay in character as a composed maiden with a touch of elegance and pride. Output only the completed memory text in first person, no explanation.";
     let user_prompt = format!("Masked text: {}", masked_text);
 
     match llm_call(system_prompt, &user_prompt).await {
@@ -817,52 +817,52 @@ mod real_llm_tests {
         let jieba = Jieba::new();
         let now = Utc::now();
 
-        // ---- 构建两个节点，相同的创建时间（48 小时前）但激活次数不同 ----
+        // ---- 第一步：由 LLM（作为咲夜）生成一段虚构的事件记忆 ----
+        let gen_client = client.clone();
+        let gen_system = "你是红魔馆的女仆长十六夜咲夜。请以第一人称写一段你在幻想乡日常生活中的具体事件记忆，2~4句话，描述发生了什么、涉及谁、你的感受。只输出记忆文本，不要解释。";
+        let gen_user = "请讲述一件你在红魔馆经历过的难忘事件。";
+        let generated_content: String = {
+            use async_openai::types::chat::{ChatCompletionRequestSystemMessage, ChatCompletionRequestUserMessage};
+            let msgs = vec![
+                ChatCompletionRequestSystemMessage::from(gen_system.to_string()).into(),
+                ChatCompletionRequestUserMessage::from(gen_user.to_string()).into(),
+            ];
+            let mut resp = gen_client.call_llm(msgs).await
+                .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { e.into() })
+                .expect("LLM 生成记忆内容失败");
+            resp.remove(0)
+        };
+        // 去除标点、空格，保留中文和日文字符便于 jieba 分词遮罩
+        let content: String = generated_content.chars()
+            .filter(|c| !c.is_ascii_punctuation() && !c.is_whitespace())
+            .collect();
+        println!("【LLM 生成の咲夜の記憶】\n  {}\n", generated_content);
+
+        // 用生成内容的前两个自然段作为描述
+        let desc_prefix: String = generated_content.chars().take(30).filter(|c| !c.is_ascii_punctuation()).collect();
+        let aliases = vec!["紅魔館の思い出".to_string(), "咲夜の出来事".to_string()];
+        let description = format!("紅魔館メイド長の回想: {}", desc_prefix);
+
+        // ---- 构建四个节点，相同的创建时间（48 小时前）但激活次数不同 ----
         let created = now - chrono::Duration::hours(48);
-        let content = "Python是一门广泛应用于数据科学和人工智能的高级编程语言以其简洁的语法和丰富的生态著称也被称为Py或蟒蛇语言作为一种解释型语言适合快速原型开发";
 
-        // 节点 A: 0 次激活
-        let mut node_a = build_complete_sem_node(created);
-        if let MemoryType::Semantic(s) = node_a.mem_type_mut() {
-            s.content = content.to_string();
-            s.aliases = vec!["Python".to_string(), "Py".to_string(), "蟒蛇语言".to_string()];
-            s.description = "高级编程语言".to_string();
-        }
-        // retrieval_count 保持 0
+        let make_node = |rc: usize| -> MemoryNote {
+            let mut node = build_complete_sem_node(created);
+            if let MemoryType::Semantic(s) = node.mem_type_mut() {
+                s.content = content.clone();
+                s.aliases = aliases.clone();
+                s.description = description.clone();
+            }
+            for _ in 0..rc {
+                node.retrieval_increment();
+            }
+            node
+        };
 
-        // 节点 B: 20 次激活
-        let mut node_b = build_complete_sem_node(created);
-        if let MemoryType::Semantic(s) = node_b.mem_type_mut() {
-            s.content = content.to_string();
-            s.aliases = vec!["Python".to_string(), "Py".to_string(), "蟒蛇语言".to_string()];
-            s.description = "高级编程语言".to_string();
-        }
-        // 手动增加 retrieval_count
-        for _ in 0..20 {
-            node_b.retrieval_increment();
-        }
-
-        // 节点 C: 超出 cap 的激活次数（200 次），应与 cap（50）效果相同
-        let mut node_c = build_complete_sem_node(created);
-        if let MemoryType::Semantic(s) = node_c.mem_type_mut() {
-            s.content = content.to_string();
-            s.aliases = vec!["Python".to_string(), "Py".to_string(), "蟒蛇语言".to_string()];
-            s.description = "高级编程语言".to_string();
-        }
-        for _ in 0..200 {
-            node_c.retrieval_increment();
-        }
-
-        // 节点 D: 恰好 cap 次激活（50 次），应与节点 C 效果相同
-        let mut node_d = build_complete_sem_node(created);
-        if let MemoryType::Semantic(s) = node_d.mem_type_mut() {
-            s.content = content.to_string();
-            s.aliases = vec!["Python".to_string(), "Py".to_string(), "蟒蛇语言".to_string()];
-            s.description = "高级编程语言".to_string();
-        }
-        for _ in 0..DEFAULT_MAX_ACTIVATION_CAP {
-            node_d.retrieval_increment();
-        }
+        let mut node_a = make_node(0);   // 0 次激活
+        let mut node_b = make_node(20);  // 20 次激活
+        let mut node_c = make_node(200); // 200 次激活（超 cap）
+        let mut node_d = make_node(DEFAULT_MAX_ACTIVATION_CAP); // 50 次激活（恰为 cap）
 
         // ---- 打印基本信息 ----
         let md_a = compute_missing_degree(created, 0, now, DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR, DEFAULT_MAX_ACTIVATION_CAP);
