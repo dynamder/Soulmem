@@ -1,21 +1,21 @@
 use crate::embedding::{
-    EmbeddingCalcResult,
     note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant},
     query::{
         note::{MemoryRetrieveQueryEmbedding, MemoryRetrieveQueryVariantEmbedding},
         sem::SemanticQueryUnitEmbedding,
         situation::{
-            SituationQueryUnitEmbedding, environment::EnvironmentQueryUnitEmbedding,
-            event::EventQueryUnitEmbedding, location::LocationQueryUnitEmbedding,
-            participant::ParticipantQueryUnitEmbedding,
+            environment::EnvironmentQueryUnitEmbedding, event::EventQueryUnitEmbedding,
+            location::LocationQueryUnitEmbedding, participant::ParticipantQueryUnitEmbedding,
+            SituationQueryUnitEmbedding,
         },
     },
     sem::SemanticEmbedding,
     situation::{
-        AbstractSituationEmbedding, SituationEmbedding, SpecificSituationEmbedding,
         environment::EnvironmentEmbedding, event::EventEmbedding, location::LocationEmbedding,
-        participant::ParticipantEmbedding,
+        participant::ParticipantEmbedding, AbstractSituationEmbedding, SituationEmbedding,
+        SpecificSituationEmbedding,
     },
+    EmbeddingCalcResult,
 };
 
 use soul_mem_core::memory_note::MemoryId;
@@ -49,8 +49,9 @@ impl AnonymousQueryCompute for LocationEmbedding {
             .map(|coordinate| coordinate.cosine_similarity(self.coordinates()))
             .transpose()?;
 
+        let bw = &query.blend_weights;
         if let Some(coord_score) = coordinates_score {
-            Ok(name_score * 0.6 + coord_score * 0.4)
+            Ok(bw.sit_location_name * name_score + bw.sit_location_coord * coord_score)
         } else {
             Ok(name_score)
         }
@@ -70,8 +71,11 @@ impl AnonymousQueryCompute for ParticipantEmbedding {
             .map(|role| role.cosine_similarity(self.role()))
             .transpose()?;
 
+        let bw = &query.blend_weights;
         match (name_score, role_score) {
-            (Some(name_score), Some(role_score)) => Ok(name_score * 0.6 + role_score * 0.4),
+            (Some(name_score), Some(role_score)) => {
+                Ok(bw.sit_participant_name * name_score + bw.sit_participant_role * role_score)
+            }
             (Some(name_score), None) => Ok(name_score),
             (None, Some(role_score)) => Ok(role_score),
             (None, None) => Ok(0.0),
@@ -92,9 +96,10 @@ impl AnonymousQueryCompute for EnvironmentEmbedding {
             .map(|tone| tone.cosine_similarity(self.tone()))
             .transpose()?;
 
+        let bw = &query.blend_weights;
         match (atmosphere_score, tone_score) {
             (Some(atmosphere_score), Some(tone_score)) => {
-                Ok(atmosphere_score * 0.5 + tone_score * 0.5)
+                Ok(bw.sit_env_atmosphere * atmosphere_score + bw.sit_env_tone * tone_score)
             }
             (Some(atmosphere_score), None) => Ok(atmosphere_score),
             (None, Some(tone_score)) => Ok(tone_score),
@@ -118,12 +123,22 @@ impl AnonymousQueryCompute for EventEmbedding {
             .map(|target| target.cosine_similarity(self.target()))
             .transpose()?;
 
+        let bw = &query.blend_weights;
         match (initiator_score, target_score) {
-            (Some(initiator_score), Some(target_score)) => {
-                Ok(initiator_score * 0.3 + target_score * 0.3 + action_score * 0.4)
+            (Some(initiator_score), Some(target_score)) => Ok(bw.sit_event_initiator
+                * initiator_score
+                + bw.sit_event_target * target_score
+                + bw.sit_event_action * action_score),
+            (Some(initiator_score), None) => {
+                let a_w = bw.sit_event_initiator_only_action;
+                let i_w = 1.0 - a_w;
+                Ok(i_w * initiator_score + a_w * action_score)
             }
-            (Some(initiator_score), None) => Ok(initiator_score * 0.4 + action_score * 0.6),
-            (None, Some(target_score)) => Ok(target_score * 0.4 + action_score * 0.6),
+            (None, Some(target_score)) => {
+                let a_w = bw.sit_event_target_only_action;
+                let t_w = 1.0 - a_w;
+                Ok(t_w * target_score + a_w * action_score)
+            }
             (None, None) => Ok(action_score),
         }
     }
@@ -239,8 +254,11 @@ impl AnonymousQueryCompute for SemanticEmbedding {
             .map(|description| description.cosine_similarity(self.description()))
             .transpose()?;
 
+        let bw = &query.blend_weights;
         let concept_score = match (concept_main_score, concept_aliases_score) {
-            (Some(main_score), Some(aliases_score)) => 0.7 * main_score + 0.3 * aliases_score,
+            (Some(main_score), Some(aliases_score)) => {
+                bw.sem_concept_main * main_score + bw.sem_concept_aliases * aliases_score
+            }
             (None, None) => 0.0,
             _ => unreachable!(
                 "main_score and aliases_score all compute from query.concept_identifier(), so they must be Some or None simultaneously"
@@ -248,7 +266,7 @@ impl AnonymousQueryCompute for SemanticEmbedding {
         };
 
         if let Some(description_score) = description_score {
-            Ok(concept_score * 0.5 + description_score * 0.5)
+            Ok(bw.sem_concept * concept_score + bw.sem_description * description_score)
         } else {
             Ok(concept_score)
         }
@@ -283,7 +301,7 @@ impl AnonymousQueryCompute for MemoryEmbedding {
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
         let tag_score = self.tag().cosine_similarity(query.tag())?;
         let variant_score = self.variant().anonymous_compute(query.variant())?;
-        Ok(0.4 * tag_score + 0.6 * variant_score)
+        Ok(query.tag_weight * tag_score + query.variant_weight * variant_score)
     }
 }
 
@@ -307,8 +325,8 @@ impl QueryCompute for EmbeddedMemoryNote {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::embedding::Embeddable;
     use crate::embedding::embedding_model::bge::BgeSmallZh;
+    use crate::embedding::Embeddable;
     use crate::query::retrieve::{
         EnvironmentQueryUnit, EventQueryUnit, LocationQueryUnit, ParticipantQueryUnit,
         SemanticQueryUnit,

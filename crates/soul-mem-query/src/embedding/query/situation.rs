@@ -1,14 +1,12 @@
-use crate::{
-    embedding::{
-        Embeddable, EmbeddingVec,
-        query::situation::{
-            environment::EnvironmentQueryUnitEmbedding, event::EventQueryUnitEmbedding,
-            location::LocationQueryUnitEmbedding, participant::ParticipantQueryUnitEmbedding,
-        },
-        vec_batch_embed,
+use crate::embedding::blend_weights::BlendWeights;
+use crate::embedding::{
+    query::situation::{
+        environment::EnvironmentQueryUnitEmbedding, event::EventQueryUnitEmbedding,
+        location::LocationQueryUnitEmbedding, participant::ParticipantQueryUnitEmbedding,
     },
-    query::retrieve::SituationQueryUnit,
+    vec_batch_embed, Embeddable, EmbeddingVec,
 };
+use crate::query::retrieve::SituationQueryUnit;
 
 pub mod environment;
 pub mod event;
@@ -22,6 +20,7 @@ pub struct SituationQueryUnitEmbedding {
     participants: Option<ParticipantQueryUnitEmbedding>,
     environment: Option<EnvironmentQueryUnitEmbedding>,
     event: Option<EventQueryUnitEmbedding>,
+    pub blend_weights: BlendWeights,
 }
 impl SituationQueryUnitEmbedding {
     pub fn narrative(&self) -> Option<&EmbeddingVec> {
@@ -38,6 +37,22 @@ impl SituationQueryUnitEmbedding {
     }
     pub fn event(&self) -> Option<&EventQueryUnitEmbedding> {
         self.event.as_ref()
+    }
+    /// 递归设置 blend weights 到所有子单元
+    pub fn set_blend_weights(&mut self, bw: &BlendWeights) {
+        self.blend_weights = bw.clone();
+        if let Some(ref mut loc) = self.location {
+            loc.set_blend_weights(bw);
+        }
+        if let Some(ref mut part) = self.participants {
+            part.set_blend_weights(bw);
+        }
+        if let Some(ref mut env) = self.environment {
+            env.set_blend_weights(bw);
+        }
+        if let Some(ref mut evt) = self.event {
+            evt.set_blend_weights(bw);
+        }
     }
 }
 
@@ -105,6 +120,7 @@ impl Embeddable for SituationQueryUnit {
             participants: fused_participant_vec,
             environment: environment_vec,
             event: fused_event_vec,
+            blend_weights: BlendWeights::default(),
         })
     }
     fn embed_and_fuse(

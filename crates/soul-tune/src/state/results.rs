@@ -24,6 +24,7 @@ pub struct ResultsState {
     pub chart_scroll: usize,
     pub log_scroll: usize,
     pub log_filter: String,
+    #[allow(dead_code)]
     pub log_search: String,
 }
 
@@ -88,8 +89,6 @@ impl ResultsState {
         ];
         let detail_hints = vec![
             ("[↑↓]".into(), "滚动".into()),
-            ("[F]".into(), "筛选".into()),
-            ("[/]".into(), "搜索".into()),
             ("[Q]".into(), "返回".into()),
         ];
         status_bar::render_status_bar(
@@ -108,51 +107,20 @@ impl ResultsState {
             .constraints(vec![Constraint::Fill(1), Constraint::Fill(2)])
             .split(area);
 
-        // ── Left: key-value ──
+        // ── Left: metric groups from SuiteReport ──
         let kv_block = Block::bordered().title(" 指标 ");
         let kv_inner = kv_block.inner(split[0]);
         kv_block.render(split[0], frame.buffer_mut());
 
-        let pass_rate = if self.report.total > 0 {
-            self.report.passed as f64 / self.report.total as f64 * 100.0
-        } else {
-            0.0
-        };
-
-        let kv_data = vec![
-            (
-                "性能",
-                vec![
-                    (
-                        "总耗时",
-                        format!("{:.1}s", self.report.elapsed.as_secs_f64()),
-                    ),
-                    ("条目总数", self.report.total.to_string()),
-                ],
-            ),
-            (
-                "准确率",
-                vec![
-                    ("通过", self.report.passed.to_string()),
-                    ("失败", self.report.failed.to_string()),
-                    ("通过率", format!("{:.1}%", pass_rate)),
-                ],
-            ),
-            (
-                "算法配置",
-                vec![("algo", self.report.config.algo.to_string())],
-            ),
-        ];
-
         let mut y = kv_inner.y;
-        for (group, rows) in &kv_data {
-            let title = format!(" {} ", group);
+        for group in &self.report.suite_report.summary_groups {
+            let title = format!(" {} ", group.label);
             frame.render_widget(
                 Paragraph::new(title).fg(Color::Yellow).bold(),
                 Rect::new(kv_inner.x, y, kv_inner.width, 1),
             );
             y += 1;
-            for (k, v) in rows {
+            for (k, v) in &group.items {
                 let line = format!("  {}: {}", k, v);
                 frame.render_widget(
                     Paragraph::new(line),
@@ -163,76 +131,50 @@ impl ResultsState {
             y += 1;
         }
 
-        // ── Right: chart ──
+        // ── Right: per-case chart (passed=1, failed=0) ──
         let chart_area = split[1];
-        let chart_points: Vec<(f64, f64)> = (0..self.report.total.min(50))
-            .map(|i| {
-                let x = i as f64;
-                let y = if i % 7 == 0 {
-                    0.1
-                } else {
-                    0.7 + (i % 5) as f64 * 0.05
-                };
-                (x, y)
-            })
+        let chart_points: Vec<(f64, f64)> = self
+            .report
+            .suite_report
+            .detail_rows
+            .iter()
+            .enumerate()
+            .map(|(i, row)| (i as f64, if row.has_error { 0.0 } else { 1.0 }))
             .collect();
 
         if chart_points.is_empty() {
-            let chart_block = Block::bordered().title(" 图表 ");
+            let chart_block = Block::bordered().title(" 逐用例状态 ");
             let chart_inner = chart_block.inner(chart_area);
             chart_block.render(chart_area, frame.buffer_mut());
             frame.render_widget(Paragraph::new("(无数据)").fg(Color::DarkGray), chart_inner);
         } else {
-            let min_y = chart_points
-                .iter()
-                .map(|(_, y)| *y)
-                .fold(f64::INFINITY, f64::min);
-            let max_y = chart_points
-                .iter()
-                .map(|(_, y)| *y)
-                .fold(f64::NEG_INFINITY, f64::max);
-            let y_bounds = if (max_y - min_y).abs() < 1e-6 {
-                [min_y - 0.5, max_y + 0.5]
-            } else {
-                [min_y - 0.1, max_y + 0.1]
-            };
             let dataset = Dataset::default()
                 .marker(Marker::Braille)
                 .graph_type(GraphType::Line)
                 .data(&chart_points)
                 .style(Style::default().fg(Color::Cyan));
-            let n = chart_points.len() as f64 - 1.0;
-            let x_labels: Vec<String> = if n <= 10.0 {
-                (0..=n as usize).map(|i| format!("{}", i)).collect()
-            } else {
-                let step = (n / 4.0).max(1.0) as usize;
-                (0..=n as usize)
-                    .step_by(step)
-                    .map(|i| format!("{}", i))
-                    .collect()
-            };
-            let y_labels: Vec<String> = (0..=4)
-                .map(|i| {
-                    format!(
-                        "{:.1}",
-                        y_bounds[0] + (y_bounds[1] - y_bounds[0]) * i as f64 / 4.0
-                    )
-                })
+            let n = (chart_points.len() as f64 - 1.0).max(0.0);
+            let x_labels: Vec<String> = (0..chart_points.len())
+                .step_by(1.max(chart_points.len() / 5))
+                .map(|i| format!("{}", i))
                 .collect();
-
             let chart = Chart::new(vec![dataset])
-                .block(Block::bordered().title(" 相似度分布 ").fg(Color::Yellow))
+                .block(
+                    Block::bordered()
+                        .title(" 逐用例 通过/失败 ")
+                        .fg(Color::Yellow),
+                )
                 .x_axis(
                     Axis::default()
-                        .title("条目 #")
+                        .title("用例 #")
                         .labels(x_labels.iter().map(|s| s.as_str()).collect::<Vec<_>>())
                         .bounds([0.0, n]),
                 )
                 .y_axis(
                     Axis::default()
-                        .title("相似度")
-                        .labels(y_labels.iter().map(|s| s.as_str()).collect::<Vec<_>>())
-                        .bounds(y_bounds),
+                        .title("状态")
+                        .labels(vec!["失败", "通过"])
+                        .bounds([-0.1, 1.1]),
                 );
             frame.render_widget(chart, chart_area);
         }
@@ -244,46 +186,51 @@ impl ResultsState {
             .constraints(vec![Constraint::Length(1), Constraint::Fill(1)])
             .split(area);
 
-        let filter_text = format!(" 筛选: [{}]  搜索: [{}] ", self.log_filter, self.log_search);
+        let pass_rate = if self.report.total > 0 {
+            self.report.passed as f64 / self.report.total as f64 * 100.0
+        } else {
+            0.0
+        };
+        let filter_text = format!(
+            " 总 {} 用例 | 通过 {} | 失败 {} | {:.0}%",
+            self.report.total, self.report.passed, self.report.failed, pass_rate
+        );
         frame.render_widget(Paragraph::new(filter_text).fg(Color::DarkGray), layout[0]);
 
         let log_block = Block::bordered();
         let log_inner = log_block.inner(layout[1]);
         log_block.render(layout[1], frame.buffer_mut());
 
-        let header = "  条目   级别    相似度      消息";
-        frame.render_widget(
-            Paragraph::new(header).fg(Color::Cyan).bold(),
-            Rect::new(log_inner.x, log_inner.y, log_inner.width, 1),
-        );
+        // Header
+        if !self.report.suite_report.detail_header.is_empty() {
+            frame.render_widget(
+                Paragraph::new(self.report.suite_report.detail_header.as_str())
+                    .fg(Color::Cyan)
+                    .bold(),
+                Rect::new(log_inner.x, log_inner.y, log_inner.width, 1),
+            );
+        }
 
-        let log_lines: Vec<String> = (1..=self.report.total)
-            .map(|i| {
-                if i % 7 == 0 {
-                    format!(
-                        "  [{:>3}]  ERROR   ---        ✗ 失败 (预期≥3条, 返回{})",
-                        i,
-                        (i % 3) + 1
-                    )
-                } else {
-                    let sim = 0.75 + (i % 5) as f64 * 0.05;
-                    format!("  [{:>3}]  INFO    {:.2}      ✓ 通过", i, sim)
-                }
-            })
-            .collect();
-
-        for (i, line) in log_lines.iter().enumerate().skip(self.log_scroll) {
+        // Rows
+        for (i, row) in self
+            .report
+            .suite_report
+            .detail_rows
+            .iter()
+            .enumerate()
+            .skip(self.log_scroll)
+        {
             let y = log_inner.y + 1 + (i - self.log_scroll) as u16;
             if y >= log_inner.y + log_inner.height {
                 break;
             }
-            let color = if line.contains("ERROR") {
+            let color = if row.has_error {
                 Color::Red
             } else {
                 Color::Reset
             };
             frame.render_widget(
-                Paragraph::new(line.as_str()).fg(color),
+                Paragraph::new(row.text.as_str()).fg(color),
                 Rect::new(log_inner.x, y, log_inner.width, 1),
             );
         }
@@ -320,17 +267,6 @@ impl ResultsState {
                     ResultTab::Summary => self.kv_scroll += 1,
                     ResultTab::Detail => self.log_scroll += 1,
                 }
-                Transition::None
-            }
-            KeyCode::Char('/') if self.active_tab == ResultTab::Detail => Transition::None,
-            KeyCode::Char('f') | KeyCode::Char('F') if self.active_tab == ResultTab::Detail => {
-                self.log_filter = match self.log_filter.as_str() {
-                    "ALL" => "INFO",
-                    "INFO" => "WARN",
-                    "WARN" => "ERROR",
-                    _ => "ALL",
-                }
-                .into();
                 Transition::None
             }
             _ => Transition::None,

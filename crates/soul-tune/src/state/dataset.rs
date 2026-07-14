@@ -97,13 +97,21 @@ impl DatasetState {
                             .and_then(|v| v.as_str())
                             .unwrap_or("");
                         let entries_count = val
-                            .get("entries")
+                            .get("test_cases")
+                            .or(val.get("entries"))
                             .and_then(|v| v.as_array())
                             .map(|a| a.len())
                             .unwrap_or(0);
+                        let format_label = if val.get("test_cases").is_some() {
+                            "query"
+                        } else if val.get("nodes").is_some() {
+                            "graph"
+                        } else {
+                            "dataset"
+                        };
                         self.preview_content = Some(format!(
-                            "名称: {}\n描述: {}\n条目数: {}",
-                            name, desc, entries_count
+                            "名称: {}\n描述: {}\n{}条目数: {}",
+                            name, desc, format_label, entries_count
                         ));
                         return;
                     }

@@ -1,12 +1,12 @@
-use crate::{
-    embedding::{Embeddable, EmbeddingVec},
-    query::retrieve::EnvironmentQueryUnit,
-};
+use crate::embedding::blend_weights::BlendWeights;
+use crate::embedding::{Embeddable, EmbeddingVec};
+use crate::query::retrieve::EnvironmentQueryUnit;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct EnvironmentQueryUnitEmbedding {
     atmosphere: Option<EmbeddingVec>,
     tone: Option<EmbeddingVec>,
+    pub blend_weights: BlendWeights,
 }
 impl EnvironmentQueryUnitEmbedding {
     pub fn atmosphere(&self) -> Option<&EmbeddingVec> {
@@ -14,6 +14,9 @@ impl EnvironmentQueryUnitEmbedding {
     }
     pub fn tone(&self) -> Option<&EmbeddingVec> {
         self.tone.as_ref()
+    }
+    pub fn set_blend_weights(&mut self, bw: &BlendWeights) {
+        self.blend_weights = bw.clone();
     }
 }
 
@@ -49,6 +52,7 @@ impl Embeddable for EnvironmentQueryUnit {
         Ok(EnvironmentQueryUnitEmbedding {
             atmosphere: atmosphere_vec,
             tone: tone_vec,
+            blend_weights: BlendWeights::default(),
         })
     }
     fn embed_and_fuse(

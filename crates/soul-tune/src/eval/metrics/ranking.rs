@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use soul_mem_core::memory_note::MemoryId;
 
-use crate::eval::dataset::{ActionMetrics, RankingMetrics};
+use crate::eval::retrieve_suite::{ActionMetrics, RankingMetrics};
 
 pub fn dcg(relevance: &[f64]) -> f64 {
     relevance

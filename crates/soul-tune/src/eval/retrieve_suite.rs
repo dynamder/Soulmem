@@ -1,0 +1,651 @@
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use std::time::Duration;
+
+use serde::Deserialize;
+
+use soul_mem_algo::algo::retrieve::similarity::{RetrSimilarity, SimilarityConfig};
+use soul_mem_algo::algo::retrieve::RetrStrategy;
+use soul_mem_core::memory_note::MemoryId;
+use soul_mem_query::embedding::blend_weights::BlendWeights;
+use soul_mem_query::embedding::embedding_model::bge::BgeSmallZh;
+use soul_mem_query::embedding::query::note::MemoryRetrieveQueryEmbedding;
+use soul_mem_query::embedding::Embeddable;
+use soul_mem_query::query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant};
+use soul_mem_runtime::working_memory::WorkingMemory;
+
+use crate::eval::dataset::{PerQueryExpectation, SubQuery, TestCaseConfig, TestCaseQuery};
+use crate::eval::loader::load_graph;
+use crate::eval::metrics::ranking::{compute_action_metrics, compute_ranking_metrics};
+use crate::eval::runner::{DetailRow, MetricGroup, SuiteReport, TestCaseOutcome, TestSuite};
+
+// ─── Raw deserialization types ───────────────────────────────────
+
+#[derive(Debug, Deserialize)]
+pub struct SubQueryRaw {
+    pub priority: u32,
+    pub tag: Vec<String>,
+    pub variant: MemoryRetrieveQueryVariant,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PerQueryExpectationRaw {
+    #[serde(rename = "q")]
+    pub query_index: usize,
+    pub ranking: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TestCaseQueryRaw {
+    pub name: String,
+    pub description: Option<String>,
+    pub sub_queries: Vec<SubQueryRaw>,
+    pub expected_per_query: Vec<PerQueryExpectationRaw>,
+    pub expected_combined_ranking: Vec<String>,
+    #[serde(default)]
+    pub expected_actions: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TestConfigRaw {
+    pub similarity_threshold: f32,
+    pub max_results: usize,
+    pub test_k_values: Vec<usize>,
+}
+
+/// 单个权重对的 JSON 格式。缺失的字段使用 BlendWeights::default()
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct BlendPairRaw {
+    #[serde(default)]
+    pub tag: Option<f32>,
+    #[serde(default)]
+    pub variant: Option<f32>,
+    #[serde(default)]
+    pub sem_concept_main: Option<f32>,
+    #[serde(default)]
+    pub sem_concept_aliases: Option<f32>,
+    #[serde(default)]
+    pub sem_concept: Option<f32>,
+    #[serde(default)]
+    pub sem_description: Option<f32>,
+    #[serde(default)]
+    pub sit_location_name: Option<f32>,
+    #[serde(default)]
+    pub sit_location_coord: Option<f32>,
+    #[serde(default)]
+    pub sit_participant_name: Option<f32>,
+    #[serde(default)]
+    pub sit_participant_role: Option<f32>,
+    #[serde(default)]
+    pub sit_env_atmosphere: Option<f32>,
+    #[serde(default)]
+    pub sit_env_tone: Option<f32>,
+    #[serde(default)]
+    pub sit_event_initiator: Option<f32>,
+    #[serde(default)]
+    pub sit_event_target: Option<f32>,
+    #[serde(default)]
+    pub sit_event_action: Option<f32>,
+    #[serde(default)]
+    pub sit_event_initiator_only_action: Option<f32>,
+    #[serde(default)]
+    pub sit_event_target_only_action: Option<f32>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct BlendSweepRaw {
+    /// 快捷方式：指定 tag 权重列表，自动生成 (tag, 1-tag) pairs
+    #[serde(default)]
+    pub tag_sweep: Vec<f32>,
+    /// 显式权重对列表
+    #[serde(default)]
+    pub pairs: Vec<BlendPairRaw>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RetrQueryFileRaw {
+    pub name: String,
+    pub description: String,
+    pub graph_path: PathBuf,
+    pub config: TestConfigRaw,
+    pub test_cases: Vec<TestCaseQueryRaw>,
+    #[serde(default)]
+    pub blend_sweep: Option<BlendSweepRaw>,
+}
+
+// ─── Internal types ──────────────────────────────────────────────
+
+struct TestCaseWithWeights {
+    query: TestCaseQuery,
+    tag_weight: f32,
+    variant_weight: f32,
+}
+
+// ─── Suite-specific types ────────────────────────────────────────
+
+pub struct RankingMetrics {
+    pub recall_at: Vec<(usize, f64)>,
+    pub precision_at: Vec<(usize, f64)>,
+    pub mrr: f64,
+    pub ndcg_at: Vec<(usize, f64)>,
+    pub hit_rate: f64,
+}
+
+pub struct ActionMetrics {
+    pub action_hit_rate: f64,
+    pub action_recall_at: Vec<(usize, f64)>,
+}
+
+pub struct PerQueryMetrics {
+    pub query_index: usize,
+    pub ranking_metrics: RankingMetrics,
+}
+
+pub struct RetrieveCaseData {
+    pub case_name: String,
+    pub description: String,
+    pub combined_retrieved_ids: Vec<MemoryId>,
+    pub combined_ranking_metrics: RankingMetrics,
+    pub per_query_metrics: Vec<PerQueryMetrics>,
+    pub action_metrics: ActionMetrics,
+    pub tag_weight: f32,
+    pub variant_weight: f32,
+}
+
+// ─── Sweep pair expansion ────────────────────────────────────────
+
+/// 将配置文件中的 sweep 展开为权重对列表。
+/// - 如果 blend_sweep 为 None → 默认一对 (0.4, 0.6)
+/// - 如果 blend_sweep.tag_sweep 非空 → 生成 (tag, 1-tag) pairs
+/// - 如果 blend_sweep.pairs 非空 → 叠加 BlendPairRaw 覆盖默认值
+fn expand_sweep_pairs(sweep: Option<BlendSweepRaw>) -> Vec<BlendWeights> {
+    let raw = match sweep {
+        Some(s) => s,
+        None => return vec![BlendWeights::default()],
+    };
+
+    let default_bw = BlendWeights::default();
+
+    let raw_pairs: Vec<BlendWeights> = if !raw.pairs.is_empty() {
+        raw.pairs
+            .into_iter()
+            .map(|pair| apply_overrides(&default_bw, &pair))
+            .collect()
+    } else if !raw.tag_sweep.is_empty() {
+        raw.tag_sweep
+            .into_iter()
+            .map(|tag| BlendWeights {
+                tag,
+                variant: 1.0 - tag,
+                ..default_bw.clone()
+            })
+            .collect()
+    } else {
+        vec![BlendWeights::default()]
+    };
+
+    raw_pairs
+}
+
+fn apply_overrides(base: &BlendWeights, pair: &BlendPairRaw) -> BlendWeights {
+    BlendWeights {
+        tag: pair.tag.unwrap_or(base.tag),
+        variant: pair.variant.unwrap_or(base.variant),
+        sem_concept_main: pair.sem_concept_main.unwrap_or(base.sem_concept_main),
+        sem_concept_aliases: pair.sem_concept_aliases.unwrap_or(base.sem_concept_aliases),
+        sem_concept: pair.sem_concept.unwrap_or(base.sem_concept),
+        sem_description: pair.sem_description.unwrap_or(base.sem_description),
+        sit_location_name: pair.sit_location_name.unwrap_or(base.sit_location_name),
+        sit_location_coord: pair.sit_location_coord.unwrap_or(base.sit_location_coord),
+        sit_participant_name: pair
+            .sit_participant_name
+            .unwrap_or(base.sit_participant_name),
+        sit_participant_role: pair
+            .sit_participant_role
+            .unwrap_or(base.sit_participant_role),
+        sit_env_atmosphere: pair.sit_env_atmosphere.unwrap_or(base.sit_env_atmosphere),
+        sit_env_tone: pair.sit_env_tone.unwrap_or(base.sit_env_tone),
+        sit_event_initiator: pair.sit_event_initiator.unwrap_or(base.sit_event_initiator),
+        sit_event_target: pair.sit_event_target.unwrap_or(base.sit_event_target),
+        sit_event_action: pair.sit_event_action.unwrap_or(base.sit_event_action),
+        sit_event_initiator_only_action: pair
+            .sit_event_initiator_only_action
+            .unwrap_or(base.sit_event_initiator_only_action),
+        sit_event_target_only_action: pair
+            .sit_event_target_only_action
+            .unwrap_or(base.sit_event_target_only_action),
+    }
+}
+
+// ─── RetrieveSuite ───────────────────────────────────────────────
+
+pub struct RetrieveSuite {
+    wm: Arc<WorkingMemory>,
+    test_cases: Vec<TestCaseWithWeights>,
+    meta: TestCaseConfig,
+    query_embeddings: Vec<Vec<MemoryRetrieveQueryEmbedding>>,
+}
+
+impl RetrieveSuite {
+    pub fn load(query_path: &Path) -> Result<Self, Box<dyn std::error::Error>> {
+        let file = std::fs::File::open(query_path)?;
+        let reader = std::io::BufReader::new(file);
+        let raw: RetrQueryFileRaw = serde_json::from_reader(reader)?;
+
+        // Load graph
+        let graph_dir = query_path.parent().unwrap_or(Path::new("."));
+        let graph_path = graph_dir.join(&raw.graph_path);
+        let (wm, id_map) = load_graph(&graph_path)?;
+
+        // Config meta
+        let meta = TestCaseConfig {
+            similarity_threshold: raw.config.similarity_threshold,
+            max_results: raw.config.max_results,
+            test_k_values: raw.config.test_k_values,
+        };
+
+        // Resolve sweep pairs
+        let sweep_pairs = expand_sweep_pairs(raw.blend_sweep);
+
+        // Build one TestCaseQuery per raw test case
+        let base_cases: Vec<TestCaseQuery> = raw
+            .test_cases
+            .into_iter()
+            .map(|tc| {
+                let sub_queries: Vec<SubQuery> = tc
+                    .sub_queries
+                    .into_iter()
+                    .map(|sq| SubQuery {
+                        priority: sq.priority,
+                        tags: sq.tag,
+                        variant: sq.variant,
+                    })
+                    .collect();
+
+                let expected_per_query: Vec<PerQueryExpectation> = tc
+                    .expected_per_query
+                    .into_iter()
+                    .map(|epq| PerQueryExpectation {
+                        query_index: epq.query_index,
+                        ranking: resolve_ids(&epq.ranking, &id_map),
+                    })
+                    .collect();
+
+                TestCaseQuery {
+                    name: tc.name,
+                    description: tc.description.unwrap_or_default(),
+                    sub_queries,
+                    expected_per_query,
+                    expected_combined_ranking: resolve_ids(&tc.expected_combined_ranking, &id_map),
+                    expected_actions: resolve_ids(&tc.expected_actions, &id_map),
+                }
+            })
+            .collect();
+
+        // Expand: base_case × sweep_pair
+        let mut test_cases: Vec<TestCaseWithWeights> = Vec::new();
+        let model = BgeSmallZh::default_cpu()?;
+
+        let mut query_embeddings: Vec<Vec<MemoryRetrieveQueryEmbedding>> = Vec::new();
+
+        for base in &base_cases {
+            // Embed base queries once (without custom weights)
+            let base_embs: Vec<MemoryRetrieveQueryEmbedding> = base
+                .sub_queries
+                .iter()
+                .map(|sq| {
+                    let mq = MemoryRetrieveQuery::new(sq.tags.clone(), sq.variant.clone());
+                    mq.embed(&model).expect("Query embed failed")
+                })
+                .collect();
+
+            for bw in &sweep_pairs {
+                let label = format!(" [w=tag:{:.1}/var:{:.1}]", bw.tag, bw.variant);
+                let named = TestCaseQuery {
+                    name: format!("{}{}", base.name, label),
+                    ..base.clone()
+                };
+
+                // Apply weights to each sub-query embedding
+                let embs: Vec<MemoryRetrieveQueryEmbedding> = base_embs
+                    .iter()
+                    .map(|emb| emb.clone().with_weights(bw.clone()))
+                    .collect();
+
+                test_cases.push(TestCaseWithWeights {
+                    query: named,
+                    tag_weight: bw.tag,
+                    variant_weight: bw.variant,
+                });
+                query_embeddings.push(embs);
+            }
+        }
+
+        Ok(Self {
+            wm: Arc::new(wm),
+            test_cases,
+            meta,
+            query_embeddings,
+        })
+    }
+}
+
+impl TestSuite for RetrieveSuite {
+    fn case_count(&self) -> usize {
+        self.test_cases.len()
+    }
+
+    fn run_case(&self, index: usize) -> TestCaseOutcome {
+        let tcw = &self.test_cases[index];
+        let test_case = &tcw.query;
+        let query_embs = &self.query_embeddings[index];
+
+        let mut per_query_metrics = Vec::new();
+        let mut all_retrieved: Vec<(MemoryId, f32, u32)> = Vec::new();
+
+        for (sq_idx, sq) in test_case.sub_queries.iter().enumerate() {
+            let emb = &query_embs[sq_idx];
+            let config = SimilarityConfig {
+                similarity_threshold: self.meta.similarity_threshold,
+                max_results: self.meta.max_results,
+            };
+            let request = config.into_request(Arc::clone(&self.wm), emb.clone());
+            let result = RetrSimilarity {}.retrieve(request);
+
+            let expected = test_case
+                .expected_per_query
+                .iter()
+                .find(|e| e.query_index == sq_idx)
+                .map(|e| &e.ranking);
+
+            let per_metrics = if let Some(expected_ranking) = expected {
+                let ids: Vec<MemoryId> = result.iter().map(|(id, _)| *id).collect();
+                let ranking_metrics =
+                    compute_ranking_metrics(&ids, expected_ranking, &self.meta.test_k_values);
+                PerQueryMetrics {
+                    query_index: sq_idx,
+                    ranking_metrics: RankingMetrics {
+                        recall_at: ranking_metrics.recall_at,
+                        precision_at: ranking_metrics.precision_at,
+                        mrr: ranking_metrics.mrr,
+                        ndcg_at: ranking_metrics.ndcg_at,
+                        hit_rate: ranking_metrics.hit_rate,
+                    },
+                }
+            } else {
+                PerQueryMetrics {
+                    query_index: sq_idx,
+                    ranking_metrics: RankingMetrics {
+                        recall_at: self.meta.test_k_values.iter().map(|&k| (k, 0.0)).collect(),
+                        precision_at: self.meta.test_k_values.iter().map(|&k| (k, 0.0)).collect(),
+                        mrr: 0.0,
+                        ndcg_at: self.meta.test_k_values.iter().map(|&k| (k, 0.0)).collect(),
+                        hit_rate: 0.0,
+                    },
+                }
+            };
+            per_query_metrics.push(per_metrics);
+
+            for (id, score) in result {
+                all_retrieved.push((id, score, sq.priority));
+            }
+        }
+
+        let combined_result = merge_by_priority(all_retrieved, self.meta.max_results);
+        let combined_ids: Vec<MemoryId> = combined_result.iter().map(|(id, _)| *id).collect();
+
+        let combined_metrics = compute_ranking_metrics(
+            &combined_ids,
+            &test_case.expected_combined_ranking,
+            &self.meta.test_k_values,
+        );
+
+        let combined_ranking = RankingMetrics {
+            recall_at: combined_metrics.recall_at,
+            precision_at: combined_metrics.precision_at,
+            mrr: combined_metrics.mrr,
+            ndcg_at: combined_metrics.ndcg_at,
+            hit_rate: combined_metrics.hit_rate,
+        };
+
+        let action_metrics = if test_case.expected_actions.is_empty() {
+            ActionMetrics {
+                action_hit_rate: 1.0,
+                action_recall_at: self.meta.test_k_values.iter().map(|&k| (k, 1.0)).collect(),
+            }
+        } else {
+            let action_res =
+                compute_action_metrics(&[], &test_case.expected_actions, &self.meta.test_k_values);
+            ActionMetrics {
+                action_hit_rate: action_res.action_hit_rate,
+                action_recall_at: action_res.action_recall_at,
+            }
+        };
+
+        let passed =
+            combined_ranking.hit_rate > 0.0 || test_case.expected_combined_ranking.is_empty();
+
+        TestCaseOutcome {
+            case_name: test_case.name.clone(),
+            description: test_case.description.clone(),
+            passed,
+            data: Box::new(RetrieveCaseData {
+                case_name: test_case.name.clone(),
+                description: test_case.description.clone(),
+                combined_retrieved_ids: combined_ids,
+                combined_ranking_metrics: combined_ranking,
+                per_query_metrics,
+                action_metrics,
+                tag_weight: tcw.tag_weight,
+                variant_weight: tcw.variant_weight,
+            }),
+        }
+    }
+
+    fn build_report(
+        &self,
+        outcomes: Vec<TestCaseOutcome>,
+        _elapsed: Duration,
+        total: usize,
+        passed: usize,
+        _failed: usize,
+    ) -> SuiteReport {
+        let _pass_rate = if total > 0 {
+            passed as f64 / total as f64 * 100.0
+        } else {
+            0.0
+        };
+
+        // Extract data and group by (tag_weight, variant_weight)
+        let mut by_weight: HashMap<(u32, u32), Vec<RetrieveCaseData>> = HashMap::new();
+        for outcome in &outcomes {
+            if let Some(data) = outcome.data.downcast_ref::<RetrieveCaseData>() {
+                let key = (
+                    (data.tag_weight * 100.0).round() as u32,
+                    (data.variant_weight * 100.0).round() as u32,
+                );
+                by_weight.entry(key).or_default().push(RetrieveCaseData {
+                    case_name: data.case_name.clone(),
+                    description: data.description.clone(),
+                    combined_retrieved_ids: data.combined_retrieved_ids.clone(),
+                    combined_ranking_metrics: RankingMetrics {
+                        recall_at: data.combined_ranking_metrics.recall_at.clone(),
+                        precision_at: data.combined_ranking_metrics.precision_at.clone(),
+                        mrr: data.combined_ranking_metrics.mrr,
+                        ndcg_at: data.combined_ranking_metrics.ndcg_at.clone(),
+                        hit_rate: data.combined_ranking_metrics.hit_rate,
+                    },
+                    per_query_metrics: Vec::new(),
+                    action_metrics: ActionMetrics {
+                        action_hit_rate: data.action_metrics.action_hit_rate,
+                        action_recall_at: data.action_metrics.action_recall_at.clone(),
+                    },
+                    tag_weight: data.tag_weight,
+                    variant_weight: data.variant_weight,
+                });
+            }
+        }
+
+        // Compute per-weight summary
+        let mut summary_groups = Vec::new();
+        let mut detail_rows = Vec::new();
+
+        for (tag_n, var_n) in by_weight.keys().copied().collect::<Vec<_>>() {
+            let tag_w = tag_n as f64 / 100.0;
+            let var_w = var_n as f64 / 100.0;
+
+            let group_data = &by_weight[&(tag_n, var_n)];
+            let n = group_data.len() as f64;
+
+            let avg_mrr = group_data
+                .iter()
+                .map(|d| d.combined_ranking_metrics.mrr)
+                .sum::<f64>()
+                / n;
+            let avg_hit = group_data
+                .iter()
+                .map(|d| d.combined_ranking_metrics.hit_rate)
+                .sum::<f64>()
+                / n;
+            let avg_recall3 = group_data
+                .iter()
+                .filter_map(|d| {
+                    d.combined_ranking_metrics
+                        .recall_at
+                        .iter()
+                        .find(|(k, _)| *k == 3)
+                        .map(|(_, v)| v)
+                })
+                .sum::<f64>()
+                / n;
+
+            summary_groups.push(MetricGroup {
+                label: format!("权重 tag={:.1}, variant={:.1}", tag_w, var_w),
+                items: vec![
+                    ("平均 MRR".into(), format!("{:.4}", avg_mrr)),
+                    ("平均 Hit".into(), format!("{:.2}", avg_hit)),
+                    ("平均 Recall@3".into(), format!("{:.4}", avg_recall3)),
+                    ("用例数".into(), format!("{}", group_data.len())),
+                ],
+            });
+
+            for data in group_data {
+                let hit = data.combined_ranking_metrics.hit_rate;
+                let status = if hit > 0.0 { "✓" } else { "✗" };
+                let mrr = data.combined_ranking_metrics.mrr;
+                let name = if data.case_name.len() > 28 {
+                    format!("{}..", &data.case_name[..26])
+                } else {
+                    format!("{:28}", data.case_name)
+                };
+                detail_rows.push(DetailRow {
+                    text: format!("  {:28}  {:.4}  {:.2}    {}", name, mrr, hit, status),
+                    has_error: hit <= 0.0 && !data.case_name.contains("无意义"),
+                });
+            }
+        }
+
+        // Sort groups by tag weight descending
+        summary_groups.sort_by(|a, b| b.label.cmp(&a.label));
+
+        SuiteReport {
+            summary_groups,
+            detail_header: "  用例                         MRR     Hit     状态".into(),
+            detail_rows,
+        }
+    }
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────
+
+fn resolve_ids(ids: &[String], id_map: &HashMap<String, MemoryId>) -> Vec<MemoryId> {
+    ids.iter().filter_map(|s| id_map.get(s).copied()).collect()
+}
+
+fn merge_by_priority(results: Vec<(MemoryId, f32, u32)>, top_k: usize) -> Vec<(MemoryId, f32)> {
+    let mut merged: HashMap<MemoryId, f32> = HashMap::new();
+    for (id, score, priority) in results {
+        *merged.entry(id).or_insert(0.0) += priority as f32 * score;
+    }
+    let mut sorted: Vec<(MemoryId, f32)> = merged.into_iter().collect();
+    sorted.sort_by(|a, b| b.1.total_cmp(&a.1));
+    sorted.truncate(top_k);
+    sorted
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_query_file_raw_deserialize() {
+        let json = r#"
+        {
+          "name": "test",
+          "description": "desc",
+          "graph_path": "graph.json",
+          "config": {
+            "similarity_threshold": 0.5,
+            "max_results": 10,
+            "test_k_values": [1, 3, 5]
+          },
+          "test_cases": [
+            {
+              "name": "case1",
+              "description": "desc1",
+              "sub_queries": [
+                { "priority": 1, "tag": ["rust"], "variant": { "Semantic": [] } }
+              ],
+              "expected_per_query": [{"q": 0, "ranking": ["mem_a"]}],
+              "expected_combined_ranking": ["mem_a"],
+              "expected_actions": []
+            }
+          ]
+        }
+        "#;
+        let raw: RetrQueryFileRaw = serde_json::from_str(json).unwrap();
+        assert_eq!(raw.test_cases.len(), 1);
+        assert_eq!(raw.test_cases[0].sub_queries[0].tag, vec!["rust"]);
+    }
+
+    #[test]
+    fn test_blend_sweep_tag_sweep() {
+        let json = r#"{"tag_sweep": [0.3, 0.5, 0.7], "pairs": []}"#;
+        let raw: BlendSweepRaw = serde_json::from_str(json).unwrap();
+        let pairs = expand_sweep_pairs(Some(raw));
+        assert_eq!(pairs.len(), 3);
+        assert!((pairs[0].tag - 0.3).abs() < 1e-6);
+        assert!((pairs[0].variant - 0.7).abs() < 1e-6);
+        assert!((pairs[1].tag - 0.5).abs() < 1e-6);
+        assert!((pairs[2].tag - 0.7).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_blend_sweep_pairs() {
+        let json = r#"{"pairs": [{"tag": 0.3, "variant": 0.7}], "tag_sweep": []}"#;
+        let raw: BlendSweepRaw = serde_json::from_str(json).unwrap();
+        let pairs = expand_sweep_pairs(Some(raw));
+        assert_eq!(pairs.len(), 1);
+        assert!((pairs[0].tag - 0.3).abs() < 1e-6);
+        // Other fields should be defaults
+        assert!((pairs[0].sem_concept - 0.5).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_expand_sweep_none() {
+        let pairs = expand_sweep_pairs(None);
+        assert_eq!(pairs.len(), 1);
+        assert!((pairs[0].tag - 0.4).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_merge_by_priority() {
+        let id_a = MemoryId::new();
+        let id_b = MemoryId::new();
+        let results = vec![(id_a, 0.8, 1), (id_b, 0.5, 2), (id_a, 0.3, 2)];
+        let merged = merge_by_priority(results, 10);
+        assert_eq!(merged.len(), 2);
+        assert_eq!(merged[0].0, id_a);
+    }
+}

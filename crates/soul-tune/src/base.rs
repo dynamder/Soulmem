@@ -4,6 +4,8 @@ use std::time::Duration;
 
 use ratatui::crossterm;
 
+use crate::eval::runner::SuiteReport;
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum AlgoType {
     Retrieve,
@@ -34,6 +36,7 @@ pub struct TestReport {
     pub passed: usize,
     pub failed: usize,
     pub elapsed: Duration,
+    pub suite_report: SuiteReport,
 }
 
 pub enum Transition {
