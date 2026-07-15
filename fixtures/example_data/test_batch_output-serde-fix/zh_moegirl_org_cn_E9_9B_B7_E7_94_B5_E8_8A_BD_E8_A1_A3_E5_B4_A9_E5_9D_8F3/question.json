@@ -1,0 +1,1686 @@
+{
+  "name": "batch_zh_moegirl_org_cn_E9_9B_B7_E7_94_B5_E8_8A_BD_E8_A1_A3_E5_B4_A9_E5_9D_8F3",
+  "description": "Batch generated test data for zh_moegirl_org_cn_E9_9B_B7_E7_94_B5_E8_8A_BD_E8_A1_A3_E5_B4_A9_E5_9D_8F3",
+  "graph_path": "graph.json",
+  "config": {
+    "similarity_threshold": 0.0,
+    "max_results": 10,
+    "test_k_values": [
+      1,
+      3,
+      5
+    ]
+  },
+  "test_cases": [
+    {
+      "name": "query_0",
+      "description": "atomic query 0",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "角色"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "雷电芽衣",
+                "description": "ME社社长雷电龙马的女儿，曾经的天之骄女"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_1",
+      "description": "atomic query 1",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "雷之律者",
+                "description": "最初觉醒的律者形态，掌控电磁力和雷电"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_raiden_herrscher"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_raiden_herrscher"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_2",
+      "description": "atomic query 2",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "相遇"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在长空市第三次崩坏时，一个白发少女出现并击败了我的律者人格，接住了坠落的我",
+                "location": [
+                  {
+                    "name": "长空市"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "琪亚娜"
+                  }
+                ],
+                "event": [
+                  {
+                    "action": "战斗"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_meet_kiana"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_meet_kiana"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "粉色妖精小姐",
+                "description": "前文明逐火英桀，真正的始源之律者，我继承了她的意志"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_elysia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_elysia"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "伙伴"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在圣芙蕾雅学园和布洛妮娅一起训练生活，她宁愿烧毁生物芯片也不愿伤害我们",
+                "participants": [
+                  {
+                    "name": "布洛妮娅"
+                  }
+                ],
+                "event": [
+                  {
+                    "action": "烧毁芯片"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_bronya"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_bronya"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 10,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在千羽学园天台上的诀别，我抓住她的手然后放手离去",
+                "location": [
+                  {
+                    "name": "千羽学园天台"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "琪亚娜"
+                  }
+                ],
+                "event": [
+                  {
+                    "action": "放手离去"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_farewell_kiana"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_farewell_kiana"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 10,
+          "tag": [
+            "事件",
+            "传承"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在往世乐土深处，爱莉希雅向我展示记忆和真心，我继承了她的力量成为始源之律者",
+                "location": [
+                  {
+                    "name": "往世乐土深处"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "爱莉希雅"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_inherit_origin"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_inherit_origin"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "擅长做饭的队长",
+                "description": "早晨为大家准备早餐和便当的习惯"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_cooking"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_cooking"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "生气时气场可怕的人",
+                "description": "对不听话的琪亚娜或偷懒的人用严厉语气训斥"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_angry"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_angry"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "在意年龄的队长",
+                "description": "被后辈叫阿姨会很苦恼，被夸年轻会高兴"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_age_sensitive"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_age_sensitive"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "组织"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "为了拯救琪亚娜加入世界蛇，与凯文达成交易",
+                "participants": [
+                  {
+                    "name": "凯文"
+                  }
+                ],
+                "event": [
+                  {
+                    "action": "加入"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_world_snake"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_world_snake"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "地点"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "命运改变的地方",
+                "description": "第三次崩坏爆发地，与琪亚娜初次相遇的城市"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_nagazora"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_nagazora"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "团体"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "前文明最强的十三位融合战士",
+                "description": "在往世乐土中与我相遇的英桀们"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_flamechasers"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_flamechasers"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "职责"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "大崩坏结束后担任队长，带领卡萝尔调查圣方丹异变，面对天上之人",
+                "location": [
+                  {
+                    "name": "圣方丹"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "卡萝尔·佩珀"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_team3_duty"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_team3_duty"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "继承自爱莉希雅的律者位格",
+                "description": "代表一切之始的起源力量，比雷之律者更完整"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_origin_herrscher"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_origin_herrscher"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "导师"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "休伯利安上我向姬子倾诉寻死之心，她拒绝了我并植入炸弹带我进圣芙蕾雅",
+                "location": [
+                  {
+                    "name": "休伯利安"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "姬子"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_murata_himeko"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_murata_himeko"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "如同妹妹的挚友",
+                "description": "表面冷淡但内心比任何人都重视伙伴，在可可利亚控制时期宁愿自毁也不伤害我们"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_bronya"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_bronya"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "概念",
+            "计划"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "凯文的救世方案",
+                "description": "要求抹去人类意志和存在的计划，我不认同"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_stigma_plan"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_stigma_plan"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "概念",
+            "物品"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "雷之律者的核心宝石",
+                "description": "曾经植于我体内，后来被取出"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_conquest_gem"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_conquest_gem"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "日常",
+            "回忆"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在圣芙蕾雅学园和琪亚娜、布洛妮娅一起训练、生活、战斗的日常",
+                "participants": [
+                  {
+                    "name": "我"
+                  },
+                  {
+                    "name": "琪亚娜"
+                  },
+                  {
+                    "name": "布洛妮娅"
+                  }
+                ],
+                "event": [
+                  {
+                    "action": "训练"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_saint_freya_life"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_saint_freya_life"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "习惯",
+            "战斗"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "战斗中的话语",
+                "description": "习惯说'雷光斩断过去'、'我将坠入黑暗，换你回到光明'等"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_combat"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_combat"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "凯文让我进入往世乐土寻找真相，遇到爱莉希雅等英桀，散步交谈",
+                "location": [
+                  {
+                    "name": "往世乐土"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "爱莉希雅"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_enter_elysian"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_enter_elysian"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "成为终焉之律者留在月球的女孩",
+                "description": "我为了她重新成为律者，她留在月球控制崩坏能"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_kiana"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kiana"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_23",
+      "description": "atomic query 23",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "情感"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "做饭的幸福感",
+                "description": "看到伙伴狼吞虎咽吃我做料理时的满足感"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_satisfaction"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_satisfaction"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_24",
+      "description": "atomic query 24",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "氛围",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在激烈的战场上，我面对崩坏兽和律者，内心坚定战斗",
+                "environment": {
+                  "atmosphere": "紧张激烈",
+                  "tone": "战斗中的决心"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_battle_atmosphere"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_battle_atmosphere"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_kiana",
+      "description": "查询琪亚娜·卡斯兰娜",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个把我从黑暗中拉出来的人",
+                "description": "长空市救我的白发少女"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "草履虫",
+                "description": "我给她起的昵称，她莽撞但闪耀"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "终焉之律者",
+                "description": "为了拯救人类留在月球上的她"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "我最重要的家人",
+                "description": "没有她就没有现在的我"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "琪亚娜·卡斯兰娜",
+                "description": "卡斯兰娜家族的继承人，我的挚爱"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "曾经说只要有我就相当于一百人的力量",
+                "description": "她总是这么依赖我"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个在千羽学园天台与我诀别的女孩",
+                "description": "我放开她的手坠入黑暗换成她回到光明"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_kiana"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_kiana"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_kiana"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_kiana"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_kiana"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_kiana"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_kiana"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kiana"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_meet",
+      "description": "查询长空市初次相遇",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "第三次崩坏爆发时，我成为雷之律者，绝望中被一个白发少女接住"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在长空市的高楼上，琪亚娜击败了我的律者人格并救了我"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "第一次被需要被保护的感觉，是在那个崩坏爆发的城市里"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "雷电轰鸣中，她出现了，将我从无尽的黑暗中拉出"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她接住从高楼上坠落的我，就像接住了整个世界"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那是改变我一生的相遇，在那个被崩坏吞噬的城市"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "我知道崩坏带来了灾难，但也带来了她"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_meet_kiana"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_meet_kiana"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_meet_kiana"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_meet_kiana"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_meet_kiana"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_meet_kiana"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_meet_kiana"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_meet_kiana"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_inherit",
+      "description": "查询往世乐土传承始源之力",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "传承"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "粉色妖精小姐的传承",
+                "description": "她向我展示记忆和真心，我继承了她的力量"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "传承"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "成为始源之律者",
+                "description": "继承爱莉希雅意志后的完整力量形态"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "传承"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "往世乐土尽头",
+                "description": "在这个记忆空间中完成了信念的传递"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "传承"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "爱莉希雅在乐土深处向我敞开心扉，承认自己是第十三律者，然后我成为了新的始源"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "传承"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "我接过她递来的力量，不仅获得了权能，更继承了相信人性的信念"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "传承"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她告诉我，人也可以成为律者，律者也可以成为人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "传承"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那个神圣而庄严的时刻，她将一切都托付给了我"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_inherit_origin"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_inherit_origin"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_inherit_origin"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_inherit_origin"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_inherit_origin"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_inherit_origin"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_inherit_origin"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_inherit_origin"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_team3",
+      "description": "查询作为第三小队队长的职责",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "职责",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "大崩坏后我成为第三小队队长，保护队员面对天上之人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "职责",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在圣方丹，我带领卡萝尔调查异变，面对未知威胁"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "职责",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "如今我终于有了保护他人的力量，就像当年姬子保护我们一样"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "职责",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "卡萝尔让我想起曾经的琪亚娜，我必须守护好她"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "职责",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "作为指挥官，确保队员安全是我的首要职责"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "职责",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在天命第三小队，我成长为更成熟的领导者"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "职责",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "从被保护的人变成保护别人的人，这是使命也是成长"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_team3_duty"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_team3_duty"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_team3_duty"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_team3_duty"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_team3_duty"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_team3_duty"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_team3_duty"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_team3_duty"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_cooking",
+      "description": "查询芽衣的烹饪习惯及满足感",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "习惯",
+            "日常"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "早餐和便当的厨娘",
+                "description": "每天早晨为大家准备料理的习惯"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "习惯",
+            "日常"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "日式料理高手",
+                "description": "擅长各种日式料理，大家最爱我的饭菜"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "习惯",
+            "日常"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "看着伙伴吃饭就满足",
+                "description": "看到他们狼吞虎咽的样子我就很开心"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "习惯",
+            "日常"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "宿舍里的伙食担当",
+                "description": "从圣芙蕾雅时期就负责大家的食物"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "习惯",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在舰上为琪亚娜和布洛妮娅准备便当，看她们争抢的样子"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "习惯",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "旅行中也不忘带食材，在篝火旁为大家煮一顿热饭"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "习惯",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "今天我做了咖喱，看着卡萝尔吃得满嘴都是，心里暖暖的"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_cooking"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "proc_cooking"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "proc_cooking"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "proc_cooking"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "proc_cooking"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "proc_cooking"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "proc_cooking"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_cooking"
+      ],
+      "expected_actions": []
+    }
+  ]
+}

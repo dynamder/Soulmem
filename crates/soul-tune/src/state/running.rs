@@ -1,3 +1,4 @@
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
@@ -12,6 +13,8 @@ use crate::eval::retrieve_suite::RetrieveSuite;
 use crate::eval::runner::{SuiteReport, TestCaseOutcome, TestSuite};
 use crate::tui::components::status_bar;
 
+type LoadResult = Result<(Box<dyn TestSuite>, usize, String), String>;
+
 pub struct RunningState {
     pub config: TestConfig,
     pub total: usize,
@@ -21,33 +24,62 @@ pub struct RunningState {
     pub elapsed_secs: f64,
     pub current_description: String,
     outcomes: Vec<TestCaseOutcome>,
-    suite: Box<dyn TestSuite>,
+    suite: Option<Box<dyn TestSuite>>,
+    /// Shared loading state: None = still loading, Some(Ok(...)) = done, Some(Err(...)) = failed
+    load_result: Arc<Mutex<Option<LoadResult>>>,
+    #[allow(dead_code)]
+    _load_thread: Option<std::thread::JoinHandle<()>>,
+    spinner_frame: usize,
 }
 
 impl RunningState {
     pub fn new(config: TestConfig) -> Self {
-        let (suite, total, desc) = match config.algo {
-            AlgoType::Retrieve => match RetrieveSuite::load(&config.dataset_path) {
-                Ok(s) => {
-                    let n = s.case_count();
-                    (
-                        Box::new(s) as Box<dyn TestSuite>,
-                        n,
-                        format!("准备就绪，共 {} 个测试用例", n),
-                    )
-                }
-                Err(e) => {
-                    let msg = format!("加载失败: {}", e);
-                    let suite: Box<dyn TestSuite> = Box::new(NoopSuite);
-                    (suite, 0, msg)
-                }
-            },
-            AlgoType::Consolidate | AlgoType::Forget => {
-                let suite: Box<dyn TestSuite> = Box::new(NoopSuite);
-                (suite, 0, format!("{} 尚未实现", config.algo))
-            }
-        };
+        let load_result: Arc<Mutex<Option<LoadResult>>> = Arc::new(Mutex::new(None));
+        let load_result_clone = load_result.clone();
+        let path = config.dataset_path.clone();
+        let algo = config.algo;
 
+        let _load_thread = std::thread::Builder::new()
+            .name("suite-loader".into())
+            .spawn(move || {
+                let result: LoadResult = match algo {
+                    AlgoType::Retrieve => match RetrieveSuite::load(&path) {
+                        Ok(s) => {
+                            let n = s.case_count();
+                            let desc = format!("准备就绪，共 {} 个测试用例", n);
+                            Ok((Box::new(s) as Box<dyn TestSuite>, n, desc))
+                        }
+                        Err(e) => Err(format!("加载失败: {}", e)),
+                    },
+                    _ => Err(format!("{} 尚未实现", algo)),
+                };
+                *load_result_clone.lock().unwrap() = Some(result);
+            })
+            .ok();
+
+        Self {
+            config,
+            total: 0,
+            current: 0,
+            passed: 0,
+            failed: 0,
+            elapsed_secs: 0.0,
+            current_description: "正在加载模型和数据...".to_string(),
+            outcomes: Vec::new(),
+            suite: None,
+            load_result,
+            _load_thread,
+            spinner_frame: 0,
+        }
+    }
+
+    /// 从预加载的 suite 直接构造（跳过异步加载线程）
+    pub fn new_loaded(
+        config: TestConfig,
+        suite: Box<dyn TestSuite>,
+        total: usize,
+        desc: String,
+    ) -> Self {
         Self {
             config,
             total,
@@ -57,13 +89,40 @@ impl RunningState {
             elapsed_secs: 0.0,
             current_description: desc,
             outcomes: Vec::new(),
-            suite,
+            suite: Some(suite),
+            load_result: Arc::new(Mutex::new(None)),
+            _load_thread: None,
+            spinner_frame: 0,
         }
     }
 
     pub fn tick(&mut self) -> Option<Transition> {
+        // Phase 1: waiting for async load to finish
+        if self.suite.is_none() {
+            self.spinner_frame = (self.spinner_frame + 1) % 4;
+            if let Some(result) = self.load_result.lock().unwrap().take() {
+                match result {
+                    Ok((suite, total, desc)) => {
+                        self.suite = Some(suite);
+                        self.total = total;
+                        self.current_description = desc;
+                    }
+                    Err(e) => {
+                        self.current_description = e;
+                        // Fall back to NoopSuite so tick can finish gracefully
+                        let suite: Box<dyn TestSuite> = Box::new(NoopSuite);
+                        self.suite = Some(suite);
+                        self.total = 0;
+                    }
+                }
+            }
+            return None;
+        }
+
+        // Phase 2: running test cases
+        let suite = self.suite.as_ref().unwrap();
         if self.current >= self.total {
-            let report = self.suite.build_report(
+            let report = suite.build_report(
                 std::mem::take(&mut self.outcomes),
                 std::time::Duration::from_secs_f64(self.elapsed_secs),
                 self.total,
@@ -81,7 +140,7 @@ impl RunningState {
         }
 
         let start = std::time::Instant::now();
-        let outcome = self.suite.run_case(self.current);
+        let outcome = suite.run_case(self.current);
         self.current_description = format!("执行: {}", outcome.case_name);
 
         if outcome.passed {
@@ -129,31 +188,47 @@ impl RunningState {
             ])
             .split(layout[1]);
 
-        let ratio = if self.total > 0 {
-            self.current as f64 / self.total as f64
+        if self.suite.is_none() {
+            // Loading animation
+            let spinner = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+            let s = spinner[self.spinner_frame % spinner.len()];
+            frame.render_widget(
+                Paragraph::new(format!("{} {} ", s, self.current_description))
+                    .alignment(Alignment::Center)
+                    .fg(Color::Cyan),
+                content_area[0],
+            );
+            let note = Paragraph::new("正在加载 BGE 嵌入模型（首次运行需下载）...")
+                .alignment(Alignment::Center)
+                .fg(Color::DarkGray);
+            frame.render_widget(note, content_area[1]);
         } else {
-            0.0
-        };
-        let gauge = Gauge::default().ratio(ratio).fg(Color::Cyan).label(format!(
-            "  {}/{} ({:.0}%)  ",
-            self.current,
-            self.total,
-            ratio * 100.0
-        ));
-        frame.render_widget(gauge, content_area[0]);
+            let ratio = if self.total > 0 {
+                self.current as f64 / self.total as f64
+            } else {
+                0.0
+            };
+            let gauge = Gauge::default().ratio(ratio).fg(Color::Cyan).label(format!(
+                "  {}/{} ({:.0}%)  ",
+                self.current,
+                self.total,
+                ratio * 100.0
+            ));
+            frame.render_widget(gauge, content_area[0]);
 
-        let info = vec![
-            format!("当前: {}", self.current_description),
-            format!(
-                "通过: {}    失败: {}    耗时: {:.1}s",
-                self.passed, self.failed, self.elapsed_secs
-            ),
-        ]
-        .join("\n");
-        frame.render_widget(
-            Paragraph::new(info).alignment(Alignment::Center),
-            content_area[1],
-        );
+            let info = vec![
+                format!("当前: {}", self.current_description),
+                format!(
+                    "通过: {}    失败: {}    耗时: {:.1}s",
+                    self.passed, self.failed, self.elapsed_secs
+                ),
+            ]
+            .join("\n");
+            frame.render_widget(
+                Paragraph::new(info).alignment(Alignment::Center),
+                content_area[1],
+            );
+        }
 
         status_bar::render_status_bar(frame, layout[2], &[("[Ctrl+C]".into(), "中止".into())]);
     }

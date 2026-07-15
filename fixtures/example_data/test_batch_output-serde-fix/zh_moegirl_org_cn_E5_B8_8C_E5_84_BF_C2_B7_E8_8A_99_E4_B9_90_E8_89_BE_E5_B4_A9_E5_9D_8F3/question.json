@@ -1,0 +1,1724 @@
+{
+  "name": "batch_zh_moegirl_org_cn_E5_B8_8C_E5_84_BF_C2_B7_E8_8A_99_E4_B9_90_E8_89_BE_E5_B4_A9_E5_9D_8F3",
+  "description": "Batch generated test data for zh_moegirl_org_cn_E5_B8_8C_E5_84_BF_C2_B7_E8_8A_99_E4_B9_90_E8_89_BE_E5_B4_A9_E5_9D_8F3",
+  "graph_path": "graph.json",
+  "config": {
+    "similarity_threshold": 0.0,
+    "max_results": 10,
+    "test_k_values": [
+      1,
+      3,
+      5
+    ]
+  },
+  "test_cases": [
+    {
+      "name": "query_0",
+      "description": "atomic query 0",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "自身"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "量子少女",
+                "description": "希儿给自己的称号"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_1",
+      "description": "atomic query 1",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "姐姐大人",
+                "description": "希儿对最重要的人的称呼"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_bronya"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_bronya"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_2",
+      "description": "atomic query 2",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "另一个我"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "死之律者的记忆化身",
+                "description": "住在希儿身体里的那个强势人格的来历"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_black_seele"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_black_seele"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "养母"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "孤儿院的女主人",
+                "description": "西伯利亚孤儿院的负责人，也是希儿的养母"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_cocolia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_cocolia"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "地点",
+            "异空间"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "没有星星的地方",
+                "description": "希儿因实验被困的无边无际的黑暗空间"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_quantum_sea"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_quantum_sea"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "形态",
+            "律者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "白花之力",
+                "description": "希儿觉醒的律者形态所拥有的治愈力量"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_death_law"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_death_law"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "形态",
+            "星尘"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "新获得的星尘形态",
+                "description": "使用镰刀造成雷电伤害，还能用羽翼守护队友"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_healing_wing"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_healing_wing"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "物品",
+            "能力具象"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "布洛妮娅的机甲伙伴",
+                "description": "原来属于希儿的再构筑力量，现在由布洛妮娅指挥"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_heavy_rabbit"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_heavy_rabbit"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "性格",
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "爱哭鬼",
+                "description": "希儿敏感容易紧张流泪的性格"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_easily_cry"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_easily_cry"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "爱好"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "喜欢看海",
+                "description": "因为那是和布洛妮娅姐姐的约定"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_love_sea"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_love_sea"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "实验"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "为了保护布洛妮娅姐姐，主动进入实验舱，身体量子化的那件事",
+                "location": [
+                  {
+                    "name": "西伯利亚实验基地"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_x10_experiment"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_x10_experiment"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "被困"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在黑暗虚无中没有亮光，连自己都看不见的经历",
+                "environment": {
+                  "atmosphere": "虚无黑暗"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_quantum_sea"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_quantum_sea"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "救援"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "布洛妮娅姐姐成为理之律者穿过无数世界泡来救我的那一刻",
+                "participants": [
+                  {
+                    "name": "布洛妮娅",
+                    "role": "救援者"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_rescue"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_rescue"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "冷战"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "另一个我担心我不再需要她而闹别扭的那次冷战",
+                "participants": [
+                  {
+                    "name": "另一个我",
+                    "role": "闹别扭的人"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_cold_war"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_cold_war"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "觉醒"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和薇塔战斗后觉醒，和另一个我分离成为独立个体的事件",
+                "participants": [
+                  {
+                    "name": "薇塔",
+                    "role": "对手"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_become_law"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_become_law"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "欺凌"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "杏小时候嘲笑我欺负我的事",
+                "event": [
+                  {
+                    "action": "嘲笑"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_bully"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_bully"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "日记"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在量子之海为了确认自己存在而开始写日记的习惯"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_journal"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_journal"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "说话方式"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "希儿总用‘希儿如何如何’这样说话的奇怪习惯"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_third_person"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_third_person"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "遇到打不过的敌人时就会喊‘拜托了，另一个我！’的习惯"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_call_other"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_call_other"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "另一个我"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "另一个我嘴上说‘离她远点’心里却在乎，还壁咚布洛妮娅的那些行为"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_tsundere"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_tsundere"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "孤儿院同伴"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个曾推布洛妮娅下楼梯的女孩",
+                "description": "孤儿院同伴，后来也有温柔的一面，虽然小时候爱欺负人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_xing"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_xing"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "人物",
+            "好友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "阿琳姐妹",
+                "description": "孤儿院的双胞胎姐妹，都是希儿的好朋友"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_rosalia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_rosalia"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "价值观"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "为世界上所有的美好而战",
+                "description": "希儿一直相信并为之奋斗的信念"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_value_fight"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_value_fight"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_23",
+      "description": "atomic query 23",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "力量",
+            "圣痕"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "另一个我用来保护她的力量",
+                "description": "源自前文明死之律者记忆的圣痕力量"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_stigma"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_stigma"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_bronya",
+      "description": "查询希儿最重要的人布洛妮娅",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "姐姐大人",
+                "description": "希儿最依赖的银发少女"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "理之律者",
+                "description": "为了救希儿而穿越量子之海的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "布洛妮娅姐姐",
+                "description": "希儿在孤儿院认识的第一个朋友，后来成为最重要的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "骑摩托车的女孩",
+                "description": "那个带希儿去看海，总是默默保护她的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "冷酷又温柔的战士",
+                "description": "希儿最亲密的人，为了她成为了强大的律者"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "姐姐",
+                "description": "希儿一直这样称呼那个把她从量子之海救出来的人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_bronya"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_bronya"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_bronya"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_bronya"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_bronya"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_bronya"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_bronya"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_black_seele",
+      "description": "查询希儿与另一个我(黑希儿)之间的重要事件",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "冷战"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "希儿和另一个我闹冷战那次，黑希儿担心自己不被需要",
+                "participants": [
+                  {
+                    "name": "黑希儿",
+                    "role": "闹脾气的一方"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "独立"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和薇塔战斗后，希儿和另一个我身体分离成为独立个体的事件",
+                "environment": {
+                  "atmosphere": "神圣"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "互动"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "黑希儿坦白想共用名字那次和解",
+                "participants": [
+                  {
+                    "name": "黑希儿",
+                    "role": "表露心声的人"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "觉醒"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "希儿觉醒成为死生之律者后，另一个我获得了独立身体的那一刻"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "分歧"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "千人律者事件后，另一个我怕失去归属而冷战的故事"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "矛盾"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "黑希儿因为觉得自己只是工具而寂寞，和希儿闹别扭的事件"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_cold_war"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_become_law"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_cold_war"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_become_law"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_cold_war"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_cold_war"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_cold_war",
+        "sit_become_law"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_x10_experiment",
+      "description": "查询X-10实验及其对希儿的影响",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "实验"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个危险的崩坏能实验",
+                "description": "希儿为了保护姐姐而代替她进入的导致身体量子化的实验"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "经历"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在孤儿院地下进行的，希儿主动替换布洛妮娅进入实验舱的那段经历",
+                "location": [
+                  {
+                    "name": "西伯利亚实验基地"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "后果"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "没有星星的异度空间",
+                "description": "X-10实验导致希儿被困的那个黑暗世界"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "救援"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "布洛妮娅姐姐成为理之律者穿越量子之海把希儿救出来的感人事件",
+                "participants": [
+                  {
+                    "name": "布洛妮娅",
+                    "role": "救援者"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "概念",
+            "实验"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "可可利亚主导的实验",
+                "description": "导致希儿量子化的那个秘密实验"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "感受"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "希儿在量子之海期待布洛妮娅来救她的孤独等待",
+                "environment": {
+                  "atmosphere": "虚无黑暗",
+                  "tone": "绝望"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "救赎"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "拯救者布洛妮娅",
+                "description": "那个穿越无数世界泡来拯救希儿的人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_x10_experiment",
+            "sem_x10_experiment"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_x10_experiment"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_quantum_sea"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_rescue"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_x10_experiment"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_quantum_sea"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_bronya",
+            "sit_rescue"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_x10_experiment",
+        "sem_x10_experiment",
+        "sem_quantum_sea",
+        "sit_rescue",
+        "sit_quantum_sea",
+        "sem_bronya"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_habits",
+      "description": "查询希儿的日常习惯和性格特点",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "说话"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "奇怪的说话方式",
+                "description": "希儿喜欢用第三人称称呼自己的习惯"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "爱哭的敏感性格",
+                "description": "一紧张就掉眼泪的希儿"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "日记"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "蓝色蝴蝶日记本",
+                "description": "希儿用来记录美好事物的日记本，在量子之海时开始写"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "求助"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "求救暗号",
+                "description": "‘拜托了，另一个我！’这是希儿遇到强敌时的固定台词"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "另一个我"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "傲娇的另一半",
+                "description": "黑希儿嘴上说远离但心里其实很在乎的行为模式"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "爱好"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "看海的梦想",
+                "description": "希儿最喜欢的大海，因为那是和布洛妮娅的约定"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_third_person"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_easily_cry"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "proc_journal"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "proc_call_other"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "proc_tsundere"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_love_sea"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_third_person",
+        "sem_easily_cry",
+        "proc_journal",
+        "proc_call_other",
+        "proc_tsundere",
+        "sem_love_sea"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_forms",
+      "description": "查询希儿的不同身份和形态",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "形态",
+            "律者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "死生之律者",
+                "description": "与薇塔战斗后觉醒的律者形态，掌控生死"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "形态",
+            "星尘"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "愈生佑翎",
+                "description": "星尘属性，使用镰刀和羽翼的治愈形态"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "力量",
+            "圣痕"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "来自前文明的力量",
+                "description": "希儿体内源自死之律者记忆的圣痕力量"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "自身"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "量子少女希儿",
+                "description": "全名希儿·芙乐艾，曾经有双重人格，现在是天命医疗队队长"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "觉醒"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "希儿在战斗中突破极限觉醒为死生之律者的事件",
+                "participants": [
+                  {
+                    "name": "薇塔",
+                    "role": "触发者"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "物品",
+            "武装"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "再构筑的力量",
+                "description": "原来属于希儿的重装小兔，现在是布洛妮娅的伙伴"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "特质",
+            "人格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "双生人格",
+                "description": "希儿和黑希儿长期共用一个身体的双重人格特质"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_death_law"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_healing_wing"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_stigma"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_become_law"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_heavy_rabbit"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_dual_personality"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_death_law",
+        "sem_healing_wing",
+        "sem_stigma",
+        "sem_self",
+        "sit_become_law",
+        "sem_heavy_rabbit",
+        "sem_dual_personality"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_orphanage",
+      "description": "查询希儿在孤儿院的经历和关系",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "地点",
+            "童年"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "希儿在西伯利亚孤儿院长大的日子",
+                "location": [
+                  {
+                    "name": "可可利亚孤儿院"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "欺凌"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "杏在孤儿院嘲笑欺负希儿的事",
+                "event": [
+                  {
+                    "action": "嘲笑",
+                    "initiator": "杏"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "养母"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "可可利亚妈妈虽然培养孤儿做实验但确实努力扮演母亲角色"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "关系",
+            "同伴"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "回到现实世界后和罗莎莉亚莉莉娅成为好朋友"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "希儿在孤儿院和布洛妮娅姐姐相遇并一起生活的时光"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_orphanage_life"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_bully"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_cocolia"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_rosalia",
+            "sem_lilia"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_orphanage_life"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_orphanage_life",
+        "sit_bully",
+        "sem_cocolia",
+        "sem_rosalia",
+        "sem_lilia"
+      ],
+      "expected_actions": []
+    }
+  ]
+}

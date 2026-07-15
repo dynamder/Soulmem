@@ -1,0 +1,1726 @@
+{
+  "name": "batch_zh_moegirl_org_cn_E6_A0_BC_E8_95_BE_E4_BF_AE",
+  "description": "Batch generated test data for zh_moegirl_org_cn_E6_A0_BC_E8_95_BE_E4_BF_AE",
+  "graph_path": "graph.json",
+  "config": {
+    "similarity_threshold": 0.0,
+    "max_results": 10,
+    "test_k_values": [
+      1,
+      3,
+      5
+    ]
+  },
+  "test_cases": [
+    {
+      "name": "query_0",
+      "description": "atomic query 0",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "身份"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "背负繁星之铭的女孩",
+                "description": "逐火英桀第十一位，用绘画影响现实"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_1",
+      "description": "atomic query 1",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "家人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "在崩坏中离开的父母",
+                "description": "爸爸第九次崩坏牺牲，妈妈第八次崩坏为救她牺牲"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_hen",
+            "sem_branca"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_hen",
+        "sem_branca"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_2",
+      "description": "atomic query 2",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "照顾者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "第二个妈妈一样的人",
+                "description": "父母离开后一直照顾她，向日葵灵感来源"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_aponia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_aponia"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "粉红色蝴蝶一样的妹妹",
+                "description": "总是充满活力，颜色是最漂亮的粉色"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_elysia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_elysia"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "唤醒者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "在星星上找到她并唤醒她的人",
+                "description": "带她去了福洛斯战斗的英桀"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fuhua"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fuhua"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "哥哥"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她代替执行方舟计划的沉默哥哥",
+                "description": "收到她留下的画《星空下的少年》"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_kosma"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kosma"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "物品",
+            "武器"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "像星星一样闪闪发光的武器",
+                "description": "她学会使用的战斗工具"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_lightsaber"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_lightsaber"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "物品",
+            "工具"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她最珍视的绘画工具",
+                "description": "因融合战士力量能影响现实"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_brush"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_brush"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "战友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "在福洛斯并肩作战后一起住在启明的羽兔朋友",
+                "description": "帮助她适应启明的生活"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_mistelin"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_mistelin"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "发明家"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "帮她修改飞船的发明家",
+                "description": "她送过一幅《损坏的人偶》给这个人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_villv"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_villv"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "物品",
+            "饰品"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "重要的人送的脚环",
+                "description": "她脚踝上戴着的小饰品"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_anklet"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_anklet"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "外星朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "会说话的崩坏兽外星朋友",
+                "description": "在星尘反抗军中共事"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_luoke"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_luoke"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她代替哥哥乘上飞船在星海沉睡了整整一千五百年"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_ark_sleep"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_ark_sleep"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "崩坏"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "第八次崩坏中她濒临死亡，后来接受了超变手术成为融合战士"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_8th_collapse"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_8th_collapse"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "崩坏"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "第九次崩坏夺走了她爸爸的生命"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_9th_collapse"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_9th_collapse"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "战斗",
+            "福洛斯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她在太阳系边缘与符华和米丝忒琳一起打败了一个叫娑的神明"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_phoros_battle"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_phoros_battle"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "能力",
+            "混乱"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她因为画了千劫的画像导致整个城区陷入内乱"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_qianjie_chaos"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_qianjie_chaos"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "恶作剧"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "苏叔叔冥想睡觉时她在人家脸上画了几笔"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_draw_on_su"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_draw_on_su"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "能力",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "战斗时她用画笔给敌人染色，红色增加伤害蓝色减速黄色增伤"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_combat_paint"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_combat_paint"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "睡觉"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她睡觉时喜欢抱着帕朵菲莉丝的猫尾巴取暖"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_hug_tail"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_hug_tail"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她不喜欢穿鞋，有机会就想光着脚感受地面"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_barefoot"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_barefoot"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "创作"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她常常一个人安静地混合颜料涂抹画画"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_paint_mix"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_paint_mix"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和别人待久了她不自觉地模仿对方的语气和动作"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_imitate"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_imitate"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_23",
+      "description": "atomic query 23",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "日常生活"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "打败娑后她和米丝忒琳一起在启明生活担任城市代理人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_qiming_life"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_qiming_life"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_24",
+      "description": "atomic query 24",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "战友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "和她一起打败神明后同住的羽兔",
+                "description": "福洛斯结识的战友"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_mistelin"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_mistelin"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_parents",
+      "description": "查询格蕾修的父母",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "家人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的爸妈",
+                "description": "分别在不同崩坏中牺牲的战士和学者"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "家人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "痕和布兰卡",
+                "description": "她的父亲和母亲"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "家人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "牺牲的战士和温柔的学者",
+                "description": "她记忆中的父母颜色：橘黄色和粉红色"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "家人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她已故的父母",
+                "description": "爸爸在第九次崩坏战死，妈妈在第八次崩坏为救她牺牲"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "家人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "给了她童年温暖的人",
+                "description": "虽然都离开了但留下明亮色彩"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "家人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的父亲和母亲",
+                "description": "一位是逐火之蛾的战士，一位是梅比乌斯的助手"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "家人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她念念不忘的爸爸妈妈",
+                "description": "虽然已经不在了但一直活在她心里"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "家人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "布兰卡和痕",
+                "description": "她的母亲和父亲"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_hen",
+            "sem_branca"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_hen",
+            "sem_branca"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_hen",
+            "sem_branca"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_hen",
+            "sem_branca"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_hen",
+            "sem_branca"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_hen",
+            "sem_branca"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_hen",
+            "sem_branca"
+          ]
+        },
+        {
+          "q": 7,
+          "ranking": [
+            "sem_hen",
+            "sem_branca"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_hen",
+        "sem_branca"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_ark",
+      "description": "查询格蕾修执行方舟计划的经历",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她独自乘上方舟在星空中沉睡了一千五百年后来被符华唤醒"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "代替科斯魔执行方舟计划在太空漂流"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她在星星之间沉睡了一千多年"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "乘着飞船在浩瀚星海中孤独沉睡很久很久"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她代替哥哥登上方舟远航的故事"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "沉睡在方舟中直到被浮生唤醒"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "一千五百年的星空沉睡之旅"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她一个人坐着飞船在宇宙中漂泊了一千五百年"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_ark_sleep"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_ark_sleep"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_ark_sleep"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_ark_sleep"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_ark_sleep"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_ark_sleep"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_ark_sleep"
+          ]
+        },
+        {
+          "q": 7,
+          "ranking": [
+            "sit_ark_sleep"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_ark_sleep"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_paint_ability",
+      "description": "查询格蕾修的特殊绘画能力",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "用绘画影响现实的能力",
+                "description": "能改变他人认知甚至变成现实"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的色彩力量",
+                "description": "将感受化作颜色画出来影响世界"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "能力",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她曾经画了千劫的画像导致整个城区陷入内乱"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "能力",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她给敌人染色，红色增伤蓝色减速黄色增伤"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "能力",
+            "创作"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她画的向日葵灵感来自阿波尼亚妈妈的陪伴"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "融合战士特有的绘画异能",
+                "description": "既是祝福也可能是诅咒"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "繁星之铭的力量",
+                "description": "以颜色为主影响现实"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "能力",
+            "抽象"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她的画作可以变成实体影响周围环境"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_painting_ability"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_painting_ability"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_painting_ability"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_painting_ability"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_painting_ability"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_painting_ability"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_painting_ability"
+          ]
+        },
+        {
+          "q": 7,
+          "ranking": [
+            "sem_painting_ability"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_painting_ability"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_elysia",
+      "description": "查询格蕾修最好的朋友爱莉希雅",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "粉红色蝴蝶一样的妹妹",
+                "description": "总是活力四射，颜色是最美的粉色"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "爱莉希雅妹妹",
+                "description": "教格蕾修叫她妹妹的英桀"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个像粉色妖精的女孩",
+                "description": "格蕾修最好的朋友之一"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她和爱莉希雅一起玩耍、分享快乐的时光"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "爱莉希雅教她喊妹妹的温馨场景"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "粉红色长发充满魅力的英桀",
+                "description": "格蕾修说她的颜色是最漂亮的粉色"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她经常模仿爱莉希雅说话的语气和动作"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她称其为妹妹的好友",
+                "description": "往世乐土中最活泼的身影"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_elysia"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_elysia"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_elysia"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_elysia"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_elysia"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_elysia"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_elysia"
+          ]
+        },
+        {
+          "q": 7,
+          "ranking": [
+            "sem_elysia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_elysia"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_weapons",
+      "description": "查询格蕾修使用的两件主要武器——画笔和光剑",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "物品",
+            "武器"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的两件主要武器",
+                "description": "画笔用来画画影响现实，光剑闪闪发光"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "物品",
+            "武器"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她常用的战斗工具",
+                "description": "一把画笔和一把光剑"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "物品",
+            "武器"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她在战斗中先挥动画笔给敌人染色然后拔出光剑近战"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "物品",
+            "武器"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她最喜欢的两件物品：画笔和光剑，都用于战斗"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "物品",
+            "武器"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "光剑和画笔",
+                "description": "她的战斗伙伴"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "物品",
+            "武器"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她对自己的画笔和光剑都很珍视，从不离身"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "物品",
+            "武器"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的武器装备",
+                "description": "一把用于绘画影响现实的画笔，一把像星星的光剑"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "物品",
+            "武器"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "福洛斯战斗中她同时使用画笔和光剑对抗敌人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_brush",
+            "sem_lightsaber"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_brush",
+            "sem_lightsaber"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_brush",
+            "sem_lightsaber"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_brush",
+            "sem_lightsaber"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_brush",
+            "sem_lightsaber"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_brush",
+            "sem_lightsaber"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_brush",
+            "sem_lightsaber"
+          ]
+        },
+        {
+          "q": 7,
+          "ranking": [
+            "sem_brush",
+            "sem_lightsaber"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_brush",
+        "sem_lightsaber"
+      ],
+      "expected_actions": []
+    }
+  ]
+}

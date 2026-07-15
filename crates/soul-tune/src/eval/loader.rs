@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use serde::Deserialize;
+use serde_json::Value;
 
 use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType};
 use soul_mem_core::memory_note::{MemoryId, MemoryNoteBuilder, MemoryType};
@@ -11,6 +12,9 @@ use soul_mem_query::embedding::note::EmbeddedMemoryNote;
 use soul_mem_query::embedding::Embeddable;
 use soul_mem_runtime::working_memory::WorkingMemory;
 
+/// Direct-deserialization types (matches core types exactly).
+/// These work for hand-written fixtures but may fail on batch-generated data
+/// that has JSON quirks (null time_span, missing enum wrappers).
 #[derive(Debug, Deserialize)]
 pub struct GraphLinkRaw {
     pub from: String,
@@ -28,13 +32,88 @@ pub struct GraphNodeRaw {
     pub mem_links: Vec<GraphLinkRaw>,
 }
 
+/// Lenient fixture node — uses serde_json::Value for problematic enum fields
+/// so we can fix fixture-specific JSON quirks before deserializing into core types.
+#[derive(Debug, Deserialize)]
+struct FixtureNode {
+    pub id: String,
+    pub tags: Vec<String>,
+    pub mem_type: Value,
+    #[serde(default)]
+    pub mem_links: Vec<FixtureLink>,
+}
+
+#[derive(Debug, Deserialize)]
+struct FixtureLink {
+    pub from: String,
+    pub to: String,
+    pub intensity: f64,
+    pub link_type: Value,
+}
+
+/// Fix `"time_span": null` → a default ISO-8601 string.
+/// Batch-generated fixtures often have null time_span in SpecificSituation,
+/// but core type `DateTime<Utc>` cannot deserialize null.
+fn fix_mem_type(value: &mut Value) {
+    if let Value::Object(obj) = value {
+        if let Some(sit) = obj.get_mut("Situation") {
+            if let Some(spec) = sit.get_mut("SpecificSituation") {
+                if let Value::Object(fields) = spec {
+                    if let Some(Value::Null) = fields.get("time_span") {
+                        fields.insert(
+                            "time_span".into(),
+                            Value::String("1970-01-01T00:00:00Z".into()),
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Fix fixture link_type format to match serde external-tagging expectations.
+/// Fixtures:   `{"Proc": {"prob": 0.8}}`
+/// Serde:      `{"Proc": {"TrigToAction": {"prob": 0.8}}}`
+/// Same for Situation links: `{"Situation": {}}` → `{"Situation": {"AbstractToSpecific": {}}}`
+fn fix_link_type(value: &mut Value) {
+    if let Value::Object(obj) = value {
+        if let Some(proc_val) = obj.get_mut("Proc") {
+            let already_wrapped = proc_val
+                .as_object()
+                .map_or(false, |m| m.contains_key("TrigToAction"));
+            if !already_wrapped {
+                *proc_val = serde_json::json!({"TrigToAction": proc_val.take()});
+            }
+        }
+        if let Some(sit_val) = obj.get_mut("Situation") {
+            let already_wrapped = sit_val
+                .as_object()
+                .map_or(false, |m| m.contains_key("AbstractToSpecific"));
+            if !already_wrapped {
+                *sit_val = serde_json::json!({"AbstractToSpecific": sit_val.take()});
+            }
+        }
+    }
+}
+
 /// 从 graph JSON 加载并构建 WorkingMemory（自动执行 BGE embedding）
+/// 自动修复 fixture 数据中的常见 JSON 问题：
+/// - null time_span → 默认时间
+/// - 缺失的 enum 包裹层 → 补全
 pub fn load_graph(
     path: &Path,
 ) -> Result<(WorkingMemory, HashMap<String, MemoryId>), Box<dyn std::error::Error>> {
     let file = std::fs::File::open(path)?;
     let reader = std::io::BufReader::new(file);
-    let raw_nodes: Vec<GraphNodeRaw> = serde_json::from_reader(reader)?;
+    let mut raw_nodes: Vec<FixtureNode> = serde_json::from_reader(reader)?;
+
+    // Fix fixture data quirks before deserializing into core types
+    for node in &mut raw_nodes {
+        fix_mem_type(&mut node.mem_type);
+        for link in &mut node.mem_links {
+            fix_link_type(&mut link.link_type);
+        }
+    }
 
     let mut id_map: HashMap<String, MemoryId> = HashMap::new();
     for raw in &raw_nodes {
@@ -44,16 +123,17 @@ pub fn load_graph(
     let mut notes: Vec<(String, MemoryNoteBuilder)> = Vec::new();
     for raw in &raw_nodes {
         let mem_id = id_map[&raw.id];
-        let links: Vec<MemoryLink> = raw
-            .mem_links
-            .iter()
-            .map(|l| {
-                let from = id_map.get(&l.from).copied().unwrap_or(mem_id);
-                let to = id_map.get(&l.to).copied().unwrap_or(mem_id);
-                MemoryLink::from_tuple(from, to, l.link_type.clone(), l.intensity)
-            })
-            .collect();
-        let builder = MemoryNoteBuilder::new(raw.mem_type.clone())
+
+        let mem_type: MemoryType = serde_json::from_value(raw.mem_type.clone())?;
+        let mut links = Vec::new();
+        for l in &raw.mem_links {
+            let link_type: MemoryLinkType = serde_json::from_value(l.link_type.clone())?;
+            let from = id_map.get(&l.from).copied().unwrap_or(mem_id);
+            let to = id_map.get(&l.to).copied().unwrap_or(mem_id);
+            links.push(MemoryLink::from_tuple(from, to, link_type, l.intensity));
+        }
+
+        let builder = MemoryNoteBuilder::new(mem_type)
             .id(mem_id)
             .tags(raw.tags.clone())
             .mem_links(links);
@@ -123,5 +203,86 @@ mod tests {
         assert_eq!(nodes.len(), 2);
         assert_eq!(nodes[0].id, "mem_a");
         assert_eq!(nodes[1].mem_links.len(), 1);
+    }
+
+    #[test]
+    fn test_fix_mem_type_null_time_span() {
+        let mut val = serde_json::json!({
+            "Situation": {
+                "SpecificSituation": {
+                    "narrative": "test",
+                    "time_span": null,
+                    "context": {
+                        "location": null,
+                        "participants": [],
+                        "emotions": [],
+                        "sensory_data": [],
+                        "environment": { "atmosphere": "", "tone": "" },
+                        "event": []
+                    }
+                }
+            }
+        });
+        fix_mem_type(&mut val);
+        let obj = val["Situation"]["SpecificSituation"].as_object().unwrap();
+        assert_ne!(obj.get("time_span").and_then(|v| v.as_str()), Some("null"));
+        assert!(obj.get("time_span").and_then(|v| v.as_str()).is_some());
+    }
+
+    #[test]
+    fn test_fix_link_type_proc() {
+        let mut val = serde_json::json!({"Proc": {"prob": 0.8}});
+        fix_link_type(&mut val);
+        assert_eq!(
+            val,
+            serde_json::json!({"Proc": {"TrigToAction": {"prob": 0.8}}})
+        );
+    }
+
+    #[test]
+    fn test_fix_link_type_sem_unaffected() {
+        let mut val = serde_json::json!({"Sem": {"verb": "朋友", "confidence": 0.9}});
+        fix_link_type(&mut val);
+        assert_eq!(
+            val,
+            serde_json::json!({"Sem": {"verb": "朋友", "confidence": 0.9}})
+        );
+    }
+
+    #[test]
+    fn test_fix_link_type_already_wrapped() {
+        let mut val = serde_json::json!({"Proc": {"TrigToAction": {"prob": 0.8}}});
+        fix_link_type(&mut val);
+        assert_eq!(
+            val,
+            serde_json::json!({"Proc": {"TrigToAction": {"prob": 0.8}}})
+        );
+    }
+
+    #[test]
+    fn test_load_character_graph() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("fixtures/example_data/test_batch_output-serde-fix/zh_moegirl_org_cn_E9_BB_91_E8_B0_B7_E5_B1_B1_E5_A5_B3/graph.json");
+        let (_wm, id_map) = load_graph(&path).expect("Failed to load character graph");
+        assert!(!id_map.is_empty(), "Graph should have at least one node");
+        assert!(id_map.contains_key("sem_self"), "Should contain sem_self");
+    }
+
+    #[test]
+    fn test_fix_mem_type_semantic_unaffected() {
+        let mut val = serde_json::json!({
+            "Semantic": {
+                "content": "Rust",
+                "aliases": [],
+                "concept_type": "Entity",
+                "description": "desc"
+            }
+        });
+        fix_mem_type(&mut val);
+        assert_eq!(val["Semantic"]["content"], serde_json::json!("Rust"));
     }
 }

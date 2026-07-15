@@ -640,6 +640,75 @@ mod tests {
     }
 
     #[test]
+    fn test_retrieve_suite_load_character_fixture() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("fixtures/example_data/test_batch_output-serde-fix/zh_moegirl_org_cn_E9_BB_91_E8_B0_B7_E5_B1_B1_E5_A5_B3/question.json");
+        let suite = RetrieveSuite::load(&path).expect("Failed to load character query fixture");
+        let count = suite.case_count();
+        assert!(count > 0, "Should have test cases");
+        // Run the first test case
+        if count > 0 {
+            let outcome = suite.run_case(0);
+            assert!(!outcome.case_name.is_empty());
+        }
+    }
+
+    #[test]
+    fn test_full_pipeline_character_fixture() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("fixtures/example_data/test_batch_output-serde-fix/zh_moegirl_org_cn_E9_BB_91_E8_B0_B7_E5_B1_B1_E5_A5_B3/question.json");
+        let suite = RetrieveSuite::load(&path).expect("Failed to load character query fixture");
+        let n = suite.case_count();
+        assert!(n > 0, "Should have test cases");
+
+        let start = std::time::Instant::now();
+        let mut passed = 0;
+        let mut outcomes = Vec::with_capacity(n);
+        for i in 0..n {
+            let outcome = suite.run_case(i);
+            if outcome.passed {
+                passed += 1;
+            }
+            outcomes.push(outcome);
+        }
+        let elapsed = start.elapsed();
+
+        let report = suite.build_report(outcomes, elapsed, n, passed, n - passed);
+        let pass_rate = if n > 0 {
+            passed as f64 / n as f64 * 100.0
+        } else {
+            0.0
+        };
+
+        println!(
+            "\n=== Full Pipeline Test ===\nTotal: {} | Passed: {} | Failed: {} | Rate: {:.1}% | Time: {:.2}s\n",
+            n,
+            passed,
+            n - passed,
+            pass_rate,
+            elapsed.as_secs_f64(),
+        );
+        for group in &report.summary_groups {
+            println!("  {}:", group.label);
+            for (k, v) in &group.items {
+                println!("    {}: {}", k, v);
+            }
+        }
+        println!();
+
+        assert!(!report.summary_groups.is_empty(), "Should have summary");
+        assert!(!report.detail_rows.is_empty(), "Should have detail rows");
+    }
+
+    #[test]
     fn test_merge_by_priority() {
         let id_a = MemoryId::new();
         let id_b = MemoryId::new();

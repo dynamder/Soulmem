@@ -1,7 +1,7 @@
-use ratatui::Frame;
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Stylize};
 use ratatui::widgets::{Block, Gauge};
+use ratatui::Frame;
 
 pub fn render_gauge(frame: &mut Frame, area: Rect, title: &str, current: usize, total: usize) {
     let ratio = if total > 0 {

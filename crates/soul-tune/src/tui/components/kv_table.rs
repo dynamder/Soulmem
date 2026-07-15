@@ -1,7 +1,7 @@
-use ratatui::Frame;
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Stylize};
 use ratatui::widgets::Paragraph;
+use ratatui::Frame;
 
 pub struct KvRow {
     pub key: String,

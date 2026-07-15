@@ -1,0 +1,1953 @@
+{
+  "name": "batch_zh_moegirl_org_cn_E8_8D_A7",
+  "description": "Batch generated test data for zh_moegirl_org_cn_E8_8D_A7",
+  "graph_path": "graph.json",
+  "config": {
+    "similarity_threshold": 0.0,
+    "max_results": 10,
+    "test_k_values": [
+      1,
+      3,
+      5
+    ]
+  },
+  "test_cases": [
+    {
+      "name": "query_0",
+      "description": "atomic query 0",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "角色"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个金色头发的旅行者",
+                "description": "一直在寻找血亲的旅人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_1",
+      "description": "atomic query 1",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "从水里钓上来一个小向导",
+                "participants": [
+                  {
+                    "name": "荧",
+                    "role": "钓鱼者"
+                  },
+                  {
+                    "name": "派蒙",
+                    "role": "被钓起的家伙"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_meet_paimon"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_meet_paimon"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_2",
+      "description": "atomic query 2",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "势力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "哥哥统领的组织",
+                "description": "由非人构成的反抗天理的团体"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_abyss_order"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_abyss_order"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "信念",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她对应急食品的信任",
+                "description": "旅途中最坚定的信念之一"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_belief_in_paimon"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_belief_in_paimon"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "吸收深渊力量的能力",
+                "description": "能够净化被深渊侵蚀的东西"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_purification"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_purification"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "参与了岩王帝君的退休仪式",
+                "location": [
+                  {
+                    "name": "璃月港"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "荧",
+                    "role": "帮手"
+                  },
+                  {
+                    "name": "钟离",
+                    "role": "前岩神"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_rite_of_parting"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_rite_of_parting"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "概念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "末光之剑和他的故国",
+                "description": "曾经是那个无神国度的骑士"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_dainsleif",
+            "sem_khaenriah"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_dainsleif",
+        "sem_khaenriah"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "面对宝箱时的感叹",
+                "description": "这个世界也在回应我吗"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_chest_lines"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_chest_lines"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "被通缉时加入了反抗军",
+                "location": [
+                  {
+                    "name": "稻妻"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_vision_hunt_decree"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_vision_hunt_decree"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "拆散双子的人",
+                "description": "空之执政后来被血亲追随"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_asmodei"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_asmodei"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "不需要神之眼就能用元素",
+                "description": "触碰七天神像获得新力量"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_elemental_resonance"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_elemental_resonance"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的饮食禁忌",
+                "description": "虽然已经几百岁但从不碰酒"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_no_alcohol"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_no_alcohol"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "经常梦见怎么追都追不上",
+                "participants": [
+                  {
+                    "name": "荧",
+                    "role": "做梦者"
+                  },
+                  {
+                    "name": "空",
+                    "role": "背影"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_nightmare_chasing_kong"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_nightmare_chasing_kong"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "小吉祥草王",
+                "description": "须弥的草神，拯救了世界树"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_nahida"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_nahida"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "技能"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的普攻连击数",
+                "description": "最多连续五剑"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_combat_five_strikes"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_combat_five_strikes"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "概念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "以耕地机眼睛制造的东西",
+                "description": "创造了坎瑞亚的平行时空"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_loom_of_fate"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_loom_of_fate"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和卖唱的一起救被腐蚀的风龙",
+                "location": [
+                  {
+                    "name": "蒙德"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_dvalin_rescue"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_dvalin_rescue"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "应急食品",
+                "description": "她经常这样叫那个飞着的向导"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_call_paimon_food"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_call_paimon_food"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "概念",
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "最高存在的影子",
+                "description": "天理的四个影子之一，空之执政"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_heavenly_principle",
+            "sem_asmodei"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_heavenly_principle",
+        "sem_asmodei"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "缺陷"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "旅行者的通病",
+                "description": "她不会画画"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_cannot_draw"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_cannot_draw"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和那个会飞的小家伙互相吐槽",
+                "participants": [
+                  {
+                    "name": "荧",
+                    "role": "吐槽者"
+                  },
+                  {
+                    "name": "派蒙",
+                    "role": "被吐槽者"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_banter_with_paimon"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_banter_with_paimon"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "和深渊王子对立的骑士",
+                "description": "末光之剑曾经和血亲同行后来分道扬镳"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_dainsleif",
+            "sem_kong"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_dainsleif",
+        "sem_kong"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "自称卖唱的风神",
+                "description": "蒙德的神明，帮助解救特瓦林"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_wendy"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_wendy"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_23",
+      "description": "atomic query 23",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "刚到提瓦特就被天理的影子袭击",
+                "location": [
+                  {
+                    "name": "提瓦特上空"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_arrival_attack"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_arrival_attack"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_24",
+      "description": "atomic query 24",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "契约之神",
+                "description": "璃月的前岩神，退位后成了普通人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_zhongli"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_zhongli"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_kong",
+      "description": "查询荧的哥哥空",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的血亲",
+                "description": "双胞胎哥哥，旅行者"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "深渊教团的领袖",
+                "description": "统领深渊之人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个金色头发的少年",
+                "description": "比旅行者更早苏醒的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "比她早醒来的旅行者",
+                "description": "经历了坎瑞亚灾变的哥哥"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "命运的织机的使用者",
+                "description": "以织机创造新世界"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "曾经警告她不要和戴因走太近的人",
+                "description": "短暂重逢时给她的告诫"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她一直在找的亲人",
+                "description": "旅行的最终目标"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "说‘你来得太晚了’的那个人",
+                "description": "在深渊据点对她说的最后一句话"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_kong"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_kong"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_kong"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_kong"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_kong"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_kong"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_kong"
+          ]
+        },
+        {
+          "q": 7,
+          "ranking": [
+            "sem_kong"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kong"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_reunion",
+      "description": "查询荧和空重逢的情境",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在深渊据点再次见到哥哥的场景",
+                "location": [
+                  {
+                    "name": "深渊教团据点"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "荧",
+                    "role": "妹妹"
+                  },
+                  {
+                    "name": "空",
+                    "role": "深渊殿下"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "短暂重逢又分离的那次",
+                "participants": [
+                  {
+                    "name": "荧",
+                    "role": "追赶者"
+                  },
+                  {
+                    "name": "空",
+                    "role": "离开者"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "哥哥说他已经完成过一次旅行"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "被告诫不要和戴因太亲近"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "他转身离开的背影"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那句‘来得太晚了’",
+                "participants": [
+                  {
+                    "name": "空",
+                    "role": "说话者"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她在噩梦中也经常出现的画面"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_reunion_with_kong"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_reunion_with_kong"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_reunion_with_kong"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_reunion_with_kong"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_reunion_with_kong"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_reunion_with_kong"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_reunion_with_kong"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_reunion_with_kong"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_purification",
+      "description": "查询荧的净化深渊能力",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "吸收深渊力量的能力",
+                "description": "净化被深渊污染的东西"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她能净化被深渊污染的东西",
+                "description": "免疫深渊侵蚀"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "能力"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "曾经净化风魔龙的眼泪",
+                "location": [
+                  {
+                    "name": "蒙德"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "特瓦林",
+                    "role": "被净化者"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "能力"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在纳塔帮助被深渊侵蚀的人们",
+                "location": [
+                  {
+                    "name": "纳塔"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "丝柯克说她的能力本质是吸收",
+                "description": "不是使深渊力量消亡"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "能力"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "用那种能力去除污染",
+                "participants": [
+                  {
+                    "name": "荧",
+                    "role": "净化者"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "免疫深渊侵蚀的体质",
+                "description": "自身不受深渊影响"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "能力"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "吸收他人身上深渊力量的习惯"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_purification"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_purification"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_purification"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_purification"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_purification"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_purification"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_purification"
+          ]
+        },
+        {
+          "q": 7,
+          "ranking": [
+            "sem_purification"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_purification"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_teyvat",
+      "description": "查询提瓦特大陆的基本信息",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "概念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她现在所处的世界",
+                "description": "旅行的大陆"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "概念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "七国构成的陆块",
+                "description": "由蒙德、璃月等国家组成"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "概念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "由七神统治的大陆",
+                "description": "尘世七执政管理"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "概念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她旅行的地方",
+                "description": "寻找血亲的旅途"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "概念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "有坎瑞亚遗迹的那片土地",
+                "description": "背后还有覆灭的古国"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "概念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "天理统治的世界",
+                "description": "法涅斯统御的领域"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "概念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "包含蒙德、璃月等国家",
+                "description": "提瓦特七国"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "概念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她降临的那个世界",
+                "description": "和哥哥被困在此"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_teyvat"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_teyvat"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_teyvat"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_teyvat"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_teyvat"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_teyvat"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_teyvat"
+          ]
+        },
+        {
+          "q": 7,
+          "ranking": [
+            "sem_teyvat"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_teyvat"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_rite_of_parting",
+      "description": "查询璃月送仙典仪事件",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和钟离一起筹备的那场仪式",
+                "location": [
+                  {
+                    "name": "璃月港"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "荧",
+                    "role": "助手"
+                  },
+                  {
+                    "name": "钟离",
+                    "role": "前岩神"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "岩王帝君的送仙典仪"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "击败漩涡魔神奥赛尔的战斗",
+                "participants": [
+                  {
+                    "name": "荧",
+                    "role": "参与者"
+                  },
+                  {
+                    "name": "奥赛尔",
+                    "role": "魔神"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在璃月经历的神仙退休事件"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "公子唤醒魔神那件事",
+                "participants": [
+                  {
+                    "name": "达达利亚",
+                    "role": "愚人众执行官"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "钟离将神之心交给愚人众"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "作为旅行者见证了岩神的退位"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_rite_of_parting"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_rite_of_parting"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_rite_of_parting"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_rite_of_parting"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_rite_of_parting"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_rite_of_parting"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_rite_of_parting"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_rite_of_parting"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_belief_in_paimon",
+      "description": "查询荧的信念：相信派蒙",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "信念",
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她最信任的伙伴",
+                "description": "派蒙是她最重要的同伴"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "信念",
+            "人物"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "当派蒙问相信什么时，她说相信派蒙",
+                "participants": [
+                  {
+                    "name": "荧",
+                    "role": "回答者"
+                  },
+                  {
+                    "name": "派蒙",
+                    "role": "提问者"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "信念",
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "对应急食品的信任",
+                "description": "把派蒙当作最可靠的伙伴"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "信念",
+            "人物"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "派蒙问她相信什么她回答相信派蒙咯",
+                "participants": [
+                  {
+                    "name": "荧",
+                    "role": "回答者"
+                  },
+                  {
+                    "name": "派蒙",
+                    "role": "提问者"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "信念",
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "旅途中最坚定的信念之一",
+                "description": "信任结伴而行的伙伴"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "信念",
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个小小向导赢得她的信任",
+                "description": "从水中钓到后逐渐成为最信任的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "信念",
+            "人物"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在某个对话场景中坚定地选择相信派蒙"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_belief_in_paimon",
+            "sem_paimon"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_belief_in_paimon",
+            "sem_paimon"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_belief_in_paimon",
+            "sem_paimon"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_belief_in_paimon",
+            "sem_paimon"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_belief_in_paimon",
+            "sem_paimon"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_belief_in_paimon",
+            "sem_paimon"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_belief_in_paimon",
+            "sem_paimon"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_belief_in_paimon",
+        "sem_paimon"
+      ],
+      "expected_actions": []
+    }
+  ]
+}

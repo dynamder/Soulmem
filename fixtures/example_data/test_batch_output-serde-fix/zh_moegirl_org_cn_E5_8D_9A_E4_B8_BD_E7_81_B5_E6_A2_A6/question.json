@@ -1,0 +1,1534 @@
+{
+  "name": "batch_zh_moegirl_org_cn_E5_8D_9A_E4_B8_BD_E7_81_B5_E6_A2_A6",
+  "description": "Batch generated test data for zh_moegirl_org_cn_E5_8D_9A_E4_B8_BD_E7_81_B5_E6_A2_A6",
+  "graph_path": "graph.json",
+  "config": {
+    "similarity_threshold": 0.0,
+    "max_results": 10,
+    "test_k_values": [
+      1,
+      3,
+      5
+    ]
+  },
+  "test_cases": [
+    {
+      "name": "query_0",
+      "description": "atomic query 0",
+      "sub_queries": [
+        {
+          "priority": 10,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "红白的巫女",
+                "description": "住在神社的懒散巫女，讨厌麻烦"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_1",
+      "description": "atomic query 1",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "总来蹭吃蹭喝的妖怪",
+                "description": "那个总是骚扰灵梦的隙间妖怪"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_yukari"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_yukari"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_2",
+      "description": "atomic query 2",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "地点"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "博丽神社",
+                "description": "幻想乡边界的那个神社，樱花很美"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_shrine"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_shrine"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "无敌状态",
+                "description": "变成透明人无法被接触的能力"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fantasy_seal"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fantasy_seal"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "瞬间移动",
+                "description": "通过扭曲空间来快速移动的技能"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_subspace_tunnel"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_subspace_tunnel"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "整个幻想乡被红雾笼罩那次"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_red_mist_incident"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_red_mist_incident"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "冬天迟迟不去，全是雪的时候"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_spring_snow_incident"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_spring_snow_incident"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个金发魔法使",
+                "description": "经常来找灵梦玩的魔法使"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_marisa"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_marisa"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "同居"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "头上长角的鬼",
+                "description": "喜欢喝酒的鬼，留在神社帮忙"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_suika"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_suika"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "爱说教的仙人",
+                "description": "经常批评灵梦懒散的仙人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_kasen"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kasen"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "玩人偶的魔法使",
+                "description": "住在魔法森林操控人偶的七色魔法使"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_alice"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_alice"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "债主"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "香霖堂的店主",
+                "description": "给灵梦赊账做衣服的店主"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_rin"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_rin"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "看钱箱的习惯",
+                "description": "总是检查赛钱箱有没有钱"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_check_offerings"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_check_offerings"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "不努力的想法",
+                "description": "不相信努力会有回报的观念"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_effort_useless"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_effort_useless"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "习惯",
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "悠闲度日",
+                "description": "觉得每天无所事事就是最好的生活态度"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_leisure_life"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_leisure_life"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "一个天人把神社震塌了气得灵梦去找她算账"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_hisouten_incident"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_hisouten_incident"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "关系",
+            "人物"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "红魔馆的吸血鬼大小姐，红雾事件后缠上了灵梦"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_remilia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_remilia"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "关系",
+            "人物"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "从外面世界来的认真巫女，把灵梦当对手"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_sanae"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_sanae"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "自动追踪攻击",
+                "description": "战斗中会发射能自动追击敌人的符札"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_homing_attack"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_homing_attack"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "带来贫穷的少女",
+                "description": "暂时住在神社的贫乏神"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_shion"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_shion"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那个把神社震塌了的天人，后来还在神社下安要石"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_tenko"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_tenko"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "规则"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "弹幕决斗规则",
+                "description": "由灵梦创立的战斗规则让弱的人也能赢"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_spell_card_rule"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_spell_card_rule"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "灵梦的好友金发魔法使两人经常比谁先解决异变"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_marisa"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_marisa"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_23",
+      "description": "atomic query 23",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "早上起床扫地然后喝茶发呆的日常"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_daily_life"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_daily_life"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_24",
+      "description": "atomic query 24",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "吸引蚊子的体质",
+                "description": "不知道为什么特别招蚊子喜欢"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "proc_liked_by_mosquitoes"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "proc_liked_by_mosquitoes"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_yukari",
+      "description": "查询八云紫与灵梦的关系",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "紫",
+                "description": "那个老来神社蹭吃喝的隙间妖怪"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "八云紫总是偷拿灵梦的茶还赖在神社不走"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "幻想乡创始人之一",
+                "description": "活了很久的妖怪灵梦的监护人还是教了她能力"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "有一个总给灵梦添麻烦的妖怪但她偶尔会往赛钱箱投钱"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "境界的妖怪",
+                "description": "教灵梦使用神灵凭依的妖怪"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "灵梦嫌她烦但其实也担心她"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_yukari"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_yukari"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_yukari"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_yukari"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_yukari"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_yukari"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_yukari"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_red_mist",
+      "description": "查询红雾异变事件",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "红雾覆盖整个幻想乡那次事件"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "灵梦闯入红魔馆把大小姐打了一顿解决的异变"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那次红雾事件之后吸血鬼大小姐反而缠上了巫女"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "用强硬手段解决的关于红魔馆的异变"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "蕾米莉亚引发的那个异变"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_red_mist_incident"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_red_mist_incident"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_red_mist_incident"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_red_mist_incident"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_red_mist_incident"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_red_mist_incident"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_marisa_relationship",
+      "description": "查询雾雨魔理沙与灵梦的友情",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "金发魔法使",
+                "description": "灵梦的好友经常一起去香霖堂捣乱"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "两人比谁解决异变更快还总是打打闹闹"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "黑白",
+                "description": "住在魔法森林的魔法使经常去找红白玩"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那个经常骑扫帚来找灵梦玩的魔法使"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "灵梦最好的朋友",
+                "description": "虽然嘴上不说但很在乎对方的女孩子"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "遇到危险时会第一时间去帮灵梦的魔法使"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_marisa"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_marisa"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_marisa"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_marisa"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_marisa"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_marisa"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_marisa"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_daily_routine",
+      "description": "查询灵梦的日常习惯",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "早上起来扫地然后喝茶发呆"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在神社无所事事的度过一天"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "日常"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "巫女的日常",
+                "description": "拿扫帚扫地后在缘侧喝茶"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在路上遇到妖怪就顺手退治的日常"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "悠闲地在神社发呆想睡就睡想吃就吃"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_daily_life"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_daily_life"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_daily_life"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_daily_life"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_daily_life"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_daily_life"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_fantasy_seal",
+      "description": "查询梦想天生能力",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "无敌技能",
+                "description": "变成透明人无法被接触的究极奥义"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "梦想天生",
+                "description": "漂浮于所有事物空中的状态"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "干涉无效的无敌状态",
+                "description": "只有灵梦才能使用的天生能力"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "最强的能力",
+                "description": "变成不透明的透明人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fantasy_seal"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_fantasy_seal"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_fantasy_seal"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_fantasy_seal"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fantasy_seal"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_shrine_destruction",
+      "description": "查询神社被破坏事件",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "天人把神社震塌了灵梦气得去找她算账"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "紫和天子又再次拆毁了神社"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "比那名居天子引发的神社被毁事件"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那次神社被震塌后灵梦非常生气"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "天人把神社弄塌了后来还在下面安了要石"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "神社被两次破坏的其中一次"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_hisouten_incident"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_hisouten_incident"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_hisouten_incident"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_hisouten_incident"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_hisouten_incident"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_hisouten_incident"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_hisouten_incident"
+      ],
+      "expected_actions": []
+    }
+  ]
+}
