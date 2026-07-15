@@ -29,12 +29,12 @@ impl MainState {
 
         let content = vec![
             "",
-            "  测试模式:",
-            "    [R]  Retrieve / Embedding     余弦相似度检索",
-            "    [A]  Retrieve / Association    PPR 图关联检索",
-            "    [F]  Retrieve / Full Pipeline  完整流水线",
-            "    [C]  Consolidate               巩固（WIP）",
-            "    [B]  Batch Run                 批量运行所有数据集",
+            "  快捷键:",
+            "    [R]  Retrieve             完整流水线检索测试",
+            "    [C]  Consolidate          巩固（未实现）",
+            "    [F]  Forget               遗忘（未实现）",
+            "    [B]  Batch                批量运行",
+            "    [Q]  退出",
             "",
             "  输入 `:` 进入命令模式",
         ]
@@ -45,7 +45,7 @@ impl MainState {
             frame,
             layout[2],
             &[
-                ("[R/A/F/C]".into(), "测试".into()),
+                ("[R]".into(), "检索".into()),
                 ("[B]".into(), "批量".into()),
                 ("[:]".into(), "命令".into()),
                 ("[Q]".into(), "退出".into()),
@@ -56,18 +56,11 @@ impl MainState {
     pub fn handle_key(key: KeyEvent) -> Transition {
         match key.code {
             KeyCode::Char('r') | KeyCode::Char('R') => {
-                Transition::ToSelectDataset(AlgoType::Retrieve(RetrieveMode::Embedding))
-            }
-            KeyCode::Char('a') | KeyCode::Char('A') => {
-                Transition::ToSelectDataset(AlgoType::Retrieve(RetrieveMode::Association))
-            }
-            KeyCode::Char('f') | KeyCode::Char('F') => {
                 Transition::ToSelectDataset(AlgoType::Retrieve(RetrieveMode::FullPipeline))
             }
-            KeyCode::Char('c') | KeyCode::Char('C') => {
-                Transition::ToSelectDataset(AlgoType::Consolidate)
-            }
-            KeyCode::Char('b') | KeyCode::Char('B') => Transition::ToCommand("batch ".into()),
+            KeyCode::Char('f') | KeyCode::Char('F') => Transition::ToMain,
+            KeyCode::Char('c') | KeyCode::Char('C') => Transition::ToMain,
+            KeyCode::Char('b') | KeyCode::Char('B') => Transition::ToSelectBatchDir,
             KeyCode::Char(':') => Transition::ToCommand(String::new()),
             KeyCode::Char('q') | KeyCode::Char('Q') => Transition::Quit,
             _ => Transition::None,

@@ -32,17 +32,41 @@ pub struct DatasetState {
     pub path_input: TextArea<'static>,
     pub active_panel: Panel,
     pub preview_content: Option<String>,
+    pub batch_mode: bool,
 }
 
 impl DatasetState {
     pub fn new(algo_type: AlgoType) -> Self {
+        Self::with_dir(algo_type, false)
+    }
+
+    pub fn new_batch() -> Self {
+        Self::with_dir(
+            AlgoType::Retrieve(crate::base::RetrieveMode::Embedding),
+            true,
+        )
+    }
+
+    fn with_dir(algo_type: AlgoType, batch_mode: bool) -> Self {
         let fixtures_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .and_then(|p| p.parent())
             .map(|p| p.join("fixtures"))
             .filter(|p| p.is_dir());
-        let cwd = fixtures_dir
-            .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
+        let cwd = if batch_mode {
+            fixtures_dir
+                .clone()
+                .map(|d| d.join("example_data/test_batch_output-serde-fix"))
+                .filter(|p| p.is_dir())
+                .unwrap_or_else(|| {
+                    fixtures_dir.unwrap_or_else(|| {
+                        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
+                    })
+                })
+        } else {
+            fixtures_dir
+                .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")))
+        };
         let mut state = Self {
             algo_type,
             current_dir: cwd,
@@ -52,6 +76,7 @@ impl DatasetState {
             path_input: TextArea::default(),
             active_panel: Panel::FileList,
             preview_content: None,
+            batch_mode,
         };
         state.refresh_dir();
         state
@@ -74,6 +99,9 @@ impl DatasetState {
                     let is_dir = e.file_type().map(|t| t.is_dir()).unwrap_or(false);
                     if is_dir {
                         return true;
+                    }
+                    if self.batch_mode {
+                        return false;
                     }
                     let path = e.path();
                     let is_json = path.extension().map(|ext| ext == "json").unwrap_or(false);
@@ -178,8 +206,13 @@ impl DatasetState {
             ])
             .split(area);
 
+        let title = if self.batch_mode {
+            " 选择批量目录 — Enter选择目录批量运行 ".to_string()
+        } else {
+            format!(" 选择数据集 · {} ", self.algo_type)
+        };
         Block::bordered()
-            .title(format!(" 选择数据集 · {} ", self.algo_type))
+            .title(title)
             .fg(Color::Cyan)
             .render(layout[0], frame.buffer_mut());
 
@@ -296,7 +329,9 @@ impl DatasetState {
             }
             KeyCode::Enter => {
                 if let Some(entry) = self.entries.get(self.selected) {
-                    if entry.is_dir {
+                    if entry.is_dir && entry.name != ".." && self.batch_mode {
+                        Transition::ToBatchModeSelect(entry.path.clone())
+                    } else if entry.is_dir {
                         self.current_dir = entry.path.clone();
                         self.selected = 0;
                         self.scroll = 0;

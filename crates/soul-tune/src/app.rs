@@ -7,6 +7,8 @@ use crate::base::{AlgoType, RetrieveMode, Transition};
 use crate::cmd::CmdRegistry;
 use crate::metric::MetricRegistry;
 use crate::reporter::ReporterRegistry;
+use crate::state::batch_mode::BatchModeState;
+use crate::state::batch_run::BatchRunState;
 use crate::state::command::CommandState;
 use crate::state::dataset::DatasetState;
 use crate::state::main::MainState;
@@ -21,6 +23,9 @@ pub enum AppState {
     ConfigParams(ParamState),
     TestRunning(RunningState),
     TestResults(ResultsState),
+    SelectBatchDir(DatasetState),
+    BatchModeSelect(BatchModeState),
+    BatchRunning(BatchRunState),
 }
 
 pub struct App {
@@ -127,9 +132,12 @@ impl App {
             AppState::Main => MainState::render(frame),
             AppState::CommandMode(s) => s.render(frame),
             AppState::SelectDataset(s) => s.render(frame),
+            AppState::SelectBatchDir(s) => s.render(frame),
             AppState::ConfigParams(s) => s.render(frame),
             AppState::TestRunning(s) => s.render(frame),
             AppState::TestResults(s) => s.render(frame),
+            AppState::BatchModeSelect(s) => s.render(frame),
+            AppState::BatchRunning(s) => s.render(frame),
         }
     }
 
@@ -142,9 +150,12 @@ impl App {
             AppState::Main => MainState::handle_key(key),
             AppState::CommandMode(s) => s.handle_key(key, cmd_registry),
             AppState::SelectDataset(s) => s.handle_key(key),
+            AppState::SelectBatchDir(s) => s.handle_key(key),
             AppState::ConfigParams(s) => s.handle_key(key),
             AppState::TestRunning(s) => s.handle_key(key),
             AppState::TestResults(s) => s.handle_key(key),
+            AppState::BatchModeSelect(s) => s.handle_key(key),
+            AppState::BatchRunning(s) => s.handle_key(key),
         };
         self.apply(transition)
     }
@@ -165,6 +176,18 @@ impl App {
             }
             Transition::ToSelectDataset(algo) => {
                 self.app_state = AppState::SelectDataset(DatasetState::new(algo));
+                false
+            }
+            Transition::ToSelectBatchDir => {
+                self.app_state = AppState::SelectBatchDir(DatasetState::new_batch());
+                false
+            }
+            Transition::ToBatchModeSelect(dir) => {
+                self.app_state = AppState::BatchModeSelect(BatchModeState::new(dir));
+                false
+            }
+            Transition::ToBatchRun(dir, mode) => {
+                self.app_state = AppState::BatchRunning(BatchRunState::new(dir, mode));
                 false
             }
             Transition::ToConfigParams(algo, path) => {

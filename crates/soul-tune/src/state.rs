@@ -1,3 +1,5 @@
+pub mod batch_mode;
+pub mod batch_run;
 pub mod command;
 pub mod dataset;
 pub mod main;

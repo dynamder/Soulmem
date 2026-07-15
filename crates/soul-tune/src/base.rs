@@ -65,6 +65,9 @@ pub enum Transition {
     ToConfigParams(AlgoType, PathBuf),
     ToTestRunning(TestConfig),
     ToTestResults(TestReport),
+    ToSelectBatchDir,
+    ToBatchModeSelect(PathBuf),
+    ToBatchRun(PathBuf, RetrieveMode),
     Quit,
 }
 
