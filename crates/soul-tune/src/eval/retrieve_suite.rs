@@ -709,6 +709,56 @@ mod tests {
     }
 
     #[test]
+    fn test_weight_sweep_smoke_fixture() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("fixtures/queries/retr_sim_smoke_zh_blend.json");
+        let suite = RetrieveSuite::load(&path).expect("Failed to load blend sweep query fixture");
+        let n = suite.case_count();
+        // 3 base cases × 3 sweep pairs = 9 expanded cases
+        assert_eq!(n, 9, "3 base cases × 3 sweep pairs should yield 9");
+
+        let start = std::time::Instant::now();
+        let mut passed = 0;
+        let mut outcomes = Vec::with_capacity(n);
+        for i in 0..n {
+            let outcome = suite.run_case(i);
+            if outcome.passed {
+                passed += 1;
+            }
+            outcomes.push(outcome);
+        }
+        let elapsed = start.elapsed();
+
+        // Verify report has groups for each sweep weight
+        let report = suite.build_report(outcomes, elapsed, n, passed, n - passed);
+        println!(
+            "\n=== Weight Sweep Test ===\nTotal: {} | Passed: {} | Failed: {} | Rate: {:.1}% | Time: {:.2}s\n",
+            n, passed, n - passed,
+            if n > 0 { passed as f64 / n as f64 * 100.0 } else { 0.0 },
+            elapsed.as_secs_f64(),
+        );
+        for group in &report.summary_groups {
+            println!("  {}:", group.label);
+            for (k, v) in &group.items {
+                println!("    {}: {}", k, v);
+            }
+        }
+        println!();
+
+        // Should have 3 summary groups (one per sweep pair: tag=0.3, 0.5, 0.7)
+        assert_eq!(
+            report.summary_groups.len(),
+            3,
+            "Should have 3 weight groups for 3 sweep pairs"
+        );
+        assert_eq!(report.detail_rows.len(), 9, "Should have 9 detail rows");
+    }
+
+    #[test]
     fn test_merge_by_priority() {
         let id_a = MemoryId::new();
         let id_b = MemoryId::new();
