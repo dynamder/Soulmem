@@ -222,13 +222,13 @@ impl CommandState {
             "test" | "t" => {
                 let algo = if parts.len() > 1 {
                     match parts[1] {
-                        "retrieve" | "r" | "retrieve/embedding" | "re" => {
-                            AlgoType::Retrieve(RetrieveMode::Embedding)
+                        "retrieve" | "r" | "retrieve/full" | "rf" => {
+                            AlgoType::Retrieve(RetrieveMode::FullPipeline)
                         }
+                        "retrieve/embedding" | "re" => AlgoType::Retrieve(RetrieveMode::Embedding),
                         "retrieve/association" | "ra" => {
                             AlgoType::Retrieve(RetrieveMode::Association)
                         }
-                        "retrieve/full" | "rf" => AlgoType::Retrieve(RetrieveMode::FullPipeline),
                         "consolidate" | "c" => AlgoType::Consolidate,
                         "forget" | "f" => AlgoType::Forget,
                         _ => return Transition::ToMain,

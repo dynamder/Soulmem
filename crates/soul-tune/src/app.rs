@@ -56,7 +56,7 @@ impl App {
                         return None;
                     }
                     let algo = match args[0].as_str() {
-                        "retrieve" | "r" => AlgoType::Retrieve(RetrieveMode::Embedding),
+                        "retrieve" | "r" => AlgoType::Retrieve(RetrieveMode::FullPipeline),
                         "retrieve/embedding" | "re" => AlgoType::Retrieve(RetrieveMode::Embedding),
                         "retrieve/association" | "ra" => {
                             AlgoType::Retrieve(RetrieveMode::Association)
