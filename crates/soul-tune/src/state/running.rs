@@ -52,7 +52,13 @@ impl RunningState {
                                     let desc = format!("准备就绪，共 {} 个测试用例", n);
                                     Ok((Box::new(s) as Box<dyn TestSuite>, n, desc))
                                 }
-                                Err(e) => Err(format!("加载失败: {}", e)),
+                                Err(e) => Err(format!(
+                                    "加载 '{}' 失败: {}",
+                                    path.file_name()
+                                        .map(|n| n.to_string_lossy())
+                                        .unwrap_or_default(),
+                                    e
+                                )),
                             },
                             _ => Err(format!("{} 尚未实现", algo)),
                         }

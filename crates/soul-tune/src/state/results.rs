@@ -3,7 +3,7 @@ use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::prelude::Widget;
 use ratatui::style::{Color, Style, Stylize};
 use ratatui::symbols::Marker;
-use ratatui::widgets::{Axis, Block, Chart, Dataset, GraphType, Paragraph, Tabs};
+use ratatui::widgets::{Axis, Block, Chart, Dataset, GraphType, Paragraph, Tabs, Wrap};
 use ratatui::Frame;
 
 use crate::base::{TestReport, Transition};
@@ -102,18 +102,30 @@ impl ResultsState {
     }
 
     fn render_summary(&self, frame: &mut Frame, area: Rect) {
-        // Show loading error if present
+        let mut top_pad = 0u16;
         if let Some(ref error) = self.report.error {
-            let banner = Paragraph::new(format!(" ⚠ 错误: {}", error))
-                .fg(Color::Red)
-                .bold();
-            frame.render_widget(banner, Rect::new(area.x, area.y, area.width, 2));
+            let err_rect = Rect::new(area.x, area.y, area.width, 4.min(area.height));
+            let err_block = Block::bordered().title(" ⚠ 加载错误 ").fg(Color::Red);
+            let err_inner = err_block.inner(err_rect);
+            err_block.render(err_rect, frame.buffer_mut());
+            frame.render_widget(
+                Paragraph::new(error.as_str())
+                    .wrap(Wrap { trim: false })
+                    .fg(Color::Red),
+                err_inner,
+            );
+            top_pad = 4.min(area.height);
         }
 
         let split = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(vec![Constraint::Fill(1), Constraint::Fill(2)])
-            .split(area);
+            .split(Rect::new(
+                area.x,
+                area.y + top_pad,
+                area.width,
+                area.height.saturating_sub(top_pad),
+            ));
 
         // ── Left: metric groups from SuiteReport ──
         let kv_block = Block::bordered().title(" 指标 ");

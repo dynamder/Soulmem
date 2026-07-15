@@ -102,10 +102,24 @@ impl DatasetState {
                     }
                     false
                 })
-                .map(|e| FileEntry {
-                    name: e.file_name().to_string_lossy().into_owned(),
-                    path: e.path(),
-                    is_dir: e.file_type().map(|t| t.is_dir()).unwrap_or(false),
+                .map(|e| {
+                    let base = e.file_name().to_string_lossy().into_owned();
+                    let is_dir = e.file_type().map(|t| t.is_dir()).unwrap_or(false);
+                    let name = if is_dir {
+                        base
+                    } else {
+                        let dir_name = self
+                            .current_dir
+                            .file_name()
+                            .map(|n| n.to_string_lossy())
+                            .unwrap_or_else(|| "?".into());
+                        format!("{}/{}", dir_name, base)
+                    };
+                    FileEntry {
+                        name,
+                        path: e.path(),
+                        is_dir,
+                    }
                 })
                 .collect();
             files.sort_by(|a, b| b.is_dir.cmp(&a.is_dir).then(a.name.cmp(&b.name)));
