@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
@@ -36,7 +36,13 @@ pub struct DatasetState {
 
 impl DatasetState {
     pub fn new(algo_type: AlgoType) -> Self {
-        let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+        let fixtures_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(|p| p.parent())
+            .map(|p| p.join("fixtures"))
+            .filter(|p| p.is_dir());
+        let cwd = fixtures_dir
+            .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
         let mut state = Self {
             algo_type,
             current_dir: cwd,
@@ -65,11 +71,36 @@ impl DatasetState {
             let mut files: Vec<_> = dir
                 .filter_map(|e| e.ok())
                 .filter(|e| {
-                    e.path()
-                        .extension()
-                        .map(|ext| ext == "json")
+                    let is_dir = e.file_type().map(|t| t.is_dir()).unwrap_or(false);
+                    if is_dir {
+                        return true;
+                    }
+                    let path = e.path();
+                    let is_json = path.extension().map(|ext| ext == "json").unwrap_or(false);
+                    if !is_json {
+                        return false;
+                    }
+                    let file_name = path
+                        .file_name()
+                        .map(|n| n.to_string_lossy().to_string())
+                        .unwrap_or_default();
+                    if file_name == "question.json" {
+                        return true;
+                    }
+                    if path
+                        .parent()
+                        .and_then(|p| p.file_name())
+                        .map(|n| n == "queries")
                         .unwrap_or(false)
-                        || e.file_type().map(|t| t.is_dir()).unwrap_or(false)
+                    {
+                        return true;
+                    }
+                    if let Ok(content) = std::fs::read_to_string(&path) {
+                        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&content) {
+                            return val.get("test_cases").is_some() || val.get("nodes").is_some();
+                        }
+                    }
+                    false
                 })
                 .map(|e| FileEntry {
                     name: e.file_name().to_string_lossy().into_owned(),

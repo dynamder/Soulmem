@@ -42,17 +42,21 @@ impl RunningState {
         let _load_thread = std::thread::Builder::new()
             .name("suite-loader".into())
             .spawn(move || {
-                let result: LoadResult = match algo {
-                    AlgoType::Retrieve => match RetrieveSuite::load(&path) {
-                        Ok(s) => {
-                            let n = s.case_count();
-                            let desc = format!("准备就绪，共 {} 个测试用例", n);
-                            Ok((Box::new(s) as Box<dyn TestSuite>, n, desc))
+                let result: LoadResult =
+                    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> LoadResult {
+                        match algo {
+                            AlgoType::Retrieve => match RetrieveSuite::load(&path) {
+                                Ok(s) => {
+                                    let n = s.case_count();
+                                    let desc = format!("准备就绪，共 {} 个测试用例", n);
+                                    Ok((Box::new(s) as Box<dyn TestSuite>, n, desc))
+                                }
+                                Err(e) => Err(format!("加载失败: {}", e)),
+                            },
+                            _ => Err(format!("{} 尚未实现", algo)),
                         }
-                        Err(e) => Err(format!("加载失败: {}", e)),
-                    },
-                    _ => Err(format!("{} 尚未实现", algo)),
-                };
+                    }))
+                    .unwrap_or_else(|_| Err("加载过程中发生内部错误 (panic)".to_string()));
                 *load_result_clone.lock().unwrap() = Some(result);
             })
             .ok();
@@ -99,7 +103,7 @@ impl RunningState {
     pub fn tick(&mut self) -> Option<Transition> {
         // Phase 1: waiting for async load to finish
         if self.suite.is_none() {
-            self.spinner_frame = (self.spinner_frame + 1) % 4;
+            self.spinner_frame = (self.spinner_frame + 1) % 10;
             if let Some(result) = self.load_result.lock().unwrap().take() {
                 match result {
                     Ok((suite, total, desc)) => {
