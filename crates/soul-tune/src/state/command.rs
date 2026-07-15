@@ -6,7 +6,7 @@ use ratatui::widgets::{Block, Paragraph};
 use ratatui::Frame;
 use ratatui_textarea::TextArea;
 
-use crate::base::{AlgoType, Transition};
+use crate::base::{AlgoType, RetrieveMode, Transition};
 use crate::cmd::CmdRegistry;
 use crate::tui::components::{command_bar, status_bar};
 
@@ -222,7 +222,13 @@ impl CommandState {
             "test" | "t" => {
                 let algo = if parts.len() > 1 {
                     match parts[1] {
-                        "retrieve" | "r" => AlgoType::Retrieve,
+                        "retrieve" | "r" | "retrieve/embedding" | "re" => {
+                            AlgoType::Retrieve(RetrieveMode::Embedding)
+                        }
+                        "retrieve/association" | "ra" => {
+                            AlgoType::Retrieve(RetrieveMode::Association)
+                        }
+                        "retrieve/full" | "rf" => AlgoType::Retrieve(RetrieveMode::FullPipeline),
                         "consolidate" | "c" => AlgoType::Consolidate,
                         "forget" | "f" => AlgoType::Forget,
                         _ => return Transition::ToMain,

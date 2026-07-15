@@ -5,6 +5,7 @@ use std::time::Duration;
 
 use serde::Deserialize;
 
+use soul_mem_algo::algo::retrieve::association::{AssociationRequest, RetrAssociation};
 use soul_mem_algo::algo::retrieve::similarity::{RetrSimilarity, SimilarityConfig};
 use soul_mem_algo::algo::retrieve::RetrStrategy;
 use soul_mem_core::memory_note::MemoryId;
@@ -15,6 +16,7 @@ use soul_mem_query::embedding::Embeddable;
 use soul_mem_query::query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant};
 use soul_mem_runtime::working_memory::WorkingMemory;
 
+use crate::base::RetrieveMode;
 use crate::eval::dataset::{PerQueryExpectation, SubQuery, TestCaseConfig, TestCaseQuery};
 use crate::eval::loader::load_graph;
 use crate::eval::metrics::ranking::{compute_action_metrics, compute_ranking_metrics};
@@ -225,10 +227,11 @@ pub struct RetrieveSuite {
     test_cases: Vec<TestCaseWithWeights>,
     meta: TestCaseConfig,
     query_embeddings: Vec<Vec<MemoryRetrieveQueryEmbedding>>,
+    pipeline_mode: RetrieveMode,
 }
 
 impl RetrieveSuite {
-    pub fn load(query_path: &Path) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn load(query_path: &Path, mode: RetrieveMode) -> Result<Self, Box<dyn std::error::Error>> {
         let file = std::fs::File::open(query_path)?;
         let reader = std::io::BufReader::new(file);
         let raw: RetrQueryFileRaw = serde_json::from_reader(reader)?;
@@ -245,8 +248,12 @@ impl RetrieveSuite {
             test_k_values: raw.config.test_k_values,
         };
 
-        // Resolve sweep pairs
-        let sweep_pairs = expand_sweep_pairs(raw.blend_sweep);
+        // Resolve sweep pairs (only for Embedding mode)
+        let sweep_pairs = if mode == RetrieveMode::Embedding {
+            expand_sweep_pairs(raw.blend_sweep)
+        } else {
+            expand_sweep_pairs(None)
+        };
 
         // Build one TestCaseQuery per raw test case
         let base_cases: Vec<TestCaseQuery> = raw
@@ -327,6 +334,7 @@ impl RetrieveSuite {
             test_cases,
             meta,
             query_embeddings,
+            pipeline_mode: mode,
         })
     }
 }
@@ -342,7 +350,8 @@ impl TestSuite for RetrieveSuite {
         let query_embs = &self.query_embeddings[index];
 
         let mut per_query_metrics = Vec::new();
-        let mut all_retrieved: Vec<(MemoryId, f32, u32)> = Vec::new();
+        // Store similarity results per sub-query for all modes
+        let mut all_similarity: Vec<Vec<(MemoryId, f32)>> = Vec::new();
 
         for (sq_idx, sq) in test_case.sub_queries.iter().enumerate() {
             let emb = &query_embs[sq_idx];
@@ -386,27 +395,82 @@ impl TestSuite for RetrieveSuite {
                 }
             };
             per_query_metrics.push(per_metrics);
-
-            for (id, score) in result {
-                all_retrieved.push((id, score, sq.priority));
-            }
+            all_similarity.push(result);
         }
 
-        let combined_result = merge_by_priority(all_retrieved, self.meta.max_results);
-        let combined_ids: Vec<MemoryId> = combined_result.iter().map(|(id, _)| *id).collect();
-
-        let combined_metrics = compute_ranking_metrics(
-            &combined_ids,
-            &test_case.expected_combined_ranking,
-            &self.meta.test_k_values,
-        );
-
-        let combined_ranking = RankingMetrics {
-            recall_at: combined_metrics.recall_at,
-            precision_at: combined_metrics.precision_at,
-            mrr: combined_metrics.mrr,
-            ndcg_at: combined_metrics.ndcg_at,
-            hit_rate: combined_metrics.hit_rate,
+        // ── Pipeline-mode-specific: convert similarity results to final ranking ──
+        let (combined_ids, combined_ranking) = match self.pipeline_mode {
+            RetrieveMode::Embedding => {
+                // Direct merge by priority (current behavior)
+                let all_retrieved: Vec<(MemoryId, f32, u32)> = all_similarity
+                    .into_iter()
+                    .enumerate()
+                    .flat_map(|(sq_idx, results)| {
+                        let priority = test_case.sub_queries[sq_idx].priority;
+                        results
+                            .into_iter()
+                            .map(move |(id, score)| (id, score, priority))
+                    })
+                    .collect();
+                let merged = merge_by_priority(all_retrieved, self.meta.max_results);
+                let ids: Vec<MemoryId> = merged.iter().map(|(id, _)| *id).collect();
+                let metrics = compute_ranking_metrics(
+                    &ids,
+                    &test_case.expected_combined_ranking,
+                    &self.meta.test_k_values,
+                );
+                (
+                    ids,
+                    RankingMetrics {
+                        recall_at: metrics.recall_at,
+                        precision_at: metrics.precision_at,
+                        mrr: metrics.mrr,
+                        ndcg_at: metrics.ndcg_at,
+                        hit_rate: metrics.hit_rate,
+                    },
+                )
+            }
+            RetrieveMode::Association | RetrieveMode::FullPipeline => {
+                // Similarity → PPR association
+                let mut all_associated: Vec<(MemoryId, f64, u32)> = Vec::new();
+                for (sq_idx, results) in all_similarity.into_iter().enumerate() {
+                    let priority = test_case.sub_queries[sq_idx].priority;
+                    if results.is_empty() {
+                        continue;
+                    }
+                    let source: Vec<(MemoryId, f32)> = results;
+                    let req = AssociationRequest::new(Arc::clone(&self.wm), source)
+                        .with_top_k(self.meta.max_results);
+                    let ppr_result = RetrAssociation {}.retrieve(req);
+                    for (id, score) in ppr_result {
+                        all_associated.push((id, score, priority));
+                    }
+                }
+                // Merge PPR results by priority
+                let merged = merge_by_priority(
+                    all_associated
+                        .into_iter()
+                        .map(|(id, score, prio)| (id, score as f32, prio))
+                        .collect(),
+                    self.meta.max_results,
+                );
+                let ids: Vec<MemoryId> = merged.iter().map(|(id, _)| *id).collect();
+                let metrics = compute_ranking_metrics(
+                    &ids,
+                    &test_case.expected_combined_ranking,
+                    &self.meta.test_k_values,
+                );
+                (
+                    ids,
+                    RankingMetrics {
+                        recall_at: metrics.recall_at,
+                        precision_at: metrics.precision_at,
+                        mrr: metrics.mrr,
+                        ndcg_at: metrics.ndcg_at,
+                        hit_rate: metrics.hit_rate,
+                    },
+                )
+            }
         };
 
         let action_metrics = if test_case.expected_actions.is_empty() {
@@ -647,7 +711,8 @@ mod tests {
             .parent()
             .unwrap()
             .join("fixtures/example_data/test_batch_output-serde-fix/zh_moegirl_org_cn_E9_BB_91_E8_B0_B7_E5_B1_B1_E5_A5_B3/question.json");
-        let suite = RetrieveSuite::load(&path).expect("Failed to load character query fixture");
+        let suite = RetrieveSuite::load(&path, RetrieveMode::Embedding)
+            .expect("Failed to load character query fixture");
         let count = suite.case_count();
         assert!(count > 0, "Should have test cases");
         // Run the first test case
@@ -665,7 +730,8 @@ mod tests {
             .parent()
             .unwrap()
             .join("fixtures/example_data/test_batch_output-serde-fix/zh_moegirl_org_cn_E9_BB_91_E8_B0_B7_E5_B1_B1_E5_A5_B3/question.json");
-        let suite = RetrieveSuite::load(&path).expect("Failed to load character query fixture");
+        let suite = RetrieveSuite::load(&path, RetrieveMode::Embedding)
+            .expect("Failed to load character query fixture");
         let n = suite.case_count();
         assert!(n > 0, "Should have test cases");
 
@@ -716,7 +782,8 @@ mod tests {
             .parent()
             .unwrap()
             .join("fixtures/queries/retr_sim_smoke_zh_blend.json");
-        let suite = RetrieveSuite::load(&path).expect("Failed to load blend sweep query fixture");
+        let suite = RetrieveSuite::load(&path, RetrieveMode::Embedding)
+            .expect("Failed to load blend sweep query fixture");
         let n = suite.case_count();
         // 3 base cases × 3 sweep pairs = 9 expanded cases
         assert_eq!(n, 9, "3 base cases × 3 sweep pairs should yield 9");

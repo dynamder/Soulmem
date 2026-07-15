@@ -7,8 +7,25 @@ use ratatui::crossterm;
 use crate::eval::runner::SuiteReport;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
+pub enum RetrieveMode {
+    Embedding,
+    Association,
+    FullPipeline,
+}
+
+impl std::fmt::Display for RetrieveMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RetrieveMode::Embedding => write!(f, "embedding"),
+            RetrieveMode::Association => write!(f, "association"),
+            RetrieveMode::FullPipeline => write!(f, "full"),
+        }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum AlgoType {
-    Retrieve,
+    Retrieve(RetrieveMode),
     Consolidate,
     Forget,
 }
@@ -16,7 +33,7 @@ pub enum AlgoType {
 impl std::fmt::Display for AlgoType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AlgoType::Retrieve => write!(f, "retrieve"),
+            AlgoType::Retrieve(mode) => write!(f, "retrieve/{}", mode),
             AlgoType::Consolidate => write!(f, "consolidate"),
             AlgoType::Forget => write!(f, "forget"),
         }

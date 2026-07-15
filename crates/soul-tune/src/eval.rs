@@ -1,3 +1,4 @@
+pub mod batch;
 pub mod dataset;
 pub mod loader;
 pub mod metrics;

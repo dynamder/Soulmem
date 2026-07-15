@@ -3,7 +3,7 @@ use std::time::Duration;
 use ratatui::crossterm::event::{self, Event, KeyEvent, KeyEventKind};
 use ratatui::{DefaultTerminal, Frame};
 
-use crate::base::{AlgoType, Transition};
+use crate::base::{AlgoType, RetrieveMode, Transition};
 use crate::cmd::CmdRegistry;
 use crate::metric::MetricRegistry;
 use crate::reporter::ReporterRegistry;
@@ -51,7 +51,12 @@ impl App {
                         return None;
                     }
                     let algo = match args[0].as_str() {
-                        "retrieve" | "r" => AlgoType::Retrieve,
+                        "retrieve" | "r" => AlgoType::Retrieve(RetrieveMode::Embedding),
+                        "retrieve/embedding" | "re" => AlgoType::Retrieve(RetrieveMode::Embedding),
+                        "retrieve/association" | "ra" => {
+                            AlgoType::Retrieve(RetrieveMode::Association)
+                        }
+                        "retrieve/full" | "rf" => AlgoType::Retrieve(RetrieveMode::FullPipeline),
                         "consolidate" | "c" => AlgoType::Consolidate,
                         "forget" | "f" => AlgoType::Forget,
                         _ => return None,

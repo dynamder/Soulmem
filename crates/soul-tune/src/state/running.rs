@@ -46,7 +46,7 @@ impl RunningState {
                 let result: LoadResult =
                     std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> LoadResult {
                         match algo {
-                            AlgoType::Retrieve => match RetrieveSuite::load(&path) {
+                            AlgoType::Retrieve(mode) => match RetrieveSuite::load(&path, mode) {
                                 Ok(s) => {
                                     let n = s.case_count();
                                     let desc = format!("准备就绪，共 {} 个测试用例", n);

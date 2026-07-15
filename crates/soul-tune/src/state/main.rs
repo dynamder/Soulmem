@@ -5,7 +5,7 @@ use ratatui::style::{Color, Stylize};
 use ratatui::widgets::{Block, Paragraph};
 use ratatui::Frame;
 
-use crate::base::Transition;
+use crate::base::{AlgoType, RetrieveMode, Transition};
 use crate::tui::components::status_bar;
 
 pub struct MainState;
@@ -29,13 +29,14 @@ impl MainState {
 
         let content = vec![
             "",
-            "  可用算法测试:",
-            "    ●  检索 (retrieve)",
-            "    ●  巩固 (consolidate)",
-            "    ●  遗忘 (forget)",
+            "  测试模式:",
+            "    [R]  Retrieve / Embedding     余弦相似度检索",
+            "    [A]  Retrieve / Association    PPR 图关联检索",
+            "    [F]  Retrieve / Full Pipeline  完整流水线",
+            "    [C]  Consolidate               巩固（WIP）",
+            "    [B]  Batch Run                 批量运行所有数据集",
             "",
             "  输入 `:` 进入命令模式",
-            "  或按 `T` 快速开始测试向导",
         ]
         .join("\n");
         frame.render_widget(Paragraph::new(content), layout[1]);
@@ -44,8 +45,9 @@ impl MainState {
             frame,
             layout[2],
             &[
+                ("[R/A/F/C]".into(), "测试".into()),
+                ("[B]".into(), "批量".into()),
                 ("[:]".into(), "命令".into()),
-                ("[T]".into(), "测试".into()),
                 ("[Q]".into(), "退出".into()),
             ],
         );
@@ -53,8 +55,20 @@ impl MainState {
 
     pub fn handle_key(key: KeyEvent) -> Transition {
         match key.code {
+            KeyCode::Char('r') | KeyCode::Char('R') => {
+                Transition::ToSelectDataset(AlgoType::Retrieve(RetrieveMode::Embedding))
+            }
+            KeyCode::Char('a') | KeyCode::Char('A') => {
+                Transition::ToSelectDataset(AlgoType::Retrieve(RetrieveMode::Association))
+            }
+            KeyCode::Char('f') | KeyCode::Char('F') => {
+                Transition::ToSelectDataset(AlgoType::Retrieve(RetrieveMode::FullPipeline))
+            }
+            KeyCode::Char('c') | KeyCode::Char('C') => {
+                Transition::ToSelectDataset(AlgoType::Consolidate)
+            }
+            KeyCode::Char('b') | KeyCode::Char('B') => Transition::ToCommand("batch ".into()),
             KeyCode::Char(':') => Transition::ToCommand(String::new()),
-            KeyCode::Char('t') | KeyCode::Char('T') => Transition::ToCommand("test ".into()),
             KeyCode::Char('q') | KeyCode::Char('Q') => Transition::Quit,
             _ => Transition::None,
         }
