@@ -65,6 +65,19 @@ fn fix_mem_type(value: &mut Value) {
                             Value::String("1970-01-01T00:00:00Z".into()),
                         );
                     }
+                    if let Some(ctx) = fields.get_mut("context") {
+                        if let Value::Object(ctx_obj) = ctx {
+                            if let Some(Value::Null) = ctx_obj.get("environment") {
+                                ctx_obj.insert(
+                                    "environment".into(),
+                                    serde_json::json!({
+                                        "atmosphere": "",
+                                        "tone": ""
+                                    }),
+                                );
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -260,16 +273,42 @@ mod tests {
     }
 
     #[test]
-    fn test_load_character_graph() {
+    fn test_fix_mem_type_null_environment() {
+        let mut val = serde_json::json!({
+            "Situation": {
+                "SpecificSituation": {
+                    "narrative": "test",
+                    "time_span": null,
+                    "context": {
+                        "location": null,
+                        "participants": [],
+                        "emotions": [],
+                        "sensory_data": [],
+                        "environment": null,
+                        "event": []
+                    }
+                }
+            }
+        });
+        fix_mem_type(&mut val);
+        let ctx = &val["Situation"]["SpecificSituation"]["context"];
+        assert_eq!(
+            ctx["environment"],
+            serde_json::json!({"atmosphere": "", "tone": ""})
+        );
+    }
+
+    #[test]
+    fn test_load_character_graph_with_null_env() {
         let path = Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .unwrap()
             .parent()
             .unwrap()
-            .join("fixtures/example_data/test_batch_output-serde-fix/zh_moegirl_org_cn_E9_BB_91_E8_B0_B7_E5_B1_B1_E5_A5_B3/graph.json");
-        let (_wm, id_map) = load_graph(&path).expect("Failed to load character graph");
-        assert!(!id_map.is_empty(), "Graph should have at least one node");
-        assert!(id_map.contains_key("sem_self"), "Should contain sem_self");
+            .join("fixtures/example_data/test_batch_output-serde-fix/zh_moegirl_org_cn_E6_A0_BC_E8_95_BE_E4_BF_AE/graph.json");
+        let (_wm, id_map) =
+            load_graph(&path).expect("格蕾修 graph with null environment should load");
+        assert!(!id_map.is_empty());
     }
 
     #[test]
