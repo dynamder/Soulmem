@@ -99,6 +99,7 @@ fn run_headless(algo: AlgoType, dataset_path: PathBuf) -> color_eyre::Result<()>
         failed,
         elapsed,
         suite_report: report,
+        error: None,
     });
 
     Ok(())

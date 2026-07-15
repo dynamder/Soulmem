@@ -102,6 +102,14 @@ impl ResultsState {
     }
 
     fn render_summary(&self, frame: &mut Frame, area: Rect) {
+        // Show loading error if present
+        if let Some(ref error) = self.report.error {
+            let banner = Paragraph::new(format!(" ⚠ 错误: {}", error))
+                .fg(Color::Red)
+                .bold();
+            frame.render_widget(banner, Rect::new(area.x, area.y, area.width, 2));
+        }
+
         let split = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(vec![Constraint::Fill(1), Constraint::Fill(2)])

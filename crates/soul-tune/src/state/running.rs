@@ -30,6 +30,7 @@ pub struct RunningState {
     #[allow(dead_code)]
     _load_thread: Option<std::thread::JoinHandle<()>>,
     spinner_frame: usize,
+    loading_error: Option<String>,
 }
 
 impl RunningState {
@@ -74,6 +75,7 @@ impl RunningState {
             load_result,
             _load_thread,
             spinner_frame: 0,
+            loading_error: None,
         }
     }
 
@@ -97,6 +99,7 @@ impl RunningState {
             load_result: Arc::new(Mutex::new(None)),
             _load_thread: None,
             spinner_frame: 0,
+            loading_error: None,
         }
     }
 
@@ -112,8 +115,8 @@ impl RunningState {
                         self.current_description = desc;
                     }
                     Err(e) => {
-                        self.current_description = e;
-                        // Fall back to NoopSuite so tick can finish gracefully
+                        self.current_description = e.clone();
+                        self.loading_error = Some(e);
                         let suite: Box<dyn TestSuite> = Box::new(NoopSuite);
                         self.suite = Some(suite);
                         self.total = 0;
@@ -140,6 +143,7 @@ impl RunningState {
                 failed: self.failed,
                 elapsed: std::time::Duration::from_secs_f64(self.elapsed_secs),
                 suite_report: report,
+                error: self.loading_error.take(),
             }));
         }
 

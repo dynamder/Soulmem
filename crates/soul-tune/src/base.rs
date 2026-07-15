@@ -37,6 +37,7 @@ pub struct TestReport {
     pub failed: usize,
     pub elapsed: Duration,
     pub suite_report: SuiteReport,
+    pub error: Option<String>,
 }
 
 pub enum Transition {
