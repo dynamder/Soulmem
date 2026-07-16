@@ -1,6 +1,7 @@
 use std::time::Duration;
 
-use ratatui::crossterm::event::{self, Event, KeyEvent, KeyEventKind};
+use ratatui::crossterm::event::{self, Event, KeyEvent, KeyEventKind, MouseEvent, MouseEventKind};
+use ratatui::crossterm::execute;
 use ratatui::{DefaultTerminal, Frame};
 
 use crate::base::{AlgoType, RetrieveMode, Transition};
@@ -41,6 +42,10 @@ pub struct App {
 impl App {
     pub fn new() -> color_eyre::Result<Self> {
         let terminal = ratatui::init();
+        let _ = execute!(
+            std::io::stdout(),
+            ratatui::crossterm::event::EnableMouseCapture
+        );
         let mut cmd_registry = CmdRegistry::new();
 
         // Register built-in commands
@@ -111,10 +116,17 @@ impl App {
                             break;
                         }
                     }
+                    Event::Mouse(mouse) => {
+                        self.handle_mouse(mouse);
+                    }
                     _ => {}
                 }
             }
         }
+        let _ = execute!(
+            std::io::stdout(),
+            ratatui::crossterm::event::DisableMouseCapture
+        );
         ratatui::restore();
         Ok(())
     }
@@ -158,6 +170,12 @@ impl App {
             AppState::BatchRunning(s) => s.handle_key(key),
         };
         self.apply(transition)
+    }
+
+    fn handle_mouse(&mut self, mouse: MouseEvent) {
+        if let AppState::TestResults(state) = &mut self.app_state {
+            let _ = state.handle_mouse(mouse);
+        }
     }
 
     fn apply(&mut self, transition: Transition) -> bool {
