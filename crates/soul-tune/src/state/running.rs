@@ -8,6 +8,8 @@ use ratatui::style::{Color, Stylize};
 use ratatui::widgets::{Block, Gauge, Paragraph};
 use ratatui::Frame;
 
+use std::collections::HashMap;
+
 use crate::base::{AlgoType, TestConfig, TestReport, Transition};
 use crate::eval::retrieve_suite::RetrieveSuite;
 use crate::eval::runner::{SuiteReport, TestCaseOutcome, TestSuite};
@@ -40,26 +42,29 @@ impl RunningState {
         let path = config.dataset_path.clone();
         let algo = config.algo;
 
+        let params: HashMap<String, String> = config.params.clone();
         let _load_thread = std::thread::Builder::new()
             .name("suite-loader".into())
             .spawn(move || {
                 let result: LoadResult =
                     std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> LoadResult {
                         match algo {
-                            AlgoType::Retrieve(mode) => match RetrieveSuite::load(&path, mode) {
-                                Ok(s) => {
-                                    let n = s.case_count();
-                                    let desc = format!("准备就绪，共 {} 个测试用例", n);
-                                    Ok((Box::new(s) as Box<dyn TestSuite>, n, desc))
+                            AlgoType::Retrieve(mode) => {
+                                match RetrieveSuite::load_with_params(&path, mode, Some(&params)) {
+                                    Ok(s) => {
+                                        let n = s.case_count();
+                                        let desc = format!("准备就绪，共 {} 个测试用例", n);
+                                        Ok((Box::new(s) as Box<dyn TestSuite>, n, desc))
+                                    }
+                                    Err(e) => Err(format!(
+                                        "加载 '{}' 失败: {}",
+                                        path.file_name()
+                                            .map(|n| n.to_string_lossy())
+                                            .unwrap_or_default(),
+                                        e
+                                    )),
                                 }
-                                Err(e) => Err(format!(
-                                    "加载 '{}' 失败: {}",
-                                    path.file_name()
-                                        .map(|n| n.to_string_lossy())
-                                        .unwrap_or_default(),
-                                    e
-                                )),
-                            },
+                            }
                             _ => Err(format!("{} 尚未实现", algo)),
                         }
                     }))

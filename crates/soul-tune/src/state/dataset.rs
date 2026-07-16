@@ -8,7 +8,7 @@ use ratatui::widgets::{Block, Paragraph, Wrap};
 use ratatui::Frame;
 use ratatui_textarea::TextArea;
 
-use crate::base::{AlgoType, Transition};
+use crate::base::Transition;
 use crate::tui::components::{list, status_bar};
 
 pub(crate) enum Panel {
@@ -23,7 +23,7 @@ pub(crate) struct FileEntry {
 }
 
 pub struct DatasetState {
-    pub algo_type: AlgoType,
+    pub algo_type: crate::base::AlgoType,
     pub current_dir: PathBuf,
     pub entries: Vec<FileEntry>,
     pub selected: usize,
@@ -33,21 +33,31 @@ pub struct DatasetState {
     pub active_panel: Panel,
     pub preview_content: Option<String>,
     pub batch_mode: bool,
+    pub inspect_mode: bool,
 }
 
 impl DatasetState {
-    pub fn new(algo_type: AlgoType) -> Self {
+    pub fn new(algo_type: crate::base::AlgoType) -> Self {
         Self::with_dir(algo_type, false)
     }
 
     pub fn new_batch() -> Self {
         Self::with_dir(
-            AlgoType::Retrieve(crate::base::RetrieveMode::Embedding),
+            crate::base::AlgoType::Retrieve(crate::base::RetrieveMode::Embedding),
             true,
         )
     }
 
-    fn with_dir(algo_type: AlgoType, batch_mode: bool) -> Self {
+    pub fn new_inspect() -> Self {
+        let mut state = Self::with_dir(
+            crate::base::AlgoType::Retrieve(crate::base::RetrieveMode::Embedding),
+            false,
+        );
+        state.inspect_mode = true;
+        state
+    }
+
+    fn with_dir(algo_type: crate::base::AlgoType, batch_mode: bool) -> Self {
         let fixtures_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .and_then(|p| p.parent())
@@ -77,6 +87,7 @@ impl DatasetState {
             active_panel: Panel::FileList,
             preview_content: None,
             batch_mode,
+            inspect_mode: false,
         };
         state.refresh_dir();
         state
@@ -206,7 +217,9 @@ impl DatasetState {
             ])
             .split(area);
 
-        let title = if self.batch_mode {
+        let title = if self.inspect_mode {
+            " 选择检视文件 — Enter检视选中文件 ".to_string()
+        } else if self.batch_mode {
             " 选择批量目录 — Enter选择目录批量运行 ".to_string()
         } else {
             format!(" 选择数据集 · {} ", self.algo_type)
@@ -246,15 +259,21 @@ impl DatasetState {
             .split(inner);
         frame.render_widget(Paragraph::new(path_display), path_layout[0]);
 
-        status_bar::render_status_bar(
-            frame,
-            layout[3],
-            &[
+        let hints: Vec<(String, String)> = if self.inspect_mode {
+            vec![
+                ("[↑↓]".into(), "选择".into()),
+                ("[Enter]".into(), "检视".into()),
+                ("[Esc]".into(), "返回".into()),
+            ]
+        } else {
+            vec![
                 ("[↑↓]".into(), "选择".into()),
                 ("[Enter]".into(), "确认/进入".into()),
+                ("[I]".into(), "检视".into()),
                 ("[Esc]".into(), "返回".into()),
-            ],
-        );
+            ]
+        };
+        status_bar::render_status_bar(frame, layout[3], &hints);
     }
 
     fn render_file_list(&self, frame: &mut Frame, area: Rect) {
@@ -312,6 +331,14 @@ impl DatasetState {
 
     pub fn handle_key(&mut self, key: KeyEvent) -> Transition {
         match key.code {
+            KeyCode::Char('i') | KeyCode::Char('I') => {
+                if let Some(entry) = self.entries.get(self.selected) {
+                    if !entry.is_dir {
+                        return Transition::ToInspect(entry.path.clone());
+                    }
+                }
+                Transition::None
+            }
             KeyCode::Esc => Transition::ToMain,
             KeyCode::Up => {
                 if self.selected > 0 {
@@ -337,6 +364,8 @@ impl DatasetState {
                         self.scroll = 0;
                         self.refresh_dir();
                         Transition::None
+                    } else if self.inspect_mode {
+                        Transition::ToInspect(entry.path.clone())
                     } else {
                         Transition::ToConfigParams(self.algo_type, entry.path.clone())
                     }

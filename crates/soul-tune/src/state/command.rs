@@ -1,3 +1,6 @@
+use std::collections::BTreeMap;
+use std::sync::OnceLock;
+
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::prelude::Widget;
@@ -13,6 +16,7 @@ use crate::tui::components::{command_bar, status_bar};
 pub struct CommandState {
     pub input: TextArea<'static>,
     pub suggestions: Vec<String>,
+    pub suggestion_is_header: Vec<bool>,
     pub selected_suggestion: usize,
     pub history: Vec<String>,
     pub history_idx: Option<usize>,
@@ -25,6 +29,7 @@ impl CommandState {
         Self {
             input,
             suggestions: Vec::new(),
+            suggestion_is_header: Vec::new(),
             selected_suggestion: 0,
             history: Vec::new(),
             history_idx: None,
@@ -35,12 +40,71 @@ impl CommandState {
         let text = self.input.lines().first().map(|s| s.as_str()).unwrap_or("");
         if text.is_empty() {
             self.suggestions.clear();
+            self.suggestion_is_header.clear();
             return;
         }
 
         let trimmed = text.trim();
         let parts: Vec<&str> = trimmed.split_whitespace().collect();
         let ends_with_space = text.ends_with(' ');
+
+        if parts.len() >= 1 && (parts[0] == "inspect" || parts[0] == "i") {
+            if parts.len() == 1 && !ends_with_space {
+                self.suggestions = vec!["inspect <path> — 直接检视测试数据集".into()];
+                self.suggestion_is_header = vec![false];
+                self.selected_suggestion = 0;
+                return;
+            } else if ends_with_space || parts.len() > 1 {
+                let partial = if parts.len() > 1 {
+                    parts[1..].join(" ")
+                } else {
+                    String::new()
+                };
+                let all = collect_fixture_entries();
+                let partial_lower = partial.to_lowercase();
+                let matched: Vec<&FixturePath> = all
+                    .iter()
+                    .filter(|f| {
+                        partial_lower.is_empty() || f.path.to_lowercase().contains(&partial_lower)
+                    })
+                    .collect();
+
+                // Group by PathKind, limit 20 per group
+                let mut groups: BTreeMap<&str, Vec<&FixturePath>> = BTreeMap::new();
+                for f in &matched {
+                    let cat = match f.kind {
+                        PathKind::Graph => "graph",
+                        PathKind::Question => "question",
+                    };
+                    groups.entry(cat).or_default().push(f);
+                }
+
+                let mut suggestions = Vec::new();
+                let mut is_header = Vec::new();
+                for (cat, paths) in &groups {
+                    suggestions.push(format!("[{}]", cat));
+                    is_header.push(true);
+                    for f in paths {
+                        suggestions.push(format!("inspect {}", f.path));
+                        is_header.push(false);
+                    }
+                }
+
+                if suggestions.is_empty() {
+                    self.suggestions = vec!["inspect <path> — 直接检视测试数据集".into()];
+                    self.suggestion_is_header = vec![false];
+                } else {
+                    self.suggestions = suggestions;
+                    self.suggestion_is_header = is_header;
+                }
+            }
+            self.selected_suggestion = 0;
+            // If first suggestion is a header, move to the next selectable
+            if !self.suggestion_is_header.is_empty() && self.suggestion_is_header[0] {
+                self.selected_suggestion = 1;
+            }
+            return;
+        }
 
         if parts.len() >= 1 && (parts[0] == "test" || parts[0] == "t") {
             let subcommands = [
@@ -50,19 +114,23 @@ impl CommandState {
             ];
 
             if parts.len() == 1 && !ends_with_space {
-                self.suggestions = vec!["test — 运行算法测试".into()];
-                self.suggestions.extend(
+                let mut subs = vec!["test — 运行算法测试".into()];
+                subs.extend(
                     subcommands
                         .iter()
                         .map(|(n, d)| format!("test {} — {}", n, d)),
                 );
+                self.suggestions = subs;
+                self.suggestion_is_header = vec![false; self.suggestions.len()];
             } else {
                 let partial = parts.get(1).copied().unwrap_or("");
-                self.suggestions = subcommands
+                let subs: Vec<String> = subcommands
                     .iter()
                     .filter(|(name, _)| name.starts_with(partial))
                     .map(|(name, desc)| format!("test {} — {}", name, desc))
                     .collect();
+                self.suggestions = subs;
+                self.suggestion_is_header = vec![false; self.suggestions.len()];
             }
             self.selected_suggestion = 0;
             return;
@@ -74,6 +142,7 @@ impl CommandState {
             .map(|cmd| format!("{} — {}", cmd.name(), cmd.description()))
             .take(5)
             .collect();
+        self.suggestion_is_header = vec![false; self.suggestions.len()];
         if self.selected_suggestion >= self.suggestions.len() {
             self.selected_suggestion = self.suggestions.len().saturating_sub(1);
         }
@@ -104,12 +173,16 @@ impl CommandState {
         if !self.suggestions.is_empty() {
             suggestion_lines.push("  匹配命令:".into());
             for (i, sug) in self.suggestions.iter().enumerate() {
-                let prefix = if i == self.selected_suggestion {
-                    "  ▶ "
+                if i < self.suggestion_is_header.len() && self.suggestion_is_header[i] {
+                    suggestion_lines.push(format!("  {}", sug));
                 } else {
-                    "    "
-                };
-                suggestion_lines.push(format!("{}{}", prefix, sug));
+                    let prefix = if i == self.selected_suggestion {
+                        "  ▶ "
+                    } else {
+                        "    "
+                    };
+                    suggestion_lines.push(format!("{}{}", prefix, sug));
+                }
             }
         } else {
             let text = self.current_text();
@@ -117,7 +190,17 @@ impl CommandState {
                 suggestion_lines.push("  (无匹配命令)".into());
             }
         }
-        frame.render_widget(Paragraph::new(suggestion_lines.join("\n")), layout[1]);
+        let visible = (layout[1].height as usize).saturating_sub(1);
+        let selected_in_lines = self.selected_suggestion + 1; // +1 for "  匹配命令:" header
+        let scroll = if selected_in_lines > visible {
+            selected_in_lines - visible
+        } else {
+            0
+        };
+        frame.render_widget(
+            Paragraph::new(suggestion_lines.join("\n")).scroll((scroll as u16, 0)),
+            layout[1],
+        );
 
         command_bar::render_command_input(frame, layout[2], &self.input);
 
@@ -138,7 +221,10 @@ impl CommandState {
             KeyCode::Enter => self.execute_command(),
             KeyCode::Esc => Transition::ToMain,
             KeyCode::Tab => {
-                if !self.suggestions.is_empty() {
+                if !self.suggestions.is_empty()
+                    && !self.suggestion_is_header.is_empty()
+                    && !self.suggestion_is_header[self.selected_suggestion]
+                {
                     let suggestion = &self.suggestions[self.selected_suggestion];
                     let cmd_name = suggestion.split(" — ").next().unwrap_or(suggestion);
                     let trimmed = self.current_text().trim();
@@ -166,7 +252,19 @@ impl CommandState {
             }
             KeyCode::Up => {
                 if !self.suggestions.is_empty() {
-                    self.selected_suggestion = self.selected_suggestion.saturating_sub(1);
+                    let mut new_sel = self.selected_suggestion.saturating_sub(1);
+                    // Skip header lines
+                    while new_sel > 0
+                        && new_sel < self.suggestion_is_header.len()
+                        && self.suggestion_is_header[new_sel]
+                    {
+                        new_sel = new_sel.saturating_sub(1);
+                    }
+                    if new_sel < self.suggestion_is_header.len()
+                        && !self.suggestion_is_header[new_sel]
+                    {
+                        self.selected_suggestion = new_sel;
+                    }
                 } else if !self.history.is_empty() {
                     let idx = match self.history_idx {
                         Some(i) if i > 0 => i - 1,
@@ -182,7 +280,19 @@ impl CommandState {
                 if !self.suggestions.is_empty() {
                     let max = self.suggestions.len().saturating_sub(1);
                     if self.selected_suggestion < max {
-                        self.selected_suggestion += 1;
+                        let mut new_sel = self.selected_suggestion + 1;
+                        // Skip header lines
+                        while new_sel < max
+                            && new_sel < self.suggestion_is_header.len()
+                            && self.suggestion_is_header[new_sel]
+                        {
+                            new_sel += 1;
+                        }
+                        if new_sel < self.suggestion_is_header.len()
+                            && !self.suggestion_is_header[new_sel]
+                        {
+                            self.selected_suggestion = new_sel;
+                        }
                     }
                 } else if let Some(idx) = self.history_idx {
                     if idx + 1 < self.history.len() {
@@ -238,9 +348,100 @@ impl CommandState {
                 };
                 Transition::ToSelectDataset(algo)
             }
+            "inspect" | "i" => {
+                if parts.len() > 1 {
+                    let path = std::path::PathBuf::from(parts[1..].join(" "));
+                    if path.exists() {
+                        Transition::ToInspect(path)
+                    } else {
+                        Transition::ToMain
+                    }
+                } else {
+                    Transition::ToMain
+                }
+            }
             "quit" | "q" => Transition::Quit,
             "help" | "h" => Transition::None,
             _ => Transition::ToMain,
         }
     }
+}
+
+#[derive(Clone, PartialEq)]
+enum PathKind {
+    Graph,
+    Question,
+}
+
+struct FixturePath {
+    path: String,
+    kind: PathKind,
+}
+
+fn collect_fixture_entries() -> Vec<FixturePath> {
+    static CACHE: OnceLock<Vec<FixturePath>> = OnceLock::new();
+    CACHE
+        .get_or_init(|| {
+            let mut entries = Vec::new();
+            let fixtures_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .parent()
+                .and_then(|p| p.parent())
+                .map(|p| p.join("fixtures"));
+            let Some(fixtures_dir) = fixtures_dir else {
+                return entries;
+            };
+            if !fixtures_dir.is_dir() {
+                return entries;
+            }
+            let mut stack = vec![fixtures_dir.clone()];
+            while let Some(dir) = stack.pop() {
+                if let Ok(rd) = std::fs::read_dir(&dir) {
+                    for entry in rd.flatten() {
+                        let path = entry.path();
+                        if path.is_dir() {
+                            stack.push(path);
+                            continue;
+                        }
+                        if path.extension().map(|e| e != "json").unwrap_or(true) {
+                            continue;
+                        }
+                        let fname = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+                        // Exclude non-test-data files
+                        if fname == "graph_stats.json"
+                            || fname == "graph_nodes.json"
+                            || fname.starts_with("raw_failed_")
+                        {
+                            continue;
+                        }
+                        let kind = if fname == "graph.json"
+                            || path.to_string_lossy().contains("/graphs/")
+                        {
+                            PathKind::Graph
+                        } else if fname == "question.json"
+                            || path.to_string_lossy().contains("/queries/")
+                        {
+                            PathKind::Question
+                        } else {
+                            continue; // skip unrecognized JSON files
+                        };
+                        if let Ok(rel) =
+                            path.strip_prefix(fixtures_dir.parent().unwrap_or(&fixtures_dir))
+                        {
+                            entries.push(FixturePath {
+                                path: rel.to_string_lossy().replace('\\', "/"),
+                                kind,
+                            });
+                        }
+                    }
+                }
+            }
+            entries.sort_by(|a, b| a.path.cmp(&b.path));
+            entries
+        })
+        .iter()
+        .map(|e| FixturePath {
+            path: e.path.clone(),
+            kind: e.kind.clone(),
+        })
+        .collect()
 }

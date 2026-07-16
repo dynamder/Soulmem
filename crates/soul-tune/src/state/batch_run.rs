@@ -1,27 +1,33 @@
-use std::path::PathBuf;
-use std::time::Instant;
-
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use ratatui::layout::{Alignment, Constraint, Direction, Layout};
 use ratatui::prelude::Widget;
 use ratatui::style::{Color, Stylize};
 use ratatui::widgets::{Block, Gauge, Paragraph, Wrap};
 use ratatui::Frame;
+use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 
-use crate::base::{AlgoType, RetrieveMode, Transition};
-use crate::eval::batch::{print_batch_result, run_batch, scan_question_jsons, BatchResult};
+use crate::base::{RetrieveMode, Transition};
+use crate::eval::batch::{run_batch, scan_question_jsons, BatchResult};
 use crate::tui::components::status_bar;
+
+struct BatchProgress {
+    done: usize,
+    total: usize,
+    result: Option<BatchResult>,
+}
 
 pub struct BatchRunState {
     dir: PathBuf,
     mode: RetrieveMode,
     phase: BatchPhase,
     result: Option<BatchResult>,
+    progress: Option<Arc<Mutex<BatchProgress>>>,
 }
 
 enum BatchPhase {
     Scanning,
-    Running(usize, usize), // current, total
+    Running,
     Done,
 }
 
@@ -32,15 +38,16 @@ impl BatchRunState {
             mode,
             phase: BatchPhase::Scanning,
             result: None,
+            progress: None,
         }
     }
 
     pub fn tick(&mut self) -> Option<Transition> {
-        match &self.phase {
+        match self.phase {
             BatchPhase::Scanning => {
-                // Scan is fast, do it and start running
                 let datasets = scan_question_jsons(&self.dir);
-                if datasets.is_empty() {
+                let total = datasets.len();
+                if total == 0 {
                     self.phase = BatchPhase::Done;
                     self.result = Some(BatchResult {
                         datasets: vec![],
@@ -49,32 +56,51 @@ impl BatchRunState {
                         total_failed: 0,
                         elapsed: std::time::Duration::ZERO,
                     });
-                } else {
-                    let total = datasets.len();
-                    let datasets = datasets.clone(); // clone once for the run
-                    self.phase = BatchPhase::Running(0, total);
+                    return Some(Transition::None);
+                }
 
-                    let mode = self.mode;
-                    let result = run_batch(
-                        &datasets,
-                        mode,
-                        Some(&|done, _| {
-                            // Progress is handled via phase updates in the thread
-                        }),
-                    );
-                    self.result = Some(result);
-                    self.phase = BatchPhase::Done;
+                let progress = Arc::new(Mutex::new(BatchProgress {
+                    done: 0,
+                    total,
+                    result: None,
+                }));
+                self.progress = Some(progress.clone());
+                self.phase = BatchPhase::Running;
+
+                let mode = self.mode;
+                std::thread::Builder::new()
+                    .name("batch-runner".into())
+                    .spawn(move || {
+                        let result = run_batch(
+                            &datasets,
+                            mode,
+                            Some(&|done, _| {
+                                if let Ok(mut p) = progress.lock() {
+                                    p.done = done;
+                                }
+                            }),
+                        );
+                        if let Ok(mut p) = progress.lock() {
+                            p.done = total;
+                            p.result = Some(result);
+                        }
+                    })
+                    .ok();
+
+                Some(Transition::None)
+            }
+            BatchPhase::Running => {
+                if let Some(ref p) = self.progress {
+                    if let Ok(mut g) = p.lock() {
+                        if let Some(res) = g.result.take() {
+                            self.result = Some(res);
+                            self.phase = BatchPhase::Done;
+                        }
+                    }
                 }
                 Some(Transition::None)
             }
-            BatchPhase::Running(..) => {
-                // Currently run_batch is synchronous, so this state is brief
-                Some(Transition::None)
-            }
-            BatchPhase::Done => {
-                // Stay until user presses a key to return to main
-                Some(Transition::None)
-            }
+            BatchPhase::Done => Some(Transition::None),
         }
     }
 
@@ -94,7 +120,7 @@ impl BatchRunState {
             .fg(Color::Cyan)
             .render(layout[0], frame.buffer_mut());
 
-        match &self.phase {
+        match self.phase {
             BatchPhase::Scanning => {
                 frame.render_widget(
                     Paragraph::new("正在扫描目录...")
@@ -103,25 +129,33 @@ impl BatchRunState {
                     layout[1],
                 );
             }
-            BatchPhase::Running(current, total) => {
-                let ratio = if *total > 0 {
-                    *current as f64 / *total as f64
+            BatchPhase::Running => {
+                let (done, total) = self
+                    .progress
+                    .as_ref()
+                    .and_then(|p| p.lock().ok())
+                    .map(|g| (g.done, g.total))
+                    .unwrap_or((0, 0));
+                let ratio = if total > 0 {
+                    done as f64 / total as f64
                 } else {
                     0.0
                 };
+                let gauge_area = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints(vec![
+                        Constraint::Fill(1),
+                        Constraint::Percentage(50),
+                        Constraint::Fill(1),
+                    ])
+                    .split(layout[1]);
                 let gauge = Gauge::default().ratio(ratio).fg(Color::Cyan).label(format!(
                     "  {}/{} ({:.0}%)  ",
-                    current,
+                    done,
                     total,
                     ratio * 100.0
                 ));
-                frame.render_widget(
-                    gauge,
-                    Layout::default()
-                        .direction(Direction::Vertical)
-                        .constraints(vec![Constraint::Fill(1)])
-                        .split(layout[1])[0],
-                );
+                frame.render_widget(gauge, gauge_area[1]);
             }
             BatchPhase::Done => {
                 if let Some(ref result) = self.result {

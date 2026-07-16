@@ -26,7 +26,6 @@ pub struct ResultsState {
     pub metric_group_idx: usize,
     #[allow(dead_code)]
     pub chart_scroll: usize,
-    pub log_scroll: usize,
     pub log_filter: String,
     #[allow(dead_code)]
     pub log_search: String,
@@ -52,7 +51,6 @@ impl ResultsState {
             kv_scroll: 0,
             metric_group_idx: 0,
             chart_scroll: 0,
-            log_scroll: 0,
             log_filter: "ALL".into(),
             log_search: String::new(),
             detail_selected: None,
@@ -269,17 +267,23 @@ impl ResultsState {
             );
         }
 
-        // Rows with cursor highlight
+        // Rows with cursor highlight, auto-scroll to keep cursor visible
         let header_offset = 1;
+        let visible = (log_inner.height as usize).saturating_sub(header_offset);
+        let scroll = if self.detail_cursor >= visible {
+            self.detail_cursor - visible + 1
+        } else {
+            0
+        };
         for (i, row) in self
             .report
             .suite_report
             .detail_rows
             .iter()
             .enumerate()
-            .skip(self.log_scroll)
+            .skip(scroll)
         {
-            let y = log_inner.y + header_offset + (i - self.log_scroll) as u16;
+            let y = log_inner.y + 1u16 + (i - scroll) as u16;
             if y >= log_inner.y + log_inner.height {
                 break;
             }
@@ -553,7 +557,6 @@ impl ResultsState {
                 let found = (start..rows.len()).find(|&i| rows[i].has_error);
                 if let Some(idx) = found {
                     self.detail_cursor = idx;
-                    self.log_scroll = idx.saturating_sub(4);
                 }
                 Transition::None
             }
@@ -565,7 +568,6 @@ impl ResultsState {
                 let found = (0..self.detail_cursor).rev().find(|&i| rows[i].has_error);
                 if let Some(idx) = found {
                     self.detail_cursor = idx;
-                    self.log_scroll = idx.saturating_sub(4);
                 }
                 Transition::None
             }
@@ -579,20 +581,15 @@ impl ResultsState {
             }
             KeyCode::Up => {
                 if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
-                    // Drill-down: move compare cursor only (no auto-scroll)
+                    // Drill-down: move compare cursor only
                     if self.compare_cursor > 0 {
                         self.compare_cursor -= 1;
                     }
-                } else if self.active_tab == ResultTab::Detail && self.log_scroll > 0 {
-                    self.log_scroll -= 1;
                 } else {
                     match self.active_tab {
                         ResultTab::Summary if self.kv_scroll > 0 => self.kv_scroll -= 1,
                         ResultTab::Detail if self.detail_cursor > 0 => {
                             self.detail_cursor -= 1;
-                            if self.detail_cursor < self.log_scroll && self.log_scroll > 0 {
-                                self.log_scroll -= 1;
-                            }
                         }
                         _ => {}
                     }
@@ -618,9 +615,6 @@ impl ResultsState {
                             let max = self.report.suite_report.detail_rows.len().saturating_sub(1);
                             if self.detail_cursor < max {
                                 self.detail_cursor += 1;
-                                if self.detail_cursor >= self.log_scroll + 10 {
-                                    self.log_scroll += 1;
-                                }
                             }
                         }
                     }
@@ -644,13 +638,10 @@ impl ResultsState {
                     let max = self.report.suite_report.detail_rows.len().saturating_sub(1);
                     if self.detail_cursor < max {
                         self.detail_cursor += 1;
-                        if self.detail_cursor >= self.log_scroll + 10 {
-                            self.log_scroll += 1;
-                        }
                     }
                 }
-                MouseEventKind::ScrollUp if self.log_scroll > 0 => {
-                    self.log_scroll -= 1;
+                MouseEventKind::ScrollUp if self.detail_cursor > 0 => {
+                    self.detail_cursor -= 1;
                 }
                 _ => {}
             }

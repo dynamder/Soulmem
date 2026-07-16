@@ -14,9 +14,63 @@ use base::{AlgoType, RetrieveMode, TestReport};
 use eval::batch::{print_batch_result, run_batch, scan_question_jsons};
 use eval::retrieve_suite::RetrieveSuite;
 use eval::runner::TestSuite;
+use state::inspect::{InspectFileType, InspectState};
 
 fn main() -> color_eyre::Result<()> {
     let args: Vec<String> = std::env::args().collect();
+
+    if args.len() >= 3 && args[1] == "inspect" {
+        let path_str = &args[2];
+        let path = PathBuf::from(path_str);
+        if !path.exists() {
+            eprintln!("路径不存在: {}", path_str);
+            std::process::exit(1);
+        }
+        let state = InspectState::new(path);
+        println!("=== 检视数据集 ===");
+        println!("文件: {}", state.file_path.display());
+        println!(
+            "类型: {}",
+            match state.file_type {
+                InspectFileType::Graph => "图 (Graph)",
+                InspectFileType::Query => "查询 (Query)",
+            }
+        );
+        println!("条目数: {}", state.entries.len());
+        if let Some(ref stats) = state.stats {
+            println!("图统计:");
+            for line in stats {
+                println!("  {}", line);
+            }
+        }
+        println!();
+        for (i, entry) in state.entries.iter().enumerate() {
+            println!("[{:>3}] {}", i, entry.summary);
+            for line in &entry.detail_lines {
+                println!("      {}", line);
+            }
+            if !entry.links.is_empty() {
+                println!("      连接:");
+                for l in &entry.links {
+                    let dir = if l.is_outgoing { "→" } else { "←" };
+                    println!(
+                        "        {} {}  {}  [{:.2}] {}",
+                        dir,
+                        if l.is_outgoing {
+                            l.to_id.clone()
+                        } else {
+                            l.from_id.clone()
+                        },
+                        l.link_type_desc,
+                        l.intensity,
+                        if l.is_outgoing { "(出)" } else { "(入)" },
+                    );
+                }
+            }
+            println!();
+        }
+        return Ok(());
+    }
 
     if args.len() >= 4 && args[1] == "run" {
         let is_batch = args.iter().any(|a| a == "--batch");

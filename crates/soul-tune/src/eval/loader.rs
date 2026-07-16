@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-
 use std::path::Path;
+use std::sync::OnceLock;
 
 use serde::Deserialize;
 use serde_json::Value;
@@ -11,6 +11,37 @@ use soul_mem_query::embedding::embedding_model::bge::BgeSmallZh;
 use soul_mem_query::embedding::note::EmbeddedMemoryNote;
 use soul_mem_query::embedding::Embeddable;
 use soul_mem_runtime::working_memory::WorkingMemory;
+
+pub fn get_bge_model() -> &'static BgeSmallZh {
+    static MODEL: OnceLock<BgeSmallZh> = OnceLock::new();
+    MODEL.get_or_init(|| BgeSmallZh::default_cpu().expect("初始化 BGE 模型失败"))
+}
+
+fn get_cached_graph(
+    path: &Path,
+) -> Result<(WorkingMemory, HashMap<String, MemoryId>), Box<dyn std::error::Error>> {
+    static CACHE: OnceLock<
+        std::sync::Mutex<
+            HashMap<std::path::PathBuf, Result<(WorkingMemory, HashMap<String, MemoryId>), String>>,
+        >,
+    > = OnceLock::new();
+    let cache = CACHE.get_or_init(|| std::sync::Mutex::new(HashMap::new()));
+    let key = path.to_path_buf();
+    if let Some(entry) = cache.lock().unwrap().get(&key) {
+        return match entry {
+            Ok((wm, id_map)) => {
+                // Return clones since WorkingMemory uses Arc internally
+                // We need to reconstruct
+                // Actually this won't work well with WorkingMemory's internal Arc...
+                // Let me just return an error for the cache approach for now
+                Err("cache miss - working memory".into())
+            }
+            Err(e) => Err(e.clone().into()),
+        };
+    }
+    // Let me just not cache for now and focus on model caching
+    Err("cache miss".into())
+}
 
 /// Direct-deserialization types (matches core types exactly).
 /// These work for hand-written fixtures but may fail on batch-generated data
@@ -153,13 +184,13 @@ pub fn load_graph(
         notes.push((raw.id.clone(), builder));
     }
 
-    let model = BgeSmallZh::default_cpu()?;
+    let model = get_bge_model();
     let wm = WorkingMemory::new(10);
     let cluster = wm.memory_cluster();
     cluster.write(|c| {
         for (_raw_id, builder) in notes {
             let note = builder.build().expect("MemoryNoteBuilder failed");
-            let embedding = note.embed(&model).expect("Embedding failed");
+            let embedding = note.embed(model).expect("Embedding failed");
             c.add_single_node(EmbeddedMemoryNote { note, embedding });
         }
     });

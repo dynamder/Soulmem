@@ -11,7 +11,6 @@ use soul_mem_algo::algo::retrieve::RetrStrategy;
 use soul_mem_core::memory_note::situation_mem::SituationType;
 use soul_mem_core::memory_note::{MemoryId, MemoryType};
 use soul_mem_query::embedding::blend_weights::BlendWeights;
-use soul_mem_query::embedding::embedding_model::bge::BgeSmallZh;
 use soul_mem_query::embedding::query::note::MemoryRetrieveQueryEmbedding;
 use soul_mem_query::embedding::Embeddable;
 use soul_mem_query::query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant};
@@ -19,7 +18,7 @@ use soul_mem_runtime::working_memory::WorkingMemory;
 
 use crate::base::RetrieveMode;
 use crate::eval::dataset::{PerQueryExpectation, SubQuery, TestCaseConfig, TestCaseQuery};
-use crate::eval::loader::load_graph;
+use crate::eval::loader::{get_bge_model, load_graph};
 use crate::eval::metrics::ranking::{compute_action_metrics, compute_ranking_metrics};
 use crate::eval::runner::{DetailRow, MetricGroup, SuiteReport, TestCaseOutcome, TestSuite};
 
@@ -251,6 +250,14 @@ pub struct RetrieveSuite {
 
 impl RetrieveSuite {
     pub fn load(query_path: &Path, mode: RetrieveMode) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::load_with_params(query_path, mode, None)
+    }
+
+    pub fn load_with_params(
+        query_path: &Path,
+        mode: RetrieveMode,
+        params: Option<&HashMap<String, String>>,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let file = std::fs::File::open(query_path)?;
         let reader = std::io::BufReader::new(file);
         let raw: RetrQueryFileRaw = serde_json::from_reader(reader)?;
@@ -268,12 +275,24 @@ impl RetrieveSuite {
                 .collect(),
         );
 
-        // Config meta
-        let meta = TestCaseConfig {
+        // Config meta (apply user params overrides if provided)
+        let mut meta = TestCaseConfig {
             similarity_threshold: raw.config.similarity_threshold,
             max_results: raw.config.max_results,
             test_k_values: raw.config.test_k_values,
         };
+        if let Some(p) = params {
+            if let Some(v) = p.get("threshold") {
+                if let Ok(f) = v.parse() {
+                    meta.similarity_threshold = f;
+                }
+            }
+            if let Some(v) = p.get("top_k") {
+                if let Ok(n) = v.parse() {
+                    meta.max_results = n;
+                }
+            }
+        }
 
         // Resolve sweep pairs (only for Embedding mode)
         let sweep_pairs = if mode == RetrieveMode::Embedding {
@@ -319,8 +338,7 @@ impl RetrieveSuite {
 
         // Expand: base_case × sweep_pair
         let mut test_cases: Vec<TestCaseWithWeights> = Vec::new();
-        let model = BgeSmallZh::default_cpu()?;
-
+        let model = get_bge_model();
         let mut query_embeddings: Vec<Vec<MemoryRetrieveQueryEmbedding>> = Vec::new();
 
         for base in &base_cases {
@@ -330,7 +348,7 @@ impl RetrieveSuite {
                 .iter()
                 .map(|sq| {
                     let mq = MemoryRetrieveQuery::new(sq.tags.clone(), sq.variant.clone());
-                    mq.embed(&model).expect("Query embed failed")
+                    mq.embed(model).expect("Query embed failed")
                 })
                 .collect();
 

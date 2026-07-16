@@ -33,6 +33,7 @@ impl MainState {
             "    [R]  Retrieve             完整流水线检索测试",
             "    [C]  Consolidate          巩固（未实现）",
             "    [F]  Forget               遗忘（未实现）",
+            "    [I]  Inspect              直接检视测试数据",
             "    [B]  Batch                批量运行",
             "    [Q]  退出",
             "",
@@ -46,6 +47,7 @@ impl MainState {
             layout[2],
             &[
                 ("[R]".into(), "检索".into()),
+                ("[I]".into(), "检视".into()),
                 ("[B]".into(), "批量".into()),
                 ("[:]".into(), "命令".into()),
                 ("[Q]".into(), "退出".into()),
@@ -60,6 +62,7 @@ impl MainState {
             }
             KeyCode::Char('f') | KeyCode::Char('F') => Transition::ToMain,
             KeyCode::Char('c') | KeyCode::Char('C') => Transition::ToMain,
+            KeyCode::Char('i') | KeyCode::Char('I') => Transition::ToCommand("inspect ".into()),
             KeyCode::Char('b') | KeyCode::Char('B') => Transition::ToSelectBatchDir,
             KeyCode::Char(':') => Transition::ToCommand(String::new()),
             KeyCode::Char('q') | KeyCode::Char('Q') => Transition::Quit,

@@ -68,6 +68,7 @@ pub enum Transition {
     ToSelectBatchDir,
     ToBatchModeSelect(PathBuf),
     ToBatchRun(PathBuf, RetrieveMode),
+    ToInspect(PathBuf),
     Quit,
 }
 

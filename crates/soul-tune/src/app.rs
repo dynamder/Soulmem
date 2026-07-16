@@ -12,6 +12,7 @@ use crate::state::batch_mode::BatchModeState;
 use crate::state::batch_run::BatchRunState;
 use crate::state::command::CommandState;
 use crate::state::dataset::DatasetState;
+use crate::state::inspect::InspectState;
 use crate::state::main::MainState;
 use crate::state::params::ParamState;
 use crate::state::results::ResultsState;
@@ -27,11 +28,13 @@ pub enum AppState {
     SelectBatchDir(DatasetState),
     BatchModeSelect(BatchModeState),
     BatchRunning(BatchRunState),
+    InspectData(InspectState),
 }
 
 pub struct App {
     terminal: DefaultTerminal,
     app_state: AppState,
+    saved_state: Option<AppState>,
     cmd_registry: CmdRegistry,
     #[allow(dead_code)]
     metric_registry: MetricRegistry,
@@ -76,6 +79,14 @@ impl App {
                 .build(),
         );
         cmd_registry.register(
+            UserCmdBuilder::new("inspect")
+                .aliases(["i"])
+                .description("直接检视测试数据集: inspect <path>")
+                .usage("inspect <path>")
+                .handler(|_| None)
+                .build(),
+        );
+        cmd_registry.register(
             UserCmdBuilder::new("help")
                 .aliases(["h"])
                 .description("显示帮助信息")
@@ -95,6 +106,7 @@ impl App {
         Ok(Self {
             terminal,
             app_state: AppState::Main,
+            saved_state: None,
             cmd_registry,
             metric_registry: MetricRegistry::new(),
             reporter_registry: ReporterRegistry::new(),
@@ -137,6 +149,11 @@ impl App {
                 self.apply(transition);
             }
         }
+        if let AppState::BatchRunning(state) = &mut self.app_state {
+            if let Some(transition) = state.tick() {
+                self.apply(transition);
+            }
+        }
     }
 
     fn render_state(frame: &mut Frame, state: &AppState) {
@@ -150,6 +167,7 @@ impl App {
             AppState::TestResults(s) => s.render(frame),
             AppState::BatchModeSelect(s) => s.render(frame),
             AppState::BatchRunning(s) => s.render(frame),
+            AppState::InspectData(s) => s.render(frame),
         }
     }
 
@@ -168,6 +186,7 @@ impl App {
             AppState::TestResults(s) => s.handle_key(key),
             AppState::BatchModeSelect(s) => s.handle_key(key),
             AppState::BatchRunning(s) => s.handle_key(key),
+            AppState::InspectData(s) => s.handle_key(key),
         };
         self.apply(transition)
     }
@@ -182,7 +201,11 @@ impl App {
         match transition {
             Transition::None => false,
             Transition::ToMain => {
-                self.app_state = AppState::Main;
+                if let Some(saved) = self.saved_state.take() {
+                    self.app_state = saved;
+                } else {
+                    self.app_state = AppState::Main;
+                }
                 false
             }
             Transition::ToCommand(prefill) => {
@@ -206,6 +229,14 @@ impl App {
             }
             Transition::ToBatchRun(dir, mode) => {
                 self.app_state = AppState::BatchRunning(BatchRunState::new(dir, mode));
+                false
+            }
+            Transition::ToInspect(path) => {
+                let prev = std::mem::replace(
+                    &mut self.app_state,
+                    AppState::InspectData(InspectState::new(path)),
+                );
+                self.saved_state = Some(prev);
                 false
             }
             Transition::ToConfigParams(algo, path) => {
