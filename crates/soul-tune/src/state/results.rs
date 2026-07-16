@@ -536,6 +536,8 @@ impl ResultsState {
                     if self.detail_cursor < self.case_details.len() {
                         self.detail_selected = Some(self.detail_cursor);
                         self.drill_scroll = 0;
+                        self.compare_cursor = 0;
+                        self.expanded_row = None;
                     }
                     Transition::None
                 } else {
