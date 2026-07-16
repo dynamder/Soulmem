@@ -1,9 +1,11 @@
+use serde::{Deserialize, Serialize};
+
 use crate::embedding::{
-    Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling, raw_linear_blend,
+    mean_pooling, raw_linear_blend, Embeddable, EmbeddingCalcResult, EmbeddingVec,
 };
 use soul_mem_core::memory_note::situation_mem::Participant;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ParticipantEmbedding {
     name: EmbeddingVec,
     role: EmbeddingVec,
