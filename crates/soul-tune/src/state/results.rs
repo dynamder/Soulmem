@@ -3,6 +3,7 @@ use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::prelude::Widget;
 use ratatui::style::{Color, Style, Stylize};
 use ratatui::symbols::Marker;
+use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Axis, Block, Chart, Dataset, GraphType, Paragraph, Tabs, Wrap};
 use ratatui::Frame;
 
@@ -303,25 +304,33 @@ impl ResultsState {
             .constraints(vec![Constraint::Fill(1)])
             .split(area);
 
-        let mut lines = Vec::new();
-        lines.push(format!(" 用例: {}", data.case_name));
-        lines.push(format!(
-            " Tag权重: {:.1}  Variant权重: {:.1}  状态: {}",
-            data.tag_weight,
-            data.variant_weight,
-            if data.combined_ranking_metrics.hit_rate > 0.0
-                || data.combined_ranking_metrics.mrr > 0.0
-            {
-                "✓ 通过"
-            } else {
-                "✗ 失败"
-            }
-        ));
-        lines.push(String::new());
+        let mut lines: Vec<Line<'static>> = Vec::new();
+        let hdr = Style::new().yellow().bold();
+        let green = Style::new().green();
+        let red = Style::new().red();
+        let gray = Style::new().dark_gray();
+
+        // Title
+        lines.push(Line::from(Span::raw(format!(" 用例: {}", data.case_name))));
+
+        // Status line with colored pass/fail
+        let passed =
+            data.combined_ranking_metrics.hit_rate > 0.0 || data.combined_ranking_metrics.mrr > 0.0;
+        lines.push(Line::from(vec![
+            Span::raw(format!(
+                " Tag权重: {:.1}  Variant权重: {:.1}  状态: ",
+                data.tag_weight, data.variant_weight,
+            )),
+            Span::styled(
+                if passed { "✓ 通过" } else { "✗ 失败" },
+                if passed { green } else { red },
+            ),
+        ]));
+        lines.push(Line::from(""));
 
         // Combined ranking metrics
-        lines.push(" ── 综合排序指标 ──".into());
-        lines.push(format!("  K     Recall    Precision  NDCG"));
+        lines.push(Line::from(Span::styled(" ── 综合排序指标 ──", hdr)));
+        lines.push(Line::from(Span::raw("  K     Recall    Precision  NDCG")));
         for (k, r) in &data.combined_ranking_metrics.recall_at {
             let p = data
                 .combined_ranking_metrics
@@ -337,45 +346,52 @@ impl ResultsState {
                 .find(|(nk, _)| nk == k)
                 .map(|(_, v)| v)
                 .unwrap_or(&0.0);
-            lines.push(format!("  @{:<2}   {:.4}    {:.4}    {:.4}", k, r, p, n));
+            lines.push(Line::from(Span::raw(format!(
+                "  @{:<2}   {:.4}    {:.4}    {:.4}",
+                k, r, p, n
+            ))));
         }
-        lines.push(format!(
-            "  MRR: {:.4}     Hit: {:.2}",
-            data.combined_ranking_metrics.mrr, data.combined_ranking_metrics.hit_rate
-        ));
-        lines.push(String::new());
+        lines.push(Line::from(Span::styled(
+            format!(
+                "  MRR: {:.4}     Hit: {:.2}",
+                data.combined_ranking_metrics.mrr, data.combined_ranking_metrics.hit_rate
+            ),
+            gray,
+        )));
+        lines.push(Line::from(""));
 
         // Per-sub-query metrics
-        lines.push(" ── 各子查询 ──".into());
+        lines.push(Line::from(Span::styled(" ── 各子查询 ──", hdr)));
         for sq in &data.per_query_metrics {
-            lines.push(format!(
-                "  Q{}  MRR={:.4}  Hit={:.2}  Recall@3={:.4}  {}",
-                sq.query_index,
-                sq.ranking_metrics.mrr,
-                sq.ranking_metrics.hit_rate,
-                sq.ranking_metrics
-                    .recall_at
-                    .iter()
-                    .find(|(k, _)| *k == 3)
-                    .map(|(_, v)| v)
-                    .unwrap_or(&0.0),
-                if sq.ranking_metrics.hit_rate > 0.0 {
-                    "✓"
-                } else {
-                    "✗"
-                },
-            ));
+            let sq_pass = sq.ranking_metrics.hit_rate > 0.0;
+            lines.push(Line::from(vec![
+                Span::raw(format!(
+                    "  Q{}  MRR={:.4}  Hit={:.2}  Recall@3={:.4}  ",
+                    sq.query_index,
+                    sq.ranking_metrics.mrr,
+                    sq.ranking_metrics.hit_rate,
+                    sq.ranking_metrics
+                        .recall_at
+                        .iter()
+                        .find(|(k, _)| *k == 3)
+                        .map(|(_, v)| v)
+                        .unwrap_or(&0.0),
+                )),
+                Span::styled(
+                    if sq_pass { "✓" } else { "✗" },
+                    if sq_pass { green } else { red },
+                ),
+            ]));
         }
-        lines.push(String::new());
+        lines.push(Line::from(""));
 
-        // ── Compact side-by-side: actual vs expected (graph IDs only) ──
-        lines.push(" ── 检索结果 vs 预期 (↑↓选择, Enter展开) ──".into());
+        // Side-by-side comparison
+        lines.push(Line::from(Span::styled(
+            " ── 检索结果 vs 预期 (↑↓选择, Enter展开) ──",
+            hdr,
+        )));
         let retrieved_set: std::collections::HashSet<&MemoryId> =
             data.combined_retrieved_ids.iter().take(10).collect();
-        let mut display_lines = Vec::new();
-        let header = format!("  {:<10}  {:<8}  {:>8}", "实际", "", "预期");
-        display_lines.push(header);
-
         let n_max = data
             .combined_retrieved_ids
             .len()
@@ -383,14 +399,13 @@ impl ResultsState {
             .max(data.expected_combined_ranking.len().min(5));
 
         for pos in 0..n_max {
-            let cursor_mark = if pos == self.compare_cursor {
-                "▶"
-            } else {
-                " "
-            };
-            let mut row = format!(" {}  #{:<2}", cursor_mark, pos + 1);
+            let is_selected = pos == self.compare_cursor;
+            let mut spans = Vec::new();
+            spans.push(Span::styled(
+                format!(" {}  #{:<2}", if is_selected { "▶" } else { " " }, pos + 1),
+                if is_selected { green } else { Style::new() },
+            ));
 
-            // Left: actual retrieved ID
             if let Some(id) = data.combined_retrieved_ids.get(pos) {
                 let name = data
                     .graph_names
@@ -399,14 +414,16 @@ impl ResultsState {
                     .cloned()
                     .unwrap_or_default();
                 let is_hit = data.expected_combined_ranking.iter().any(|eid| eid == id);
-                let hit = if is_hit { "✓" } else { "-" };
-                row.push_str(&format!(" {:<10} {}", name, hit));
+                spans.push(Span::raw(format!(" {:<10} ", name)));
+                spans.push(Span::styled(
+                    if is_hit { "✓" } else { "-" },
+                    if is_hit { green } else { gray },
+                ));
             } else {
-                row.push_str(&format!(" {:<10}  ", "—"));
+                spans.push(Span::raw(format!(" {:<10}  ", "—")));
             }
-            row.push_str("  ");
+            spans.push(Span::raw("  "));
 
-            // Right: expected ranking
             if let Some(eid) = data.expected_combined_ranking.get(pos) {
                 let ename = data
                     .graph_names
@@ -414,38 +431,33 @@ impl ResultsState {
                     .and_then(|m| m.get(eid))
                     .cloned()
                     .unwrap_or_default();
-                let missed = if !retrieved_set.contains(eid) {
-                    " ✗未命中"
-                } else {
-                    ""
-                };
-                row.push_str(&format!("{:<10}{}", ename, missed));
+                spans.push(Span::raw(format!("{:<10}", ename)));
+                if !retrieved_set.contains(eid) {
+                    spans.push(Span::styled(" ✗未命中", red));
+                }
             } else {
-                row.push_str(&format!(" {:<10}", "—"));
+                spans.push(Span::raw(format!(" {:<10}", "—")));
             }
-            display_lines.push(row);
+            lines.push(Line::from(spans));
 
-            // Expanded detail for the cursor row
-            if pos == self.compare_cursor && self.expanded_entry == Some(pos) {
-                let id = data.combined_retrieved_ids.get(pos);
-                let eid = data.expected_combined_ranking.get(pos);
-                let detail = format_node_detail(id, eid, &data);
-                for d in detail.lines() {
-                    display_lines.push(format!("    {}", d));
+            if is_selected && self.expanded_entry == Some(pos) {
+                let act = data.combined_retrieved_ids.get(pos);
+                let exp = data.expected_combined_ranking.get(pos);
+                for line in format_node_detail(act, exp, data).lines() {
+                    lines.push(Line::from(Span::styled(format!("    {}", line), gray)));
                 }
             }
         }
-        lines.extend(display_lines);
-        lines.push(String::new());
+        lines.push(Line::from(""));
 
-        // Missed expectations (compact, graph IDs only)
+        // Missed
         let missed: Vec<&MemoryId> = data
             .expected_combined_ranking
             .iter()
             .filter(|eid| !retrieved_set.contains(eid))
             .collect();
         if !missed.is_empty() {
-            let mut missed_line = "  未命中: ".to_string();
+            let mut spans = vec![Span::styled("  未命中: ", red)];
             for (i, id) in missed.iter().enumerate() {
                 let name = data
                     .graph_names
@@ -454,22 +466,20 @@ impl ResultsState {
                     .cloned()
                     .unwrap_or_default();
                 if i > 0 {
-                    missed_line.push_str(", ");
+                    spans.push(Span::raw(", "));
                 }
-                missed_line.push_str(&name);
+                spans.push(Span::styled(name, red));
             }
-            lines.push(missed_line);
+            lines.push(Line::from(spans));
         }
 
-        let content = lines[self.drill_scroll..]
-            .iter()
-            .cloned()
-            .collect::<Vec<_>>()
-            .join("\n");
         let block = Block::bordered().title(" 用例详情 ").fg(Color::Cyan);
         let inner = block.inner(layout[0]);
         block.render(layout[0], frame.buffer_mut());
-        frame.render_widget(Paragraph::new(content).wrap(Wrap { trim: false }), inner);
+        frame.render_widget(
+            Paragraph::new(Text::from(lines)).wrap(Wrap { trim: false }),
+            inner,
+        );
     }
 
     pub fn handle_key(&mut self, key: KeyEvent) -> Transition {
