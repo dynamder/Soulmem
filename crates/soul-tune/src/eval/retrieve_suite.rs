@@ -126,6 +126,7 @@ struct TestCaseWithWeights {
 
 // ─── Suite-specific types ────────────────────────────────────────
 
+#[derive(Clone)]
 pub struct RankingMetrics {
     pub recall_at: Vec<(usize, f64)>,
     pub precision_at: Vec<(usize, f64)>,
@@ -134,16 +135,19 @@ pub struct RankingMetrics {
     pub hit_rate: f64,
 }
 
+#[derive(Clone)]
 pub struct ActionMetrics {
     pub action_hit_rate: f64,
     pub action_recall_at: Vec<(usize, f64)>,
 }
 
+#[derive(Clone)]
 pub struct PerQueryMetrics {
     pub query_index: usize,
     pub ranking_metrics: RankingMetrics,
 }
 
+#[derive(Clone)]
 pub struct RetrieveCaseData {
     pub case_name: String,
     pub description: String,
@@ -617,6 +621,7 @@ impl TestSuite for RetrieveSuite {
             summary_groups,
             detail_header: "  用例                         MRR     Hit     状态".into(),
             detail_rows,
+            outcomes,
         }
     }
 }

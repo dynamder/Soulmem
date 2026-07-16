@@ -7,6 +7,7 @@ use ratatui::widgets::{Axis, Block, Chart, Dataset, GraphType, Paragraph, Tabs, 
 use ratatui::Frame;
 
 use crate::base::{TestReport, Transition};
+use crate::eval::retrieve_suite::RetrieveCaseData;
 use crate::tui::components::status_bar;
 
 #[derive(PartialEq, Eq)]
@@ -26,10 +27,19 @@ pub struct ResultsState {
     pub log_filter: String,
     #[allow(dead_code)]
     pub log_search: String,
+    pub detail_selected: Option<usize>,
+    pub drill_scroll: usize,
+    case_details: Vec<RetrieveCaseData>,
 }
 
 impl ResultsState {
     pub fn new(report: TestReport) -> Self {
+        let case_details = report
+            .suite_report
+            .outcomes
+            .iter()
+            .filter_map(|o| o.data.downcast_ref::<RetrieveCaseData>().cloned())
+            .collect();
         Self {
             report,
             active_tab: ResultTab::Summary,
@@ -39,6 +49,9 @@ impl ResultsState {
             log_scroll: 0,
             log_filter: "ALL".into(),
             log_search: String::new(),
+            detail_selected: None,
+            drill_scroll: 0,
+            case_details,
         }
     }
 
@@ -89,13 +102,19 @@ impl ResultsState {
         ];
         let detail_hints = vec![
             ("[↑↓]".into(), "滚动".into()),
+            ("[Enter]".into(), "查看详情".into()),
             ("[Q]".into(), "返回".into()),
+        ];
+        let drill_hints = vec![
+            ("[↑↓]".into(), "滚动".into()),
+            ("[Q]".into(), "返回列表".into()),
         ];
         status_bar::render_status_bar(
             frame,
             layout[3],
             match self.active_tab {
                 ResultTab::Summary => &summary_hints,
+                ResultTab::Detail if self.detail_selected.is_some() => &drill_hints,
                 ResultTab::Detail => &detail_hints,
             },
         );
@@ -201,6 +220,14 @@ impl ResultsState {
     }
 
     fn render_detail(&self, frame: &mut Frame, area: Rect) {
+        if let Some(idx) = self.detail_selected {
+            self.render_detail_drilldown(frame, area, idx);
+        } else {
+            self.render_detail_list(frame, area);
+        }
+    }
+
+    fn render_detail_list(&self, frame: &mut Frame, area: Rect) {
         let layout = Layout::default()
             .direction(Direction::Vertical)
             .constraints(vec![Constraint::Length(1), Constraint::Fill(1)])
@@ -231,7 +258,8 @@ impl ResultsState {
             );
         }
 
-        // Rows
+        // Rows with highlight on visible row closest to center
+        let header_offset = 1;
         for (i, row) in self
             .report
             .suite_report
@@ -240,30 +268,143 @@ impl ResultsState {
             .enumerate()
             .skip(self.log_scroll)
         {
-            let y = log_inner.y + 1 + (i - self.log_scroll) as u16;
+            let y = log_inner.y + header_offset + (i - self.log_scroll) as u16;
             if y >= log_inner.y + log_inner.height {
                 break;
             }
-            let color = if row.has_error {
-                Color::Red
+            let is_active = i == self.log_scroll + (log_inner.height as usize / 2 - 1);
+            let (color, bg) = if is_active {
+                (Color::Black, Color::Cyan)
+            } else if row.has_error {
+                (Color::Red, Color::Reset)
             } else {
-                Color::Reset
+                (Color::Reset, Color::Reset)
             };
             frame.render_widget(
-                Paragraph::new(row.text.as_str()).fg(color),
+                Paragraph::new(row.text.as_str()).fg(color).bg(bg),
                 Rect::new(log_inner.x, y, log_inner.width, 1),
             );
         }
     }
 
+    fn render_detail_drilldown(&self, frame: &mut Frame, area: Rect, index: usize) {
+        let data = &self.case_details[index];
+        let layout = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(vec![Constraint::Fill(1)])
+            .split(area);
+
+        let mut lines = Vec::new();
+        lines.push(format!(" 用例: {}", data.case_name));
+        lines.push(format!(
+            " Tag权重: {:.1}  Variant权重: {:.1}  状态: {}",
+            data.tag_weight,
+            data.variant_weight,
+            if data.combined_ranking_metrics.hit_rate > 0.0
+                || data.combined_ranking_metrics.mrr > 0.0
+            {
+                "✓ 通过"
+            } else {
+                "✗ 失败"
+            }
+        ));
+        lines.push(String::new());
+
+        // Combined ranking metrics
+        lines.push(" ── 综合排序指标 ──".into());
+        lines.push(format!("  K     Recall    Precision  NDCG"));
+        for (k, r) in &data.combined_ranking_metrics.recall_at {
+            let p = data
+                .combined_ranking_metrics
+                .precision_at
+                .iter()
+                .find(|(pk, _)| pk == k)
+                .map(|(_, v)| v)
+                .unwrap_or(&0.0);
+            let n = data
+                .combined_ranking_metrics
+                .ndcg_at
+                .iter()
+                .find(|(nk, _)| nk == k)
+                .map(|(_, v)| v)
+                .unwrap_or(&0.0);
+            lines.push(format!("  @{:<2}   {:.4}    {:.4}    {:.4}", k, r, p, n));
+        }
+        lines.push(format!(
+            "  MRR: {:.4}     Hit: {:.2}",
+            data.combined_ranking_metrics.mrr, data.combined_ranking_metrics.hit_rate
+        ));
+        lines.push(String::new());
+
+        // Per-sub-query metrics
+        lines.push(" ── 各子查询 ──".into());
+        for sq in &data.per_query_metrics {
+            lines.push(format!(
+                "  Q{}  MRR={:.4}  Hit={:.2}  Recall@3={:.4}  {}",
+                sq.query_index,
+                sq.ranking_metrics.mrr,
+                sq.ranking_metrics.hit_rate,
+                sq.ranking_metrics
+                    .recall_at
+                    .iter()
+                    .find(|(k, _)| *k == 3)
+                    .map(|(_, v)| v)
+                    .unwrap_or(&0.0),
+                if sq.ranking_metrics.hit_rate > 0.0 {
+                    "✓"
+                } else {
+                    "✗"
+                },
+            ));
+        }
+        lines.push(String::new());
+
+        // Retrieved ranking
+        lines.push(" ── 检索结果 (top 10) ──".into());
+        for (pos, id) in data.combined_retrieved_ids.iter().take(10).enumerate() {
+            lines.push(format!("  #{:<2} {}", pos + 1, id));
+        }
+        lines.push(String::new());
+
+        let content = lines[self.drill_scroll..]
+            .iter()
+            .cloned()
+            .collect::<Vec<_>>()
+            .join("\n");
+        let block = Block::bordered().title(" 用例详情 ").fg(Color::Yellow);
+        let inner = block.inner(layout[0]);
+        block.render(layout[0], frame.buffer_mut());
+        frame.render_widget(Paragraph::new(content).wrap(Wrap { trim: false }), inner);
+    }
+
     pub fn handle_key(&mut self, key: KeyEvent) -> Transition {
         match key.code {
-            KeyCode::Char('q') | KeyCode::Char('Q') => Transition::ToMain,
+            KeyCode::Char('q') | KeyCode::Char('Q') => {
+                if self.detail_selected.is_some() {
+                    self.detail_selected = None;
+                    self.drill_scroll = 0;
+                    Transition::None
+                } else {
+                    Transition::ToMain
+                }
+            }
             KeyCode::Tab => {
+                self.detail_selected = None;
+                self.drill_scroll = 0;
                 self.active_tab = match self.active_tab {
                     ResultTab::Summary => ResultTab::Detail,
                     ResultTab::Detail => ResultTab::Summary,
                 };
+                Transition::None
+            }
+            KeyCode::Enter
+                if self.active_tab == ResultTab::Detail && self.detail_selected.is_none() =>
+            {
+                let center = self.log_scroll + 4;
+                if center < self.case_details.len() {
+                    self.detail_selected = Some(center);
+                    self.drill_scroll = 0;
+                }
                 Transition::None
             }
             KeyCode::Left if self.active_tab == ResultTab::Summary && self.metric_group_idx > 0 => {
@@ -275,17 +416,27 @@ impl ResultsState {
                 Transition::None
             }
             KeyCode::Up => {
-                match self.active_tab {
-                    ResultTab::Summary if self.kv_scroll > 0 => self.kv_scroll -= 1,
-                    ResultTab::Detail if self.log_scroll > 0 => self.log_scroll -= 1,
-                    _ => {}
+                if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
+                    if self.drill_scroll > 0 {
+                        self.drill_scroll -= 1;
+                    }
+                } else {
+                    match self.active_tab {
+                        ResultTab::Summary if self.kv_scroll > 0 => self.kv_scroll -= 1,
+                        ResultTab::Detail if self.log_scroll > 0 => self.log_scroll -= 1,
+                        _ => {}
+                    }
                 }
                 Transition::None
             }
             KeyCode::Down => {
-                match self.active_tab {
-                    ResultTab::Summary => self.kv_scroll += 1,
-                    ResultTab::Detail => self.log_scroll += 1,
+                if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
+                    self.drill_scroll += 1;
+                } else {
+                    match self.active_tab {
+                        ResultTab::Summary => self.kv_scroll += 1,
+                        ResultTab::Detail => self.log_scroll += 1,
+                    }
                 }
                 Transition::None
             }

@@ -47,4 +47,5 @@ pub struct SuiteReport {
     pub summary_groups: Vec<MetricGroup>,
     pub detail_header: String,
     pub detail_rows: Vec<DetailRow>,
+    pub outcomes: Vec<TestCaseOutcome>,
 }

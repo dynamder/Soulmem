@@ -275,7 +275,7 @@ impl TestSuite for NoopSuite {
     }
     fn build_report(
         &self,
-        _: Vec<TestCaseOutcome>,
+        outcomes: Vec<TestCaseOutcome>,
         _: Duration,
         _: usize,
         _: usize,
@@ -285,6 +285,7 @@ impl TestSuite for NoopSuite {
             summary_groups: vec![],
             detail_header: String::new(),
             detail_rows: vec![],
+            outcomes,
         }
     }
 }
