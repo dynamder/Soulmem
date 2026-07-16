@@ -577,13 +577,10 @@ impl ResultsState {
             }
             KeyCode::Up => {
                 if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
-                    // Drill-down: move compare cursor up
+                    // Drill-down: move compare cursor only (no auto-scroll)
                     if self.compare_cursor > 0 {
                         self.compare_cursor -= 1;
                     }
-                    self.drill_scroll = 18usize
-                        .saturating_add(self.compare_cursor)
-                        .saturating_sub(2);
                 } else if self.active_tab == ResultTab::Detail && self.log_scroll > 0 {
                     self.log_scroll -= 1;
                 } else {
@@ -612,9 +609,6 @@ impl ResultsState {
                     if self.compare_cursor < n_max.saturating_sub(1) {
                         self.compare_cursor += 1;
                     }
-                    self.drill_scroll = 18usize
-                        .saturating_add(self.compare_cursor)
-                        .saturating_sub(2);
                 } else {
                     match self.active_tab {
                         ResultTab::Summary => self.kv_scroll += 1,
