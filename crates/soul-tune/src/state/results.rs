@@ -29,6 +29,7 @@ pub struct ResultsState {
     pub log_search: String,
     pub detail_selected: Option<usize>,
     pub drill_scroll: usize,
+    pub detail_cursor: usize,
     case_details: Vec<RetrieveCaseData>,
 }
 
@@ -51,6 +52,7 @@ impl ResultsState {
             log_search: String::new(),
             detail_selected: None,
             drill_scroll: 0,
+            detail_cursor: 0,
             case_details,
         }
     }
@@ -103,6 +105,7 @@ impl ResultsState {
         let detail_hints = vec![
             ("[↑↓]".into(), "滚动".into()),
             ("[Enter]".into(), "查看详情".into()),
+            ("[N/P]".into(), "失/前失败".into()),
             ("[Q]".into(), "返回".into()),
         ];
         let drill_hints = vec![
@@ -258,7 +261,7 @@ impl ResultsState {
             );
         }
 
-        // Rows with highlight on visible row closest to center
+        // Rows with cursor highlight
         let header_offset = 1;
         for (i, row) in self
             .report
@@ -272,7 +275,7 @@ impl ResultsState {
             if y >= log_inner.y + log_inner.height {
                 break;
             }
-            let is_active = i == self.log_scroll + (log_inner.height as usize / 2 - 1);
+            let is_active = i == self.detail_cursor;
             let (color, bg) = if is_active {
                 (Color::Black, Color::Cyan)
             } else if row.has_error {
@@ -359,10 +362,20 @@ impl ResultsState {
         }
         lines.push(String::new());
 
-        // Retrieved ranking
+        // Retrieved ranking with node summary
         lines.push(" ── 检索结果 (top 10) ──".into());
         for (pos, id) in data.combined_retrieved_ids.iter().take(10).enumerate() {
-            lines.push(format!("  #{:<2} {}", pos + 1, id));
+            let suffix = match data.id_names.as_ref().and_then(|m| m.get(id)) {
+                Some(s) => format!(
+                    "  [{}]  {}  {}  [{}]",
+                    s.type_label,
+                    s.primary.chars().take(24).collect::<String>(),
+                    s.secondary.chars().take(16).collect::<String>(),
+                    s.tags.join(",").chars().take(20).collect::<String>(),
+                ),
+                None => format!("  {}", id),
+            };
+            lines.push(format!("  #{:<2} {}", pos + 1, suffix));
         }
         lines.push(String::new());
 
@@ -400,10 +413,34 @@ impl ResultsState {
             KeyCode::Enter
                 if self.active_tab == ResultTab::Detail && self.detail_selected.is_none() =>
             {
-                let center = self.log_scroll + 4;
-                if center < self.case_details.len() {
-                    self.detail_selected = Some(center);
+                if self.detail_cursor < self.case_details.len() {
+                    self.detail_selected = Some(self.detail_cursor);
                     self.drill_scroll = 0;
+                }
+                Transition::None
+            }
+            KeyCode::Char('n') | KeyCode::Char('N')
+                if self.active_tab == ResultTab::Detail && self.detail_selected.is_none() =>
+            {
+                // Jump to next failed case
+                let rows = &self.report.suite_report.detail_rows;
+                let start = self.detail_cursor + 1;
+                let found = (start..rows.len()).find(|&i| rows[i].has_error);
+                if let Some(idx) = found {
+                    self.detail_cursor = idx;
+                    self.log_scroll = idx.saturating_sub(4);
+                }
+                Transition::None
+            }
+            KeyCode::Char('p') | KeyCode::Char('P')
+                if self.active_tab == ResultTab::Detail && self.detail_selected.is_none() =>
+            {
+                // Jump to previous failed case
+                let rows = &self.report.suite_report.detail_rows;
+                let found = (0..self.detail_cursor).rev().find(|&i| rows[i].has_error);
+                if let Some(idx) = found {
+                    self.detail_cursor = idx;
+                    self.log_scroll = idx.saturating_sub(4);
                 }
                 Transition::None
             }
@@ -423,7 +460,13 @@ impl ResultsState {
                 } else {
                     match self.active_tab {
                         ResultTab::Summary if self.kv_scroll > 0 => self.kv_scroll -= 1,
-                        ResultTab::Detail if self.log_scroll > 0 => self.log_scroll -= 1,
+                        ResultTab::Detail if self.detail_cursor > 0 => {
+                            self.detail_cursor -= 1;
+                            // Auto-scroll: if cursor passes top of visible area
+                            if self.detail_cursor < self.log_scroll && self.log_scroll > 0 {
+                                self.log_scroll -= 1;
+                            }
+                        }
                         _ => {}
                     }
                 }
@@ -435,7 +478,16 @@ impl ResultsState {
                 } else {
                     match self.active_tab {
                         ResultTab::Summary => self.kv_scroll += 1,
-                        ResultTab::Detail => self.log_scroll += 1,
+                        ResultTab::Detail => {
+                            let max = self.report.suite_report.detail_rows.len().saturating_sub(1);
+                            if self.detail_cursor < max {
+                                self.detail_cursor += 1;
+                                // Auto-scroll: if cursor passes bottom of visible area
+                                if self.detail_cursor >= self.log_scroll + 10 {
+                                    self.log_scroll += 1;
+                                }
+                            }
+                        }
                     }
                 }
                 Transition::None

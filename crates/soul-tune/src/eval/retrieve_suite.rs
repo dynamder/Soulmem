@@ -8,7 +8,8 @@ use serde::Deserialize;
 use soul_mem_algo::algo::retrieve::association::{AssociationRequest, RetrAssociation};
 use soul_mem_algo::algo::retrieve::similarity::{RetrSimilarity, SimilarityConfig};
 use soul_mem_algo::algo::retrieve::RetrStrategy;
-use soul_mem_core::memory_note::MemoryId;
+use soul_mem_core::memory_note::situation_mem::SituationType;
+use soul_mem_core::memory_note::{MemoryId, MemoryType};
 use soul_mem_query::embedding::blend_weights::BlendWeights;
 use soul_mem_query::embedding::embedding_model::bge::BgeSmallZh;
 use soul_mem_query::embedding::query::note::MemoryRetrieveQueryEmbedding;
@@ -157,6 +158,15 @@ pub struct RetrieveCaseData {
     pub action_metrics: ActionMetrics,
     pub tag_weight: f32,
     pub variant_weight: f32,
+    pub id_names: Option<Arc<HashMap<MemoryId, NodeSummary>>>,
+}
+
+#[derive(Clone)]
+pub struct NodeSummary {
+    pub tags: Vec<String>,
+    pub type_label: String, // e.g. "语义·Entity", "情境", "流程"
+    pub primary: String,    // content / narrative / action text
+    pub secondary: String,  // description / time / action_type
 }
 
 // ─── Sweep pair expansion ────────────────────────────────────────
@@ -232,6 +242,7 @@ pub struct RetrieveSuite {
     meta: TestCaseConfig,
     query_embeddings: Vec<Vec<MemoryRetrieveQueryEmbedding>>,
     pipeline_mode: RetrieveMode,
+    id_names: Arc<HashMap<MemoryId, NodeSummary>>,
 }
 
 impl RetrieveSuite {
@@ -333,12 +344,47 @@ impl RetrieveSuite {
             }
         }
 
+        // Build node summary map for drill-down display
+        let id_names = Arc::new(wm.memory_cluster().read_or_compute(|cluster| {
+            cluster
+                .graph()
+                .node_weights()
+                .map(|node| {
+                    let note = node.note();
+                    let id = note.id();
+                    let tags = note.tags().to_vec();
+                    let (type_label, primary, secondary) = match note.mem_type() {
+                        MemoryType::Semantic(sem) => (
+                            format!("语义"),
+                            sem.content.clone(),
+                            sem.description.clone(),
+                        ),
+                        MemoryType::Situation(SituationType::SpecificSituation(s)) => (
+                            "情境".into(),
+                            s.get_narrative().clone(),
+                            s.get_time_span().to_string(),
+                        ),
+                        MemoryType::Situation(_) => ("情境".into(), String::new(), String::new()),
+                        MemoryType::Procedure(_) => ("流程".into(), String::new(), String::new()),
+                    };
+                    let summary = NodeSummary {
+                        tags,
+                        type_label,
+                        primary,
+                        secondary,
+                    };
+                    (id, summary)
+                })
+                .collect::<HashMap<_, _>>()
+        }));
+
         Ok(Self {
             wm: Arc::new(wm),
             test_cases,
             meta,
             query_embeddings,
             pipeline_mode: mode,
+            id_names,
         })
     }
 }
@@ -507,6 +553,7 @@ impl TestSuite for RetrieveSuite {
                 action_metrics,
                 tag_weight: tcw.tag_weight,
                 variant_weight: tcw.variant_weight,
+                id_names: Some(self.id_names.clone()),
             }),
         }
     }
@@ -551,6 +598,7 @@ impl TestSuite for RetrieveSuite {
                     },
                     tag_weight: data.tag_weight,
                     variant_weight: data.variant_weight,
+                    id_names: data.id_names.clone(),
                 });
             }
         }
