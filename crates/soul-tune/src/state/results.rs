@@ -33,6 +33,7 @@ pub struct ResultsState {
     pub detail_selected: Option<usize>,
     pub drill_scroll: usize,
     pub detail_cursor: usize,
+    pub compare_cursor: usize,
     pub expanded_row: Option<usize>,
     case_details: Vec<RetrieveCaseData>,
 }
@@ -57,6 +58,7 @@ impl ResultsState {
             detail_selected: None,
             drill_scroll: 0,
             detail_cursor: 0,
+            compare_cursor: 0,
             expanded_row: None,
             case_details,
         }
@@ -413,11 +415,12 @@ impl ResultsState {
             .max(data.expected_combined_ranking.len().min(5));
 
         for pos in 0..n_max {
+            let is_cursor = pos == self.compare_cursor;
             let is_expanded = self.expanded_row == Some(pos);
             let mut spans = Vec::new();
             spans.push(Span::styled(
-                format!("  #{}", pos + 1),
-                if is_expanded { green } else { Style::new() },
+                format!(" {}  #{}", if is_cursor { "▶" } else { " " }, pos + 1),
+                if is_cursor { green } else { Style::new() },
             ));
 
             if let Some(id) = data.combined_retrieved_ids.get(pos) {
@@ -520,8 +523,8 @@ impl ResultsState {
             }
             KeyCode::Enter => {
                 if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
-                    // In drill-down: toggle expand on row nearest scroll position
-                    let row = self.drill_scroll.saturating_sub(15).saturating_div(2);
+                    // In drill-down: toggle expand on cursor row
+                    let row = self.compare_cursor;
                     if self.expanded_row == Some(row) {
                         self.expanded_row = None;
                     } else {
@@ -574,10 +577,13 @@ impl ResultsState {
             }
             KeyCode::Up => {
                 if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
-                    // Drill-down: scroll up
-                    if self.drill_scroll > 0 {
-                        self.drill_scroll -= 1;
+                    // Drill-down: move compare cursor up
+                    if self.compare_cursor > 0 {
+                        self.compare_cursor -= 1;
                     }
+                    self.drill_scroll = 18usize
+                        .saturating_add(self.compare_cursor)
+                        .saturating_sub(2);
                 } else if self.active_tab == ResultTab::Detail && self.log_scroll > 0 {
                     self.log_scroll -= 1;
                 } else {
@@ -596,8 +602,19 @@ impl ResultsState {
             }
             KeyCode::Down => {
                 if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
-                    // Drill-down: scroll down
-                    self.drill_scroll += 1;
+                    // Drill-down: move compare cursor down
+                    let data = &self.case_details[self.detail_selected.unwrap()];
+                    let n_max = data
+                        .combined_retrieved_ids
+                        .len()
+                        .min(10)
+                        .max(data.expected_combined_ranking.len().min(5));
+                    if self.compare_cursor < n_max.saturating_sub(1) {
+                        self.compare_cursor += 1;
+                    }
+                    self.drill_scroll = 18usize
+                        .saturating_add(self.compare_cursor)
+                        .saturating_sub(2);
                 } else {
                     match self.active_tab {
                         ResultTab::Summary => self.kv_scroll += 1,
