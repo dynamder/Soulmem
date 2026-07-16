@@ -11,6 +11,7 @@ use crate::base::{TestReport, Transition};
 use crate::eval::retrieve_suite::RetrieveCaseData;
 use crate::tui::components::status_bar;
 use soul_mem_core::memory_note::MemoryId;
+use soul_mem_query::query::retrieve::MemoryRetrieveQueryVariant;
 
 #[derive(PartialEq, Eq)]
 pub enum ResultTab {
@@ -332,14 +333,14 @@ impl ResultsState {
         lines.push(Line::from(Span::styled(" ── 查询内容 ──", hdr)));
         for (idx, sq) in data.sub_queries.iter().enumerate() {
             let tag_str = sq.tags.join(",");
-            let variant_str = format!("{:?}", sq.variant)
-                .chars()
-                .take(50)
-                .collect::<String>();
+            let variant_desc = format_variant_lines(&sq.variant);
             lines.push(Line::from(Span::raw(format!(
-                "  Q{} pri={} [{}]  {}",
-                idx, sq.priority, tag_str, variant_str,
+                "  Q{} pri={} [{}]",
+                idx, sq.priority, tag_str,
             ))));
+            for vline in &variant_desc {
+                lines.push(Line::from(Span::raw(format!("    {}", vline))));
+            }
         }
         lines.push(Line::from(""));
 
@@ -689,4 +690,74 @@ fn format_node_detail(
     }
 
     lines.join("\n")
+}
+
+/// Format a query variant as an indented tree of field lines (Rust field names).
+fn format_variant_lines(v: &MemoryRetrieveQueryVariant) -> Vec<String> {
+    let mut out = Vec::new();
+    match v {
+        MemoryRetrieveQueryVariant::Semantic(units) => {
+            out.push("Semantic".into());
+            for u in units {
+                if let Some(ci) = u.concept_identifier() {
+                    out.push(format!("  concept_identifier: \"{}\"", ci));
+                }
+                if let Some(desc) = u.description() {
+                    out.push(format!("  description: \"{}\"", desc));
+                }
+            }
+        }
+        MemoryRetrieveQueryVariant::Situation(units) => {
+            out.push("Situation".into());
+            for u in units {
+                if let Some(n) = u.narrative() {
+                    out.push(format!("  narrative: \"{}\"", n));
+                }
+                if let Some(locs) = u.location() {
+                    for loc in locs {
+                        let mut parts = vec![format!("name: \"{}\"", loc.name())];
+                        if let Some(c) = loc.coordinates() {
+                            parts.push(format!("coordinates: \"{}\"", c));
+                        }
+                        out.push(format!("  location: [{}]", parts.join(", ")));
+                    }
+                }
+                if let Some(parts) = u.participants() {
+                    for p in parts {
+                        let mut pv = Vec::new();
+                        if let Some(n) = p.name() {
+                            pv.push(format!("name: \"{}\"", n));
+                        }
+                        if let Some(r) = p.role() {
+                            pv.push(format!("role: \"{}\"", r));
+                        }
+                        out.push(format!("  participant: [{}]", pv.join(", ")));
+                    }
+                }
+                if let Some(env) = u.environment() {
+                    let mut ev = Vec::new();
+                    if let Some(a) = env.atmosphere() {
+                        ev.push(format!("atmosphere: \"{}\"", a));
+                    }
+                    if let Some(t) = env.tone() {
+                        ev.push(format!("tone: \"{}\"", t));
+                    }
+                    out.push(format!("  environment: {{{}}}", ev.join(", ")));
+                }
+                if let Some(events) = u.event() {
+                    for e in events {
+                        let mut ev = vec![format!("action: \"{}\"", e.action())];
+                        if let Some(i) = e.initiator() {
+                            ev.push(format!("initiator: \"{}\"", i));
+                        }
+                        if let Some(t) = e.target() {
+                            ev.push(format!("target: \"{}\"", t));
+                        }
+                        out.push(format!("  event: [{}]", ev.join(", ")));
+                    }
+                }
+            }
+        }
+    }
+    out
 }
