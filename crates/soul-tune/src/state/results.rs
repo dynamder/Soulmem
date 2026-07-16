@@ -328,6 +328,21 @@ impl ResultsState {
         ]));
         lines.push(Line::from(""));
 
+        // Query content
+        lines.push(Line::from(Span::styled(" ── 查询内容 ──", hdr)));
+        for (idx, sq) in data.sub_queries.iter().enumerate() {
+            let tag_str = sq.tags.join(",");
+            let variant_str = format!("{:?}", sq.variant)
+                .chars()
+                .take(50)
+                .collect::<String>();
+            lines.push(Line::from(Span::raw(format!(
+                "  Q{} pri={} [{}]  {}",
+                idx, sq.priority, tag_str, variant_str,
+            ))));
+        }
+        lines.push(Line::from(""));
+
         // Combined ranking metrics
         lines.push(Line::from(Span::styled(" ── 综合排序指标 ──", hdr)));
         lines.push(Line::from(Span::raw("  K     Recall    Precision  NDCG")));

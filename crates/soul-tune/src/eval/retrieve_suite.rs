@@ -161,6 +161,7 @@ pub struct RetrieveCaseData {
     pub id_names: Option<Arc<HashMap<MemoryId, NodeSummary>>>,
     pub expected_combined_ranking: Vec<MemoryId>,
     pub graph_names: Option<Arc<HashMap<MemoryId, String>>>,
+    pub sub_queries: Vec<SubQuery>,
 }
 
 #[derive(Clone)]
@@ -568,6 +569,7 @@ impl TestSuite for RetrieveSuite {
                 id_names: Some(self.id_names.clone()),
                 expected_combined_ranking: test_case.expected_combined_ranking.clone(),
                 graph_names: Some(self.graph_names.clone()),
+                sub_queries: test_case.sub_queries.clone(),
             }),
         }
     }
@@ -615,6 +617,7 @@ impl TestSuite for RetrieveSuite {
                     id_names: data.id_names.clone(),
                     expected_combined_ranking: data.expected_combined_ranking.clone(),
                     graph_names: data.graph_names.clone(),
+                    sub_queries: data.sub_queries.clone(),
                 });
             }
         }
