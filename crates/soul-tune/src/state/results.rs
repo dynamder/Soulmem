@@ -31,6 +31,8 @@ pub struct ResultsState {
     pub detail_selected: Option<usize>,
     pub drill_scroll: usize,
     pub detail_cursor: usize,
+    pub compare_cursor: usize,
+    pub expanded_entry: Option<usize>,
     case_details: Vec<RetrieveCaseData>,
 }
 
@@ -54,6 +56,8 @@ impl ResultsState {
             detail_selected: None,
             drill_scroll: 0,
             detail_cursor: 0,
+            compare_cursor: 0,
+            expanded_entry: None,
             case_details,
         }
     }
@@ -110,7 +114,8 @@ impl ResultsState {
             ("[Q]".into(), "返回".into()),
         ];
         let drill_hints = vec![
-            ("[↑↓]".into(), "滚动".into()),
+            ("[↑↓]".into(), "选行".into()),
+            ("[Enter]".into(), "展开".into()),
             ("[Q]".into(), "返回列表".into()),
         ];
         status_bar::render_status_bar(
@@ -363,29 +368,29 @@ impl ResultsState {
         }
         lines.push(String::new());
 
-        // ── Side-by-side: actual vs expected results ──
-        lines.push(" ── 检索结果 vs 预期 ──".into());
-        // Build hit set: which expected IDs were found in retrieved
+        // ── Compact side-by-side: actual vs expected (graph IDs only) ──
+        lines.push(" ── 检索结果 vs 预期 (↑↓选择, Enter展开) ──".into());
         let retrieved_set: std::collections::HashSet<&MemoryId> =
             data.combined_retrieved_ids.iter().take(10).collect();
-        let expected_hit: Vec<bool> = data
-            .expected_combined_ranking
-            .iter()
-            .map(|eid| retrieved_set.contains(eid))
-            .collect();
+        let mut display_lines = Vec::new();
+        let header = format!("  {:<10}  {:<8}  {:>8}", "实际", "", "预期");
+        display_lines.push(header);
 
         let n_max = data
             .combined_retrieved_ids
             .len()
             .min(10)
             .max(data.expected_combined_ranking.len().min(5));
-        lines.push(format!(
-            "  {:<8} {:<13}  {:<6}  {:<13}",
-            "实际检出", "", "期望排序", ""
-        ));
+
         for pos in 0..n_max {
-            let mut row = String::new();
-            // Left: actual
+            let cursor_mark = if pos == self.compare_cursor {
+                "▶"
+            } else {
+                " "
+            };
+            let mut row = format!("  {}", cursor_mark);
+
+            // Left: actual retrieved ID
             if let Some(id) = data.combined_retrieved_ids.get(pos) {
                 let name = data
                     .graph_names
@@ -393,28 +398,15 @@ impl ResultsState {
                     .and_then(|m| m.get(id))
                     .cloned()
                     .unwrap_or_default();
-                let summary = data.id_names.as_ref().and_then(|m| m.get(id));
-                let (type_lbl, primary) = match summary {
-                    Some(s) => (
-                        s.type_label.chars().take(6).collect::<String>(),
-                        s.primary.chars().take(12).collect::<String>(),
-                    ),
-                    None => (String::new(), String::new()),
-                };
                 let is_hit = data.expected_combined_ranking.iter().any(|eid| eid == id);
-                let hit = if is_hit { " ✓" } else { " -" };
-                row.push_str(&format!(
-                    "  #{:<2} {:<10} [{:6}] {:<12} {}",
-                    pos + 1,
-                    name,
-                    type_lbl,
-                    primary,
-                    hit
-                ));
+                let hit = if is_hit { "✓" } else { "-" };
+                row.push_str(&format!("#{:<2} {:<10} {}", pos + 1, name, hit));
             } else {
-                row.push_str(&format!("  #{:<2} {:24}  {}", pos + 1, "—", "  "));
+                row.push_str(&format!("#{:<2} {:<10}  ", pos + 1, "—"));
             }
-            // Right: expected
+            row.push_str("  ");
+
+            // Right: expected ranking
             if let Some(eid) = data.expected_combined_ranking.get(pos) {
                 let ename = data
                     .graph_names
@@ -422,42 +414,38 @@ impl ResultsState {
                     .and_then(|m| m.get(eid))
                     .cloned()
                     .unwrap_or_default();
-                let esummary = data.id_names.as_ref().and_then(|m| m.get(eid));
-                let (etype, eprimary) = match esummary {
-                    Some(s) => (
-                        s.type_label.chars().take(6).collect::<String>(),
-                        s.primary.chars().take(12).collect::<String>(),
-                    ),
-                    None => (String::new(), String::new()),
-                };
                 let missed = if !retrieved_set.contains(eid) {
                     " ✗未命中"
                 } else {
                     ""
                 };
-                row.push_str(&format!(
-                    "  #{:<2} {:<10} [{:6}] {:<12}{}",
-                    pos + 1,
-                    ename,
-                    etype,
-                    eprimary,
-                    missed
-                ));
+                row.push_str(&format!("#{:<2} {:<10}{}", pos + 1, ename, missed));
             } else {
-                row.push_str(&format!("  #{:<2} {:>24}", pos + 1, "—"));
+                row.push_str(&format!("#{:<2} {:<10}", pos + 1, "—"));
             }
-            lines.push(row);
+            display_lines.push(row);
+
+            // Expanded detail for the cursor row
+            if pos == self.compare_cursor && self.expanded_entry == Some(pos) {
+                let id = data.combined_retrieved_ids.get(pos);
+                let eid = data.expected_combined_ranking.get(pos);
+                let detail = format_node_detail(id, eid, &data);
+                for d in detail.lines() {
+                    display_lines.push(format!("    {}", d));
+                }
+            }
         }
+        lines.extend(display_lines);
         lines.push(String::new());
 
-        // Missed expectations
+        // Missed expectations (compact, graph IDs only)
         let missed: Vec<&MemoryId> = data
             .expected_combined_ranking
             .iter()
             .filter(|eid| !retrieved_set.contains(eid))
             .collect();
         if !missed.is_empty() {
-            let mut missed_line = "  未命中期望: ".to_string();
+            let mut missed_line = "  未命中: ".to_string();
             for (i, id) in missed.iter().enumerate() {
                 let name = data
                     .graph_names
@@ -465,20 +453,10 @@ impl ResultsState {
                     .and_then(|m| m.get(*id))
                     .cloned()
                     .unwrap_or_default();
-                let summary = data.id_names.as_ref().and_then(|m| m.get(*id));
-                let extra = match summary {
-                    Some(s) => format!(
-                        "{} [{}]{}",
-                        name,
-                        s.type_label,
-                        s.primary.chars().take(12).collect::<String>()
-                    ),
-                    None => name,
-                };
                 if i > 0 {
                     missed_line.push_str(", ");
                 }
-                missed_line.push_str(&extra);
+                missed_line.push_str(&name);
             }
             lines.push(missed_line);
         }
@@ -514,14 +492,25 @@ impl ResultsState {
                 };
                 Transition::None
             }
-            KeyCode::Enter
-                if self.active_tab == ResultTab::Detail && self.detail_selected.is_none() =>
-            {
-                if self.detail_cursor < self.case_details.len() {
-                    self.detail_selected = Some(self.detail_cursor);
-                    self.drill_scroll = 0;
+            KeyCode::Enter => {
+                if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
+                    // In drill-down: toggle expand
+                    if self.expanded_entry == Some(self.compare_cursor) {
+                        self.expanded_entry = None;
+                    } else {
+                        self.expanded_entry = Some(self.compare_cursor);
+                    }
+                    Transition::None
+                } else if self.active_tab == ResultTab::Detail && self.detail_selected.is_none() {
+                    // In list: open drill-down
+                    if self.detail_cursor < self.case_details.len() {
+                        self.detail_selected = Some(self.detail_cursor);
+                        self.drill_scroll = 0;
+                    }
+                    Transition::None
+                } else {
+                    Transition::None
                 }
-                Transition::None
             }
             KeyCode::Char('n') | KeyCode::Char('N')
                 if self.active_tab == ResultTab::Detail && self.detail_selected.is_none() =>
@@ -558,15 +547,24 @@ impl ResultsState {
             }
             KeyCode::Up => {
                 if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
-                    if self.drill_scroll > 0 {
-                        self.drill_scroll -= 1;
+                    // Drill-down: move compare cursor
+                    let n = self.case_details[self.detail_selected.unwrap()]
+                        .combined_retrieved_ids
+                        .len()
+                        .min(10);
+                    if self.compare_cursor > 0 {
+                        self.compare_cursor -= 1;
                     }
+                    if self.expanded_entry.is_some() {
+                        self.expanded_entry = Some(self.compare_cursor);
+                    }
+                } else if self.active_tab == ResultTab::Detail && self.drill_scroll > 0 {
+                    self.drill_scroll -= 1;
                 } else {
                     match self.active_tab {
                         ResultTab::Summary if self.kv_scroll > 0 => self.kv_scroll -= 1,
                         ResultTab::Detail if self.detail_cursor > 0 => {
                             self.detail_cursor -= 1;
-                            // Auto-scroll: if cursor passes top of visible area
                             if self.detail_cursor < self.log_scroll && self.log_scroll > 0 {
                                 self.log_scroll -= 1;
                             }
@@ -578,7 +576,18 @@ impl ResultsState {
             }
             KeyCode::Down => {
                 if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
-                    self.drill_scroll += 1;
+                    // Drill-down: move compare cursor
+                    let max = self.case_details[self.detail_selected.unwrap()]
+                        .combined_retrieved_ids
+                        .len()
+                        .min(10)
+                        .saturating_sub(1);
+                    if self.compare_cursor < max {
+                        self.compare_cursor += 1;
+                    }
+                    if self.expanded_entry.is_some() {
+                        self.expanded_entry = Some(self.compare_cursor);
+                    }
                 } else {
                     match self.active_tab {
                         ResultTab::Summary => self.kv_scroll += 1,
@@ -586,7 +595,6 @@ impl ResultsState {
                             let max = self.report.suite_report.detail_rows.len().saturating_sub(1);
                             if self.detail_cursor < max {
                                 self.detail_cursor += 1;
-                                // Auto-scroll: if cursor passes bottom of visible area
                                 if self.detail_cursor >= self.log_scroll + 10 {
                                     self.log_scroll += 1;
                                 }
@@ -599,4 +607,61 @@ impl ResultsState {
             _ => Transition::None,
         }
     }
+}
+
+/// Build a multi-line detailed description of a retrieved node and its expected counterpart.
+fn format_node_detail(
+    actual: Option<&MemoryId>,
+    expected: Option<&MemoryId>,
+    data: &RetrieveCaseData,
+) -> String {
+    let mut lines = Vec::new();
+
+    if let Some(id) = actual {
+        let name = data
+            .graph_names
+            .as_ref()
+            .and_then(|m| m.get(id))
+            .cloned()
+            .unwrap_or_default();
+        if let Some(summary) = data.id_names.as_ref().and_then(|m| m.get(id)) {
+            lines.push(format!(
+                "实际: {} [{}]  {}",
+                name, summary.type_label, summary.primary
+            ));
+            if !summary.secondary.is_empty() {
+                lines.push(format!("      {}", summary.secondary));
+            }
+            if !summary.tags.is_empty() {
+                lines.push(format!("     标签: [{}]", summary.tags.join(", ")));
+            }
+        } else {
+            lines.push(format!("实际: {}", name));
+        }
+    }
+
+    if let Some(eid) = expected {
+        let ename = data
+            .graph_names
+            .as_ref()
+            .and_then(|m| m.get(eid))
+            .cloned()
+            .unwrap_or_default();
+        if let Some(esummary) = data.id_names.as_ref().and_then(|m| m.get(eid)) {
+            lines.push(format!(
+                "期望: {} [{}]  {}",
+                ename, esummary.type_label, esummary.primary
+            ));
+            if !esummary.secondary.is_empty() {
+                lines.push(format!("      {}", esummary.secondary));
+            }
+            if !esummary.tags.is_empty() {
+                lines.push(format!("     标签: [{}]", esummary.tags.join(", ")));
+            }
+        } else {
+            lines.push(format!("期望: {}", ename));
+        }
+    }
+
+    lines.join("\n")
 }
