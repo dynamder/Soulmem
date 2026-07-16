@@ -1,7 +1,9 @@
+use serde::{Deserialize, Serialize};
+
 use crate::embedding::{Embeddable, EmbeddingCalcError, EmbeddingCalcResult, EmbeddingVec};
 use soul_mem_core::memory_note::situation_mem::Emotion;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EmotionEmbedding {
     pub emotion: EmbeddingVec,
     pub intensity: f32,

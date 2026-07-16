@@ -1,7 +1,9 @@
+use serde::{Deserialize, Serialize};
+
 use crate::embedding::{Embeddable, EmbeddingGenResult, EmbeddingModel, EmbeddingVec};
 use soul_mem_core::memory_note::situation_mem::Location;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LocationEmbedding {
     name: EmbeddingVec,
     coordinates: EmbeddingVec,
