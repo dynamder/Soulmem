@@ -493,7 +493,9 @@ impl ResultsState {
         let inner = block.inner(layout[0]);
         block.render(layout[0], frame.buffer_mut());
         frame.render_widget(
-            Paragraph::new(Text::from(lines)).wrap(Wrap { trim: false }),
+            Paragraph::new(Text::from(lines))
+                .wrap(Wrap { trim: false })
+                .scroll((self.drill_scroll as u16, 0)),
             inner,
         );
     }
@@ -573,13 +575,23 @@ impl ResultsState {
             }
             KeyCode::Up => {
                 if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
-                    // Drill-down: move compare cursor
-                    let n = self.case_details[self.detail_selected.unwrap()]
+                    // Drill-down: move compare cursor + auto-scroll
+                    let data = &self.case_details[self.detail_selected.unwrap()];
+                    let n_max = data
                         .combined_retrieved_ids
                         .len()
-                        .min(10);
+                        .min(10)
+                        .max(data.expected_combined_ranking.len().min(5));
                     if self.compare_cursor > 0 {
                         self.compare_cursor -= 1;
+                    } else {
+                        // At top: scroll view up
+                        if self.drill_scroll > 0 {
+                            self.drill_scroll -= 1;
+                        }
+                    }
+                    if self.compare_cursor < 3 && self.drill_scroll > 0 {
+                        self.drill_scroll = self.drill_scroll.saturating_sub(1);
                     }
                     if self.expanded_entry.is_some() {
                         self.expanded_entry = Some(self.compare_cursor);
@@ -602,14 +614,18 @@ impl ResultsState {
             }
             KeyCode::Down => {
                 if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
-                    // Drill-down: move compare cursor
-                    let max = self.case_details[self.detail_selected.unwrap()]
+                    // Drill-down: move compare cursor + auto-scroll
+                    let data = &self.case_details[self.detail_selected.unwrap()];
+                    let n_max = data
                         .combined_retrieved_ids
                         .len()
                         .min(10)
-                        .saturating_sub(1);
-                    if self.compare_cursor < max {
+                        .max(data.expected_combined_ranking.len().min(5));
+                    if self.compare_cursor < n_max.saturating_sub(1) {
                         self.compare_cursor += 1;
+                    }
+                    if self.compare_cursor > 12 {
+                        self.drill_scroll = self.drill_scroll.saturating_add(1);
                     }
                     if self.expanded_entry.is_some() {
                         self.expanded_entry = Some(self.compare_cursor);
