@@ -388,7 +388,7 @@ impl ResultsState {
             } else {
                 " "
             };
-            let mut row = format!("  {}", cursor_mark);
+            let mut row = format!(" {}  #{:<2}", cursor_mark, pos + 1);
 
             // Left: actual retrieved ID
             if let Some(id) = data.combined_retrieved_ids.get(pos) {
@@ -400,9 +400,9 @@ impl ResultsState {
                     .unwrap_or_default();
                 let is_hit = data.expected_combined_ranking.iter().any(|eid| eid == id);
                 let hit = if is_hit { "✓" } else { "-" };
-                row.push_str(&format!("#{:<2} {:<10} {}", pos + 1, name, hit));
+                row.push_str(&format!(" {:<10} {}", name, hit));
             } else {
-                row.push_str(&format!("#{:<2} {:<10}  ", pos + 1, "—"));
+                row.push_str(&format!(" {:<10}  ", "—"));
             }
             row.push_str("  ");
 
@@ -419,9 +419,9 @@ impl ResultsState {
                 } else {
                     ""
                 };
-                row.push_str(&format!("#{:<2} {:<10}{}", pos + 1, ename, missed));
+                row.push_str(&format!("{:<10}{}", ename, missed));
             } else {
-                row.push_str(&format!("#{:<2} {:<10}", pos + 1, "—"));
+                row.push_str(&format!(" {:<10}", "—"));
             }
             display_lines.push(row);
 
@@ -466,7 +466,7 @@ impl ResultsState {
             .cloned()
             .collect::<Vec<_>>()
             .join("\n");
-        let block = Block::bordered().title(" 用例详情 ").fg(Color::Yellow);
+        let block = Block::bordered().title(" 用例详情 ").fg(Color::Cyan);
         let inner = block.inner(layout[0]);
         block.render(layout[0], frame.buffer_mut());
         frame.render_widget(Paragraph::new(content).wrap(Wrap { trim: false }), inner);
