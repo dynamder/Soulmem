@@ -9,6 +9,7 @@ use ratatui::Frame;
 use crate::base::{TestReport, Transition};
 use crate::eval::retrieve_suite::RetrieveCaseData;
 use crate::tui::components::status_bar;
+use soul_mem_core::memory_note::MemoryId;
 
 #[derive(PartialEq, Eq)]
 pub enum ResultTab {
@@ -362,22 +363,125 @@ impl ResultsState {
         }
         lines.push(String::new());
 
-        // Retrieved ranking with node summary
-        lines.push(" ── 检索结果 (top 10) ──".into());
-        for (pos, id) in data.combined_retrieved_ids.iter().take(10).enumerate() {
-            let suffix = match data.id_names.as_ref().and_then(|m| m.get(id)) {
-                Some(s) => format!(
-                    "  [{}]  {}  {}  [{}]",
-                    s.type_label,
-                    s.primary.chars().take(24).collect::<String>(),
-                    s.secondary.chars().take(16).collect::<String>(),
-                    s.tags.join(",").chars().take(20).collect::<String>(),
-                ),
-                None => format!("  {}", id),
-            };
-            lines.push(format!("  #{:<2} {}", pos + 1, suffix));
+        // ── Side-by-side: actual vs expected results ──
+        lines.push(" ── 检索结果 vs 预期 ──".into());
+        // Build hit set: which expected IDs were found in retrieved
+        let retrieved_set: std::collections::HashSet<&MemoryId> =
+            data.combined_retrieved_ids.iter().take(10).collect();
+        let expected_hit: Vec<bool> = data
+            .expected_combined_ranking
+            .iter()
+            .map(|eid| retrieved_set.contains(eid))
+            .collect();
+
+        let n_max = data
+            .combined_retrieved_ids
+            .len()
+            .min(10)
+            .max(data.expected_combined_ranking.len().min(5));
+        lines.push(format!(
+            "  {:<8} {:<13}  {:<6}  {:<13}",
+            "实际检出", "", "期望排序", ""
+        ));
+        for pos in 0..n_max {
+            let mut row = String::new();
+            // Left: actual
+            if let Some(id) = data.combined_retrieved_ids.get(pos) {
+                let name = data
+                    .graph_names
+                    .as_ref()
+                    .and_then(|m| m.get(id))
+                    .cloned()
+                    .unwrap_or_default();
+                let summary = data.id_names.as_ref().and_then(|m| m.get(id));
+                let (type_lbl, primary) = match summary {
+                    Some(s) => (
+                        s.type_label.chars().take(6).collect::<String>(),
+                        s.primary.chars().take(12).collect::<String>(),
+                    ),
+                    None => (String::new(), String::new()),
+                };
+                let is_hit = data.expected_combined_ranking.iter().any(|eid| eid == id);
+                let hit = if is_hit { " ✓" } else { " -" };
+                row.push_str(&format!(
+                    "  #{:<2} {:<10} [{:6}] {:<12} {}",
+                    pos + 1,
+                    name,
+                    type_lbl,
+                    primary,
+                    hit
+                ));
+            } else {
+                row.push_str(&format!("  #{:<2} {:24}  {}", pos + 1, "—", "  "));
+            }
+            // Right: expected
+            if let Some(eid) = data.expected_combined_ranking.get(pos) {
+                let ename = data
+                    .graph_names
+                    .as_ref()
+                    .and_then(|m| m.get(eid))
+                    .cloned()
+                    .unwrap_or_default();
+                let esummary = data.id_names.as_ref().and_then(|m| m.get(eid));
+                let (etype, eprimary) = match esummary {
+                    Some(s) => (
+                        s.type_label.chars().take(6).collect::<String>(),
+                        s.primary.chars().take(12).collect::<String>(),
+                    ),
+                    None => (String::new(), String::new()),
+                };
+                let missed = if !retrieved_set.contains(eid) {
+                    " ✗未命中"
+                } else {
+                    ""
+                };
+                row.push_str(&format!(
+                    "  #{:<2} {:<10} [{:6}] {:<12}{}",
+                    pos + 1,
+                    ename,
+                    etype,
+                    eprimary,
+                    missed
+                ));
+            } else {
+                row.push_str(&format!("  #{:<2} {:>24}", pos + 1, "—"));
+            }
+            lines.push(row);
         }
         lines.push(String::new());
+
+        // Missed expectations
+        let missed: Vec<&MemoryId> = data
+            .expected_combined_ranking
+            .iter()
+            .filter(|eid| !retrieved_set.contains(eid))
+            .collect();
+        if !missed.is_empty() {
+            let mut missed_line = "  未命中期望: ".to_string();
+            for (i, id) in missed.iter().enumerate() {
+                let name = data
+                    .graph_names
+                    .as_ref()
+                    .and_then(|m| m.get(*id))
+                    .cloned()
+                    .unwrap_or_default();
+                let summary = data.id_names.as_ref().and_then(|m| m.get(*id));
+                let extra = match summary {
+                    Some(s) => format!(
+                        "{} [{}]{}",
+                        name,
+                        s.type_label,
+                        s.primary.chars().take(12).collect::<String>()
+                    ),
+                    None => name,
+                };
+                if i > 0 {
+                    missed_line.push_str(", ");
+                }
+                missed_line.push_str(&extra);
+            }
+            lines.push(missed_line);
+        }
 
         let content = lines[self.drill_scroll..]
             .iter()

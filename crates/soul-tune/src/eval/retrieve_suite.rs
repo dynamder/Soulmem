@@ -159,6 +159,8 @@ pub struct RetrieveCaseData {
     pub tag_weight: f32,
     pub variant_weight: f32,
     pub id_names: Option<Arc<HashMap<MemoryId, NodeSummary>>>,
+    pub expected_combined_ranking: Vec<MemoryId>,
+    pub graph_names: Option<Arc<HashMap<MemoryId, String>>>,
 }
 
 #[derive(Clone)]
@@ -243,6 +245,7 @@ pub struct RetrieveSuite {
     query_embeddings: Vec<Vec<MemoryRetrieveQueryEmbedding>>,
     pipeline_mode: RetrieveMode,
     id_names: Arc<HashMap<MemoryId, NodeSummary>>,
+    graph_names: Arc<HashMap<MemoryId, String>>,
 }
 
 impl RetrieveSuite {
@@ -255,6 +258,14 @@ impl RetrieveSuite {
         let graph_dir = query_path.parent().unwrap_or(Path::new("."));
         let graph_path = graph_dir.join(&raw.graph_path);
         let (wm, id_map) = load_graph(&graph_path)?;
+
+        // Build reverse name map for drill-down display
+        let graph_names: Arc<HashMap<MemoryId, String>> = Arc::new(
+            id_map
+                .iter()
+                .map(|(name, id)| (*id, name.clone()))
+                .collect(),
+        );
 
         // Config meta
         let meta = TestCaseConfig {
@@ -385,6 +396,7 @@ impl RetrieveSuite {
             query_embeddings,
             pipeline_mode: mode,
             id_names,
+            graph_names,
         })
     }
 }
@@ -554,6 +566,8 @@ impl TestSuite for RetrieveSuite {
                 tag_weight: tcw.tag_weight,
                 variant_weight: tcw.variant_weight,
                 id_names: Some(self.id_names.clone()),
+                expected_combined_ranking: test_case.expected_combined_ranking.clone(),
+                graph_names: Some(self.graph_names.clone()),
             }),
         }
     }
@@ -599,6 +613,8 @@ impl TestSuite for RetrieveSuite {
                     tag_weight: data.tag_weight,
                     variant_weight: data.variant_weight,
                     id_names: data.id_names.clone(),
+                    expected_combined_ranking: data.expected_combined_ranking.clone(),
+                    graph_names: data.graph_names.clone(),
                 });
             }
         }
