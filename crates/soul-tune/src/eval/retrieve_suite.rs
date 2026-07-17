@@ -18,7 +18,7 @@ use soul_mem_runtime::working_memory::WorkingMemory;
 
 use crate::base::RetrieveMode;
 use crate::eval::dataset::{PerQueryExpectation, SubQuery, TestCaseConfig, TestCaseQuery};
-use crate::eval::loader::{get_bge_model, load_graph};
+use crate::eval::loader::{cached_load_graph, get_bge_model};
 use crate::eval::metrics::ranking::{compute_action_metrics, compute_ranking_metrics};
 use crate::eval::runner::{DetailRow, MetricGroup, SuiteReport, TestCaseOutcome, TestSuite};
 
@@ -265,7 +265,7 @@ impl RetrieveSuite {
         // Load graph
         let graph_dir = query_path.parent().unwrap_or(Path::new("."));
         let graph_path = graph_dir.join(&raw.graph_path);
-        let (wm, id_map) = load_graph(&graph_path)?;
+        let (wm, id_map) = cached_load_graph(&graph_path)?;
 
         // Build reverse name map for drill-down display
         let graph_names: Arc<HashMap<MemoryId, String>> = Arc::new(
@@ -568,8 +568,7 @@ impl TestSuite for RetrieveSuite {
             }
         };
 
-        let passed =
-            combined_ranking.hit_rate > 0.0 || test_case.expected_combined_ranking.is_empty();
+        let passed = combined_ranking.hit_rate > 0.0;
 
         TestCaseOutcome {
             case_name: test_case.name.clone(),

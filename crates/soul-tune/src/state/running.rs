@@ -11,6 +11,7 @@ use ratatui::Frame;
 use std::collections::HashMap;
 
 use crate::base::{AlgoType, TestConfig, TestReport, Transition};
+use crate::component::{Component, ComponentEvent};
 use crate::eval::retrieve_suite::RetrieveSuite;
 use crate::eval::runner::{SuiteReport, TestCaseOutcome, TestSuite};
 use crate::tui::components::status_bar;
@@ -260,6 +261,23 @@ impl RunningState {
             }
             _ => Transition::None,
         }
+    }
+
+    fn handle_tick(&mut self) -> Option<Transition> {
+        self.tick()
+    }
+}
+
+impl Component for RunningState {
+    fn handle_event(&mut self, event: ComponentEvent) -> Transition {
+        match event {
+            ComponentEvent::Key(key) => self.handle_key(key),
+            ComponentEvent::Tick => self.handle_tick().unwrap_or(Transition::None),
+            _ => Transition::None,
+        }
+    }
+    fn view(&self, frame: &mut Frame) {
+        self.render(frame);
     }
 }
 

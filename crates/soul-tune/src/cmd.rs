@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 
-use std::path::PathBuf;
-
 use crate::{
-    base::{SoulTuneEvent, Transition},
+    base::SoulTuneEvent,
     utils::fuzzy::{fuzzy_match, FuzzyPatternBuilder},
 };
 
@@ -143,17 +141,5 @@ impl CmdRegistry {
     }
     pub fn fuzzy_cmd_completions(&self, _query: &str) -> Vec<String> {
         todo!()
-    }
-}
-
-pub fn parse_inspect_command(args: &[String]) -> Option<Transition> {
-    if args.is_empty() {
-        return None;
-    }
-    let path = PathBuf::from(&args[0]);
-    if path.exists() {
-        Some(Transition::ToInspect(path))
-    } else {
-        None
     }
 }

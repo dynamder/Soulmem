@@ -1,0 +1,1772 @@
+{
+  "name": "batch_阿兰_吉约丹_https_zh_moegirl_org_cn_E9_98_BF_E5_85_B0_C2_B7_E5_90_89_E7_BA_A6_E4_B8_B9",
+  "description": "Batch generated test data for 阿兰_吉约丹_https_zh_moegirl_org_cn_E9_98_BF_E5_85_B0_C2_B7_E5_90_89_E7_BA_A6_E4_B8_B9",
+  "graph_path": "graph.json",
+  "config": {
+    "similarity_threshold": 0.0,
+    "max_results": 10,
+    "test_k_values": [
+      1,
+      3,
+      5
+    ]
+  },
+  "test_cases": [
+    {
+      "name": "query_0",
+      "description": "atomic query 0",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "自身"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "护国的白骑士",
+                "description": "枫丹科学院首任院长，发明始基力体系的人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_1",
+      "description": "atomic query 1",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "妹妹"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "他的义妹",
+                "description": "那个在厄里那斯与纯水精灵融合的坚强女性"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_marianne"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_marianne"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_2",
+      "description": "atomic query 2",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "曾经的挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "水仙十字结社的首领",
+                "description": "童年伙伴，后来试图用深渊力量救世的人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_rene"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_rene"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "恩人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那位救了他们的副院长",
+                "description": "原枫丹海军司令，在深渊灾厄中牺牲自己"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_besser"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_besser"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "造物",
+            "能源"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "芒荒能量体系",
+                "description": "使枫丹发条机关运作的核心能源，由阿兰发明"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_pneuma_ousia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_pneuma_ousia"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "造物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "愚人众执行官第七席木偶",
+                "description": "以妹妹为原型的发条人偶，继承普隆尼亚的人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_little_marianne"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_little_marianne"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "物品",
+            "造物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那只有思考能力的机器狗",
+                "description": "原型机4ACV07，具备留影和警戒功能，但主人从不承认"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_westmor"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_westmor"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "地点",
+            "孤儿院"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "曾经的水仙十字院",
+                "description": "枫丹的孤儿院，在洪水后被淹没解散"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_narcissus_cross"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_narcissus_cross"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "人物",
+            "学院长"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "自然哲学学院的院长",
+                "description": "阿兰养父的朋友，为其研究提供了大量资源"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_dwright"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_dwright"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "价值观",
+            "口头禅"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "阿兰的口头禅",
+                "description": "很遗憾，但这就是结局，这句话体现了他的哲学"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_value_accept_end"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_value_accept_end"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "合作者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "审判官那维莱特",
+                "description": "逐影庭时期与阿兰合作对抗结社的最高审判官"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_neuvillette"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_neuvillette"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "概念",
+            "组织"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "水仙十字结社",
+                "description": "以救世为名研究深渊力量，后被认定为非法组织"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_covenant"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_covenant"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "童年",
+            "水仙十字院",
+            "角色扮演"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在孤儿院里，他们四个人一起玩勇者斗恶龙的角色扮演游戏",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_childhood_play"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_childhood_play"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "洪水",
+            "收养"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "洪水淹没孤儿院时，副院长贝瑟将兄妹俩托付给了养父",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_flood_cross"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_flood_cross"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "发明",
+            "始基力"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在实验室里点燃了第一盏芒荒能量灯泡，助手卡特打翻了墨水瓶",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_lamp_invention"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_lamp_invention"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "悲剧",
+            "决裂"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "卡特病危时被雷内和雅各布用深渊力量救治，结果变成怪物，阿兰从此与雷内决裂",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_carter_monster"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_carter_monster"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "决战",
+            "厄里那斯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在厄里那斯体内决战，玛丽安与纯水精灵融合，西摩尔损毁，雷内投身原始胎海",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_erinyes_battle"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_erinyes_battle"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "创造",
+            "人偶"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "六十五岁生日时，在私人工坊完成了以妹妹为原型的发条人偶",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_create_little_marianne"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_create_little_marianne"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "临终",
+            "嘱托"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "临终前将普隆尼亚交给小玛丽安，委托她销毁手稿，并给了她寻找自己人生的嘱托",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_last_words"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_last_words"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "日常",
+            "责骂"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "玛丽安经常责备阿兰因研究而忽视了生活",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_being_scolded_by_marianne"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_being_scolded_by_marianne"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "晚年",
+            "隐居"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "晚年一个人在工坊里专注研究，孤独而深沉的环境",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_workshop_state"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_workshop_state"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "养父"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那位戴面具的养父在洪水中收养了他和玛丽安",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_flood_cross"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_flood_cross"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "物品",
+            "机器狗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在厄里那斯决战中，那只有思考能力的机器狗损毁了",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_erinyes_battle"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_erinyes_battle"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_23",
+      "description": "atomic query 23",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "哲学",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "独自一人在工坊里废寝忘食地研究，毫不在意专利和名声",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_workshop_state"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_workshop_state"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_rene",
+      "description": "查询雷内·德·佩特莉可相关人物与事件",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "曾经的挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "水仙十字结社的首领",
+                "description": "那个童年玩伴，后来试图用深渊力量拯救世界的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "曾经的挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "大师",
+                "description": "阿兰的童年挚友，最后投身原始胎海说会回来的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "曾经的挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个曾经的恶龙",
+                "description": "在角色扮演中总演恶龙，长大后建立了秘密结社"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "曾经的挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "佩特莉可家的男孩",
+                "description": "阿兰因卡特事件彻底决裂的那个人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "曾经的挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "背道而驰的救世主",
+                "description": "想用深渊力量拯救世界，却失去了最亲近的朋友"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "曾经的挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "雷内大师",
+                "description": "阿兰在孤儿院认识的最聪明的孩子，后来成了敌对组织的首领"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_rene"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_rene"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_rene"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_rene"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_rene"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_rene"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_rene"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_promion",
+      "description": "查询普隆尼亚机关及其继承者",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "物品",
+            "造物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个用于计算未知事物的机关",
+                "description": "阿兰晚年创造的精密装置，后来交给了发条人偶"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "物品",
+            "造物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "普隆尼亚",
+                "description": "阿兰临终前委托销毁手稿时交给小玛丽安的东西"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "物品",
+            "造物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "装在盒子里的计算器？",
+                "description": "被小玛丽安继承的那个能处理未知数据的机关"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "物品",
+            "造物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "枫丹科学院院长的遗物",
+                "description": "阿兰晚年最得意的计算工具，随小玛丽安离开了枫丹"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "物品",
+            "造物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个机关",
+                "description": "阿兰在工坊里创造的最后一件作品，被用来计算未知事物"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "物品",
+            "造物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "新生的计算核心",
+                "description": "阿兰曾用它来研究神秘现象，后来传给了他的『女儿』"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_promion"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_promion"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_promion"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_promion"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_promion"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_promion"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_promion"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_erinyes",
+      "description": "查询厄里那斯体内决战的关键细节",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "决战",
+            "厄里那斯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "巨兽体内，同伴们各自走向了不同的结局，阿兰最后关上门离开了",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "决战",
+            "厄里那斯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "逐影庭与结社的最终对决，在那头古代巨兽的遗骸中进行",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "决战",
+            "厄里那斯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "玛丽安与纯水精灵融合变成了新形态，西摩尔在那场战斗中损毁了",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "决战",
+            "厄里那斯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "雷内投身原始胎海，雅各布失踪，阿兰默默转身没有彻底搜查",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "决战",
+            "厄里那斯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在格式塔据点，结社的终点，也是阿兰与童年朋友们最后的交集",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "决战",
+            "厄里那斯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "厄里那斯体内那场悲壮的决战，结束了很多人的羁绊",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_erinyes_battle"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_erinyes_battle"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_erinyes_battle"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_erinyes_battle"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_erinyes_battle"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_erinyes_battle"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_erinyes_battle"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_carter_monster",
+      "description": "查询卡特被转化为怪物的事件及其影响",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "悲剧",
+            "决裂"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "卡特病重时，雷内和雅各布用了深渊力量，结果他变成了一个可怕的怪物",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "悲剧",
+            "决裂"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "为了救卡特，雷内尝试了禁忌的方法，导致卡特失去人形",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "悲剧",
+            "决裂"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "阿兰眼睁睁看着助手被改造成非人之物，从此与雷内决裂",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "悲剧",
+            "决裂"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "卡特事件是阿兰与雷内关系破裂的直接原因，也是阿兰心中永远无法抹去的痛苦",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "悲剧",
+            "决裂"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那个提出有思考能力留影机设想的助手，最后以深渊怪物的形态结束了一生",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "悲剧",
+            "决裂"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "阿兰的助手卡特患有绝症，雷内的『治疗』反而让他变成了不可名状的存在",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_carter_monster"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_carter_monster"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_carter_monster"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_carter_monster"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_carter_monster"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_carter_monster"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_carter_monster"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_pneuma_invention",
+      "description": "查询始基力体系的发明及其关键场景",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "造物",
+            "能源",
+            "发明"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "芒荒湮灭能量",
+                "description": "阿兰发明的可控湮灭能源体系，改变了枫丹发条机关"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "造物",
+            "能源",
+            "发明"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在学院的实验室里，阿兰第一次点亮了芒荒能量灯泡，卡特打翻了墨水瓶",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "造物",
+            "能源",
+            "发明"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "始基力",
+                "description": "阿兰没有申请专利的能源发明，后来广泛应用于枫丹"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "造物",
+            "能源",
+            "发明"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "第一盏由可控湮灭驱动的灯泡亮起，阿兰却嫌申请专利太麻烦",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "造物",
+            "能源",
+            "发明"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "Pneuma-Ousia体系",
+                "description": "使枫丹能量革命成为可能的理论，但发明者并不在意名声"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "造物",
+            "能源",
+            "发明"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "阿兰和卡特在实验室里见证了芒荒湮灭的成功，那一刻的激动和墨水瓶的狼狈",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_pneuma_ousia"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_lamp_invention"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_pneuma_ousia"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_lamp_invention"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_pneuma_ousia"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_lamp_invention"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_pneuma_ousia",
+        "sit_lamp_invention"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_marianne_relation",
+      "description": "查询阿兰与妹妹玛丽安之间的关系与互动",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "家人",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "阿兰的义妹",
+                "description": "那个总责备他太沉迷研究的坚强女孩"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "家人",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "玛丽安常因为阿兰埋头研究不去吃饭而责备他",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "家人",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "水仙十字院的公主",
+                "description": "在角色扮演中总是扮演公主，后来与纯水精灵融合的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "家人",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "妹妹因为他沉浸在研究中忽视健康而生气",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "家人",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "阿兰最思念的人",
+                "description": "他后来以她为原型制作了发条人偶，无法停止的怀念"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "家人",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在孤儿院的院子里，他和妹妹还有两个男孩一起玩角色扮演",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_marianne"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_being_scolded_by_marianne"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_marianne"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_being_scolded_by_marianne"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_marianne"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_childhood_play"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_marianne",
+        "sit_being_scolded_by_marianne",
+        "sit_childhood_play"
+      ],
+      "expected_actions": []
+    }
+  ]
+}

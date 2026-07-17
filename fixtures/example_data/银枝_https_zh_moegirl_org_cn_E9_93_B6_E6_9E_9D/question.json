@@ -1,0 +1,1999 @@
+{
+  "name": "batch_银枝_https_zh_moegirl_org_cn_E9_93_B6_E6_9E_9D",
+  "description": "Batch generated test data for 银枝_https_zh_moegirl_org_cn_E9_93_B6_E6_9E_9D",
+  "graph_path": "graph.json",
+  "config": {
+    "similarity_threshold": 0.0,
+    "max_results": 10,
+    "test_k_values": [
+      1,
+      3,
+      5
+    ]
+  },
+  "test_cases": [
+    {
+      "name": "query_0",
+      "description": "atomic query 0",
+      "sub_queries": [
+        {
+          "priority": 10,
+          "tag": [
+            "角色"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "红发绿瞳的银甲骑士",
+                "description": "一位赤红长发、翠绿瞳孔，身披银白甲胄的授勋骑士"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_1",
+      "description": "atomic query 1",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "角色",
+            "星神"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "以纯美为命途的星神",
+                "description": "他毕生侍奉的女神，据传已经陨落但每隔十三琥珀纪会回归"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_idrila"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_idrila"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_2",
+      "description": "atomic query 2",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "相遇"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝第一次在星穹列车上见到拓荒者时，被对方的内心纯净所吸引",
+                "location": [
+                  {
+                    "name": "星穹列车"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "拓荒者",
+                    "role": "旅客"
+                  },
+                  {
+                    "name": "银枝",
+                    "role": "访客"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_first_meeting"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_first_meeting"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "与银枝决斗的挚友",
+                "description": "星穹列车的无名客，银枝的忠实同伴，内心澄澈如明镜"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_trailblazer"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_trailblazer"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "三个大宝贝之一",
+                "description": "银枝在匹诺康尼结识的巡海游侠，作风狂放但内心正义"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_bootie"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_bootie"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "决斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝向拓荒者发起骑士道决斗，想让他承认伊德莉拉的美貌，结果反而输了",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "拓荒者",
+                    "role": "对手"
+                  },
+                  {
+                    "name": "银枝",
+                    "role": "挑战者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "决斗",
+                    "initiator": "银枝",
+                    "target": "拓荒者"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_duel"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_duel"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "物品",
+            "飞船"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "希世难得号",
+                "description": "银枝的个人飞船，外观繁复精致，名字取自堂·吉诃德"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_ship"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_ship"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "概念",
+            "试炼"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "三重魔鬼的诱惑",
+                "description": "纯美骑士都需要经历的考验，银枝曾在此以枪斩下各种诱惑"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_mirror_trial"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_mirror_trial"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "冒险"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝和拓荒者被一只巨真蛰虫吞入腹中，他准备用长枪攻击胃壁让列车脱困",
+                "location": [
+                  {
+                    "name": "巨真蛰虫腹中"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "拓荒者",
+                    "role": "同伴"
+                  },
+                  {
+                    "name": "银枝",
+                    "role": "行动者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_giant_true_sting"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_giant_true_sting"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "概念",
+            "准则"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "谦卑怜悯公正",
+                "description": "银枝一生遵循的骑士准则，以虔诚的战代替吟咏的诗"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_knighthood"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_knighthood"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "组织",
+            "骑士团"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "信奉伊德莉拉的骑士组织",
+                "description": "银枝所属的纯美骑士团，成员各自修行，向宇宙播撒美名"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_knight_order"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_knight_order"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "匹诺康尼"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在匹诺康尼，拓荒者击败了名为星期日的对手，银枝由衷钦佩拓荒者在纯美之路上走得更远",
+                "location": [
+                  {
+                    "name": "匹诺康尼"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "击败",
+                    "initiator": "拓荒者",
+                    "target": "星期日"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_penacony_sunday"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_penacony_sunday"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "物品",
+            "音乐"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "银枝随身携带的乐器",
+                "description": "一枚陶笛，是曾被救的孩子赠予的礼物，银枝吹奏不佳但珍爱它"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_ocatina"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_ocatina"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "师长"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "传授纯美之道的老者",
+                "description": "银枝的恩师，教会他以战为诗，未授完便离世"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_master"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_master"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "试炼"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在幻境中，三重魔鬼用各种呓语诱惑银枝，他用长枪一一斩下，最后听到声音宣告他通过了镜之试炼",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "三重魔鬼",
+                    "role": "诱惑者"
+                  },
+                  {
+                    "name": "银枝",
+                    "role": "受试者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "诱惑",
+                    "initiator": "三重魔鬼",
+                    "target": "银枝"
+                  },
+                  {
+                    "action": "斩下",
+                    "initiator": "银枝",
+                    "target": "三重魔鬼"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_mirror_trial"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_mirror_trial"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "仙舟"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "仙舟朱明来的年轻剑士",
+                "description": "与银枝因一把剑产生冲突，后一起为云骑士立墓"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_yunli"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_yunli"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "救援"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝在前往匹诺康尼的路上顺手救了一位公司的人，那人是砂金",
+                "location": [
+                  {
+                    "name": "前往匹诺康尼途中"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "救下",
+                    "initiator": "银枝",
+                    "target": "砂金"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_save_sandgold"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_save_sandgold"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "冲突"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝和云璃因为对一把剑的理解不同而产生争执，最后一起为英雄云骑士和佩剑孤云立墓哀悼",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "银枝",
+                    "role": "冲突者"
+                  },
+                  {
+                    "name": "云璃",
+                    "role": "剑士"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "冲突",
+                    "initiator": "银枝与云璃",
+                    "target": "对剑的理解"
+                  },
+                  {
+                    "action": "立墓哀悼",
+                    "initiator": "银枝与云璃",
+                    "target": "云骑士与孤云"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_gu_yun"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_gu_yun"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "纯美骑士团"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "变成审美者的前骑士",
+                "description": "曾与银枝同行的纯美骑士，后来迷失在力量中，铠甲变为鳞皮，让银枝恐惧自己也堕落"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fallen_knight"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fallen_knight"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "星穹列车成员"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "制止决斗的成熟男性",
+                "description": "银枝敬佩他远见与冷静，在蛰虫腹中阻止了银枝与拓荒者的决斗"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_walter"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_walter"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "事件",
+            "童年"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝童年时在战火中躲避炮火，从石板下找到一枚陶笛，吹奏虽然难听但那是他的精神寄托",
+                "location": [
+                  {
+                    "name": "战火中的家乡"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "找到陶笛",
+                    "initiator": "银枝",
+                    "target": "陶笛"
+                  },
+                  {
+                    "action": "吹奏",
+                    "initiator": "银枝",
+                    "target": "陶笛"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_childhood_ocatina"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_childhood_ocatina"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "事件",
+            "赠物"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝救下一个孩子，孩子赠予他一枚陶笛，他尝试吹奏依然难听但开心地笑了，并把陶笛收好",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "救下",
+                    "initiator": "银枝",
+                    "target": "孩子"
+                  },
+                  {
+                    "action": "赠予陶笛",
+                    "initiator": "孩子",
+                    "target": "银枝"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_gift_ocatina"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_gift_ocatina"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "事件",
+            "教育"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "卢卡和波提欧比赛后，银枝专门去找波提欧进行了三个时辰的思想教育，批评他以性命威胁对手的做法",
+                "location": [
+                  {
+                    "name": "波提欧的住处"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "思想教育",
+                    "initiator": "银枝",
+                    "target": "波提欧"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_bootie_education"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_bootie_education"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_23",
+      "description": "atomic query 23",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "贝洛伯格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "贝洛伯格的铁拳战士",
+                "description": "在星天演武仪典中面对银枝毫不退缩，其铁拳赢得了纯美认可"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_luka"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_luka"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_24",
+      "description": "atomic query 24",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝、拓荒者、波提欧和青雀四人一起对抗一个叫四尺圣堂的矮个子邪教组织，救出了青雀",
+                "location": [
+                  {
+                    "name": "匹诺康尼"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "对抗邪教",
+                    "initiator": "我们四人",
+                    "target": "四尺圣堂"
+                  },
+                  {
+                    "action": "救出",
+                    "initiator": "我们",
+                    "target": "青雀"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_four_church"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_four_church"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_trailblazer",
+      "description": "查询银枝最重要的挚友——拓荒者",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "星穹列车的无名客",
+                "description": "银枝的挚友，内心澄澈如明镜，曾与银枝进行过骑士道决斗"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "打败星期日的英雄",
+                "description": "在匹诺康尼践行纯美之路比银枝更远的那个人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "银枝认可的骑士",
+                "description": "银枝在星穹列车上第一次见到就感到吸引的旅者"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "与银枝并肩作战的伙伴",
+                "description": "一起在蛰虫腹中冒险，在匹诺康尼战斗的那个人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "开拓者",
+                "description": "银枝称其为挚友的无名客，行为高尚"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "列车上的重要之人",
+                "description": "银枝在银河中最信任的伙伴"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_trailblazer"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_trailblazer"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_trailblazer"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_trailblazer"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_trailblazer"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_trailblazer"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_trailblazer"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_giant_true_sting",
+      "description": "查询银枝被巨真蛰虫吞入的事件",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "冒险"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝和列车组被一只巨大的虫子吞进肚子里，他计划用长枪攻击胃壁",
+                "location": [
+                  {
+                    "name": "巨真蛰虫腹中"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "拓荒者",
+                    "role": "同伴"
+                  },
+                  {
+                    "name": "银枝",
+                    "role": "行动者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "冒险"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "一只巨兽把整列星穹列车吞了下去，银枝自愿下到胃里攻击它",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "攻击胃壁",
+                    "initiator": "银枝",
+                    "target": "巨真蛰虫胃壁"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "冒险"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝在救援公司职员维利特时，发现幕后黑手是藏在铠甲里的迷你真蛰虫",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "冒险"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝与列车组在蛰虫腹中，他做好了牺牲的准备来让列车脱困",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "银枝",
+                    "role": "牺牲者"
+                  },
+                  {
+                    "name": "拓荒者",
+                    "role": "同伴"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "冒险"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝提议自己单独下列车去攻击巨虫的胃壁，展现出无畏的勇气",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "冒险"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在巨真蛰虫体内，瓦尔特制止了银枝和拓荒者的决斗，银枝此后继续行动",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_giant_true_sting"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_giant_true_sting"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_giant_true_sting"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_giant_true_sting"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_giant_true_sting"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_giant_true_sting"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_giant_true_sting"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_ocatina",
+      "description": "查询银枝的陶笛及其相关经历",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "物品",
+            "事件"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "银枝珍藏的乐器",
+                "description": "一枚陶笛，是孩子赠予的礼物，银枝吹奏得糟糕但因爱它而珍视"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "物品",
+            "事件"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "童年的精神寄托",
+                "description": "战火中找到的陶笛，陪伴他度过艰难时光"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "物品",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝救下一个孩子，孩子送给他一枚陶笛作为答谢",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "物品",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝在某个地方吹奏陶笛，虽然声音很糟糕但他仍然开怀大笑",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "物品",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝在地下躲炮火时从石板下找到一枚陶笛，吹奏得不成调但那是他的逃避之地",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "物品",
+            "事件"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被妥善收藏的陶笛",
+                "description": "银枝随身携带并珍爱的陶笛，是纯美信念的象征之一"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "物品",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝有两枚陶笛相关的记忆：童年时捡到一枚，后来又被赠予一枚",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_ocatina"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_ocatina"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_ocatina"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_ocatina"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_ocatina"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_ocatina"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_ocatina"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_ocatina"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_mirror_trial",
+      "description": "查询镜之试炼——纯美骑士的考验",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "概念",
+            "试炼"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "三重魔鬼的考验",
+                "description": "纯美骑士必须经历的试炼，银枝曾以枪斩下魔鬼"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "概念",
+            "试炼"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "镜之试炼",
+                "description": "每次胜利都要看到自己想作恶的心"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "概念",
+            "试炼"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "银枝通过的考验",
+                "description": "在幻境中面对权力、战戮、欲望等诱惑并战胜它们"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "概念",
+            "试炼"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "纯美命途的入门试炼",
+                "description": "心怀荣誉的骑士才能通过，银枝已经成功经历"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "概念",
+            "试炼"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "魔鬼的呓语",
+                "description": "庸俗逐利、权力王冠、魅惑之音等诱惑组成的考验"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_mirror_trial"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_mirror_trial"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_mirror_trial"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_mirror_trial"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_mirror_trial"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_mirror_trial"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_bootie_chase",
+      "description": "查询银枝与波提欧一起追缉犯罪组织的事件",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "合作"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝和波提欧在匹诺康尼一起追捕一个罪恶团伙，行动中波提欧称他们三个为三个大宝贝",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "合作"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝、波提欧和拓荒者三人组成小队，在匹诺康尼打击犯罪组织",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "合作"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "波提欧称银枝和拓荒者是自己的大宝贝，他们一起执行追缉任务",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "合作"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在匹诺康尼期间，银枝见识了波提欧狂放不羁的作风，两人合作追捕敌人",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "合作"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝与一位巡海游侠并肩作战，追缉罪恶组织，期间结下了友谊",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "合作"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "银枝和波提欧首次相识后便一起行动，打击犯罪维护正义",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_bootie_chase"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_bootie_chase"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_bootie_chase"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_bootie_chase"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_bootie_chase"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_bootie_chase"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_bootie_chase"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_knight_belief",
+      "description": "查询银枝的骑士信念——纯美与骑士道",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "概念",
+            "价值观"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "银枝毕生追求的理想",
+                "description": "一种超越世俗的纯粹美，存在于玫瑰、赤诚之心和星河之中"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "概念",
+            "价值观"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "纯美",
+                "description": "银枝存在的全部意义，他为此战斗、旅行、歌颂"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "概念",
+            "准则"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "骑士道",
+                "description": "谦卑、怜悯、公正，银枝从未违背的誓言"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "概念",
+            "准则"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "银枝的行为准则",
+                "description": "以虔诚的战代替吟咏的诗，每次战斗前以骑士礼节致意"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "概念",
+            "价值观"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "美",
+                "description": "银枝认为一朵玫瑰、一颗高尚灵魂都属于美的范畴"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "概念",
+            "准则"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "坚定信仰",
+                "description": "银枝一路践行骑士道，即使面对堕落同行也未曾动摇"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "概念",
+            "价值观"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "玫瑰代表的信念",
+                "description": "银枝以玫瑰为信物，手机壳和短信签名都是玫瑰意象"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "概念",
+            "价值观"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "伊德莉拉的美",
+                "description": "银枝侍奉的星神所代表的纯美，是他一切行动的起点与终点"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_pure_beauty"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_pure_beauty"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_knighthood"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_knighthood"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_pure_beauty"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_knighthood"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_pure_beauty"
+          ]
+        },
+        {
+          "q": 7,
+          "ranking": [
+            "sem_pure_beauty"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_pure_beauty",
+        "sem_knighthood"
+      ],
+      "expected_actions": []
+    }
+  ]
+}

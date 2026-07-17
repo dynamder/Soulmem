@@ -1,9 +1,12 @@
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::mpsc;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use crate::base::RetrieveMode;
 use crate::eval::retrieve_suite::RetrieveSuite;
-use crate::eval::runner::SuiteReport;
+use crate::eval::runner::TestCaseOutcome;
 use crate::eval::runner::TestSuite;
 
 pub struct BatchResult {
@@ -22,6 +25,7 @@ pub struct DatasetResult {
     pub failed: usize,
     pub pass_rate: f64,
     pub elapsed: Duration,
+    pub outcomes: Vec<TestCaseOutcome>,
     pub error: Option<String>,
 }
 
@@ -52,6 +56,99 @@ fn scan_recursive(dir: &Path, results: &mut Vec<PathBuf>) {
     }
 }
 
+pub fn process_one_dataset(
+    path: &Path,
+    mode: RetrieveMode,
+    ds_start: Instant,
+    progress_cb: impl Fn(f64, &str),
+    msg: impl Fn(String),
+) -> DatasetResult {
+    let name = path
+        .parent()
+        .and_then(|p| p.file_name())
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_else(|| path.to_string_lossy().to_string());
+
+    progress_cb(0.1, "加载图数据...");
+    match RetrieveSuite::load(path, mode) {
+        Ok(suite) => {
+            let n = suite.case_count();
+            if n == 0 {
+                msg(format!("  {}: 0 用例", name));
+                progress_cb(1.0, "0 用例");
+                return DatasetResult {
+                    name,
+                    path: path.to_path_buf(),
+                    total: 0,
+                    passed: 0,
+                    failed: 0,
+                    pass_rate: 0.0,
+                    elapsed: ds_start.elapsed(),
+                    outcomes: Vec::new(),
+                    error: None,
+                };
+            }
+            let mut passed = 0;
+            let mut outcomes = Vec::with_capacity(n);
+            for j in 0..n {
+                let outcome = suite.run_case(j);
+                if outcome.passed {
+                    passed += 1;
+                }
+                outcomes.push(outcome);
+                progress_cb(
+                    0.3 + 0.65 * (j as f64 + 1.0) / n as f64,
+                    &format!("运行 {}/{} 测试", j + 1, n),
+                );
+            }
+            progress_cb(
+                1.0,
+                &format!(
+                    "{:.1}s 通过 {}/{} ({:.0}%)",
+                    ds_start.elapsed().as_secs_f64(),
+                    passed,
+                    n,
+                    if n > 0 {
+                        passed as f64 / n as f64 * 100.0
+                    } else {
+                        0.0
+                    },
+                ),
+            );
+            DatasetResult {
+                name,
+                path: path.to_path_buf(),
+                total: n,
+                passed,
+                failed: n - passed,
+                pass_rate: if n > 0 {
+                    passed as f64 / n as f64 * 100.0
+                } else {
+                    0.0
+                },
+                elapsed: ds_start.elapsed(),
+                outcomes,
+                error: None,
+            }
+        }
+        Err(e) => {
+            progress_cb(1.0, &format!("✗ {}", e));
+            msg(format!("  {}: ✗ {}", name, e));
+            DatasetResult {
+                name,
+                path: path.to_path_buf(),
+                total: 0,
+                passed: 0,
+                failed: 0,
+                pass_rate: 0.0,
+                elapsed: ds_start.elapsed(),
+                outcomes: Vec::new(),
+                error: Some(format!("{}", e)),
+            }
+        }
+    }
+}
+
 /// Run a batch of datasets sequentially.
 /// Reports progress to `on_progress(done, total)` if provided.
 pub fn run_batch(
@@ -60,75 +157,58 @@ pub fn run_batch(
     on_progress: Option<&dyn Fn(usize, usize)>,
 ) -> BatchResult {
     let start = Instant::now();
-    let mut results = Vec::with_capacity(datasets.len());
+    let total = datasets.len();
+    let mut results = Vec::with_capacity(total);
     let mut total_cases = 0;
     let mut total_passed = 0;
     let mut total_failed = 0;
 
-    for (i, path) in datasets.iter().enumerate() {
-        if let Some(cb) = on_progress {
-            cb(i, datasets.len());
-        }
+    let counter = Arc::new(AtomicUsize::new(0));
+    let (tx, rx) = mpsc::channel::<(usize, DatasetResult)>();
+    let n_workers = 4.min(total).max(1);
 
-        let ds_start = Instant::now();
-        let name = path
-            .parent()
-            .and_then(|p| p.file_name())
-            .map(|n| n.to_string_lossy().to_string())
-            .unwrap_or_else(|| path.to_string_lossy().to_string());
-
-        match RetrieveSuite::load(path, mode) {
-            Ok(suite) => {
-                let n = suite.case_count();
-                let mut passed = 0;
-                let mut outcomes = Vec::with_capacity(n);
-                for j in 0..n {
-                    let outcome = suite.run_case(j);
-                    if outcome.passed {
-                        passed += 1;
-                    }
-                    outcomes.push(outcome);
+    for _ in 0..n_workers {
+        let datasets = datasets.to_vec();
+        let mode = mode;
+        let counter = Arc::clone(&counter);
+        let tx = tx.clone();
+        std::thread::Builder::new()
+            .name("batch-worker".into())
+            .spawn(move || loop {
+                let i = counter.fetch_add(1, Ordering::Relaxed);
+                if i >= datasets.len() {
+                    break;
                 }
-                let ds_elapsed = ds_start.elapsed();
-                total_cases += n;
-                total_passed += passed;
-                total_failed += n - passed;
-                results.push(DatasetResult {
-                    name,
-                    path: path.clone(),
-                    total: n,
-                    passed,
-                    failed: n - passed,
-                    pass_rate: if n > 0 {
-                        passed as f64 / n as f64 * 100.0
-                    } else {
-                        0.0
-                    },
-                    elapsed: ds_start.elapsed(),
-                    error: None,
-                });
-            }
-            Err(e) => {
-                results.push(DatasetResult {
-                    name,
-                    path: path.clone(),
-                    total: 0,
-                    passed: 0,
-                    failed: 0,
-                    pass_rate: 0.0,
-                    elapsed: ds_start.elapsed(),
-                    error: Some(format!("{}", e)),
-                });
-            }
+                let ds_start = Instant::now();
+                let ds = process_one_dataset(&datasets[i], mode, ds_start, |_, _| {}, |_| {});
+                let _ = tx.send((i, ds));
+            })
+            .ok();
+    }
+    drop(tx);
+
+    let mut placed = 0usize;
+    if let Some(cb) = on_progress {
+        cb(0, total);
+    }
+    for (idx, ds) in rx {
+        if on_progress.is_some() {
+            placed += 1;
+        }
+        total_cases += ds.total;
+        total_passed += ds.passed;
+        total_failed += ds.failed;
+        results.push((idx, ds));
+        if let Some(cb) = on_progress {
+            cb(placed, total);
         }
     }
 
-    if let Some(cb) = on_progress {
-        cb(datasets.len(), datasets.len());
-    }
+    results.sort_by_key(|(idx, _)| *idx);
+    let datasets: Vec<DatasetResult> = results.into_iter().map(|(_, ds)| ds).collect();
 
     BatchResult {
-        datasets: results,
+        datasets,
         total_cases,
         total_passed,
         total_failed,

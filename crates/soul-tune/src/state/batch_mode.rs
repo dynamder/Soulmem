@@ -8,6 +8,7 @@ use ratatui::widgets::{Block, Paragraph};
 use ratatui::Frame;
 
 use crate::base::{RetrieveMode, Transition};
+use crate::component::{Component, ComponentEvent};
 use crate::tui::components::status_bar;
 
 pub struct BatchModeState {
@@ -80,5 +81,17 @@ impl BatchModeState {
             KeyCode::Esc => Transition::ToMain,
             _ => Transition::None,
         }
+    }
+}
+
+impl Component for BatchModeState {
+    fn handle_event(&mut self, event: ComponentEvent) -> Transition {
+        match event {
+            ComponentEvent::Key(key) => self.handle_key(key),
+            _ => Transition::None,
+        }
+    }
+    fn view(&self, frame: &mut Frame) {
+        self.render(frame);
     }
 }

@@ -1,0 +1,221 @@
+{
+  "queries": [
+    {
+      "priority": 8,
+      "tag": ["自身", "角色"],
+      "expected": {"must_include": ["sem_self"], "may_include": ["sem_shyness", "sem_tsundere"]},
+      "variant": {"Semantic": [{"concept_identifier": "这个表面开朗内心脆弱的吉他少女", "description": "姬松学院二年级，毒舌又容易害羞，和死鱼眼男生是恋人"}]}
+    },
+    {
+      "priority": 9,
+      "tag": ["人物", "恋人"],
+      "expected": {"must_include": ["sem_hoshina_toshi"], "may_include": ["sem_self", "sem_band"]},
+      "variant": {"Semantic": [{"concept_identifier": "那个抢先告白的死鱼眼男生", "description": "小学同学高中重逢，弹贝斯，是她男朋友"}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["人物", "朋友"],
+      "expected": {"must_include": ["sem_kaito_hideaki"], "may_include": ["sem_band", "sem_hoshina_toshi"]},
+      "variant": {"Semantic": [{"concept_identifier": "柊史那个爱组乐队的朋友", "description": "开朗活泼的同班男生，是她重要的朋友"}]}
+    },
+    {
+      "priority": 6,
+      "tag": ["人物", "同学"],
+      "expected": {"must_include": ["sem_ayachi_nene"], "may_include": ["sem_paranormal_club"]},
+      "variant": {"Semantic": [{"concept_identifier": "超自然研究部那个漂亮的女生", "description": "同班同学，温温柔柔的，人气很高"}]}
+    },
+    {
+      "priority": 6,
+      "tag": ["人物", "同学"],
+      "expected": {"must_include": ["sem_shiiba_tsumugi"], "may_include": ["sem_paranormal_club"]},
+      "variant": {"Semantic": [{"concept_identifier": "那个话不多但很神秘的同学", "description": "也是超自然研究部的，看起来有点酷"}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["人物", "老板"],
+      "expected": {"must_include": ["sem_soma_nanao"], "may_include": ["sem_schwarz_katze"]},
+      "variant": {"Semantic": [{"concept_identifier": "黑猫咖啡馆那个气场很强的女老板", "description": "对员工好但要求严格，她很尊敬"}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["人物", "家人"],
+      "expected": {"must_include": ["sem_father"], "may_include": ["sem_guitar"]},
+      "variant": {"Semantic": [{"concept_identifier": "爱弹吉他的父亲", "description": "让她迷上吉他的最重要的家人"}]}
+    },
+    {
+      "priority": 5,
+      "tag": ["地点", "学校"],
+      "expected": {"must_include": ["sem_himamatsu_gakuen"], "may_include": ["sem_class_2a"]},
+      "variant": {"Semantic": [{"concept_identifier": "她就读的那所高中", "description": "姬松学院，和恋人朋友都在2-A班"}]}
+    },
+    {
+      "priority": 6,
+      "tag": ["地点", "咖啡馆"],
+      "expected": {"must_include": ["sem_schwarz_katze"], "may_include": ["sem_soma_nanao"]},
+      "variant": {"Semantic": [{"concept_identifier": "那家德语名字的咖啡店", "description": "氛围温馨，混合咖啡好喝，她在这里打工"}]}
+    },
+    {
+      "priority": 8,
+      "tag": ["物品", "乐器"],
+      "expected": {"must_include": ["sem_guitar"], "may_include": ["sem_band", "proc_daily_practice"]},
+      "variant": {"Semantic": [{"concept_identifier": "她最爱的乐器", "description": "每天练习但不敢当众演奏，从小受父亲影响"}]}
+    },
+    {
+      "priority": 8,
+      "tag": ["团体", "乐队"],
+      "expected": {"must_include": ["sem_band"], "may_include": ["sem_guitar", "sem_bass", "sem_hoshina_toshi", "sem_kaito_hideaki"]},
+      "variant": {"Semantic": [{"concept_identifier": "她组的三人乐队", "description": "她弹吉他主唱，柊史弹贝斯，秀明也参与"}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["事件", "活动"],
+      "expected": {"must_include": ["sem_halloween_party"], "may_include": ["sit_halloween_confession", "sem_song_daisuki"]},
+      "variant": {"Semantic": [{"concept_identifier": "那个改变关系的万圣节派对", "description": "超自然研究部主办，乐队演出，柊史当场告白"}]}
+    },
+    {
+      "priority": 6,
+      "tag": ["歌曲", "音乐"],
+      "expected": {"must_include": ["sem_song_daisuki"], "may_include": ["sem_halloween_party"]},
+      "variant": {"Semantic": [{"concept_identifier": "那首叫《超喜欢》的歌", "description": "她的专属片尾曲，唱出了对柊史的心声"}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["关系", "概念"],
+      "expected": {"must_include": ["sem_destined_childhood"], "may_include": ["sem_self", "sem_hoshina_toshi"]},
+      "variant": {"Semantic": [{"concept_identifier": "她和柊史的关系类型", "description": "小学同学转学后重逢，命运般的再会"}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["能力", "缺点"],
+      "expected": {"must_include": ["sem_stage_fright"], "may_include": ["sem_guitar", "proc_stage_fright"]},
+      "variant": {"Semantic": [{"concept_identifier": "她不敢在人前演奏的问题", "description": "一个人弹很好，有人看就手抖"}]}
+    },
+    {
+      "priority": 8,
+      "tag": ["重要事件", "告白", "万圣节"],
+      "expected": {"must_include": ["sit_halloween_confession"], "may_include": ["sem_self", "sem_hoshina_toshi", "sem_halloween_party"]},
+      "variant": {"Situation": [{"narrative": "在全校面前被柊史突然表白，她第一反应是甩了然后追上去重新告白", "location": [{"name": "姬松学院"}], "participants": [{"name": "柊史", "role": "告白者"}, {"name": "我", "role": "被告白者"}], "event": [{"action": "告白"}, {"action": "甩"}, {"action": "重新告白"}]}]}
+    },
+    {
+      "priority": 8,
+      "tag": ["重要事件", "告白"],
+      "expected": {"must_include": ["sit_halloween_confession"], "may_include": ["sem_song_daisuki", "sem_halloween_party"]},
+      "variant": {"Situation": [{"narrative": "万圣节派对上那个让她害羞到不行的告白场景", "location": [{"name": "姬松学院"}], "participants": [{"name": "他", "role": "告白者"}, {"name": "她", "role": "被告白者"}]}]}
+    },
+    {
+      "priority": 5,
+      "tag": ["地点", "日常"],
+      "expected": {"must_include": ["sit_loc_school"], "may_include": ["sem_himamatsu_gakuen", "sem_class_2a"]},
+      "variant": {"Situation": [{"narrative": "在学校里和同学一起上课的日常", "location": [{"name": "姬松学院"}]}]}
+    },
+    {
+      "priority": 5,
+      "tag": ["参与者", "日常"],
+      "expected": {"must_include": ["sit_part_friends"], "may_include": ["sem_kaito_hideaki", "sem_ayachi_nene", "sem_shiiba_tsumugi"]},
+      "variant": {"Situation": [{"narrative": "和一群朋友在一起说说笑笑的时候", "participants": [{"name": "朋友们", "role": "同学和朋友"}]}]}
+    },
+    {
+      "priority": 6,
+      "tag": ["环境", "咖啡馆"],
+      "expected": {"must_include": ["sit_env_cafe"], "may_include": ["sem_schwarz_katze", "sem_soma_nanao"]},
+      "variant": {"Situation": [{"narrative": "在氛围温馨的咖啡馆里打工的感受", "environment": {"atmosphere": "温馨", "tone": "明亮活泼"}}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["事件", "乐队"],
+      "expected": {"must_include": ["sit_event_band_practice"], "may_include": ["sem_band", "sem_guitar", "sem_hoshina_toshi", "sem_kaito_hideaki"]},
+      "variant": {"Situation": [{"narrative": "三人在音乐室里一起练习合奏的热闹场面", "event": [{"action": "合奏练习", "initiator": "我们", "target": "音乐技能"}]}]}
+    },
+    {
+      "priority": 6,
+      "tag": ["习惯", "内心反应"],
+      "expected": {"must_include": ["sit_env_cafe"], "may_include": ["sem_schwarz_katze", "proc_none"]},
+      "variant": {"Situation": [{"narrative": "在咖啡店工作时那种放松又温馨的感觉", "environment": {"atmosphere": "温馨"}}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["参与者", "朋友"],
+      "expected": {"must_include": ["sit_part_friends"], "may_include": ["sem_self", "proc_toxic", "proc_shy"]},
+      "variant": {"Situation": [{"narrative": "跟朋友在一起时她忍不住毒舌又害羞的日常", "participants": [{"name": "她", "role": "毒舌者"}, {"name": "朋友们", "role": "听众"}]}]}
+    },
+    {
+      "priority": 6,
+      "tag": ["事件", "乐队"],
+      "expected": {"must_include": ["sit_event_band_practice"], "may_include": ["sem_guitar", "proc_daily_practice"]},
+      "variant": {"Situation": [{"narrative": "和恋人与死党一起排练时的紧张与快乐", "event": [{"action": "合奏练习"}], "participants": [{"name": "她", "role": "吉他手"}, {"name": "柊史", "role": "贝斯手"}, {"name": "秀明", "role": "鼓手"}]}]}
+    },
+    {
+      "priority": 8,
+      "tag": ["重要事件", "告白"],
+      "expected": {"must_include": ["sit_halloween_confession"], "may_include": ["sem_self", "sem_hoshina_toshi", "sem_halloween_party"]},
+      "variant": {"Situation": [{"narrative": "那个让她又惊又喜的万圣节告白", "location": [{"name": "学校礼堂"}], "participants": [{"name": "那个爱捉弄她的男生", "role": "告白者"}, {"name": "她", "role": "被告白者"}]}]}
+    },
+    {
+      "priority": 8,
+      "tag": ["能力", "缺点"],
+      "expected": {"must_include": ["sem_stage_fright"], "may_include": ["sem_guitar", "proc_stage_fright"]},
+      "variant": {"Semantic": [{"concept_identifier": "舞台恐惧症", "description": "一直想克服却很难的毛病"}]}
+    }
+  ],
+  "query_sets": [
+    {
+      "set_id": "set_partner",
+      "description": "查询和奏的恋人",
+      "queries": [
+        {"priority": 9, "tag": ["人物", "恋人"], "expected": {"must_include": ["sem_hoshina_toshi"], "may_include": ["sem_self"]}, "variant": {"Semantic": [{"concept_identifier": "那个抢先告白的死鱼眼", "description": "小学同学高中重逢，弹贝斯的男朋友"}]}},
+        {"priority": 9, "tag": ["人物", "恋人"], "expected": {"must_include": ["sem_hoshina_toshi"], "may_include": ["sem_self", "sem_band"]}, "variant": {"Semantic": [{"concept_identifier": "那个总是一副没精神样子的男生", "description": "笨拙但温柔的贝斯手，和她命运般重逢"}]}},
+        {"priority": 9, "tag": ["人物", "恋人"], "expected": {"must_include": ["sem_hoshina_toshi"], "may_include": ["sem_destined_childhood"]}, "variant": {"Semantic": [{"concept_identifier": "她的青梅竹马", "description": "从小学到高中又遇见的天降系，现在在一起"}]}},
+        {"priority": 9, "tag": ["人物", "恋人"], "expected": {"must_include": ["sem_hoshina_toshi"], "may_include": ["sem_self"]}, "variant": {"Semantic": [{"concept_identifier": "保科柊史", "description": "她最重要的那个人，从朋友变成恋人"}]}},
+        {"priority": 9, "tag": ["人物", "恋人"], "expected": {"must_include": ["sem_hoshina_toshi"], "may_include": ["sem_band", "sem_self"]}, "variant": {"Semantic": [{"concept_identifier": "那个在万圣节对她告白的人", "description": "现在是她男朋友，一起组乐队"}]}},
+        {"priority": 9, "tag": ["人物", "恋人"], "expected": {"must_include": ["sem_hoshina_toshi"], "may_include": ["sem_self"]}, "variant": {"Semantic": [{"concept_identifier": "她家的那位贝斯手", "description": "有点懒散但内心勇敢的男生，是她的初恋"}]}}
+      ]
+    },
+    {
+      "set_id": "set_confession",
+      "description": "查询万圣节告白事件",
+      "queries": [
+        {"priority": 8, "tag": ["重要事件", "告白"], "expected": {"must_include": ["sit_halloween_confession"], "may_include": ["sem_self", "sem_hoshina_toshi", "sem_halloween_party"]}, "variant": {"Situation": [{"narrative": "在全校师生面前被当众表白", "location": [{"name": "姬松学院"}], "participants": [{"name": "柊史", "role": "告白者"}, {"name": "我", "role": "接受者"}]}]}},
+        {"priority": 8, "tag": ["重要事件", "告白"], "expected": {"must_include": ["sit_halloween_confession"], "may_include": ["sem_self", "sem_hoshina_toshi", "sem_halloween_party"]}, "variant": {"Situation": [{"narrative": "万圣节派对上那个让所有人都起哄的瞬间", "location": [{"name": "学校舞台"}], "participants": [{"name": "那个死鱼眼", "role": "告白者"}, {"name": "她", "role": "被告白者"}]}]}},
+        {"priority": 8, "tag": ["重要事件", "告白"], "expected": {"must_include": ["sit_halloween_confession"], "may_include": ["sem_self", "sem_hoshina_toshi", "sem_halloween_party", "sem_song_daisuki"]}, "variant": {"Situation": [{"narrative": "她甩了他后又追上去重新告白的曲折故事", "event": [{"action": "告白"}, {"action": "甩"}, {"action": "重新告白"}]}]}},
+        {"priority": 8, "tag": ["重要事件", "告白"], "expected": {"must_include": ["sit_halloween_confession"], "may_include": ["sem_self", "sem_hoshina_toshi"]}, "variant": {"Situation": [{"narrative": "那个让她害羞到想逃跑却还是鼓起勇气的告白", "participants": [{"name": "她", "role": "傲娇"}, {"name": "他", "role": "勇敢"}]}]}},
+        {"priority": 8, "tag": ["重要事件", "告白"], "expected": {"must_include": ["sit_halloween_confession"], "may_include": ["sem_self", "sem_hoshina_toshi", "sem_halloween_party"]}, "variant": {"Situation": [{"narrative": "万圣节学院祭上发生的那件事", "location": [{"name": "姬松学院"}], "participants": [{"name": "和奏", "role": "被告白"}, {"name": "柊史", "role": "告白者"}]}]}},
+        {"priority": 8, "tag": ["重要事件", "告白"], "expected": {"must_include": ["sit_halloween_confession"], "may_include": ["sem_self", "sem_hoshina_toshi", "sem_halloween_party"]}, "variant": {"Situation": [{"narrative": "当着全校面告白后又被倒追的奇妙发展", "event": [{"action": "告白"}, {"action": "回追"}]}]}}
+      ]
+    },
+    {
+      "set_id": "set_band_info",
+      "description": "查询乐队的组成和活动",
+      "queries": [
+        {"priority": 8, "tag": ["团体", "乐队"], "expected": {"must_include": ["sem_band"], "may_include": ["sem_self", "sem_hoshina_toshi", "sem_kaito_hideaki"]}, "variant": {"Semantic": [{"concept_identifier": "他们三个组成的音乐组合", "description": "她主唱吉他，柊史贝斯，秀明是发起人"}]}},
+        {"priority": 8, "tag": ["团体", "乐队"], "expected": {"must_include": ["sem_band"], "may_include": ["sem_guitar", "sem_bass"]}, "variant": {"Semantic": [{"concept_identifier": "她和柊史还有秀明一起玩的那个", "description": "在万圣节派对上演出过"}]}},
+        {"priority": 8, "tag": ["团体", "乐队"], "expected": {"must_include": ["sem_band"], "may_include": ["sem_self", "sem_hoshina_toshi", "sem_kaito_hideaki"]}, "variant": {"Situation": [{"narrative": "三人一起合奏练习的热闹时光", "event": [{"action": "合奏练习"}], "participants": [{"name": "她", "role": "吉他主唱"}, {"name": "柊史", "role": "贝斯"}, {"name": "秀明", "role": "鼓手"}]}]}},
+        {"priority": 8, "tag": ["团体", "乐队"], "expected": {"must_include": ["sem_band"], "may_include": ["sem_guitar", "sem_bass"]}, "variant": {"Situation": [{"narrative": "在学校音乐室里排练的场景", "location": [{"name": "姬松学院音乐室"}], "event": [{"action": "演奏"]}]}},
+        {"priority": 8, "tag": ["团体", "乐队"], "expected": {"must_include": ["sem_band"], "may_include": ["sem_song_without_you", "sem_song_daisuki"]}, "variant": {"Semantic": [{"concept_identifier": "那个由恋人、死党和她组成的乐队", "description": "吉他、贝斯再加点别的，在校园祭上唱过歌"}]}}
+      ]
+    },
+    {
+      "set_id": "set_workplace",
+      "description": "查询和奏打工的咖啡馆",
+      "queries": [
+        {"priority": 6, "tag": ["地点", "咖啡馆"], "expected": {"must_include": ["sem_schwarz_katze"], "may_include": ["sem_soma_nanao"]}, "variant": {"Semantic": [{"concept_identifier": "那家叫黑猫的店", "description": "德语名字，咖啡好喝，老板是七绪小姐"}]}},
+        {"priority": 6, "tag": ["地点", "咖啡馆"], "expected": {"must_include": ["sem_schwarz_katze"], "may_include": ["sem_soma_nanao"]}, "variant": {"Semantic": [{"concept_identifier": "她打工的咖啡厅", "description": "氛围很好，混合咖啡特别好喝"}]}},
+        {"priority": 6, "tag": ["地点", "咖啡馆"], "expected": {"must_include": ["sem_schwarz_katze"], "may_include": ["sem_soma_nanao"]}, "variant": {"Situation": [{"narrative": "在温馨的咖啡店里工作的日常", "environment": {"atmosphere": "温馨"}, "participants": [{"name": "七绪小姐", "role": "老板"}, {"name": "和奏", "role": "店员"}]}]}},
+        {"priority": 6, "tag": ["地点", "咖啡馆"], "expected": {"must_include": ["sem_schwarz_katze"], "may_include": ["sem_soma_nanao", "proc_none"]}, "variant": {"Situation": [{"narrative": "她最喜欢的那家打工地点", "environment": {"atmosphere": "明亮活泼"}}]}},
+        {"priority": 6, "tag": ["地点", "咖啡馆"], "expected": {"must_include": ["sem_schwarz_katze"], "may_include": ["sem_soma_nanao"]}, "variant": {"Semantic": [{"concept_identifier": "Schwarz Katze", "description": "黑猫咖啡馆，她打工的休闲好去处"}]}},
+        {"priority": 6, "tag": ["地点", "咖啡馆"], "expected": {"must_include": ["sem_schwarz_katze"], "may_include": ["sem_soma_nanao"]}, "variant": {"Situation": [{"narrative": "客人不多的下午，在店里和老板闲聊的时光", "environment": {"atmosphere": "温馨"}, "participants": [{"name": "七绪小姐", "role": "老板"}]}]}}
+      ]
+    },
+    {
+      "set_id": "set_guitar_skill",
+      "description": "查询和奏的吉他练习和舞台恐惧",
+      "queries": [
+        {"priority": 8, "tag": ["物品", "乐器"], "expected": {"must_include": ["sem_guitar"], "may_include": ["sem_band", "proc_daily_practice"]}, "variant": {"Semantic": [{"concept_identifier": "她偷偷苦练的乐器", "description": "喜欢弹但不敢当众表演的吉他"}]}},
+        {"priority": 8, "tag": ["物品", "乐器"], "expected": {"must_include": ["sem_guitar"], "may_include": ["sem_father", "sem_stage_fright"]}, "variant": {"Semantic": [{"concept_identifier": "爸爸教她的那个乐器", "description": "从小受影响，一直坚持练习"}]}},
+        {"priority": 8, "tag": ["物品", "乐器"], "expected": {"must_include": ["sem_guitar"], "may_include": ["sem_stage_fright", "proc_daily_practice"]}, "variant": {"Situation": [{"narrative": "一个人躲在房间里偷偷练习弹琴", "event": [{"action": "练琴"}], "participants": [{"name": "她自己", "role": "练习者"}]}]}},
+        {"priority": 8, "tag": ["能力", "缺点"], "expected": {"must_include": ["sem_stage_fright"], "may_include": ["sem_guitar", "proc_stage_fright"]}, "variant": {"Semantic": [{"concept_identifier": "她上台就手抖的问题", "description": "平时弹得好，一有人看就怕"}]}},
+        {"priority": 8, "tag": ["能力", "缺点"], "expected": {"must_include": ["sem_stage_fright"], "may_include": ["sem_guitar", "proc_stage_fright", "sem_music_importance"]}, "variant": {"Situation": [{"narrative": "被迫在人前演奏时紧张到手心出汗", "event": [{"action": "紧张"}, {"action": "手抖"}]}]}},
+        {"priority": 8, "tag": ["能力", "缺点"], "expected": {"must_include": ["sem_stage_fright"], "may_include": ["sem_guitar", "proc_stage_fright"]}, "variant": {"Semantic": [{"concept_identifier": "舞台恐惧症", "description": "一直想克服却很难的毛病"}]}}
+      ]
+    }
+  ]
+}

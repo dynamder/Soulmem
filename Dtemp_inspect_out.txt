@@ -1,0 +1,284 @@
+   Compiling soul-tune v0.1.0 (D:\Soul-Plan\SoulMem\crates\soul-tune)
+warning: unused import: `MouseEventKind`
+ --> crates\soul-tune\src\app.rs:3:82
+  |
+3 | use ratatui::crossterm::event::{self, Event, KeyEvent, KeyEventKind, MouseEvent, MouseEventKind};
+  |                                                                                  ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `crate::eval::runner::SuiteReport`
+ --> crates\soul-tune\src\eval\batch.rs:6:5
+  |
+6 | use crate::eval::runner::SuiteReport;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::time::Instant`
+ --> crates\soul-tune\src\state\batch_run.rs:2:5
+  |
+2 | use std::time::Instant;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `print_batch_result`
+  --> crates\soul-tune\src\state\batch_run.rs:12:26
+   |
+12 | use crate::eval::batch::{print_batch_result, run_batch, scan_question_jsons, BatchResult};
+   |                          ^^^^^^^^^^^^^^^^^^
+
+warning: unused variable: `ds_elapsed`
+  --> crates\soul-tune\src\eval\batch.rs:92:21
+   |
+92 |                 let ds_elapsed = ds_start.elapsed();
+   |                     ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_ds_elapsed`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `sq`
+   --> crates\soul-tune\src\eval\retrieve_suite.rs:419:22
+    |
+419 |         for (sq_idx, sq) in test_case.sub_queries.iter().enumerate() {
+    |                      ^^ help: if this is intentional, prefix it with an underscore: `_sq`
+
+warning: unused variable: `done`
+  --> crates\soul-tune\src\state\batch_run.rs:61:32
+   |
+61 |                         Some(&|done, _| {
+   |                                ^^^^ help: if this is intentional, prefix it with an underscore: `_done`
+
+warning: field `params` is never read
+  --> crates\soul-tune\src\base.rs:47:9
+   |
+44 | pub struct TestConfig {
+   |            ---------- field in this struct
+...
+47 |     pub params: HashMap<String, String>,
+   |         ^^^^^^
+   |
+   = note: `TestConfig` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: variant `ToInspectBrowser` is never constructed
+  --> crates\soul-tune\src\base.rs:72:5
+   |
+60 | pub enum Transition {
+   |          ---------- variant in this enum
+...
+72 |     ToInspectBrowser,
+   |     ^^^^^^^^^^^^^^^^
+
+warning: field `0` is never read
+  --> crates\soul-tune\src\base.rs:77:15
+   |
+77 |     CrossTerm(crossterm::event::Event),
+   |     --------- ^^^^^^^^^^^^^^^^^^^^^^^
+   |     |
+   |     field in this variant
+   |
+help: consider changing the field to be of unit type to suppress this warning while preserving the field numbering, or remove the field
+   |
+77 -     CrossTerm(crossterm::event::Event),
+77 +     CrossTerm(()),
+   |
+
+warning: fields `0` and `1` are never read
+  --> crates\soul-tune\src\base.rs:78:15
+   |
+78 |     StartTest(AlgoType, Option<PathBuf>),
+   |     --------- ^^^^^^^^  ^^^^^^^^^^^^^^^
+   |     |
+   |     fields in this variant
+   |
+help: consider changing the fields to be of unit type to suppress this warning while preserving the field numbering, or remove the fields
+   |
+78 -     StartTest(AlgoType, Option<PathBuf>),
+78 +     StartTest((), ()),
+   |
+
+warning: variant `TestComplete` is never constructed
+  --> crates\soul-tune\src\base.rs:79:5
+   |
+76 | pub enum SoulTuneEvent {
+   |          ------------- variant in this enum
+...
+79 |     TestComplete,
+   |     ^^^^^^^^^^^^
+
+warning: methods `aliases`, `usage`, `args_completer`, and `handler` are never used
+  --> crates\soul-tune\src\cmd.rs:25:12
+   |
+20 | impl UserCmd {
+   | ------------ methods in this implementation
+...
+25 |     pub fn aliases(&self) -> &[String] {
+   |            ^^^^^^^
+...
+33 |     pub fn usage(&self) -> &str {
+   |            ^^^^^
+...
+37 |     pub fn args_completer(&self) -> Option<&dyn Fn(&str) -> Vec<String>> {
+   |            ^^^^^^^^^^^^^^
+...
+41 |     pub fn handler(&self) -> &dyn Fn(&[String]) -> Option<SoulTuneEvent> {
+   |            ^^^^^^^
+
+warning: method `args_completer` is never used
+  --> crates\soul-tune\src\cmd.rs:82:12
+   |
+55 | impl UserCmdBuilder {
+   | ------------------- method in this implementation
+...
+82 |     pub fn args_completer(
+   |            ^^^^^^^^^^^^^^
+
+warning: methods `get`, `get_all`, and `fuzzy_cmd_completions` are never used
+   --> crates\soul-tune\src\cmd.rs:124:12
+    |
+113 | impl CmdRegistry {
+    | ---------------- methods in this implementation
+...
+124 |     pub fn get(&self, name: &str) -> Option<&UserCmd> {
+    |            ^^^
+...
+128 |     pub fn get_all(&self) -> &HashMap<String, UserCmd> {
+    |            ^^^^^^^
+...
+144 |     pub fn fuzzy_cmd_completions(&self, _query: &str) -> Vec<String> {
+    |            ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `parse_inspect_command` is never used
+   --> crates\soul-tune\src\cmd.rs:149:8
+    |
+149 | pub fn parse_inspect_command(args: &[String]) -> Option<Transition> {
+    |        ^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `path` is never read
+  --> crates\soul-tune\src\eval\batch.rs:19:9
+   |
+17 | pub struct DatasetResult {
+   |            ------------- field in this struct
+18 |     pub name: String,
+19 |     pub path: PathBuf,
+   |         ^^^^
+
+warning: struct `RetrTestCase` is never constructed
+ --> crates\soul-tune\src\eval\dataset.rs:6:12
+  |
+6 | pub struct RetrTestCase {
+  |            ^^^^^^^^^^^^
+
+warning: struct `GraphLinkRaw` is never constructed
+  --> crates\soul-tune\src\eval\loader.rs:19:12
+   |
+19 | pub struct GraphLinkRaw {
+   |            ^^^^^^^^^^^^
+
+warning: struct `GraphNodeRaw` is never constructed
+  --> crates\soul-tune\src\eval\loader.rs:27:12
+   |
+27 | pub struct GraphNodeRaw {
+   |            ^^^^^^^^^^^^
+
+warning: fields `name` and `description` are never read
+   --> crates\soul-tune\src\eval\retrieve_suite.rs:111:9
+    |
+110 | pub struct RetrQueryFileRaw {
+    |            ---------------- fields in this struct
+111 |     pub name: String,
+    |         ^^^^
+112 |     pub description: String,
+    |         ^^^^^^^^^^^
+    |
+    = note: `RetrQueryFileRaw` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: field `description` is never read
+  --> crates\soul-tune\src\eval\runner.rs:27:9
+   |
+25 | pub struct TestCaseOutcome {
+   |            --------------- field in this struct
+26 |     pub case_name: String,
+27 |     pub description: String,
+   |         ^^^^^^^^^^^
+
+warning: fields `dir` and `mode` are never read
+  --> crates\soul-tune\src\state\batch_run.rs:16:5
+   |
+15 | pub struct BatchRunState {
+   |            ------------- fields in this struct
+16 |     dir: PathBuf,
+   |     ^^^
+17 |     mode: RetrieveMode,
+   |     ^^^^
+
+warning: variants `Running` and `Done` are never constructed
+  --> crates\soul-tune\src\state\batch_run.rs:24:5
+   |
+22 | enum BatchPhase {
+   |      ---------- variants in this enum
+23 |     Scanning,
+24 |     Running(usize, usize), // current, total
+   |     ^^^^^^^
+25 |     Done,
+   |     ^^^^
+
+warning: method `tick` is never used
+  --> crates\soul-tune\src\state\batch_run.rs:38:12
+   |
+28 | impl BatchRunState {
+   | ------------------ method in this implementation
+...
+38 |     pub fn tick(&mut self) -> Option<Transition> {
+   |            ^^^^
+
+warning: field `log_filter` is never read
+  --> crates\soul-tune\src\state\results.rs:30:9
+   |
+22 | pub struct ResultsState {
+   |            ------------ field in this struct
+...
+30 |     pub log_filter: String,
+   |         ^^^^^^^^^^
+
+warning: associated function `new_loaded` is never used
+  --> crates\soul-tune\src\state\running.rs:89:12
+   |
+36 | impl RunningState {
+   | ----------------- associated function in this implementation
+...
+89 |     pub fn new_loaded(
+   |            ^^^^^^^^^^
+
+warning: function `render_gauge` is never used
+ --> crates\soul-tune\src\tui\components\gauge.rs:6:8
+  |
+6 | pub fn render_gauge(frame: &mut Frame, area: Rect, title: &str, current: usize, total: usize) {
+  |        ^^^^^^^^^^^^
+
+warning: struct `KvRow` is never constructed
+ --> crates\soul-tune\src\tui\components\kv_table.rs:6:12
+  |
+6 | pub struct KvRow {
+  |            ^^^^^
+
+warning: struct `KvGroup` is never constructed
+  --> crates\soul-tune\src\tui\components\kv_table.rs:11:12
+   |
+11 | pub struct KvGroup {
+   |            ^^^^^^^
+
+warning: function `render_kv_table` is never used
+  --> crates\soul-tune\src\tui\components\kv_table.rs:16:8
+   |
+16 | pub fn render_kv_table(frame: &mut Frame, area: Rect, groups: &[KvGroup], scroll: &mut usize) {
+   |        ^^^^^^^^^^^^^^^
+
+warning: function `render_tabs` is never used
+ --> crates\soul-tune\src\tui\components\tab_bar.rs:6:8
+  |
+6 | pub fn render_tabs(frame: &mut Frame, area: Rect, titles: &[&str], active: usize) {
+  |        ^^^^^^^^^^^
+
+warning: `soul-tune` (bin "soul-tune") generated 32 warnings (run `cargo fix --bin "soul-tune" -p soul-tune` to apply 7 suggestions)
+error: failed to remove file `D:\Soul-Plan\SoulMem\target\debug\soul-tune.exe`
+
+Caused by:
+  拒绝访问。 (os error 5)

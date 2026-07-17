@@ -1,0 +1,416 @@
+```json
+{
+  "queries": [
+    {
+      "priority": 9,
+      "tag": ["自身", "血脉"],
+      "expected": {"must_include": ["sem_half_immortal"], "may_include": ["sem_self", "sem_father"]},
+      "variant": {"Semantic": [{"concept_identifier": "半仙混血", "description": "仙兽父亲和人类母亲的后代，头上有角，寿命远超常人"}]}
+    },
+    {
+      "priority": 9,
+      "tag": ["装备", "火元素"],
+      "expected": {"must_include": ["sem_pyro_vision"], "may_include": ["sem_scale", "sem_final_codex"]},
+      "variant": {"Semantic": [{"concept_identifier": "火神之眼与规则", "description": "火元素神之眼因希望遵纪守法而诞生，曾用宝秤称量发现与法典等值"}]}
+    },
+    {
+      "priority": 9,
+      "tag": ["冒险", "层岩巨渊"],
+      "expected": {"must_include": ["sit_chasm_adventure"], "may_include": ["sem_traveler", "sem_xiao", "sem_ar_taki"]},
+      "variant": {"Situation": [{"narrative": "在巨大矿洞里的那次惊险冒险，魈想牺牲自己，最后靠空间与思想的关联脱险"}]}
+    },
+    {
+      "priority": 9,
+      "tag": ["书籍", "理想"],
+      "expected": {"must_include": ["sem_final_codex"], "may_include": ["sem_happy_life", "sem_liyue_law"]},
+      "variant": {"Semantic": [{"concept_identifier": "终极律法书", "description": "只有几条基本理论的最薄法典，象征法律深入人心的终极形态"}]}
+    },
+    {
+      "priority": 9,
+      "tag": ["价值观", "人生目标"],
+      "expected": {"must_include": ["sem_happy_life"], "may_include": ["sem_father", "sem_self"]},
+      "variant": {"Semantic": [{"concept_identifier": "与老爹的约定", "description": "和父亲签的最严肃契约：要快乐地生活，事业有成、自由自在"}]}
+    },
+    {
+      "priority": 9,
+      "tag": ["人际", "失眠"],
+      "expected": {"must_include": ["sit_encounter_traveler_insomnia"], "may_include": ["sem_traveler"]},
+      "variant": {"Situation": [{"narrative": "一次偶遇后旅行者说了一句话，她分析了一整晚睡不着"}]}
+    },
+    {
+      "priority": 9,
+      "tag": ["信条", "理念"],
+      "expected": {"must_include": ["sem_maxim"], "may_include": ["sem_contract_philosophy"]},
+      "variant": {"Semantic": [{"concept_identifier": "律法咨询师的信条", "description": "不期修古，不法常可，灵活变通帮客户争取最大利益"}]}
+    },
+    {
+      "priority": 9,
+      "tag": ["价值观", "哲学"],
+      "expected": {"must_include": ["sem_contract_philosophy"], "may_include": ["sem_liyue_law", "sem_maxim"]},
+      "variant": {"Semantic": [{"concept_identifier": "随心所欲不逾矩", "description": "想要不被规则束缚就要先完全理解所有规则"}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["人物", "璃月七星"],
+      "expected": {"must_include": ["sem_ningguang"], "may_include": ["sem_liyue_law", "sit_learning_new_laws"]},
+      "variant": {"Semantic": [{"concept_identifier": "天权星的律法修订", "description": "凝光经常修改法典，每次烟绯都得背新内容，又累又自豪"}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["人物", "半仙"],
+      "expected": {"must_include": ["sem_ganyu"], "may_include": ["sem_self", "sem_happy_life"]},
+      "variant": {"Semantic": [{"concept_identifier": "半仙前辈的对比", "description": "甘雨与帝君签了契约纠结身份，烟绯没签契约过得快乐"}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["人物", "雇员"],
+      "expected": {"must_include": ["sem_ye_lan"], "may_include": ["sem_self", "sit_dinner_with_ye_lan"]},
+      "variant": {"Semantic": [{"concept_identifier": "总务司的神秘帮手", "description": "夜兰帮忙搞定做假账的硬茬，眼神能看穿心思，以后不能对立"}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["工作", "教学"],
+      "expected": {"must_include": ["sit_discuss_case_with_kuki"], "may_include": ["sem_kuki", "sem_liyue_law"]},
+      "variant": {"Situation": [{"narrative": "稻妻律法学生来璃月留学，在事务所讨论案件，每次结束都鞠躬"}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["文化", "音乐"],
+      "expected": {"must_include": ["sit_rock_concert"], "may_include": ["sem_xinyan"]},
+      "variant": {"Situation": [{"narrative": "偶然看了一场新潮摇滚表演，被震撼到，想以后改行说唱"}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["人物", "朋友"],
+      "expected": {"must_include": ["sem_eula"], "may_include": ["sem_self"]},
+      "variant": {"Semantic": [{"concept_identifier": "蒙德骑士的救命之恩", "description": "优菈曾经救过烟绯一次，两人保持书信往来，相处轻松"}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["人物", "神秘"],
+      "expected": {"must_include": ["sem_zhongli"], "may_include": ["sem_father"]},
+      "variant": {"Semantic": [{"concept_identifier": "深藏不露的先生", "description": "钟离学识渊博像行走书库，有种不可思议的熟悉感，父亲也不愿透露秘密"}]}
+    },
+    {
+      "priority": 3,
+      "tag": ["宝物", "衡器"],
+      "expected": {"must_include": ["sem_scale"], "may_include": ["sem_father", "sem_self"]},
+      "variant": {"Semantic": [{"concept_identifier": "帝君赐予的宝秤", "description": "父亲留下的秤能衡量事物价值但不会随市场更新，提醒很多事无法用世俗估量"}]}
+    },
+    {
+      "priority": 3,
+      "tag": ["人物", "师父"],
+      "expected": {"must_include": ["sem_ping"], "may_include": ["sem_self", "sem_fa_shou"]},
+      "variant": {"Semantic": [{"concept_identifier": "歌尘浪市真君", "description": "把烟绯带大教她修行的师父，住在玉京台，很慈祥"}]}
+    },
+    {
+      "priority": 3,
+      "tag": ["人物", "父亲"],
+      "expected": {"must_include": ["sem_father"], "may_include": ["sem_scale", "sem_happy_life"]},
+      "variant": {"Semantic": [{"concept_identifier": "云游仙兽老爹", "description": "通透潇洒的人，打完仗就结婚，生下烟绯后丢给萍姥姥，自己云游天下"}]}
+    },
+    {
+      "priority": 3,
+      "tag": ["场所", "工作"],
+      "expected": {"must_include": ["sem_office"], "may_include": ["sem_self", "sem_liyue_law"]},
+      "variant": {"Semantic": [{"concept_identifier": "璃月律法事务所", "description": "在璃月港经营的私人事务所，提供解读律法、随行咨询等服务，收费不菲"}]}
+    },
+    {
+      "priority": 3,
+      "tag": ["实验", "宝物"],
+      "expected": {"must_include": ["sit_scale_test"], "may_include": ["sem_scale", "sem_pyro_vision", "sem_final_codex"]},
+      "variant": {"Situation": [{"narrative": "用父亲给的宝秤称量神之眼，放摩拉都不平衡，最后放法典盒子才平衡"}]}
+    },
+    {
+      "priority": 3,
+      "tag": ["天气", "担忧"],
+      "expected": {"must_include": ["sit_rainy_day"], "may_include": []},
+      "variant": {"Situation": [{"narrative": "下雨天潮湿的氛围让烟绯感到担心，影响心情"}]}
+    },
+    {
+      "priority": 3,
+      "tag": ["社交", "钓鱼"],
+      "expected": {"must_include": ["sit_fishing_with_friends"], "may_include": ["sem_traveler", "sem_happy_life"]},
+      "variant": {"Situation": [{"narrative": "和记厅朋友们钓鱼时，明明有一百种方法赢却要假装垫底照顾生意关系"}]}
+    },
+    {
+      "priority": 3,
+      "tag": ["活动", "学习"],
+      "expected": {"must_include": ["sit_sunny_backing"], "may_include": ["sem_happy_life"]},
+      "variant": {"Situation": [{"narrative": "阳光好的时候会在室外背律条，感觉快乐促进学习"}]}
+    }
+  ],
+  "query_sets": [
+    {
+      "set_id": "set_scale",
+      "description": "查询关于父亲留下宝秤的各种信息",
+      "queries": [
+        {
+          "priority": 9,
+          "tag": ["宝物"],
+          "expected": {"must_include": ["sem_scale"], "may_include": ["sem_father", "sem_pyro_vision"]},
+          "variant": {"Semantic": [{"concept_identifier": "老爹的宝贝秤", "description": "父亲留给她的宝秤，能称量价值但不更新"}]}
+        },
+        {
+          "priority": 9,
+          "tag": ["宝物"],
+          "expected": {"must_include": ["sem_scale"], "may_include": ["sem_father", "sem_pyro_vision"]},
+          "variant": {"Semantic": [{"concept_identifier": "帝君钦赐的秤", "description": "那杆帝君亲自赐予的秤，提醒她很多东西无法用世俗价值衡量"}]}
+        },
+        {
+          "priority": 9,
+          "tag": ["宝物"],
+          "expected": {"must_include": ["sem_scale"], "may_include": ["sem_father", "sem_pyro_vision"]},
+          "variant": {"Semantic": [{"concept_identifier": "无法估量的衡器", "description": "她有一件能衡量事物最初价值的宝物，不会随着市场变化"}]}
+        },
+        {
+          "priority": 9,
+          "tag": ["宝物"],
+          "expected": {"must_include": ["sem_scale"], "may_include": ["sem_father", "sem_pyro_vision"]},
+          "variant": {"Semantic": [{"concept_identifier": "老爹留下的遗物", "description": "那个云游四方的老爹留给她的一杆秤，说是帝君给的"}]}
+        },
+        {
+          "priority": 9,
+          "tag": ["宝物"],
+          "expected": {"must_include": ["sem_scale"], "may_include": ["sem_father", "sem_pyro_vision"]},
+          "variant": {"Semantic": [{"concept_identifier": "宝秤", "description": "她用老爹给的秤称过神之眼，发现只有法典才能平衡"}]}
+        },
+        {
+          "priority": 9,
+          "tag": ["宝物"],
+          "expected": {"must_include": ["sem_scale"], "may_include": ["sem_father", "sem_pyro_vision"]},
+          "variant": {"Semantic": [{"concept_identifier": "无法估价的秤", "description": "那杆秤只能称最初的价格，很多珍贵的东西都称不出来"}]}
+        }
+      ]
+    },
+    {
+      "set_id": "set_chasm",
+      "description": "查询层岩巨渊冒险的详细经历和参与者",
+      "queries": [
+        {
+          "priority": 9,
+          "tag": ["冒险"],
+          "expected": {"must_include": ["sit_chasm_adventure"], "may_include": ["sem_traveler", "sem_xiao"]},
+          "variant": {"Situation": [{"narrative": "在层岩巨渊深处，有人想牺牲自己打开通道，最后被传送出来了"}]}
+        },
+        {
+          "priority": 9,
+          "tag": ["冒险"],
+          "expected": {"must_include": ["sit_chasm_adventure"], "may_include": ["sem_traveler", "sem_xiao"]},
+          "variant": {"Situation": [{"event": [{"action": "冒险", "initiator": "队伍", "target": "脱险"}], "location": [{"name": "层岩巨渊"}], "participants": [{"name": "降魔大圣", "role": "差点牺牲的人"}]}]}
+        },
+        {
+          "priority": 9,
+          "tag": ["冒险"],
+          "expected": {"must_include": ["sit_chasm_adventure"], "may_include": ["sem_traveler", "sem_xiao"]},
+          "variant": {"Situation": [{"narrative": "魈想留在那里永远守护，被烟绯和旅行者救出来了"}]}
+        },
+        {
+          "priority": 9,
+          "tag": ["冒险"],
+          "expected": {"must_include": ["sit_chasm_adventure"], "may_include": ["sem_traveler", "sem_xiao"]},
+          "variant": {"Situation": [{"narrative": "一个很危险的矿洞冒险，同伴差点没了，还好用空间关联法成功逃生"}]}
+        },
+        {
+          "priority": 9,
+          "tag": ["冒险"],
+          "expected": {"must_include": ["sit_chasm_adventure"], "may_include": ["sem_traveler", "sem_xiao"]},
+          "variant": {"Situation": [{"narrative": "在璃月矿区的大冒险，荒泷一斗和久岐忍也在"}]}
+        },
+        {
+          "priority": 9,
+          "tag": ["冒险"],
+          "expected": {"must_include": ["sit_chasm_adventure"], "may_include": ["sem_traveler", "sem_xiao"]},
+          "variant": {"Situation": [{"narrative": "那次在巨渊深处，大家都很危险，有人要用命换出口"}]}
+        },
+        {
+          "priority": 9,
+          "tag": ["冒险"],
+          "expected": {"must_include": ["sit_chasm_adventure"], "may_include": ["sem_traveler", "sem_xiao"]},
+          "variant": {"Situation": [{"narrative": "烟绯经历最惊险的一次，跟异乡人和仙人们一起逃出生天"}]}
+        }
+      ]
+    },
+    {
+      "set_id": "set_happy_life",
+      "description": "查询烟绯的快乐生活契约及其意义",
+      "queries": [
+        {
+          "priority": 7,
+          "tag": ["价值观"],
+          "expected": {"must_include": ["sem_happy_life"], "may_include": ["sem_father"]},
+          "variant": {"Semantic": [{"concept_identifier": "和父亲的契约", "description": "与老爹最严肃的约定就是要快乐地生活"}]}
+        },
+        {
+          "priority": 7,
+          "tag": ["价值观"],
+          "expected": {"must_include": ["sem_happy_life"], "may_include": ["sem_father"]},
+          "variant": {"Semantic": [{"concept_identifier": "人生契约", "description": "烟绯最重要的契约是和自己父亲的，内容是要一直快乐"}]}
+        },
+        {
+          "priority": 7,
+          "tag": ["价值观"],
+          "expected": {"must_include": ["sem_happy_life"], "may_include": ["sem_father"]},
+          "variant": {"Semantic": [{"concept_identifier": "快乐原则", "description": "她追求的生活状态：事业有成、衣食无忧、遇见有趣的人和事"}]}
+        },
+        {
+          "priority": 7,
+          "tag": ["价值观"],
+          "expected": {"must_include": ["sem_happy_life"], "may_include": ["sem_father"]},
+          "variant": {"Semantic": [{"concept_identifier": "与仙兽父亲的约定", "description": "那个云游四方的仙人父亲跟她约定要永远开开心心"}]}
+        },
+        {
+          "priority": 7,
+          "tag": ["价值观"],
+          "expected": {"must_include": ["sem_happy_life"], "may_include": ["sem_father"]},
+          "variant": {"Semantic": [{"concept_identifier": "最严肃的契约", "description": "她签过最正式的契约不是法律文书，而是和父亲关于快乐的承诺"}]}
+        },
+        {
+          "priority": 7,
+          "tag": ["价值观"],
+          "expected": {"must_include": ["sem_happy_life"], "may_include": ["sem_father"]},
+          "variant": {"Semantic": [{"concept_identifier": "自由快乐的哲学", "description": "快乐地生活是她人生的根本目标，其他的都服务于这个"}]}
+        }
+      ]
+    },
+    {
+      "set_id": "set_new_laws",
+      "description": "查询烟绯学习新律法的辛苦经历",
+      "queries": [
+        {
+          "priority": 7,
+          "tag": ["工作"],
+          "expected": {"must_include": ["sit_learning_new_laws"], "may_include": ["sem_ningguang"]},
+          "variant": {"Situation": [{"narrative": "凝光每次修订律法后，烟绯都要背大量新内容，经常抱怨但很自豪"}]}
+        },
+        {
+          "priority": 7,
+          "tag": ["工作"],
+          "expected": {"must_include": ["sit_learning_new_laws"], "may_include": ["sem_ningguang"]},
+          "variant": {"Situation": [{"event": [{"action": "修订法典", "initiator": "凝光", "target": "烟绯"}], "location": [{"name": "天权星办公室"}]}]}
+        },
+        {
+          "priority": 7,
+          "tag": ["工作"],
+          "expected": {"must_include": ["sit_learning_new_laws"], "may_include": ["sem_ningguang"]},
+          "variant": {"Situation": [{"narrative": "上次一口气增加三条律法，改了上百条注释，还有一堆判例，简直累死"}]}
+        },
+        {
+          "priority": 7,
+          "tag": ["工作"],
+          "expected": {"must_include": ["sit_learning_new_laws"], "may_include": ["sem_ningguang"]},
+          "variant": {"Situation": [{"narrative": "天权星又改法典了，她不得不熬夜背新条文"}]}
+        },
+        {
+          "priority": 7,
+          "tag": ["工作"],
+          "expected": {"must_include": ["sit_learning_new_laws"], "may_include": ["sem_ningguang"]},
+          "variant": {"Situation": [{"narrative": "为了保持律法权威，每次修订后她都要重新学习整部法典"}]}
+        },
+        {
+          "priority": 7,
+          "tag": ["工作"],
+          "expected": {"must_include": ["sit_learning_new_laws"], "may_include": ["sem_ningguang"]},
+          "variant": {"Situation": [{"narrative": "璃月法典经常更新，她作为顶尖律师必须第一时间记住所有变化"}]}
+        },
+        {
+          "priority": 7,
+          "tag": ["工作"],
+          "expected": {"must_include": ["sit_learning_new_laws"], "may_include": ["sem_ningguang"]},
+          "variant": {"Situation": [{"narrative": "凝光出新的法典修订版，烟绯抱怨说这又是折磨人的背诵时间"}]}
+        }
+      ]
+    },
+    {
+      "set_id": "set_traveler",
+      "description": "查询烟绯与旅行者之间的特殊关系和互动",
+      "queries": [
+        {
+          "priority": 8,
+          "tag": ["人物", "关系"],
+          "expected": {"must_include": [], "may_include": ["sem_traveler", "sem_self", "sit_encounter_traveler_insomnia"]},
+          "variant": {"Semantic": [{"concept_identifier": "异乡人朋友", "description": "那个从异世界来的旅者，她很在意"}]}
+        },
+        {
+          "priority": 8,
+          "tag": ["人物", "关系"],
+          "expected": {"must_include": [], "may_include": ["sem_traveler", "sem_self", "sit_encounter_traveler_insomnia"]},
+          "variant": {"Situation": [{"narrative": "一次偶遇后因为对方一句话琢磨了一整晚，翻来覆去睡不着"}]}
+        },
+        {
+          "priority": 8,
+          "tag": ["人物", "关系"],
+          "expected": {"must_include": [], "may_include": ["sem_traveler", "sem_self", "sit_encounter_traveler_insomnia"]},
+          "variant": {"Semantic": [{"concept_identifier": "在意的人", "description": "为他准备了各国律法资料当生日礼物，觉得他很重视自己"}]}
+        },
+        {
+          "priority": 8,
+          "tag": ["人物", "关系"],
+          "expected": {"must_include": [], "may_include": ["sem_traveler", "sem_self", "sit_encounter_traveler_insomnia"]},
+          "variant": {"Situation": [{"participants": [{"name": "旅行者", "role": "对话者"}], "narrative": "她分析对方讲话的深层含义，分析到失眠"}]}
+        },
+        {
+          "priority": 8,
+          "tag": ["人物", "关系"],
+          "expected": {"must_include": [], "may_include": ["sem_traveler", "sem_self", "sit_encounter_traveler_insomnia"]},
+          "variant": {"Semantic": [{"concept_identifier": "特殊朋友", "description": "一起经历过层岩巨渊冒险，与她关系非同一般"}]}
+        },
+        {
+          "priority": 8,
+          "tag": ["人物", "关系"],
+          "expected": {"must_include": [], "may_include": ["sem_traveler", "sem_self", "sit_encounter_traveler_insomnia"]},
+          "variant": {"Situation": [{"event": [{"action": "偶遇", "target": "旅行者"}], "narrative": "她偶遇旅行者后，回去想了一整晚对方话里的意思"}]}
+        },
+        {
+          "priority": 8,
+          "tag": ["人物", "关系"],
+          "expected": {"must_include": [], "may_include": ["sem_traveler", "sem_self", "sit_encounter_traveler_insomnia"]},
+          "variant": {"Semantic": [{"concept_identifier": "异乡来的旅伴", "description": "那个在世界中旅行的人，她为他收集了很多资料"}]}
+        }
+      ]
+    },
+    {
+      "set_id": "set_maxim",
+      "description": "查询烟绯的工作信条和不期修古的理念",
+      "queries": [
+        {
+          "priority": 4,
+          "tag": ["信条"],
+          "expected": {"must_include": ["sem_maxim"], "may_include": ["sem_contract_philosophy"]},
+          "variant": {"Semantic": [{"concept_identifier": "工作信条", "description": "不期修古，不法常可，既不能死板也不能光效仿古人"}]}
+        },
+        {
+          "priority": 4,
+          "tag": ["信条"],
+          "expected": {"must_include": ["sem_maxim"], "may_include": ["sem_contract_philosophy"]},
+          "variant": {"Semantic": [{"concept_identifier": "灵活的律法观", "description": "她认为律法是工具，要灵活变通帮客户争取最大利益"}]}
+        },
+        {
+          "priority": 4,
+          "tag": ["信条"],
+          "expected": {"must_include": ["sem_maxim"], "may_include": ["sem_contract_philosophy"]},
+          "variant": {"Semantic": [{"concept_identifier": "不墨守成规", "description": "她牢记不能一味效仿古法，要根据实际情况解释法律"}]}
+        },
+        {
+          "priority": 4,
+          "tag": ["信条"],
+          "expected": {"must_include": ["sem_maxim"], "may_include": ["sem_contract_philosophy"]},
+          "variant": {"Semantic": [{"concept_identifier": "古老的教诲", "description": "她一直记着那条古训：不期修古，不法常可"}]}
+        },
+        {
+          "priority": 4,
+          "tag": ["信条"],
+          "expected": {"must_include": ["sem_maxim"], "may_include": ["sem_contract_philosophy"]},
+          "variant": {"Semantic": [{"concept_identifier": "她遵守的原则", "description": "烟绯工作时既不忘传统又不固守陈规"}]}
+        },
+        {
+          "priority": 4,
+          "tag": ["信条"],
+          "expected": {"must_include": ["sem_maxim"], "may_include": ["sem_contract_philosophy"]},
+          "variant": {"Semantic": [{"concept_identifier": "法不可常可", "description": "她心中的真理：法律不是死板条文，要因时因地灵活运用"}]}
+        }
+      ]
+    }
+  ]
+}
+```
