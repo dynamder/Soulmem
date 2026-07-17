@@ -7,7 +7,7 @@ use ratatui::style::{Color, Stylize};
 use ratatui::widgets::{Block, Paragraph};
 use ratatui::Frame;
 
-use crate::base::{RetrieveMode, Transition};
+use crate::base::{AlgoType, RetrieveMode, Transition};
 use crate::component::{Component, ComponentEvent};
 use crate::tui::components::status_bar;
 
@@ -49,6 +49,7 @@ impl BatchModeState {
             "    [E]  Embedding       余弦相似度检索 (含权重扫描)",
             "    [A]  Association     PPR 图关联检索",
             "    [F]  Full Pipeline   完整流水线检索",
+            "    [D]  Compare         对比 Embedding ↔ Full Pipeline",
             "",
             "  [Esc] 返回",
         ]
@@ -62,6 +63,7 @@ impl BatchModeState {
                 ("[E]".into(), "Embedding".into()),
                 ("[A]".into(), "Association".into()),
                 ("[F]".into(), "Full".into()),
+                ("[D]".into(), "Compare".into()),
                 ("[Esc]".into(), "返回".into()),
             ],
         );
@@ -69,14 +71,20 @@ impl BatchModeState {
 
     pub fn handle_key(&self, key: KeyEvent) -> Transition {
         match key.code {
-            KeyCode::Char('e') | KeyCode::Char('E') => {
-                Transition::ToBatchRun(self.dir.clone(), RetrieveMode::Embedding)
-            }
-            KeyCode::Char('a') | KeyCode::Char('A') => {
-                Transition::ToBatchRun(self.dir.clone(), RetrieveMode::Association)
-            }
-            KeyCode::Char('f') | KeyCode::Char('F') => {
-                Transition::ToBatchRun(self.dir.clone(), RetrieveMode::FullPipeline)
+            KeyCode::Char('e') | KeyCode::Char('E') => Transition::ToBatchConfigParams(
+                AlgoType::Retrieve(RetrieveMode::Embedding),
+                self.dir.clone(),
+            ),
+            KeyCode::Char('a') | KeyCode::Char('A') => Transition::ToBatchConfigParams(
+                AlgoType::Retrieve(RetrieveMode::Association),
+                self.dir.clone(),
+            ),
+            KeyCode::Char('f') | KeyCode::Char('F') => Transition::ToBatchConfigParams(
+                AlgoType::Retrieve(RetrieveMode::FullPipeline),
+                self.dir.clone(),
+            ),
+            KeyCode::Char('d') | KeyCode::Char('D') => {
+                Transition::ToBatchConfigParams(AlgoType::Compare, self.dir.clone())
             }
             KeyCode::Esc => Transition::ToMain,
             _ => Transition::None,

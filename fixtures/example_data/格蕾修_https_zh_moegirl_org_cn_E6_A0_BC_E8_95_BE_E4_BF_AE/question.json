@@ -17,16 +17,16 @@
       "description": "atomic query 0",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
             "人物",
-            "父亲"
+            "家族"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个牺牲在战场上的男人",
-                "description": "在第九次崩坏中牺牲的父亲"
+                "concept_identifier": "格蕾修的爸爸",
+                "description": "第八次崩坏中牺牲的战士，她的父亲"
               }
             ]
           }
@@ -37,50 +37,23 @@
           "q": 0,
           "ranking": [
             "sem_hen"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_hen"
       ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
       "expected_actions": []
     },
     {
       "name": "query_1",
       "description": "atomic query 1",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "母亲"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "带她去公园写生的妈妈",
-                "description": "曾是梅比乌斯的助手，在第八次崩坏中去世的母亲"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_bulanka"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_bulanka"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_2",
-      "description": "atomic query 2",
       "sub_queries": [
         {
           "priority": 9,
@@ -91,8 +64,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "像妈妈一样照顾她的人",
-                "description": "父母去世后和科斯魔一起照料格蕾修的人"
+                "concept_identifier": "像妈妈一样的人",
+                "description": "父母去世后照顾格蕾修的英桀，她叫她妈妈"
               }
             ]
           }
@@ -103,11 +76,55 @@
           "q": 0,
           "ranking": [
             "sem_aponia"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_aponia"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_2",
+      "description": "atomic query 2",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "组织"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "前文明战士团体",
+                "description": "逐火之蛾最强战士，共十三人，她是第十一位"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_zhuhuo"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_zhuhuo"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -116,7 +133,7 @@
       "description": "atomic query 3",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
             "人物",
             "朋友"
@@ -124,8 +141,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个沉默的照顾者",
-                "description": "格蕾修后来代替他执行了方舟计划的英桀"
+                "concept_identifier": "被代替上船的人",
+                "description": "原本要执行方舟计划，但被她代替那位沉默的照顾者"
               }
             ]
           }
@@ -136,11 +153,19 @@
           "q": 0,
           "ranking": [
             "sem_kesimo"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_fangzhou"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_kesimo"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_fangzhou"
       ],
       "expected_actions": []
     },
@@ -149,16 +174,20 @@
       "description": "atomic query 4",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 9,
           "tag": [
-            "人物",
-            "同事"
+            "事件",
+            "画画"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "她妈妈的同事",
-                "description": "手术后关心格蕾修，不太高兴被叫阿姨的博士"
+                "narrative": "画了一幅向日葵送给阿波尼亚妈妈",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -168,12 +197,20 @@
         {
           "q": 0,
           "ranking": [
-            "sem_meibiyusi"
+            "sit_draw_sunflower"
+          ],
+          "bonus_ranking": [
+            "sem_aponia",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_meibiyusi"
+        "sit_draw_sunflower"
+      ],
+      "bonus_combined_ranking": [
+        "sem_aponia",
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -182,16 +219,20 @@
       "description": "atomic query 5",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 8,
           "tag": [
-            "人物",
-            "英桀"
+            "事件",
+            "苏醒"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "让人叫妹妹的英桀",
-                "description": "教她念中二台词的人见人爱的英桀"
+                "narrative": "在太阳系边缘被符华唤醒，参与战斗",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -201,12 +242,20 @@
         {
           "q": 0,
           "ranking": [
-            "sem_ailixiya"
+            "sit_awaken_by_hua"
+          ],
+          "bonus_ranking": [
+            "sem_hua",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_ailixiya"
+        "sit_awaken_by_hua"
+      ],
+      "bonus_combined_ranking": [
+        "sem_hua",
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -215,16 +264,20 @@
       "description": "atomic query 6",
       "sub_queries": [
         {
-          "priority": 5,
+          "priority": 9,
           "tag": [
-            "人物",
-            "朋友"
+            "事件",
+            "灾难"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "尾巴可以抱着的朋友",
-                "description": "格蕾修经常抱着她的尾巴睡觉的那个人"
+                "narrative": "与千劫接触后画下的画导致城区内乱",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -234,12 +287,20 @@
         {
           "q": 0,
           "ranking": [
-            "sem_paduo"
+            "sit_contact_qianjie_chaos"
+          ],
+          "bonus_ranking": [
+            "sem_qianjie",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_paduo"
+        "sit_contact_qianjie_chaos"
+      ],
+      "bonus_combined_ranking": [
+        "sem_qianjie",
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -251,13 +312,13 @@
           "priority": 6,
           "tag": [
             "人物",
-            "英桀"
+            "家族"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "说她像清泉的人",
-                "description": "冥想时常被她在脸上画画的英桀"
+                "concept_identifier": "格蕾修的母亲",
+                "description": "梅比乌斯的助手，喜欢带她写生，在第八次崩坏中去世"
               }
             ]
           }
@@ -267,12 +328,18 @@
         {
           "q": 0,
           "ranking": [
-            "sem_su"
+            "sem_bulanka"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_su"
+        "sem_bulanka"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -281,148 +348,15 @@
       "description": "atomic query 8",
       "sub_queries": [
         {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "英桀"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "给她馈赠后又回赠画的人",
-                "description": "接受馈赠后格蕾修回赠了画作《废墟》的英桀"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_yidian"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_yidian"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_9",
-      "description": "atomic query 9",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "英桀"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "在宇宙边缘唤醒她的人",
-                "description": "带她参与福洛斯战斗、给她做春不老的神州英桀"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_hua"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_hua"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_10",
-      "description": "atomic query 10",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "同伴"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "被画进漫画也没生气的人",
-                "description": "和格蕾修一起留在启明生活、被画入《织梦兔和AI少女》的人物"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_misitelin"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_misitelin"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_11",
-      "description": "atomic query 11",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "能力",
-            "特殊"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "影响别人认知的画画能力",
-                "description": "格蕾修的特殊能力，让画作能影响观看者的认知"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_huishizhe"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_huishizhe"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_12",
-      "description": "atomic query 12",
-      "sub_queries": [
-        {
           "priority": 6,
           "tag": [
-            "装甲",
-            "能力"
+            "装甲"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "用画笔战斗的女武神装甲",
-                "description": "格蕾修的第一套女武神装甲，使用颜料增益效果"
+                "concept_identifier": "第一套女武神装甲",
+                "description": "异能属性物理伤害SP角色，使用画笔和十字架，获得颜料增益"
               }
             ]
           }
@@ -433,298 +367,26 @@
           "q": 0,
           "ranking": [
             "sem_fanxing_huishi"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_fanxing_huishi"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_13",
-      "description": "atomic query 13",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "武器",
-            "物品"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "像钢笔一样的光剑",
-                "description": "格蕾修从科幻电影中学到用法的武器"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_guangjian"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_guangjian"
+      "bonus_combined_ranking": [
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "组织",
-            "概念"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "十三人的最强战士团体",
-                "description": "格蕾修是其中第十一位，代号'繁星'的组织"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_zhuhuo"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_zhuhuo"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_15",
-      "description": "atomic query 15",
+      "name": "query_9",
+      "description": "atomic query 9",
       "sub_queries": [
         {
           "priority": 7,
-          "tag": [
-            "事件",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她为了不让朋友孤独，主动请求代替他执行一项危险计划",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "那个沉默的照顾者",
-                    "role": "原本的执行者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_replace_kesimo"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_replace_kesimo"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_16",
-      "description": "atomic query 16",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "苏醒",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在宇宙边缘沉睡了很久之后被一位故人叫醒",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "带春不老的神州英桀",
-                    "role": "唤醒者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_awaken_by_hua"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_awaken_by_hua"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_17",
-      "description": "atomic query 17",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "灾难",
-            "意外"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "一次接触后她画的画意外引发了内乱，毁掉了整个城区",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "那个戴面具的人",
-                    "role": "接触对象"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_contact_qianjie_chaos"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_contact_qianjie_chaos"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_18",
-      "description": "atomic query 18",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "事件",
-            "电影"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在宇宙旅行的时候通过看电影学会了武器的用法",
-                "location": [
-                  {
-                    "name": "飞船",
-                    "coordinates": ""
-                  }
-                ],
-                "participants": [],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_watch_movies_on_ark"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_watch_movies_on_ark"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_19",
-      "description": "atomic query 19",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "事件",
-            "创作"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她画了一部漫画，把身边的朋友画了进去，然后出去采风停更了",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "沙尼亚特家的少女",
-                    "role": "被画入角色"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_draw_cartoon"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_draw_cartoon"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_20",
-      "description": "atomic query 20",
-      "sub_queries": [
-        {
-          "priority": 6,
           "tag": [
             "事件",
             "灾难"
@@ -732,8 +394,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "带走她妈妈的崩坏事件",
-                "description": "让格蕾修成为孤儿的大灾难之一"
+                "concept_identifier": "带走父母的崩坏",
+                "description": "第八次崩坏带走母亲，第九次带走父亲"
               }
             ]
           }
@@ -743,54 +405,31 @@
         {
           "q": 0,
           "ranking": [
-            "sem_dibaci_benghuai"
+            "sem_dibaci_benghuai",
+            "sem_dijiucibenghuai"
+          ],
+          "bonus_ranking": [
+            "sem_bulanka",
+            "sem_hen"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_dibaci_benghuai"
+        "sem_dibaci_benghuai",
+        "sem_dijiucibenghuai"
+      ],
+      "bonus_combined_ranking": [
+        "sem_bulanka",
+        "sem_hen"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_21",
-      "description": "atomic query 21",
+      "name": "query_10",
+      "description": "atomic query 10",
       "sub_queries": [
         {
           "priority": 5,
-          "tag": [
-            "计划",
-            "宇宙"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她代替朋友执行的太空计划",
-                "description": "格蕾修在宇宙中航行数千年所执行的任务"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_fangzhou"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_fangzhou"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_22",
-      "description": "atomic query 22",
-      "sub_queries": [
-        {
-          "priority": 3,
           "tag": [
             "地点",
             "居所"
@@ -798,8 +437,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她当代理人住的城市",
-                "description": "击败某位敌人后格蕾修定居并担任代理人的地方"
+                "concept_identifier": "她现在住的城市",
+                "description": "击败娑后她留在这里生活，并成为代理人"
               }
             ]
           }
@@ -810,11 +449,535 @@
           "q": 0,
           "ranking": [
             "sem_qiming"
+          ],
+          "bonus_ranking": [
+            "sem_chengshi_dailiren"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_qiming"
+      ],
+      "bonus_combined_ranking": [
+        "sem_chengshi_dailiren"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "武器"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "从科幻电影学会的武器",
+                "description": "像钢笔形状，按下按钮弹出冰蓝光柱"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_guangjian"
+          ],
+          "bonus_ranking": [
+            "sem_weierwei"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_guangjian"
+      ],
+      "bonus_combined_ranking": [
+        "sem_weierwei"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "伙伴"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "陪伴她的AI伙伴",
+                "description": "一直陪着她，她会跟它说很多话，虽然它不一定回答"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_mawen"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_mawen"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "英桀"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "让她叫妹妹的英桀",
+                "description": "人见人爱，教她说‘画笔，臣服于我’"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_ailixiya"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_ailixiya"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "睡觉"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她睡觉抱着的尾巴",
+                "description": "经常抱着帕朵菲莉丝的尾巴睡觉"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_paduo"
+          ],
+          "bonus_ranking": [
+            "sem_guan",
+            "proc_sleep_with_tail"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_paduo"
+      ],
+      "bonus_combined_ranking": [
+        "sem_guan",
+        "proc_sleep_with_tail"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "代替科斯魔执行方舟计划，向维尔薇提出请求",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_replace_kesimo"
+          ],
+          "bonus_ranking": [
+            "sem_kesimo",
+            "sem_weierwei",
+            "sem_fangzhou"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_replace_kesimo"
+      ],
+      "bonus_combined_ranking": [
+        "sem_kesimo",
+        "sem_weierwei",
+        "sem_fangzhou"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "事件",
+            "学习"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在方舟上看科幻电影，学会光剑用法",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_watch_movies_on_ark"
+          ],
+          "bonus_ranking": [
+            "sem_guangjian",
+            "sem_weierwei"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_watch_movies_on_ark"
+      ],
+      "bonus_combined_ranking": [
+        "sem_guangjian",
+        "sem_weierwei"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "创作"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "画了漫画《织梦兔和AI少女》，把米丝忒琳画进去了",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_draw_cartoon"
+          ],
+          "bonus_ranking": [
+            "sem_misitelin",
+            "sem_weita",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_draw_cartoon"
+      ],
+      "bonus_combined_ranking": [
+        "sem_misitelin",
+        "sem_weita",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "苏醒"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在太阳系边缘沉睡近六万年，被华姐姐唤醒",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_awaken_by_hua"
+          ],
+          "bonus_ranking": [
+            "sem_hua",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_awaken_by_hua"
+      ],
+      "bonus_combined_ranking": [
+        "sem_hua",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "事件",
+            "灾难"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "接触千劫后画下的画导致整个城区毁于内乱",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_contact_qianjie_chaos"
+          ],
+          "bonus_ranking": [
+            "sem_qianjie",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_contact_qianjie_chaos"
+      ],
+      "bonus_combined_ranking": [
+        "sem_qianjie",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "事件",
+            "画画"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "画了一幅向日葵，阴影中孤独枯萎的向日葵",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_draw_sunflower"
+          ],
+          "bonus_ranking": [
+            "sem_aponia",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_draw_sunflower"
+      ],
+      "bonus_combined_ranking": [
+        "sem_aponia",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "因害怕科斯魔孤独，主动代替他上船",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_replace_kesimo"
+          ],
+          "bonus_ranking": [
+            "sem_kesimo",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_replace_kesimo"
+      ],
+      "bonus_combined_ranking": [
+        "sem_kesimo",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "事件",
+            "学习"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在方舟上通过科幻电影学习武器用法",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_watch_movies_on_ark"
+          ],
+          "bonus_ranking": [
+            "sem_guangjian"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_watch_movies_on_ark"
+      ],
+      "bonus_combined_ranking": [
+        "sem_guangjian"
       ],
       "expected_actions": []
     },
@@ -823,16 +986,20 @@
       "description": "atomic query 23",
       "sub_queries": [
         {
-          "priority": 3,
+          "priority": 7,
           "tag": [
-            "技术",
-            "手术"
+            "事件",
+            "创作"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "让她变成融合战士的手术",
-                "description": "为了在崩坏中活下去而接受的手术名称"
+                "narrative": "因为要出门采风，漫画临时休刊",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -842,29 +1009,38 @@
         {
           "q": 0,
           "ranking": [
-            "sem_chaobian"
+            "sit_draw_cartoon"
+          ],
+          "bonus_ranking": [
+            "sem_misitelin",
+            "sem_weita"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_chaobian"
+        "sit_draw_cartoon"
+      ],
+      "bonus_combined_ranking": [
+        "sem_misitelin",
+        "sem_weita"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_ability_paint",
-      "description": "查询格蕾修的绘世者能力",
+      "name": "set_parents",
+      "description": "查询格蕾修的父母",
       "sub_queries": [
         {
           "priority": 9,
           "tag": [
-            "能力"
+            "人物",
+            "家族"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "让画作变成现实的特殊力量",
-                "description": "格蕾修拥有的、能通过画画影响他人认知的能力"
+                "concept_identifier": "格蕾修的爸爸",
+                "description": "第九次崩坏中牺牲的战士"
               }
             ]
           }
@@ -872,13 +1048,14 @@
         {
           "priority": 9,
           "tag": [
-            "能力"
+            "人物",
+            "家族"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "影响认知的绘画",
-                "description": "一种可以让画作影响观看者认知的能力"
+                "concept_identifier": "她的父亲",
+                "description": "用‘另一种方式画画’——保护大家还能看到风景的人"
               }
             ]
           }
@@ -886,13 +1063,14 @@
         {
           "priority": 9,
           "tag": [
-            "能力"
+            "人物",
+            "家族"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她的特殊天赋",
-                "description": "别人看到她画的画会产生幻觉或改变想法的那种能力"
+                "concept_identifier": "格蕾修的母亲",
+                "description": "曾是梅比乌斯的助手，喜欢带她去公园写生"
               }
             ]
           }
@@ -900,13 +1078,14 @@
         {
           "priority": 9,
           "tag": [
-            "能力"
+            "人物",
+            "家族"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "毁掉城区的力量",
-                "description": "她画的一幅画曾经让整个城区毁于内乱的那个能力"
+                "concept_identifier": "她的妈妈",
+                "description": "在第八次崩坏中离开，会带她看风景的人"
               }
             ]
           }
@@ -914,13 +1093,14 @@
         {
           "priority": 9,
           "tag": [
-            "能力"
+            "人物",
+            "家族"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "绘世者",
-                "description": "格蕾修作为融合战士拥有的专属技能，让画作实体化"
+                "concept_identifier": "格蕾修的监护人",
+                "description": "先后因崩坏去世的战士夫妇"
               }
             ]
           }
@@ -928,13 +1108,14 @@
         {
           "priority": 9,
           "tag": [
-            "能力"
+            "人物",
+            "家族"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "把颜色变成现实",
-                "description": "她可以通过画画把她感受到的颜色变成影响现实的力量"
+                "concept_identifier": "布兰卡和痕",
+                "description": "格蕾修的父母，一位是梅比乌斯助手，一位是战士"
               }
             ]
           }
@@ -944,601 +1125,72 @@
         {
           "q": 0,
           "ranking": [
-            "sem_huishizhe"
+            "sem_hen"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_huishizhe"
+            "sem_hen"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_huishizhe"
+            "sem_bulanka"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_huishizhe"
+            "sem_bulanka"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_huishizhe"
+            "sem_hen",
+            "sem_bulanka"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sem_huishizhe"
+            "sem_bulanka",
+            "sem_hen"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_huishizhe"
+        "sem_hen",
+        "sem_bulanka"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_replace_kesimo",
-      "description": "查询格蕾修代替科斯魔执行方舟计划的事件",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她看到朋友不情愿，主动请求替朋友去做一件孤独的大事",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "沉默的照顾者",
-                    "role": "被替代者"
-                  },
-                  {
-                    "name": "工程师姐姐",
-                    "role": "求助对象"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在螺旋工坊里，她向维尔薇提出了一个替代计划",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "科斯魔",
-                    "role": "原本的执行者"
-                  },
-                  {
-                    "name": "维尔薇",
-                    "role": "帮助者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "为了保护那个不愿意离开的朋友，她决定自己去太空",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "那个总是很孤单的人",
-                    "role": "被保护者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她做了件牺牲自己的好事，代替别人上了飞船",
-                "location": null,
-                "participants": [],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她对维尔薇说，让她代替科斯魔去执行那个计划",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "科斯魔",
-                    "role": "被替代"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她为朋友所做的那个最勇敢的决定",
-                "location": null,
-                "participants": [],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_replace_kesimo"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_replace_kesimo"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_replace_kesimo"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_replace_kesimo"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_replace_kesimo"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_replace_kesimo"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_replace_kesimo"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_aponia_sunflower",
-      "description": "查询格蕾修与阿波尼亚的关系及送向日葵画的事件",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她画了一幅向日葵送给了照顾她的人",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "温暖的照顾者",
-                    "role": "收画人"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她不想让像妈妈一样的人变得孤独，所以画了那幅画",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "阿波尼亚",
-                    "role": "受画者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "给一位温柔的英桀画了一幅向日葵作为感谢",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "那位母亲般的英桀",
-                    "role": "收画人"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "阴影中孤独枯萎的向日葵，是格蕾修送给阿波尼亚的礼物",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "格蕾修",
-                    "role": "画者"
-                  },
-                  {
-                    "name": "阿波尼亚",
-                    "role": "受画者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "最温柔的礼物，一幅向日葵画",
-                "location": null,
-                "participants": [],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她画好了画送给那个照顾她的人，希望她不要像画里的向日葵一样孤独",
-                "location": null,
-                "participants": [],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_draw_sunflower"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_draw_sunflower"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_draw_sunflower"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_draw_sunflower"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_draw_sunflower"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_draw_sunflower"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_draw_sunflower"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_sleep_habit",
-      "description": "查询格蕾修的睡眠习惯",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "习惯",
-            "睡眠"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她睡觉的时候要抱着什么东西才安心",
-                "location": null,
-                "participants": [],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 4,
-          "tag": [
-            "习惯",
-            "睡眠"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "习惯抱着朋友毛茸茸的尾巴入睡",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "帕朵菲莉丝",
-                    "role": "尾巴提供者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 4,
-          "tag": [
-            "习惯",
-            "睡眠"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她睡觉时会把脚伸到一只猫的肚子底下",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "罐头",
-                    "role": "猫"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 4,
-          "tag": [
-            "习惯",
-            "睡眠"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她的好朋友帕朵的尾巴是她睡觉时的必需品",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "帕朵",
-                    "role": "朋友"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 4,
-          "tag": [
-            "习惯",
-            "睡眠"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她有个奇怪的睡眠习惯，跟帕朵的尾巴有关",
-                "location": null,
-                "participants": [],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 4,
-          "tag": [
-            "习惯",
-            "睡眠"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她喜欢抱着尾巴或者把脚伸到猫肚子底下才能睡得着",
-                "location": null,
-                "participants": [],
-                "time_span": null,
-                "environment": null,
-                "event": []
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "proc_sleep_with_tail"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "proc_sleep_with_tail"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "proc_sleep_with_tail"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "proc_sleep_with_tail"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "proc_sleep_with_tail"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "proc_sleep_with_tail"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "proc_sleep_with_tail"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_wake_up_hua",
-      "description": "查询格蕾修被符华唤醒并参与战斗的事件",
+      "name": "set_awakening",
+      "description": "查询格蕾修被符华唤醒的事件",
       "sub_queries": [
         {
           "priority": 8,
@@ -1549,22 +1201,12 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "她在太阳系边缘沉睡了五十多万天后被一位老朋友叫醒",
-                "location": [
-                  {
-                    "name": "太阳系边缘",
-                    "coordinates": ""
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "神州英桀",
-                    "role": "唤醒者"
-                  }
-                ],
+                "narrative": "在太阳系边缘被一位神州英桀唤醒",
+                "location": null,
+                "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": []
+                "event": null
               }
             ]
           }
@@ -1578,17 +1220,12 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "被华姐姐从沉睡中叫醒，然后去了一个叫福洛斯的地方打架",
+                "narrative": "沉睡561397天后，被华姐姐叫醒，参与福洛斯战斗",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "华",
-                    "role": "唤醒者"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": []
+                "event": null
               }
             ]
           }
@@ -1602,21 +1239,12 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "她醒来后认识了一个代理人和七个小孩",
+                "narrative": "符华在太阳系边缘发现并唤醒了她",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "符华",
-                    "role": "唤醒者"
-                  },
-                  {
-                    "name": "薇塔",
-                    "role": "后来认识的人"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": []
+                "event": null
               }
             ]
           }
@@ -1630,12 +1258,12 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "在宇宙深处，她被带着春不老的那个人叫醒",
+                "narrative": "被一个叫华的英桀从漫长沉睡中叫醒",
                 "location": null,
-                "participants": [],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": []
+                "event": null
               }
             ]
           }
@@ -1649,17 +1277,12 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "她的第二次生命开始了，是符华给了她这个机会",
+                "narrative": "在太阳系边缘结束沉睡，迎来新的战斗和生活",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "符华",
-                    "role": "恩人"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": []
+                "event": null
               }
             ]
           }
@@ -1673,17 +1296,12 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "在华呼唤她之前，她在太空里飘了很久很久",
+                "narrative": "符华带她认识了薇塔和七位小代理人",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "华",
-                    "role": "唤醒者"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": []
+                "event": null
               }
             ]
           }
@@ -1694,50 +1312,80 @@
           "q": 0,
           "ranking": [
             "sit_awaken_by_hua"
+          ],
+          "bonus_ranking": [
+            "sem_hua",
+            "sem_self"
           ]
         },
         {
           "q": 1,
           "ranking": [
             "sit_awaken_by_hua"
+          ],
+          "bonus_ranking": [
+            "sem_hua",
+            "sem_self"
           ]
         },
         {
           "q": 2,
           "ranking": [
             "sit_awaken_by_hua"
+          ],
+          "bonus_ranking": [
+            "sem_hua",
+            "sem_self"
           ]
         },
         {
           "q": 3,
           "ranking": [
             "sit_awaken_by_hua"
+          ],
+          "bonus_ranking": [
+            "sem_hua",
+            "sem_self"
           ]
         },
         {
           "q": 4,
           "ranking": [
             "sit_awaken_by_hua"
+          ],
+          "bonus_ranking": [
+            "sem_hua",
+            "sem_self"
           ]
         },
         {
           "q": 5,
           "ranking": [
             "sit_awaken_by_hua"
+          ],
+          "bonus_ranking": [
+            "sem_hua",
+            "sem_weita",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_awaken_by_hua"
       ],
+      "bonus_combined_ranking": [
+        "sem_hua",
+        "sem_self",
+        "sem_weita"
+      ],
       "expected_actions": []
     },
     {
-      "name": "set_draw_qianjie_chaos",
-      "description": "查询格蕾修与千劫接触后引发城区内乱的事件",
+      "name": "set_qianjie_chaos",
+      "description": "查询格蕾修与千劫接触画造成内乱的事件",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
             "事件",
             "灾难"
@@ -1745,23 +1393,18 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "她跟那个脾气很火爆的英桀接触后，画的一幅画让一个地方出了大事",
+                "narrative": "和千劫接触后画下画，导致城区内乱",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "戴面具的人",
-                    "role": "接触对象"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": []
+                "event": null
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
             "事件",
             "灾难"
@@ -1769,18 +1412,18 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "一幅画引起的城区内乱，她并不是故意的",
+                "narrative": "由于她的画，整个城区毁于内乱",
                 "location": null,
-                "participants": [],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": []
+                "event": null
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
             "事件",
             "灾难"
@@ -1788,23 +1431,18 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "她画下了不该画的东西，导致整个城市区域陷入混乱",
+                "narrative": "她画了一幅画，那幅画让城市陷入混乱",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "千劫",
-                    "role": "影响的来源"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": []
+                "event": null
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
             "事件",
             "灾难"
@@ -1812,18 +1450,18 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "一次接触后，她的能力失控造成了内乱",
+                "narrative": "与千劫接触后，她不小心画出了引发内乱的画",
                 "location": null,
-                "participants": [],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": []
+                "event": null
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
             "事件",
             "灾难"
@@ -1831,23 +1469,18 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "为千劫画的《流星》间接导致了内乱",
+                "narrative": "她不是故意的，但接触千劫后画下的画造成了巨大破坏",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "千劫",
-                    "role": "导致内乱的原因"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": []
+                "event": null
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
             "事件",
             "灾难"
@@ -1855,36 +1488,12 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "她给那个被封印的人画的画成了灾难的导火索",
+                "narrative": "千劫的颜色让她画出了导致城区毁灭的画",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "千劫",
-                    "role": "被画的人"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": []
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "灾难"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她画下接触千劫后看到的东西，结果引发了内乱",
-                "location": null,
-                "participants": [],
-                "time_span": null,
-                "environment": null,
-                "event": []
+                "event": null
               }
             ]
           }
@@ -1895,47 +1504,614 @@
           "q": 0,
           "ranking": [
             "sit_contact_qianjie_chaos"
+          ],
+          "bonus_ranking": [
+            "sem_qianjie",
+            "sem_self"
           ]
         },
         {
           "q": 1,
           "ranking": [
             "sit_contact_qianjie_chaos"
+          ],
+          "bonus_ranking": [
+            "sem_qianjie",
+            "sem_self"
           ]
         },
         {
           "q": 2,
           "ranking": [
             "sit_contact_qianjie_chaos"
+          ],
+          "bonus_ranking": [
+            "sem_qianjie",
+            "sem_self"
           ]
         },
         {
           "q": 3,
           "ranking": [
             "sit_contact_qianjie_chaos"
+          ],
+          "bonus_ranking": [
+            "sem_qianjie",
+            "sem_self"
           ]
         },
         {
           "q": 4,
           "ranking": [
             "sit_contact_qianjie_chaos"
+          ],
+          "bonus_ranking": [
+            "sem_qianjie",
+            "sem_self"
           ]
         },
         {
           "q": 5,
           "ranking": [
             "sit_contact_qianjie_chaos"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_contact_qianjie_chaos"
+          ],
+          "bonus_ranking": [
+            "sem_qianjie",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_contact_qianjie_chaos"
+      ],
+      "bonus_combined_ranking": [
+        "sem_qianjie",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_draw_sunflower",
+      "description": "查询格蕾修画向日葵送给阿波尼亚",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "画画"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "画了一幅向日葵送给阿波尼亚妈妈",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "画画"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "为照顾她的人画了一幅向日葵，表达祝愿",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "画画"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "画了阴影中孤独枯萎的向日葵，不希望阿波尼亚也那样",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "画画"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "阿波尼亚收到的画是一幅向日葵",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "画画"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她画了一幅向日葵送给像妈妈一样的阿波尼亚",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "画画"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "送给阿波尼亚的画，名为向日葵，寓意不希望她孤独",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_draw_sunflower"
+          ],
+          "bonus_ranking": [
+            "sem_aponia",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_draw_sunflower"
+          ],
+          "bonus_ranking": [
+            "sem_aponia",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_draw_sunflower"
+          ],
+          "bonus_ranking": [
+            "sem_aponia",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_draw_sunflower"
+          ],
+          "bonus_ranking": [
+            "sem_aponia",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_draw_sunflower"
+          ],
+          "bonus_ranking": [
+            "sem_aponia",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_draw_sunflower"
+          ],
+          "bonus_ranking": [
+            "sem_aponia",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_draw_sunflower"
+      ],
+      "bonus_combined_ranking": [
+        "sem_aponia",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_replace_kesimo",
+      "description": "查询格蕾修代替科斯魔执行方舟计划",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "看到科斯魔不情愿，主动代替他上船",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "找维尔薇提出代替科斯魔执行方舟计划",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "因为害怕科斯魔孤独，她决定自己去方舟",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她代替那个沉默的照顾者乘上方舟",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "向维尔薇请求，让她代替科斯魔登上宇宙飞船",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "方舟"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "科斯魔不情愿执行方舟计划，她决定代替他",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_replace_kesimo"
+          ],
+          "bonus_ranking": [
+            "sem_kesimo",
+            "sem_weierwei",
+            "sem_fangzhou"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_replace_kesimo"
+          ],
+          "bonus_ranking": [
+            "sem_kesimo",
+            "sem_weierwei",
+            "sem_fangzhou"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_replace_kesimo"
+          ],
+          "bonus_ranking": [
+            "sem_kesimo",
+            "sem_fangzhou"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_replace_kesimo"
+          ],
+          "bonus_ranking": [
+            "sem_kesimo",
+            "sem_fangzhou"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_replace_kesimo"
+          ],
+          "bonus_ranking": [
+            "sem_kesimo",
+            "sem_weierwei",
+            "sem_fangzhou"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_replace_kesimo"
+          ],
+          "bonus_ranking": [
+            "sem_kesimo",
+            "sem_self",
+            "sem_fangzhou"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_replace_kesimo"
+      ],
+      "bonus_combined_ranking": [
+        "sem_kesimo",
+        "sem_weierwei",
+        "sem_fangzhou",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_light_sword",
+      "description": "查询格蕾修的光剑及其学习来源",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "武器"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的光剑",
+                "description": "像钢笔一样，弹出冰蓝光柱"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "武器"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "从电影学来的武器",
+                "description": "科幻电影里学到的光剑用法"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "武器"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "钢笔形状的光剑",
+                "description": "维尔薇给的武器，说明书藏在电影里"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "武器"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "冰蓝光柱武器",
+                "description": "她按下按钮就会弹出光柱的钢笔"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "武器"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "格蕾修的光剑",
+                "description": "第二套装甲使用的主武器"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "武器"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她学会用的光剑",
+                "description": "从方舟上的科幻电影学会用法"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_guangjian"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_guangjian"
+          ],
+          "bonus_ranking": [
+            "sem_weierwei"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_guangjian"
+          ],
+          "bonus_ranking": [
+            "sem_weierwei",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_guangjian"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_guangjian"
+          ],
+          "bonus_ranking": [
+            "sem_tianxing_huixing",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_guangjian"
+          ],
+          "bonus_ranking": [
+            "sem_weierwei",
+            "sit_watch_movies_on_ark"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_guangjian"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_weierwei",
+        "sem_tianxing_huixing",
+        "sit_watch_movies_on_ark"
       ],
       "expected_actions": []
     }

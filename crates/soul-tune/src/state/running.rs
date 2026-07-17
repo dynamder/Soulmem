@@ -12,11 +12,21 @@ use std::collections::HashMap;
 
 use crate::base::{AlgoType, TestConfig, TestReport, Transition};
 use crate::component::{Component, ComponentEvent};
+use crate::eval::compare::build_compare_report;
 use crate::eval::retrieve_suite::RetrieveSuite;
 use crate::eval::runner::{SuiteReport, TestCaseOutcome, TestSuite};
 use crate::tui::components::status_bar;
 
 type LoadResult = Result<(Box<dyn TestSuite>, usize, String), String>;
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ComparePhase {
+    LoadingEmbedding,
+    RunningEmbedding,
+    LoadingFullPipeline,
+    RunningFullPipeline,
+    Done,
+}
 
 pub struct RunningState {
     pub config: TestConfig,
@@ -34,60 +44,95 @@ pub struct RunningState {
     _load_thread: Option<std::thread::JoinHandle<()>>,
     spinner_frame: usize,
     loading_error: Option<String>,
+
+    // Compare mode fields
+    compare_phase: Option<ComparePhase>,
+    embedding_outcomes: Vec<TestCaseOutcome>,
+    fullpipeline_outcomes: Vec<TestCaseOutcome>,
 }
 
 impl RunningState {
     pub fn new(config: TestConfig) -> Self {
-        let load_result: Arc<Mutex<Option<LoadResult>>> = Arc::new(Mutex::new(None));
-        let load_result_clone = load_result.clone();
-        let path = config.dataset_path.clone();
-        let algo = config.algo;
+        let is_compare = matches!(config.algo, AlgoType::Compare);
 
-        let params: HashMap<String, String> = config.params.clone();
-        let _load_thread = std::thread::Builder::new()
-            .name("suite-loader".into())
-            .spawn(move || {
-                let result: LoadResult =
-                    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> LoadResult {
-                        match algo {
-                            AlgoType::Retrieve(mode) => {
-                                match RetrieveSuite::load_with_params(&path, mode, Some(&params)) {
-                                    Ok(s) => {
-                                        let n = s.case_count();
-                                        let desc = format!("准备就绪，共 {} 个测试用例", n);
-                                        Ok((Box::new(s) as Box<dyn TestSuite>, n, desc))
+        if is_compare {
+            Self {
+                compare_phase: Some(ComparePhase::LoadingEmbedding),
+                embedding_outcomes: Vec::new(),
+                fullpipeline_outcomes: Vec::new(),
+                config,
+                total: 0,
+                current: 0,
+                passed: 0,
+                failed: 0,
+                elapsed_secs: 0.0,
+                current_description: "比对: 正在加载 Embedding 模型...".to_string(),
+                outcomes: Vec::new(),
+                suite: None,
+                load_result: Arc::new(Mutex::new(None)),
+                _load_thread: None,
+                spinner_frame: 0,
+                loading_error: None,
+            }
+        } else {
+            let load_result: Arc<Mutex<Option<LoadResult>>> = Arc::new(Mutex::new(None));
+            let load_result_clone = load_result.clone();
+            let path = config.dataset_path.clone();
+            let algo = config.algo;
+
+            let params: HashMap<String, String> = config.params.clone();
+            let _load_thread = std::thread::Builder::new()
+                .name("suite-loader".into())
+                .spawn(move || {
+                    let result: LoadResult =
+                        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> LoadResult {
+                            match algo {
+                                AlgoType::Retrieve(mode) => {
+                                    match RetrieveSuite::load_with_params(
+                                        &path,
+                                        mode,
+                                        Some(&params),
+                                    ) {
+                                        Ok(s) => {
+                                            let n = s.case_count();
+                                            let desc = format!("准备就绪，共 {} 个测试用例", n);
+                                            Ok((Box::new(s) as Box<dyn TestSuite>, n, desc))
+                                        }
+                                        Err(e) => Err(format!(
+                                            "加载 '{}' 失败: {}",
+                                            path.file_name()
+                                                .map(|n| n.to_string_lossy())
+                                                .unwrap_or_default(),
+                                            e
+                                        )),
                                     }
-                                    Err(e) => Err(format!(
-                                        "加载 '{}' 失败: {}",
-                                        path.file_name()
-                                            .map(|n| n.to_string_lossy())
-                                            .unwrap_or_default(),
-                                        e
-                                    )),
                                 }
+                                _ => Err(format!("{} 尚未实现", algo)),
                             }
-                            _ => Err(format!("{} 尚未实现", algo)),
-                        }
-                    }))
-                    .unwrap_or_else(|_| Err("加载过程中发生内部错误 (panic)".to_string()));
-                *load_result_clone.lock().unwrap() = Some(result);
-            })
-            .ok();
+                        }))
+                        .unwrap_or_else(|_| Err("加载过程中发生内部错误 (panic)".to_string()));
+                    *load_result_clone.lock().unwrap() = Some(result);
+                })
+                .ok();
 
-        Self {
-            config,
-            total: 0,
-            current: 0,
-            passed: 0,
-            failed: 0,
-            elapsed_secs: 0.0,
-            current_description: "正在加载模型和数据...".to_string(),
-            outcomes: Vec::new(),
-            suite: None,
-            load_result,
-            _load_thread,
-            spinner_frame: 0,
-            loading_error: None,
+            Self {
+                compare_phase: None,
+                embedding_outcomes: Vec::new(),
+                fullpipeline_outcomes: Vec::new(),
+                config,
+                total: 0,
+                current: 0,
+                passed: 0,
+                failed: 0,
+                elapsed_secs: 0.0,
+                current_description: "正在加载模型和数据...".to_string(),
+                outcomes: Vec::new(),
+                suite: None,
+                load_result,
+                _load_thread,
+                spinner_frame: 0,
+                loading_error: None,
+            }
         }
     }
 
@@ -99,6 +144,9 @@ impl RunningState {
         desc: String,
     ) -> Self {
         Self {
+            compare_phase: None,
+            embedding_outcomes: Vec::new(),
+            fullpipeline_outcomes: Vec::new(),
             config,
             total,
             current: 0,
@@ -116,6 +164,12 @@ impl RunningState {
     }
 
     pub fn tick(&mut self) -> Option<Transition> {
+        // ── Compare mode path ──
+        if let Some(phase) = self.compare_phase {
+            return self.tick_compare(phase);
+        }
+
+        // ── Normal mode path ──
         // Phase 1: waiting for async load to finish
         if self.suite.is_none() {
             self.spinner_frame = (self.spinner_frame + 1) % 10;
@@ -175,6 +229,118 @@ impl RunningState {
         None
     }
 
+    fn tick_compare(&mut self, phase: ComparePhase) -> Option<Transition> {
+        match phase {
+            ComparePhase::LoadingEmbedding => {
+                // Synchronously load the Embedding suite
+                self.spinner_frame = (self.spinner_frame + 1) % 10;
+                match RetrieveSuite::load_with_params(
+                    &self.config.dataset_path,
+                    crate::base::RetrieveMode::Embedding,
+                    Some(&self.config.params),
+                ) {
+                    Ok(s) => {
+                        let n = s.case_count();
+                        self.suite = Some(Box::new(s));
+                        self.total = n;
+                        self.compare_phase = Some(ComparePhase::RunningEmbedding);
+                        self.current_description = format!("比对 · Embedding 0/{}", n);
+                    }
+                    Err(e) => {
+                        self.current_description = format!("加载 Embedding 失败: {}", e);
+                        self.loading_error = Some(e.to_string());
+                        self.compare_phase = Some(ComparePhase::Done);
+                    }
+                }
+                None
+            }
+            ComparePhase::RunningEmbedding => {
+                let suite = self.suite.as_ref().unwrap();
+                if self.current >= self.total {
+                    // Store embedding outcomes, start loading FullPipeline
+                    self.embedding_outcomes = std::mem::take(&mut self.outcomes);
+                    self.current = 0;
+                    self.total = 0;
+                    self.passed = 0;
+                    self.failed = 0;
+                    self.suite = None;
+                    self.compare_phase = Some(ComparePhase::LoadingFullPipeline);
+                    self.current_description = "比对: 正在加载 FullPipeline 模型...".to_string();
+                    // Reset elapsed for FullPipelin
+                    return None;
+                }
+
+                let start = std::time::Instant::now();
+                let outcome = suite.run_case(self.current);
+                self.current_description =
+                    format!("比对 · Embedding {}/{}", self.current + 1, self.total);
+
+                if outcome.passed {
+                    self.passed += 1;
+                } else {
+                    self.failed += 1;
+                }
+                self.outcomes.push(outcome);
+                self.current += 1;
+                self.elapsed_secs += start.elapsed().as_secs_f64();
+                None
+            }
+            ComparePhase::LoadingFullPipeline => {
+                self.spinner_frame = (self.spinner_frame + 1) % 10;
+                match RetrieveSuite::load_with_params(
+                    &self.config.dataset_path,
+                    crate::base::RetrieveMode::FullPipeline,
+                    Some(&self.config.params),
+                ) {
+                    Ok(s) => {
+                        let n = s.case_count();
+                        self.suite = Some(Box::new(s));
+                        self.total = n;
+                        self.compare_phase = Some(ComparePhase::RunningFullPipeline);
+                        self.current_description = format!("比对 · FullPipeline 0/{}", n);
+                    }
+                    Err(e) => {
+                        self.current_description = format!("加载 FullPipeline 失败: {}", e);
+                        self.loading_error = Some(e.to_string());
+                        self.compare_phase = Some(ComparePhase::Done);
+                    }
+                }
+                None
+            }
+            ComparePhase::RunningFullPipeline => {
+                let suite = self.suite.as_ref().unwrap();
+                if self.current >= self.total {
+                    self.fullpipeline_outcomes = std::mem::take(&mut self.outcomes);
+                    self.compare_phase = Some(ComparePhase::Done);
+
+                    // Build compare report and transition
+                    let report =
+                        build_compare_report(&self.embedding_outcomes, &self.fullpipeline_outcomes);
+                    return Some(Transition::ToCompareResults(report));
+                }
+
+                let start = std::time::Instant::now();
+                let outcome = suite.run_case(self.current);
+                self.current_description =
+                    format!("比对 · FullPipeline {}/{}", self.current + 1, self.total);
+
+                if outcome.passed {
+                    self.passed += 1;
+                } else {
+                    self.failed += 1;
+                }
+                self.outcomes.push(outcome);
+                self.current += 1;
+                self.elapsed_secs += start.elapsed().as_secs_f64();
+                None
+            }
+            ComparePhase::Done => {
+                // Already transitioned. Should not be reached.
+                None
+            }
+        }
+    }
+
     pub fn render(&self, frame: &mut Frame) {
         let area = frame.area();
         let layout = Layout::default()
@@ -186,9 +352,16 @@ impl RunningState {
             ])
             .split(area);
 
+        let title_prefix = if self.compare_phase.is_some() {
+            " ▶ 比对中"
+        } else {
+            " ▶ 运行中"
+        };
+
         Block::bordered()
             .title(format!(
-                " ▶ 运行中 · {} · {} ",
+                " {} · {} · {} ",
+                title_prefix,
                 self.config.algo,
                 self.config
                     .dataset_path
@@ -208,7 +381,16 @@ impl RunningState {
             ])
             .split(layout[1]);
 
-        if self.suite.is_none() {
+        let is_loading = if self.compare_phase.is_some() {
+            matches!(
+                self.compare_phase,
+                Some(ComparePhase::LoadingEmbedding) | Some(ComparePhase::LoadingFullPipeline)
+            )
+        } else {
+            self.suite.is_none()
+        };
+
+        if is_loading {
             // Loading animation
             let spinner = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
             let s = spinner[self.spinner_frame % spinner.len()];

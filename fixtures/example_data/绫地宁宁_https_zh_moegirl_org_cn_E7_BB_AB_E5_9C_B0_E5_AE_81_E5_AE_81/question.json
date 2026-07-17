@@ -24,8 +24,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个被她称为最重要的人",
-                "description": "保科柊史是她的恋人和同班同学"
+                "concept_identifier": "那个戴眼镜的温柔男生",
+                "description": "我的同班同学和恋人，有读心能力"
               }
             ]
           }
@@ -36,11 +36,17 @@
           "q": 0,
           "ranking": [
             "sem_hokazashi"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_hokazashi"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -49,143 +55,15 @@
       "description": "atomic query 1",
       "sub_queries": [
         {
-          "priority": 5,
-          "tag": [
-            "身份"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "发情代价",
-                "description": "魔女契约发作时的症状和缓解方式"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_curse"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_curse"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_2",
-      "description": "atomic query 2",
-      "sub_queries": [
-        {
-          "priority": 8,
+          "priority": 9,
           "tag": [
             "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她绝望请求的对象",
-                "description": "在新的世界线里他忘记了所有"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_hokazashi"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_hokazashi"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_3",
-      "description": "atomic query 3",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "说Ciallo～的口癖小女生",
-                "description": "总是调侃她和柊史的关系"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_inaba"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_inaba"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_4",
-      "description": "atomic query 4",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "物品"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "占卜用的牌",
-                "description": "超自然研究部的主要活动用这个"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_tarot"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_tarot"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_5",
-      "description": "atomic query 5",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "咖啡厅老板娘兼契约魔灵",
-                "description": "外表沉稳成熟，曾经是黑猫"
+                "concept_identifier": "黑猫咖啡厅的女老板",
+                "description": "我的缔约魔灵，原本是黑猫"
               }
             ]
           }
@@ -196,28 +74,35 @@
           "q": 0,
           "ranking": [
             "sem_soma"
+          ],
+          "bonus_ranking": [
+            "sem_cafe"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_soma"
       ],
+      "bonus_combined_ranking": [
+        "sem_cafe"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_6",
-      "description": "atomic query 6",
+      "name": "query_2",
+      "description": "atomic query 2",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 8,
           "tag": [
-            "愿望"
+            "人物",
+            "魔女"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "改变历史的渴望",
-                "description": "想要回到父母没有离婚的时候"
+                "concept_identifier": "另一个魔女伙伴",
+                "description": "超自然研究部里文静但坚强的魔女同伴"
               }
             ]
           }
@@ -227,29 +112,36 @@
         {
           "q": 0,
           "ranking": [
-            "sem_wish"
+            "sem_shiina"
+          ],
+          "bonus_ranking": [
+            "sem_club"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_wish"
+        "sem_shiina"
+      ],
+      "bonus_combined_ranking": [
+        "sem_club"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_7",
-      "description": "atomic query 7",
+      "name": "query_3",
+      "description": "atomic query 3",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 6,
           "tag": [
-            "学校"
+            "人物",
+            "后辈"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她所在的学校",
-                "description": "二年级学生，学校有超自然研究部"
+                "concept_identifier": "那个总是元气满满的后辈",
+                "description": "喜欢说Ciallo～的魔女后辈"
               }
             ]
           }
@@ -259,29 +151,38 @@
         {
           "q": 0,
           "ranking": [
-            "sem_school"
+            "sem_inaba"
+          ],
+          "bonus_ranking": [
+            "sem_club",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_school"
+        "sem_inaba"
+      ],
+      "bonus_combined_ranking": [
+        "sem_club",
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_8",
-      "description": "atomic query 8",
+      "name": "query_4",
+      "description": "atomic query 4",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 7,
           "tag": [
-            "人物"
+            "人物",
+            "学姐"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "憧子学姐",
-                "description": "隐藏着关于魔女和七绪姐的秘密"
+                "concept_identifier": "可靠的学生会长",
+                "description": "超自然研究部的学姐，隐藏着魔女秘密"
               }
             ]
           }
@@ -292,11 +193,177 @@
           "q": 0,
           "ranking": [
             "sem_togakushi"
+          ],
+          "bonus_ranking": [
+            "sem_club"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_togakushi"
+      ],
+      "bonus_combined_ranking": [
+        "sem_club"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "同学"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "在咖啡厅打工的随和同学",
+                "description": "同班同学，经常一起上学聊天"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_kazuwa"
+          ],
+          "bonus_ranking": [
+            "sem_cafe",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kazuwa"
+      ],
+      "bonus_combined_ranking": [
+        "sem_cafe",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "同学"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "柊史的死党",
+                "description": "同班同学，借贝斯给柊史的轻浮男生"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_kaido"
+          ],
+          "bonus_ranking": [
+            "sem_hokazashi"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kaido"
+      ],
+      "bonus_combined_ranking": [
+        "sem_hokazashi"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "家庭"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "离异的双亲",
+                "description": "我成为魔女的初衷是为了改变他们的关系"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_parents"
+          ],
+          "bonus_ranking": [
+            "sem_wish"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_parents"
+      ],
+      "bonus_combined_ranking": [
+        "sem_wish"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "能力",
+            "身份"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "与魔灵签约的女孩",
+                "description": "我成为这个身份是为了改变过去的愿望"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_witch"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_spirit"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_witch"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_spirit"
       ],
       "expected_actions": []
     },
@@ -307,13 +374,14 @@
         {
           "priority": 8,
           "tag": [
-            "概念"
+            "代价",
+            "异常"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "时间回溯实现愿望",
-                "description": "意识回到过去尝试改变历史"
+                "concept_identifier": "突然发作的情欲",
+                "description": "签订魔女契约后无法控制的后果，只能用自慰缓解"
               }
             ]
           }
@@ -323,18 +391,65 @@
         {
           "q": 0,
           "ranking": [
-            "sem_restart"
+            "sem_curse"
+          ],
+          "bonus_ranking": [
+            "sem_spirit",
+            "proc_self_relief"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_restart"
+        "sem_curse"
+      ],
+      "bonus_combined_ranking": [
+        "sem_spirit",
+        "proc_self_relief"
       ],
       "expected_actions": []
     },
     {
       "name": "query_10",
       "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "物品",
+            "概念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那种发光的结晶",
+                "description": "人类情感凝结成的碎片，魔女收集来给魔灵充能"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fragment"
+          ],
+          "bonus_ranking": [
+            "sem_wish"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fragment"
+      ],
+      "bonus_combined_ranking": [
+        "sem_wish"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
       "sub_queries": [
         {
           "priority": 4,
@@ -344,8 +459,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "露很多的工口服装",
-                "description": "每次穿上都觉得羞耻"
+                "concept_identifier": "那套暴露的衣服",
+                "description": "收集心之碎片时穿的魔女装，很羞耻"
               }
             ]
           }
@@ -356,17 +471,224 @@
           "q": 0,
           "ranking": [
             "sem_witch_outfit"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_witch_outfit"
       ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_11",
-      "description": "atomic query 11",
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "社团"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "我担任部长的那个社团",
+                "description": "用塔罗牌占卜的社团，曾面临废部"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_club"
+          ],
+          "bonus_ranking": [
+            "sem_school",
+            "sem_tarot"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_club"
+      ],
+      "bonus_combined_ranking": [
+        "sem_school",
+        "sem_tarot"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "地点"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那家有混合咖啡的店",
+                "description": "七绪姐开的咖啡厅，柊史也爱上了这里的咖啡"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_cafe"
+          ],
+          "bonus_ranking": [
+            "sem_soma",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_cafe"
+      ],
+      "bonus_combined_ranking": [
+        "sem_soma",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "物品",
+            "活动"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "我常用的占卜工具",
+                "description": "社团活动时给同学占卜，也是为了找有心之碎片的人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_tarot"
+          ],
+          "bonus_ranking": [
+            "sem_club",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_tarot"
+      ],
+      "bonus_combined_ranking": [
+        "sem_club",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "愿望"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "最初成为魔女的原因",
+                "description": "想要回到父母未曾离婚的家庭"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_wish"
+          ],
+          "bonus_ranking": [
+            "sem_parents",
+            "sem_restart"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_wish"
+      ],
+      "bonus_combined_ranking": [
+        "sem_parents",
+        "sem_restart"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "时间回溯的经历",
+                "description": "实现愿望后意识回到过去，在新的世界线重新开始"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_restart"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_hokazashi"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_restart"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_hokazashi"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
       "sub_queries": [
         {
           "priority": 9,
@@ -377,18 +699,9 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "在图书室因为代价发作自慰被柊史看到",
-                "location": [
-                  {
-                    "name": "学校图书室"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "保科柊史",
-                    "role": "目击者"
-                  }
-                ],
+                "narrative": "在图书室里因为代价发作自慰被柊史撞见",
+                "location": null,
+                "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -402,20 +715,28 @@
           "q": 0,
           "ranking": [
             "sit_library_incident"
+          ],
+          "bonus_ranking": [
+            "sem_curse",
+            "sem_hokazashi"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_library_incident"
       ],
+      "bonus_combined_ranking": [
+        "sem_curse",
+        "sem_hokazashi"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_12",
-      "description": "atomic query 12",
+      "name": "query_18",
+      "description": "atomic query 18",
       "sub_queries": [
         {
-          "priority": 5,
+          "priority": 6,
           "tag": [
             "事件",
             "约会"
@@ -423,12 +744,8 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "第一次和柊史去拉面店点了面硬加咸蔬菜加倍结果吃撑了",
-                "location": [
-                  {
-                    "name": "拉面店"
-                  }
-                ],
+                "narrative": "第一次和柊史去拉面店，点了一份超多配料的拉面吃撑了",
+                "location": null,
                 "participants": null,
                 "time_span": null,
                 "environment": null,
@@ -443,17 +760,25 @@
           "q": 0,
           "ranking": [
             "sit_ramen_date"
+          ],
+          "bonus_ranking": [
+            "sem_hokazashi",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_ramen_date"
       ],
+      "bonus_combined_ranking": [
+        "sem_hokazashi",
+        "sem_self"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_13",
-      "description": "atomic query 13",
+      "name": "query_19",
+      "description": "atomic query 19",
       "sub_queries": [
         {
           "priority": 9,
@@ -464,12 +789,8 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "在新的世界线里她为了让柊史记起她，做出了请对方看自己自慰的请求",
-                "location": [
-                  {
-                    "name": "超自然研究部活动室"
-                  }
-                ],
+                "narrative": "在部室里绝望地请求柊史看自己自慰来唤起记忆",
+                "location": null,
                 "participants": null,
                 "time_span": null,
                 "environment": null,
@@ -484,251 +805,21 @@
           "q": 0,
           "ranking": [
             "sit_desperate_request"
+          ],
+          "bonus_ranking": [
+            "sem_hokazashi",
+            "sem_restart",
+            "sem_wish"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_desperate_request"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "事件",
-            "结局"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "给予记忆结晶让柊史恢复记忆最终在一起",
-                "location": [
-                  {
-                    "name": "超自然研究部活动室"
-                  }
-                ],
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_restart_reunion"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_restart_reunion"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_15",
-      "description": "atomic query 15",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "抽象",
-            "地点"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "超自然研究部的活动室在姬松学园里，是日常活动的场所",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_abstract_location_club"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_abstract_location_club"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_16",
-      "description": "atomic query 16",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "抽象",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "用塔罗牌为同学们占卜解决烦恼寻找心之碎片",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "塔罗牌占卜",
-                    "initiator": "我",
-                    "target": "来访同学"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_abstract_event_tarot"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_abstract_event_tarot"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_17",
-      "description": "atomic query 17",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "抽象",
-            "环境"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "很多情况下她都会感到羞耻难堪，特别是代价发作时",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": {
-                  "atmosphere": "羞耻难堪",
-                  "tone": "尴尬"
-                },
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_abstract_environment_shame"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_abstract_environment_shame"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_18",
-      "description": "atomic query 18",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "抽象",
-            "参与者"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "超自然研究部成员包括柊史、七绪、䌷、巡、憧子学姐等等都是伙伴",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "超自然研究部成员",
-                    "role": "伙伴"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_abstract_participant_friends"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_abstract_participant_friends"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_19",
-      "description": "atomic query 19",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "事件",
-            "羞耻"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "魔女契约代价突然发作让她无法控制地发情，必须通过自慰缓解，这是非常羞耻的事情",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_abstract_environment_shame"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_abstract_environment_shame"
+      "bonus_combined_ranking": [
+        "sem_hokazashi",
+        "sem_restart",
+        "sem_wish"
       ],
       "expected_actions": []
     },
@@ -737,14 +828,15 @@
       "description": "atomic query 20",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 8,
           "tag": [
-            "事件"
+            "事件",
+            "幸福"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在活动室里用塔罗牌占卜和伙伴们相处",
+                "narrative": "在部室里把上个世界线的记忆结晶交给柊史，他终于恢复记忆在一起",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -759,12 +851,22 @@
         {
           "q": 0,
           "ranking": [
-            "sit_abstract_location_club"
+            "sit_restart_reunion"
+          ],
+          "bonus_ranking": [
+            "sem_hokazashi",
+            "sem_club",
+            "sem_restart"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_abstract_location_club"
+        "sit_restart_reunion"
+      ],
+      "bonus_combined_ranking": [
+        "sem_hokazashi",
+        "sem_club",
+        "sem_restart"
       ],
       "expected_actions": []
     },
@@ -773,15 +875,14 @@
       "description": "atomic query 21",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 7,
           "tag": [
-            "事件",
-            "爱"
+            "习惯"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "羞耻难堪的环境常常与图书室事件和绝望请求事件相关",
+                "narrative": "代价发作时自己用手解决的无奈习惯",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -797,11 +898,19 @@
           "q": 0,
           "ranking": [
             "sit_abstract_environment_shame"
+          ],
+          "bonus_ranking": [
+            "sem_curse",
+            "proc_self_relief"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_abstract_environment_shame"
+      ],
+      "bonus_combined_ranking": [
+        "sem_curse",
+        "proc_self_relief"
       ],
       "expected_actions": []
     },
@@ -810,16 +919,20 @@
       "description": "atomic query 22",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 5,
           "tag": [
-            "人物",
-            "关系"
+            "习惯",
+            "日常"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "离婚的父母",
-                "description": "她一直渴望完整的家庭但最终接受了事实"
+                "narrative": "经常去七绪姐店里喝混合咖啡，柊史也被带去了",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -829,12 +942,20 @@
         {
           "q": 0,
           "ranking": [
-            "sem_parents"
+            "sit_abstract_participant_friends"
+          ],
+          "bonus_ranking": [
+            "sem_cafe",
+            "proc_cafe_habit"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_parents"
+        "sit_abstract_participant_friends"
+      ],
+      "bonus_combined_ranking": [
+        "sem_cafe",
+        "proc_cafe_habit"
       ],
       "expected_actions": []
     },
@@ -843,15 +964,19 @@
       "description": "atomic query 23",
       "sub_queries": [
         {
-          "priority": 5,
+          "priority": 4,
           "tag": [
-            "概念"
+            "习惯"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "强烈情感凝结成的小瓶结晶",
-                "description": "魔女收集它们为魔灵提供魔力"
+                "narrative": "一紧张就会说出特别糟糕的话，事后想钻地洞",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -861,50 +986,26 @@
         {
           "q": 0,
           "ranking": [
-            "sem_fragment"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_fragment"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_24",
-      "description": "atomic query 24",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "人物"
+            "sit_abstract_environment_shame"
           ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "柊史的死党那个轻浮的家伙",
-                "description": "借给柊史贝斯练习"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_kaido"
+          "bonus_ranking": [
+            "proc_dirty_talk",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_kaido"
+        "sit_abstract_environment_shame"
+      ],
+      "bonus_combined_ranking": [
+        "proc_dirty_talk",
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_hokazashi",
-      "description": "查询绫地宁宁的恋人保科柊史",
+      "name": "set_lover",
+      "description": "查询保科柊史这个人",
       "sub_queries": [
         {
           "priority": 9,
@@ -914,8 +1015,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个她最喜欢的人",
-                "description": "被她称为最重要的人"
+                "concept_identifier": "那个温柔的同桌",
+                "description": "有读心能力的同班同学"
               }
             ]
           }
@@ -928,8 +1029,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "保科柊史",
-                "description": "同班同学读心能力者"
+                "concept_identifier": "我的最重要的人",
+                "description": "他撞见我自慰后反而在一起了"
               }
             ]
           }
@@ -942,8 +1043,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "我的恋人",
-                "description": "我发自内心爱着的人"
+                "concept_identifier": "会弹贝斯的男生",
+                "description": "为了我练习贝斯的恋人"
               }
             ]
           }
@@ -956,8 +1057,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她男朋友",
-                "description": "那个总是跟她在一起的男生"
+                "concept_identifier": "那个笨蛋柊史",
+                "description": "虽然迟钝但很温柔的人"
               }
             ]
           }
@@ -970,8 +1071,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "柊君",
-                "description": ""
+                "concept_identifier": "恢复记忆的那个人",
+                "description": "在新世界线里最终记起一切的人"
               }
             ]
           }
@@ -984,8 +1085,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "练习贝斯的男孩",
-                "description": "撞见她最羞耻那一面的同班同学后来成了她最重要的人"
+                "concept_identifier": "超自然研究部的成员",
+                "description": "除了我之外的那个男生部员"
               }
             ]
           }
@@ -996,58 +1097,85 @@
           "q": 0,
           "ranking": [
             "sem_hokazashi"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 1,
           "ranking": [
             "sem_hokazashi"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sit_library_incident"
           ]
         },
         {
           "q": 2,
           "ranking": [
             "sem_hokazashi"
+          ],
+          "bonus_ranking": [
+            "sem_kaido"
           ]
         },
         {
           "q": 3,
           "ranking": [
             "sem_hokazashi"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 4,
           "ranking": [
             "sem_hokazashi"
+          ],
+          "bonus_ranking": [
+            "sem_restart",
+            "sit_restart_reunion"
           ]
         },
         {
           "q": 5,
           "ranking": [
             "sem_hokazashi"
+          ],
+          "bonus_ranking": [
+            "sem_club"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_hokazashi"
       ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_library_incident",
+        "sem_kaido",
+        "sem_restart",
+        "sit_restart_reunion",
+        "sem_club"
+      ],
       "expected_actions": []
     },
     {
-      "name": "set_library_incident",
-      "description": "查询图书室羞耻事件",
+      "name": "set_curse",
+      "description": "查询魔女契约的发情代价",
       "sub_queries": [
         {
           "priority": 8,
           "tag": [
-            "事件",
-            "羞耻"
+            "代价"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在图书馆里她因为契约代价发作不得不自慰结果被撞见",
+                "narrative": "突然身体发热不受控制的情欲发作",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1060,13 +1188,12 @@
         {
           "priority": 8,
           "tag": [
-            "事件",
-            "羞耻"
+            "代价"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "柊史第一次见到她时她正在那个地方做那件羞耻的事",
+                "narrative": "在图书室里最严重的一次发作",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1079,13 +1206,12 @@
         {
           "priority": 8,
           "tag": [
-            "事件",
-            "羞耻"
+            "代价"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "故事开始的那个改变一切的羞耻一幕发生在学校的图书室",
+                "narrative": "只能通过自慰来缓解的诅咒",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1098,13 +1224,12 @@
         {
           "priority": 8,
           "tag": [
-            "事件",
-            "羞耻"
+            "代价"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她最想忘记却最难忘的和柊史初遇的场景",
+                "narrative": "和魔灵签订契约的副作用",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1117,13 +1242,12 @@
         {
           "priority": 8,
           "tag": [
-            "事件",
-            "羞耻"
+            "代价"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她因为代价无法控制自己而在学校某个安静角落发生的事被目击",
+                "narrative": "那个让我在学校出丑的毛病",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1136,13 +1260,12 @@
         {
           "priority": 8,
           "tag": [
-            "事件",
-            "羞耻"
+            "代价"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "那个导致心之碎片被吸走的尴尬相遇发生在书堆之间",
+                "narrative": "用接吻也能稍微缓解的代价",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1157,72 +1280,144 @@
         {
           "q": 0,
           "ranking": [
-            "sit_library_incident"
+            "sit_abstract_environment_shame"
+          ],
+          "bonus_ranking": [
+            "sem_curse",
+            "proc_self_relief"
           ]
         },
         {
           "q": 1,
           "ranking": [
             "sit_library_incident"
+          ],
+          "bonus_ranking": [
+            "sem_curse"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sit_library_incident"
+            "sit_abstract_environment_shame"
+          ],
+          "bonus_ranking": [
+            "sem_curse",
+            "proc_self_relief"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sit_library_incident"
+            "sit_abstract_environment_shame"
+          ],
+          "bonus_ranking": [
+            "sem_curse",
+            "sem_spirit"
           ]
         },
         {
           "q": 4,
           "ranking": [
             "sit_library_incident"
+          ],
+          "bonus_ranking": [
+            "sem_curse"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sit_library_incident"
+            "sit_abstract_environment_shame"
+          ],
+          "bonus_ranking": [
+            "sem_curse",
+            "sem_hokazashi"
           ]
         }
       ],
       "expected_combined_ranking": [
+        "sit_abstract_environment_shame",
         "sit_library_incident"
+      ],
+      "bonus_combined_ranking": [
+        "sem_curse",
+        "proc_self_relief",
+        "sem_spirit",
+        "sem_hokazashi"
       ],
       "expected_actions": []
     },
     {
       "name": "set_wish",
-      "description": "查询她的愿望和改变过去",
+      "description": "查询关于愿望和改变过去",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
             "愿望"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她最初的愿望",
-                "description": "想要一个完整的家庭"
+                "concept_identifier": "成为魔女的原因",
+                "description": "想让父母重新在一起"
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
             "愿望"
           ],
           "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "时间回溯的愿望",
+                "description": "回到过去改变历史的原动力"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "愿望"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "对完整家庭的渴望",
+                "description": "就算改变不了也要珍惜现在的幸福"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "愿望"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "最初的心愿",
+                "description": "用魔法改变不幸福的过去"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "愿望",
+            "事件"
+          ],
+          "variant": {
             "Situation": [
               {
-                "narrative": "为了改变父母离婚的历史她成了魔女收集心之碎片",
+                "narrative": "在新世界里终于实现的愿望",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1233,65 +1428,15 @@
           }
         },
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
             "愿望"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "时间回溯的目标",
-                "description": "回到过去阻止父母分开"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "愿望"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在新世界线里她再次和柊史相爱",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "愿望"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她最终明白的幸福",
-                "description": "不是改变过去而是与重要的人一起创造"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "愿望"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "通过RESTART她实现了愿望但发现真正的幸福在当下",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "收集心之碎片的目的",
+                "description": "为了攒够魔力实现愿望"
               }
             ]
           }
@@ -1301,66 +1446,89 @@
         {
           "q": 0,
           "ranking": [
-            "sem_wish",
-            "sem_restart"
+            "sem_wish"
+          ],
+          "bonus_ranking": [
+            "sem_parents"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_wish",
+            "sem_wish"
+          ],
+          "bonus_ranking": [
             "sem_restart"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_wish",
-            "sem_restart"
+            "sem_wish"
+          ],
+          "bonus_ranking": [
+            "sem_parents",
+            "sem_hokazashi"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_wish",
-            "sem_restart"
+            "sem_wish"
+          ],
+          "bonus_ranking": [
+            "sem_witch"
           ]
         },
         {
           "q": 4,
           "ranking": [
+            "sit_restart_reunion"
+          ],
+          "bonus_ranking": [
             "sem_wish",
-            "sem_restart"
+            "sem_hokazashi"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sem_wish",
-            "sem_restart"
+            "sem_wish"
+          ],
+          "bonus_ranking": [
+            "sem_fragment"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_wish",
-        "sem_restart"
+        "sit_restart_reunion"
+      ],
+      "bonus_combined_ranking": [
+        "sem_parents",
+        "sem_restart",
+        "sem_hokazashi",
+        "sem_witch",
+        "sem_wish",
+        "sem_fragment"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_witch_curse",
-      "description": "查询魔女身份和代价",
+      "name": "set_club_members",
+      "description": "查询超自然研究部的成员",
       "sub_queries": [
         {
           "priority": 6,
           "tag": [
-            "身份"
+            "社团",
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "魔女契约的代价",
-                "description": "无法控制地发情必须自慰缓解"
+                "concept_identifier": "部里的其他成员",
+                "description": "除了我之外的部员"
               }
             ]
           }
@@ -1368,13 +1536,18 @@
         {
           "priority": 6,
           "tag": [
-            "身份"
+            "社团",
+            "人物"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "她和七绪的契约",
-                "description": "与黑猫魔灵缔约成为魔女"
+                "narrative": "参与重聚的那个场景里的伙伴们",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -1382,13 +1555,14 @@
         {
           "priority": 6,
           "tag": [
-            "身份"
+            "社团",
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "发情诅咒",
-                "description": "魔女身份的副作用让她困扰"
+                "concept_identifier": "在咖啡厅打工的同学",
+                "description": "在七绪姐店里打工的那个部员"
               }
             ]
           }
@@ -1396,13 +1570,14 @@
         {
           "priority": 6,
           "tag": [
-            "身份"
+            "社团",
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "契约魔女的身份",
-                "description": "为收集心之碎片而获得魔法力量"
+                "concept_identifier": "柊史的死党朋友",
+                "description": "借贝斯给柊史的轻浮男生"
               }
             ]
           }
@@ -1410,13 +1585,14 @@
         {
           "priority": 6,
           "tag": [
-            "身份"
+            "社团",
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "代价是情欲",
-                "description": "必须通过自我安慰或接吻来压制"
+                "concept_identifier": "另一位魔女部员",
+                "description": "和我一样是魔女的文静女孩"
               }
             ]
           }
@@ -1424,13 +1600,14 @@
         {
           "priority": 6,
           "tag": [
-            "身份"
+            "社团",
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "魔女和魔灵的关系",
-                "description": "七绪姐是她的缔约魔灵和伙伴"
+                "concept_identifier": "元气后辈",
+                "description": "总是笑眯眯地说Ciallo～的部员"
               }
             ]
           }
@@ -1440,66 +1617,283 @@
         {
           "q": 0,
           "ranking": [
-            "sem_witch",
-            "sem_curse"
+            "sem_hokazashi"
+          ],
+          "bonus_ranking": [
+            "sem_soma",
+            "sem_shiina",
+            "sem_inaba",
+            "sem_togakushi"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_witch",
-            "sem_curse"
+            "sit_restart_reunion"
+          ],
+          "bonus_ranking": [
+            "sem_soma",
+            "sem_shiina",
+            "sem_inaba",
+            "sem_togakushi"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_witch",
-            "sem_curse"
+            "sem_kazuwa"
+          ],
+          "bonus_ranking": [
+            "sem_cafe",
+            "sem_club"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_witch",
-            "sem_curse"
+            "sem_kaido"
+          ],
+          "bonus_ranking": [
+            "sem_hokazashi",
+            "sem_club"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_witch",
-            "sem_curse"
+            "sem_shiina"
+          ],
+          "bonus_ranking": [
+            "sem_club"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sem_witch",
-            "sem_curse"
+            "sem_inaba"
+          ],
+          "bonus_ranking": [
+            "sem_club"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_witch",
-        "sem_curse"
+        "sem_hokazashi",
+        "sit_restart_reunion",
+        "sem_kazuwa",
+        "sem_kaido",
+        "sem_shiina",
+        "sem_inaba"
+      ],
+      "bonus_combined_ranking": [
+        "sem_soma",
+        "sem_shiina",
+        "sem_inaba",
+        "sem_togakushi",
+        "sem_cafe",
+        "sem_club",
+        "sem_hokazashi"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_reunion",
-      "description": "查询重聚结局事件",
+      "name": "set_ramen",
+      "description": "查询和柊史第一次拉面约会的经历",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "约会"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "第一次和柊史一起去拉面店",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "点了一份超级豪华的拉面吃撑了",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "丢脸"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "因为吃太多第二天请假没上学",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "约会"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "面硬加咸蔬菜加倍蒜末和油多多的那次",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "第一次约会就去拉面店的糗事",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "丢脸"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在柊史面前展现出大胃王的一面",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_ramen_date"
+          ],
+          "bonus_ranking": [
+            "sem_hokazashi"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_ramen_date"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_ramen_date"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_ramen_date"
+          ],
+          "bonus_ranking": [
+            "sem_hokazashi"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_ramen_date"
+          ],
+          "bonus_ranking": [
+            "sem_hokazashi",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_ramen_date"
+          ],
+          "bonus_ranking": [
+            "sem_hokazashi"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_ramen_date"
+      ],
+      "bonus_combined_ranking": [
+        "sem_hokazashi",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_restart",
+      "description": "查询RESTART重新开始的事件",
       "sub_queries": [
         {
           "priority": 8,
           "tag": [
             "事件",
-            "结局"
+            "关键"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在活动室里她把记忆结晶交给柊史他恢复了记忆",
+                "narrative": "实现愿望后意识回到过去",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1513,12 +1907,12 @@
           "priority": 8,
           "tag": [
             "事件",
-            "结局"
+            "关键"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "经过一切之后他们终于再次在一起的那一刻在社团活动室",
+                "narrative": "在新世界线里再次爱上柊史",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1532,12 +1926,12 @@
           "priority": 8,
           "tag": [
             "事件",
-            "结局"
+            "关键"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她从上个世界线带来的感情成功传递给了这个世界的柊史",
+                "narrative": "把记忆结晶交给这个世界的柊史",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1551,12 +1945,12 @@
           "priority": 8,
           "tag": [
             "事件",
-            "结局"
+            "关键"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "超自然研究部的成员们都见证了他们的重聚",
+                "narrative": "绝望请求后最终成功的重逢",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1570,12 +1964,12 @@
           "priority": 8,
           "tag": [
             "事件",
-            "结局"
+            "关键"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她给柊史看了那些回忆然后他们的感情又重新连接了",
+                "narrative": "在部室里大家见证的再会",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1589,12 +1983,12 @@
           "priority": 8,
           "tag": [
             "事件",
-            "结局"
+            "关键"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在所有伙伴面前他们终于回到了彼此身边",
+                "narrative": "时间线重置后的幸福结局",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1610,192 +2004,76 @@
           "q": 0,
           "ranking": [
             "sit_restart_reunion"
+          ],
+          "bonus_ranking": [
+            "sem_restart",
+            "sem_self"
           ]
         },
         {
           "q": 1,
           "ranking": [
             "sit_restart_reunion"
+          ],
+          "bonus_ranking": [
+            "sem_hokazashi",
+            "sem_restart"
           ]
         },
         {
           "q": 2,
           "ranking": [
             "sit_restart_reunion"
+          ],
+          "bonus_ranking": [
+            "sem_hokazashi",
+            "sem_self"
           ]
         },
         {
           "q": 3,
           "ranking": [
             "sit_restart_reunion"
+          ],
+          "bonus_ranking": [
+            "sit_desperate_request",
+            "sem_hokazashi"
           ]
         },
         {
           "q": 4,
           "ranking": [
             "sit_restart_reunion"
+          ],
+          "bonus_ranking": [
+            "sem_club",
+            "sem_soma",
+            "sem_shiina"
           ]
         },
         {
           "q": 5,
           "ranking": [
             "sit_restart_reunion"
+          ],
+          "bonus_ranking": [
+            "sem_restart",
+            "sem_self",
+            "sem_hokazashi"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_restart_reunion"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_club_members",
-      "description": "查询超自然研究部的伙伴",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "社团"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "超自然研究部的大家",
-                "description": "包括柊史七绪䌷巡憧子学姐等"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "社团"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她担任部长的社团从只有一人到后来有了这些伙伴",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "社团"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "超自然研究部的成员们",
-                "description": "陪她一起收集心之碎片的同伴"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "社团"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "七绪姐䌷酱巡酱憧子学姐和柊史都是在社团里认识的",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "社团"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的社团伙伴",
-                "description": "用塔罗牌占卜帮助同学寻找碎片"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "社团"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "最初只有她一个人的超自然研究部后来变成了热闹的大家庭",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_club",
-            "sit_abstract_participant_friends"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_club",
-            "sit_abstract_participant_friends"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_club",
-            "sit_abstract_participant_friends"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_club",
-            "sit_abstract_participant_friends"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_club",
-            "sit_abstract_participant_friends"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_club",
-            "sit_abstract_participant_friends"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
+      "bonus_combined_ranking": [
+        "sem_restart",
+        "sem_self",
+        "sem_hokazashi",
+        "sit_desperate_request",
         "sem_club",
-        "sit_abstract_participant_friends"
+        "sem_soma",
+        "sem_shiina"
       ],
       "expected_actions": []
     }

@@ -46,6 +46,10 @@ impl DatasetState {
         Self::with_dir(algo_type, false)
     }
 
+    pub fn new_compare() -> Self {
+        Self::with_dir(crate::base::AlgoType::Compare, false)
+    }
+
     pub fn new_batch() -> Self {
         Self::with_dir(
             crate::base::AlgoType::Retrieve(crate::base::RetrieveMode::Embedding),

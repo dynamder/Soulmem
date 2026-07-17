@@ -20,13 +20,13 @@
           "priority": 9,
           "tag": [
             "人物",
-            "伙伴"
+            "重要伙伴"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她的最重要的人",
-                "description": "在长空市救下的那个总是照顾她的女生"
+                "concept_identifier": "那个为我做饭的人",
+                "description": "从高中就一直照顾我、后来为了我加入世界蛇成为律者的人"
               }
             ]
           }
@@ -37,11 +37,19 @@
           "q": 0,
           "ranking": [
             "sem_mei"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sit_encounter_mei"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_mei"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_encounter_mei"
       ],
       "expected_actions": []
     },
@@ -50,7 +58,7 @@
       "description": "atomic query 1",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 8,
           "tag": [
             "人物",
             "老师"
@@ -58,8 +66,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那位牺牲的老师",
-                "description": "穿着装甲用弑神之枪救她的人"
+                "concept_identifier": "穿红色装甲的老师",
+                "description": "用弑神之枪救了我、把'为美好而战'传给我的老师"
               }
             ]
           }
@@ -70,11 +78,19 @@
           "q": 0,
           "ranking": [
             "sem_himeko"
+          ],
+          "bonus_ranking": [
+            "sit_himeko_sacrifice",
+            "sem_fight_for_beauty"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_himeko"
+      ],
+      "bonus_combined_ranking": [
+        "sit_himeko_sacrifice",
+        "sem_fight_for_beauty"
       ],
       "expected_actions": []
     },
@@ -86,13 +102,13 @@
           "priority": 7,
           "tag": [
             "人物",
-            "对手"
+            "伙伴"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "卡斯兰娜家的祖先",
-                "description": "推行圣痕计划的那个男人"
+                "concept_identifier": "叫我草履虫的人",
+                "description": "擅长重炮、后来成为真理之律者的可靠战友"
               }
             ]
           }
@@ -102,12 +118,20 @@
         {
           "q": 0,
           "ranking": [
-            "sem_kevin"
+            "sem_bronya"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sit_moon_final_battle"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_kevin"
+        "sem_bronya"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_moon_final_battle"
       ],
       "expected_actions": []
     },
@@ -118,14 +142,488 @@
         {
           "priority": 6,
           "tag": [
+            "人物",
+            "亲人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "大姨妈",
+                "description": "圣芙蕾雅学园的学园长、一直包容我闯祸的人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_theresa"
+          ],
+          "bonus_ranking": [
+            "sem_saint_freya",
+            "sit_saint_freya_days"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_theresa"
+      ],
+      "bonus_combined_ranking": [
+        "sem_saint_freya",
+        "sit_saint_freya_days"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "敌人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "制造我的人",
+                "description": "天命前任主教、为了复活卡莲策划了K-423计划"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_otto"
+          ],
+          "bonus_ranking": [
+            "sem_k423",
+            "sem_odin"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_otto"
+      ],
+      "bonus_combined_ranking": [
+        "sem_k423",
+        "sem_odin"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "对手"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "卡斯兰娜的祖先",
+                "description": "主张圣痕计划、在月球上被终焉之律者击败的救世主"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_kevin"
+          ],
+          "bonus_ranking": [
+            "sem_stigma_plan",
+            "sit_moon_final_battle"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kevin"
+      ],
+      "bonus_combined_ranking": [
+        "sem_stigma_plan",
+        "sit_moon_final_battle"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "父亲"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "把名字传给我的人",
+                "description": "卡斯兰娜家族的剑圣、在天火焦土中保护我的父亲"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_siegfried"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_siegfried"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "母亲"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "已经去世的妈妈",
+                "description": "第二次崩坏中牺牲的沙尼亚特圣女"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_cecilia"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_cecilia"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "守护者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "教我太虚剑气的班长",
+                "description": "上文明纪元英桀、用羽渡尘守护我意识的人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fuhua"
+          ],
+          "bonus_ranking": [
+            "sem_taixu"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fuhua"
+      ],
+      "bonus_combined_ranking": [
+        "sem_taixu"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "姐姐"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "真正的琪亚娜",
+                "description": "齐格飞和塞西莉亚的女儿、后来成为我姐姐的幽兰黛尔"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_bianca"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_bianca"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "另一面"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "身体里的另一个我",
+                "description": "空之律者的人格、原本憎恨人类、后来被我接纳"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_sirin"
+          ],
+          "bonus_ranking": [
+            "sit_domination_theater"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_sirin"
+      ],
+      "bonus_combined_ranking": [
+        "sit_domination_theater"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "人物",
+            "传说"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "始源之律者",
+                "description": "上文明纪元用爱改变世界的飞花般绚烂的少女"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_elysia"
+          ],
+          "bonus_ranking": []
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_elysia"
+      ],
+      "bonus_combined_ranking": [],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "后辈"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "第一个徒弟",
+                "description": "来自火星探索队、和科拉莉关系不好的那个训练生"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_helena"
+          ],
+          "bonus_ranking": [
+            "sem_corali",
+            "sit_train_helena_corali"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_helena"
+      ],
+      "bonus_combined_ranking": [
+        "sem_corali",
+        "sit_train_helena_corali"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "后辈"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "另一个徒弟",
+                "description": "火星来的短发训练生、一开始和赫丽娅吵架后来和解"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_corali"
+          ],
+          "bonus_ranking": [
+            "sem_helena",
+            "sit_train_helena_corali"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_corali"
+      ],
+      "bonus_combined_ranking": [
+        "sem_helena",
+        "sit_train_helena_corali"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "地点",
+            "学校"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "极东支部的学校",
+                "description": "和芽衣布洛妮娅一起学习闯祸的地方"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_saint_freya"
+          ],
+          "bonus_ranking": [
+            "sit_saint_freya_days"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_saint_freya"
+      ],
+      "bonus_combined_ranking": [
+        "sit_saint_freya_days"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
             "地点",
             "封印地"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她现在独自待着的地方",
-                "description": "月亮上封印崩坏能的位置"
+                "concept_identifier": "我现在待的地方",
+                "description": "独自封印崩坏能、要待五到十年的那个星球"
               }
             ]
           }
@@ -136,29 +634,76 @@
           "q": 0,
           "ranking": [
             "sem_moon"
+          ],
+          "bonus_ranking": [
+            "sem_cocoon",
+            "sit_moon_final_battle"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_moon"
       ],
+      "bonus_combined_ranking": [
+        "sem_cocoon",
+        "sit_moon_final_battle"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_4",
-      "description": "atomic query 4",
+      "name": "query_16",
+      "description": "atomic query 16",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 3,
           "tag": [
-            "力量",
-            "形态"
+            "物体",
+            "权能"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她的最终力量形态",
-                "description": "可以切换时燧和月锋姿态的律者形态"
+                "concept_identifier": "终焉力量的来源",
+                "description": "月球上的装置、让我成为终焉之律者的东西"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_cocoon"
+          ],
+          "bonus_ranking": [
+            "sem_herrscher_of_finality"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_cocoon"
+      ],
+      "bonus_combined_ranking": [
+        "sem_herrscher_of_finality"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "概念",
+            "力量"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "最后的律者形态",
+                "description": "切换时燧和月锋姿态、封印全球崩坏能的力量"
               }
             ]
           }
@@ -169,29 +714,35 @@
           "q": 0,
           "ranking": [
             "sem_herrscher_of_finality"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_herrscher_of_finality"
       ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_5",
-      "description": "atomic query 5",
+      "name": "query_18",
+      "description": "atomic query 18",
       "sub_queries": [
         {
-          "priority": 5,
+          "priority": 4,
           "tag": [
-            "概念",
-            "计划"
+            "技能",
+            "武艺"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个让人沉睡的计划",
-                "description": "凯文推行的被主角反对的计划"
+                "concept_identifier": "双枪的战斗技巧",
+                "description": "卡斯兰娜家族传承、齐格飞教我的远程攻击术"
               }
             ]
           }
@@ -201,29 +752,74 @@
         {
           "q": 0,
           "ranking": [
-            "sem_stigma_plan"
+            "sem_gun_kai"
+          ],
+          "bonus_ranking": [
+            "sem_siegfried"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_stigma_plan"
+        "sem_gun_kai"
+      ],
+      "bonus_combined_ranking": [
+        "sem_siegfried"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_6",
-      "description": "atomic query 6",
+      "name": "query_19",
+      "description": "atomic query 19",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 4,
           "tag": [
-            "事件",
-            "初遇"
+            "技能",
+            "修炼"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "剑心修炼",
+                "description": "班长教我的神州武学、用精神力量对抗崩坏"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_taixu"
+          ],
+          "bonus_ranking": [
+            "sem_fuhua"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_taixu"
+      ],
+      "bonus_combined_ranking": [
+        "sem_fuhua"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 2,
+          "tag": [
+            "习惯",
+            "说话"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在长空市崩坏爆发时第一回见到芽衣的场景",
+                "narrative": "被夸奖时嘴上逞强说'当然啦'但实际上会脸红",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -238,18 +834,157 @@
         {
           "q": 0,
           "ranking": [
-            "sit_encounter_mei"
+            "sit_abstract_with_friends"
+          ],
+          "bonus_ranking": [
+            "proc_speak_boast"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_encounter_mei"
+        "sit_abstract_with_friends"
+      ],
+      "bonus_combined_ranking": [
+        "proc_speak_boast"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_7",
-      "description": "atomic query 7",
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 2,
+          "tag": [
+            "习惯",
+            "动作"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "觉得不好意思的时候会摸后脑勺",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_abstract_with_friends"
+          ],
+          "bonus_ranking": [
+            "proc_scratch_head"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_abstract_with_friends"
+      ],
+      "bonus_combined_ranking": [
+        "proc_scratch_head"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 1,
+          "tag": [
+            "习惯",
+            "饮食"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "吃饭很凶、尤其芽衣做的饭能吃很多",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_abstract_with_friends"
+          ],
+          "bonus_ranking": [
+            "proc_eat_greedy"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_abstract_with_friends"
+      ],
+      "bonus_combined_ranking": [
+        "proc_eat_greedy"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_23",
+      "description": "atomic query 23",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "事件",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在学园里和芽衣布洛妮娅一起上课、翘课、被大姨妈抓写检讨",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_saint_freya_days"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_mei",
+            "sem_bronya"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_saint_freya_days"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_mei",
+        "sem_bronya"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_himeko_sacrifice",
+      "description": "查询姬子老师的牺牲事件",
       "sub_queries": [
         {
           "priority": 9,
@@ -260,7 +995,102 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "老师穿上装甲救她然后永远离开的那场战斗",
+                "narrative": "那个穿红色装甲的老师用枪救了我之后再也没有回来",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "牺牲"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在天命总部发生的事、姬子穿真红骑士救失控的我",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "牺牲"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "我失去意识时有人穿着燃烧的装甲冲上来给我打了一针",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "牺牲"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "老师最后的战斗、她用命换回了我",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "牺牲"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "有个红头发的女老师在空之律者暴走时牺牲自己救我",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "牺牲"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "弑神之枪那次、最让我心痛的战斗",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -276,54 +1106,75 @@
           "q": 0,
           "ranking": [
             "sit_himeko_sacrifice"
+          ],
+          "bonus_ranking": [
+            "sem_himeko",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_himeko_sacrifice"
+          ],
+          "bonus_ranking": [
+            "sem_himeko",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_himeko_sacrifice"
+          ],
+          "bonus_ranking": [
+            "sem_himeko",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_himeko_sacrifice"
+          ],
+          "bonus_ranking": [
+            "sem_himeko",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_himeko_sacrifice"
+          ],
+          "bonus_ranking": [
+            "sem_himeko",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_himeko_sacrifice"
+          ],
+          "bonus_ranking": [
+            "sem_himeko",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_himeko_sacrifice"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_8",
-      "description": "atomic query 8",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "内心斗争"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在精神空间里和自己另一面对决并承认她",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_domination_theater"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_domination_theater"
+      "bonus_combined_ranking": [
+        "sem_himeko",
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_9",
-      "description": "atomic query 9",
+      "name": "set_moon_final",
+      "description": "查询月球最终决战",
       "sub_queries": [
         {
           "priority": 9,
@@ -334,7 +1185,102 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "和凯文在月亮上的最后对决",
+                "narrative": "在月球上和祖先打了一架成为终焉律者",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "决战"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "芽衣和布洛妮娅陪我一起对抗那个推行圣痕计划的男人",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "决战"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "终焉之茧旁边、我用最终形态击败了卡斯兰娜的祖先",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "决战"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "三个律者一起打一个老男人、最后我赢了然后封印了崩坏",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "决战"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "月球上的终焉之战、决定了人类未来的战斗",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "决战"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和凯文在月球上最终对决、我成为了终焉之律者",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -350,28 +1296,174 @@
           "q": 0,
           "ranking": [
             "sit_moon_final_battle"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_kevin",
+            "sem_mei",
+            "sem_bronya"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_moon_final_battle"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_kevin",
+            "sem_mei",
+            "sem_bronya"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_moon_final_battle"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_kevin",
+            "sem_mei",
+            "sem_bronya"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_moon_final_battle"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_kevin",
+            "sem_mei",
+            "sem_bronya"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_moon_final_battle"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_kevin"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_moon_final_battle"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_kevin",
+            "sem_mei",
+            "sem_bronya"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_moon_final_battle"
       ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_kevin",
+        "sem_mei",
+        "sem_bronya"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_10",
-      "description": "atomic query 10",
+      "name": "set_encounter_mei",
+      "description": "查询初次遇见芽衣的情景",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 8,
           "tag": [
             "事件",
-            "训练"
+            "初遇"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在月亮上指导两个闹矛盾的后辈和解",
+                "narrative": "长空市崩坏时救了一个紫头发的女生",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "初遇"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "第三次崩坏爆发时我在废墟里保护了一个被怪兽追的人",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "初遇"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和重要的人第一次相遇、在崩坏兽手下救了那个会做饭的女孩",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "初遇"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "我冲上去打崩坏兽、有个穿校服的女生在后面看着",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "初遇"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在长空市第一次救了芽衣、那时她还不会打架",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -386,286 +1478,66 @@
         {
           "q": 0,
           "ranking": [
-            "sit_train_helena_corali"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_train_helena_corali"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_11",
-      "description": "atomic query 11",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "日常"
+            "sit_encounter_mei"
           ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在学园里和芽衣布洛妮娅一起翘课闯祸的日子",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_saint_freya_days"
+          "bonus_ranking": [
+            "sem_mei",
+            "sem_self"
           ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_saint_freya_days"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_12",
-      "description": "atomic query 12",
-      "sub_queries": [
+        },
         {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "敌人"
+          "q": 1,
+          "ranking": [
+            "sit_encounter_mei"
           ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "制造她的天命主教",
-                "description": "那个为了复活卡莲而创造她的人"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_otto"
+          "bonus_ranking": [
+            "sem_mei",
+            "sem_self"
           ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_otto"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_13",
-      "description": "atomic query 13",
-      "sub_queries": [
+        },
         {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "另一面"
+          "q": 2,
+          "ranking": [
+            "sit_encounter_mei"
           ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她身体里的另一个意识",
-                "description": "那个憎恨人类最终被她接纳的律者人格"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_sirin"
+          "bonus_ranking": [
+            "sem_mei",
+            "sem_self"
           ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_sirin"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
+        },
         {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "姐姐"
+          "q": 3,
+          "ranking": [
+            "sit_encounter_mei"
           ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的姐姐",
-                "description": "真正的卡斯兰娜女武神，S级女武神"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_bianca"
+          "bonus_ranking": [
+            "sem_mei",
+            "sem_self"
           ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_bianca"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_15",
-      "description": "atomic query 15",
-      "sub_queries": [
+        },
         {
-          "priority": 4,
-          "tag": [
-            "技能",
-            "修炼"
+          "q": 4,
+          "ranking": [
+            "sit_encounter_mei"
           ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "班长教她的神州武学",
-                "description": "能强化精神力量的剑术"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_taixu"
+          "bonus_ranking": [
+            "sem_mei",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_taixu"
+        "sit_encounter_mei"
+      ],
+      "bonus_combined_ranking": [
+        "sem_mei",
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_16",
-      "description": "atomic query 16",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "人物",
-            "传说"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "飞花般绚烂的少女",
-                "description": "上文明纪元的始源之律者，从未见过但故事被传颂"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_elysia"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_elysia"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_17",
-      "description": "atomic query 17",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "概念",
-            "信念"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的战斗信条",
-                "description": "姬子老师教给她的信念"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_fight_for_beauty"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_fight_for_beauty"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_18",
-      "description": "atomic query 18",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "父亲"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "把她从天命救出来的卡斯兰娜男人",
-                "description": "将琪亚娜名字传给她的人"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_siegfried"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_siegfried"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_19",
-      "description": "atomic query 19",
+      "name": "set_bronya_relation",
+      "description": "查询布洛妮娅的身份和关系",
       "sub_queries": [
         {
           "priority": 7,
@@ -676,8 +1548,68 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "叫她的外号的理之律者",
-                "description": "总是叫她草履虫的可靠战友"
+                "concept_identifier": "那个用重炮的女孩",
+                "description": "从小和我一起长大、总叫我笨蛋的可靠队友"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "伙伴"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "理之律者",
+                "description": "在圣芙蕾雅就认识的好友、后来成为真理之律者的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "伙伴"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "灰色的俄罗斯女生",
+                "description": "会玩电脑、骑摩托车带我兜风、总是面无表情但其实很温柔"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "伙伴"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "布洛妮娅",
+                "description": "陪伴我从学园到月球的最亲密的战友"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "伙伴"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "我的可靠后盾",
+                "description": "一直默默支持我、在月球上和我一起对抗凯文的人"
               }
             ]
           }
@@ -688,803 +1620,71 @@
           "q": 0,
           "ranking": [
             "sem_bronya"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_bronya"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_bronya"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_bronya"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_bronya"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_bronya"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_20",
-      "description": "atomic query 20",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "习惯",
-            "性格"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "被夸奖时的反应",
-                "description": "被夸后会不好意思地自夸的习惯"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
+      "bonus_combined_ranking": [
         "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_21",
-      "description": "atomic query 21",
+      "name": "set_self_finality",
+      "description": "查询琪亚娜成为终焉之律者的能力",
       "sub_queries": [
         {
-          "priority": 4,
-          "tag": [
-            "人物",
-            "后辈"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她在月球上训练的那两个女生",
-                "description": "赫丽娅和科拉莉，火星探索队成员"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_helena",
-            "sem_corali"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_helena",
-        "sem_corali"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_22",
-      "description": "atomic query 22",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "人物",
-            "亲人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "总是包容她闯祸的学园长",
-                "description": "她的大姨妈，后来成了天命大主教"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_theresa"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_theresa"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_23",
-      "description": "atomic query 23",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "技能",
-            "武艺"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她用的双枪技巧",
-                "description": "齐格飞爸爸教她的战斗方式"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_gun_kai"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_gun_kai"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_24",
-      "description": "atomic query 24",
-      "sub_queries": [
-        {
-          "priority": 4,
+          "priority": 8,
           "tag": [
             "力量",
-            "事件"
+            "形态"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "终结奥托时使用的能力",
-                "description": "在虚数空间用奥托的权能"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_odin"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_odin"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_mei",
-      "description": "查询琪亚娜最重要的伙伴雷电芽衣",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "伙伴"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她最依赖的人",
-                "description": "从长空市起就一直陪伴她的雷之律者"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "伙伴"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "煮饭婆",
-                "description": "总是照顾她饮食的那个紫色头发的女生"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "伙伴"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "愿意为她牺牲的人",
-                "description": "为了拯救她离开又回来并肩作战的律者"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "伙伴",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的女友",
-                "description": "那个在长空市被救下后一直保护她的女生"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "伙伴"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "雷之律者",
-                "description": "琪亚娜最亲密的战友和伙伴"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "伙伴"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "芽衣姐姐",
-                "description": "在长空市崩坏时相遇的那个厨艺很好的人"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_mei"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_mei"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_mei"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_mei"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_mei"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_mei"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_mei"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_himeko_sacrifice",
-      "description": "查询姬子老师牺牲事件",
-      "sub_queries": [
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "老师穿着真红骑士用弑神之枪救她从空之律者状态中恢复的那场战斗",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在天命总部她最敬爱的老师为了救她而永远离开",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "成长"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "那场让她继承薪炎之剑的悲壮战斗",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "空之律者暴走时姬子老师穿着月蚀装甲来救她然后牺牲的时刻",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她失控时老师用生命把她拉回来的那件事",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在总部她亲眼看着老师奋战至最后一刻的记忆",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "牺牲",
-            "成长"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "那场改变了她的战斗，老师为了让她重新站起来而献出一切",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_himeko_sacrifice"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_himeko_sacrifice"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_himeko_sacrifice"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_himeko_sacrifice"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_himeko_sacrifice"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_himeko_sacrifice"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_himeko_sacrifice"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_himeko_sacrifice"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_moon_battle",
-      "description": "查询月球上与凯文的最终决战",
-      "sub_queries": [
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "决战"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "月亮上的终焉之战",
-                "description": "她和芽衣布洛妮娅一起在月球上击败凯文"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "决战"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "终结圣痕计划的一战",
-                "description": "在月球成为终焉之律者击败祖先"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "决战"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "终焉之茧前的对决",
-                "description": "她与凯文争夺崩坏能掌控权的最终战斗"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "决战"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在月球表面和芽衣布洛妮娅一起对抗凯文，最终成为终焉之律者击败他",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "决战"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她成为终焉之律者后与同样拥有终焉权柄的卡斯兰娜祖先的对决",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "决战"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在月球上她和伙伴们一起挑战凯文的圣痕计划的那场大战",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": []
-        },
-        {
-          "q": 1,
-          "ranking": []
-        },
-        {
-          "q": 2,
-          "ranking": []
-        },
-        {
-          "q": 3,
-          "ranking": []
-        },
-        {
-          "q": 4,
-          "ranking": []
-        },
-        {
-          "q": 5,
-          "ranking": []
-        }
-      ],
-      "expected_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "set_belief",
-      "description": "查询琪亚娜的战斗信条'为世界上所有的美好而战'",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "信念",
-            "概念"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的战斗口号",
-                "description": "姬子老师教给她的信念"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "信念",
-            "概念"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "为美好而战",
-                "description": "她一直坚持的人生信条"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "信念",
-            "概念",
-            "传承"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "姬子留下的意志",
-                "description": "那位牺牲的老师传给她的战斗理由"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "信念",
-            "概念"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "世界上所有的美好",
-                "description": "她想要守护的一切的概括"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "信念",
-            "概念"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她力量的源泉",
-                "description": "让她能一直战斗下去的精神支柱"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "信念",
-            "概念"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "对抗崩坏的正义",
-                "description": "她坚信用力量保护他人就是正义"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_fight_for_beauty"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_fight_for_beauty"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_fight_for_beauty"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_fight_for_beauty"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_fight_for_beauty"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_fight_for_beauty"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_fight_for_beauty"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_saint_freya",
-      "description": "查询在圣芙蕾雅学园的日常回忆",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "日常",
-            "温馨"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在圣芙蕾雅学园和芽衣布洛妮娅一起翘课闯祸的日子",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "最强的形态",
+                "description": "能切换太刀和双枪、封印了全球崩坏能的终极力量"
               }
             ]
           }
@@ -1492,18 +1692,29 @@
         {
           "priority": 7,
           "tag": [
-            "事件",
-            "日常"
+            "力量",
+            "形态"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "在极东支部女武神培训学校她经常被学园长抓去写检讨",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "时燧和月锋",
+                "description": "我最后获得的那两种战斗姿态"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "力量",
+            "形态"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "终焉之律者",
+                "description": "在月球茧里觉醒、整合了所有律者权能的最终形态"
               }
             ]
           }
@@ -1511,78 +1722,29 @@
         {
           "priority": 7,
           "tag": [
-            "事件",
-            "日常",
-            "温馨"
+            "力量",
+            "形态"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "她在学园里和伙伴一起学习、战斗、恶作剧的时光",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "最后的律者形态",
+                "description": "用来封印崩坏、独自留在月球上的力量"
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 8,
           "tag": [
-            "事件",
-            "日常"
+            "力量",
+            "形态"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "在德丽莎管理的学园里的无忧无虑生活",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "日常",
-            "温馨"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她最珍视的校园记忆，和芽衣布洛妮娅还有姬子老师在一起的日子",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "日常",
-            "学习"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在圣芙蕾雅学园里她总是考试不及格却过得很快乐的那些日子",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "击败凯文的力量",
+                "description": "在月球最终战中获得、踩在魔兽身上时使用的新能力"
               }
             ]
           }
@@ -1592,206 +1754,60 @@
         {
           "q": 0,
           "ranking": [
-            "sit_saint_freya_days"
+            "sem_herrscher_of_finality"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_moon"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sit_saint_freya_days"
+            "sem_herrscher_of_finality"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_moon"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sit_saint_freya_days"
+            "sem_herrscher_of_finality"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_moon"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sit_saint_freya_days"
+            "sem_herrscher_of_finality"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_moon"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sit_saint_freya_days"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_saint_freya_days"
+            "sem_herrscher_of_finality"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_moon"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_saint_freya_days"
+        "sem_herrscher_of_finality"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_domination_theater",
-      "description": "查询在支配剧场与西琳人格的对决",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "内心斗争",
-            "成长"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在精神空间里她最终承认西琳是她一部分的那场对决",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "内心斗争"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在支配剧场她与自己的另一面进行最后战斗",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "成长"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在疾疫宝石的幻境中姬子的残影用薪炎之剑斩断锁链帮她解脱",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "内心斗争",
-            "成长"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她在精神世界里面对西琳并承认她是自己的一部分",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "成长"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在支配剧场她克服心魔真正继承炎之律者力量的过程",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "内心斗争"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她与空之律者人格在精神领域的最终了结",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_domination_theater"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_domination_theater"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_domination_theater"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_domination_theater"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_domination_theater"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_domination_theater"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_domination_theater"
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_moon"
       ],
       "expected_actions": []
     }

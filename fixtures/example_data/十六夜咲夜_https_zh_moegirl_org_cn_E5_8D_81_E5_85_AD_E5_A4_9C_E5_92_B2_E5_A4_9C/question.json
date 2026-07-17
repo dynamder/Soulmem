@@ -17,15 +17,16 @@
       "description": "atomic query 0",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
-            "人物"
+            "人物",
+            "红魔馆"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "红魔馆的年幼主人",
-                "description": "那位外表年幼但强大的吸血鬼大小姐"
+                "concept_identifier": "红魔馆的威严大小姐",
+                "description": "那位赐了她名字的吸血鬼主人"
               }
             ]
           }
@@ -36,11 +37,17 @@
           "q": 0,
           "ranking": [
             "sem_remilia"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_remilia"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -49,15 +56,16 @@
       "description": "atomic query 1",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 8,
           "tag": [
-            "能力"
+            "人物",
+            "红魔馆"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "时间停止的能力",
-                "description": "她能停止时间但无法倒流的能力"
+                "concept_identifier": "被关在地下的吸血鬼妹妹",
+                "description": "大小姐的妹妹，拥有破坏一切的能力，长期住在红魔馆地下室"
               }
             ]
           }
@@ -67,12 +75,18 @@
         {
           "q": 0,
           "ranking": [
-            "sem_time_ability"
+            "sem_flandre"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_time_ability"
+        "sem_flandre"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -81,19 +95,16 @@
       "description": "atomic query 2",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 7,
           "tag": [
-            "事件"
+            "人物",
+            "魔女"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "在红魔馆阻止一位巫女闯入的事件，她后来性格变温和了",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "叫她'猫'的魔女",
+                "description": "住在红魔馆大图书馆的魔女，曾教她魔法小技巧帮她工作"
               }
             ]
           }
@@ -103,12 +114,18 @@
         {
           "q": 0,
           "ranking": [
-            "sit_hongmao_incident"
+            "sem_patchouli"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_hongmao_incident"
+        "sem_patchouli"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -117,51 +134,16 @@
       "description": "atomic query 3",
       "sub_queries": [
         {
-          "priority": 3,
+          "priority": 6,
           "tag": [
-            "日常"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她的日常工作包括打扫红魔馆、照顾大小姐、管理妖精女仆等",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_daily_work"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_daily_work"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_4",
-      "description": "atomic query 4",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
+            "人物",
+            "下属"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那位经常打瞌睡的门番",
-                "description": "红魔馆的中国妖怪门番红美铃"
+                "concept_identifier": "总在站岗时梦周公的中国妖怪",
+                "description": "红魔馆的门番，擅长武术，但总打瞌睡需要她去提醒"
               }
             ]
           }
@@ -172,11 +154,60 @@
           "q": 0,
           "ranking": [
             "sem_meirin"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_fairy_maids"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_meirin"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_fairy_maids"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "巫女"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "让她性格变温和的那个巫女",
+                "description": "幻想乡的巫女，在红魔乡事件后与她之间没了敌意，还改变了她"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_reimu"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_marisa"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_reimu"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_marisa"
       ],
       "expected_actions": []
     },
@@ -185,18 +216,506 @@
       "description": "atomic query 5",
       "sub_queries": [
         {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "商人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "香霖堂那个卖古怪道具的老板",
+                "description": "她偶尔会去他店里淘稀奇货，有时会趁他不在悄悄调换商品"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_morichika"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_morichika"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 10,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她能操纵时间的能力",
+                "description": "可以停止、加速、减缓时间流动的核心能力，无法倒流已发生的事"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_time_ability"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_time_ability"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "武器"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她随身携带的银质投掷武器",
+                "description": "她主要使用银制飞刀，投掷精准，用来战斗和日常把玩"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_knife"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_knife"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "地点"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她所居住的结界世界",
+                "description": "被结界与外界隔绝的人与妖怪共存之地，红魔馆位于雾之湖畔"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_gensokyo"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_gensokyo"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "价值观"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的行事准则：完美而潇洒",
+                "description": "她作为女仆和从者的自我要求，每件事都要无可挑剔"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_perfect_maid"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_perfect_maid"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "永远亭"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "竹林的月之贤者医师",
+                "description": "永远亭的医师，在永夜抄中相遇时对她的存在表现出惊讶"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_yagokoro"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_yagokoro"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "白玉楼"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "白玉楼那位忠心的庭师剑士",
+                "description": "她在妖妖梦中交手过，剑术了得，对主人忠心不二"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_youmu"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_yuyuko"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_youmu"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_yuyuko"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
           "priority": 4,
           "tag": [
-            "事件"
+            "人物",
+            "白玉楼"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被她击倒过的亡灵公主",
+                "description": "白玉楼的主人，妖妖梦中被击败，但后来发现她并非主犯"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_yuyuko"
+          ],
+          "bonus_ranking": [
+            "sem_youmu",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_yuyuko"
+      ],
+      "bonus_combined_ranking": [
+        "sem_youmu",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "妖怪"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个深不可测的间隙妖怪",
+                "description": "幻想乡创建者之一，妖妖梦中她为修复结界与对方交手，不太喜欢打交道"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_yukari"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_reimu"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_yukari"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_reimu"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 10,
+          "tag": [
+            "事件",
+            "异变"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在迷途竹林与月之贤者八意永琳的相遇，对方见到她时很惊讶",
+                "narrative": "在红魔乡异变中她试图阻止来讨伐大小姐的巫女",
                 "location": null,
-                "participants": null,
+                "participants": [
+                  {
+                    "role": "阻拦者"
+                  },
+                  {
+                    "role": "入侵者"
+                  }
+                ],
                 "time_span": null,
                 "environment": null,
+                "event": [
+                  {
+                    "action": "阻止"
+                  },
+                  {
+                    "action": "被突破"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_hongmao_incident"
+          ],
+          "bonus_ranking": [
+            "sem_reimu",
+            "sem_remilia",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_hongmao_incident"
+      ],
+      "bonus_combined_ranking": [
+        "sem_reimu",
+        "sem_remilia",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "异变"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她为调查妖妖梦前往冥界，先后与白玉楼庭师和公主战斗",
+                "location": [
+                  {
+                    "name": "冥界"
+                  }
+                ],
+                "participants": [
+                  {
+                    "role": "庭师对手"
+                  },
+                  {
+                    "role": "亡灵公主目标"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_youyoumu"
+          ],
+          "bonus_ranking": [
+            "sem_youmu",
+            "sem_yuyuko",
+            "sem_yukari",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_youyoumu"
+      ],
+      "bonus_combined_ranking": [
+        "sem_youmu",
+        "sem_yuyuko",
+        "sem_yukari",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "相遇"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在永夜抄中她于迷途竹林遇到了永远亭的医师",
+                "location": [
+                  {
+                    "name": "永远亭附近"
+                  }
+                ],
+                "participants": [
+                  {
+                    "role": "月之贤者"
+                  },
+                  {
+                    "role": "遇见者"
+                  }
+                ],
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "神秘"
+                },
                 "event": null
               }
             ]
@@ -208,167 +727,52 @@
           "q": 0,
           "ranking": [
             "sit_eientei"
+          ],
+          "bonus_ranking": [
+            "sem_yagokoro",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_eientei"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_6",
-      "description": "atomic query 6",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "白玉楼的庭师与她的主公",
-                "description": "魂魄妖梦侍奉亡灵公主西行寺幽幽子，两人感情深厚"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_youmu",
-            "sem_yuyuko"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_youmu",
-        "sem_yuyuko"
+      "bonus_combined_ranking": [
+        "sem_yagokoro",
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_7",
-      "description": "atomic query 7",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在妖妖梦事件中为了修复结界而与间隙妖怪八云紫交手",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_youyoumu"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_youyoumu"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_8",
-      "description": "atomic query 8",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那位图书馆的魔女",
-                "description": "帕秋莉大人称她为猫，并有猫度评分系统，她得了24分"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_patchouli"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_patchouli"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_9",
-      "description": "atomic query 9",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "价值观"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的行为准则",
-                "description": "完美而潇洒的信念，作为女仆必须无可挑剔"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_perfect_maid"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_perfect_maid"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_10",
-      "description": "atomic query 10",
+      "name": "query_17",
+      "description": "atomic query 17",
       "sub_queries": [
         {
           "priority": 6,
           "tag": [
-            "事件"
+            "事件",
+            "协助"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在虹龙洞事件中帮助帕秋莉回收在幻想乡流通的能力卡片",
+                "narrative": "她在虹龙洞里帮图书馆魔女回收能力卡片",
                 "location": null,
-                "participants": null,
+                "participants": [
+                  {
+                    "role": "委托人"
+                  },
+                  {
+                    "role": "帮手"
+                  }
+                ],
                 "time_span": null,
                 "environment": null,
-                "event": null
+                "event": [
+                  {
+                    "action": "回收"
+                  }
+                ]
               }
             ]
           }
@@ -379,249 +783,19 @@
           "q": 0,
           "ranking": [
             "sit_horyuudou"
+          ],
+          "bonus_ranking": [
+            "sem_patchouli",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_horyuudou"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_11",
-      "description": "atomic query 11",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "武器"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的主要武器",
-                "description": "银质飞刀，能精准投掷二十间外的目标"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_knife"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_knife"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_12",
-      "description": "atomic query 12",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "地点"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "雾之湖畔的红色洋馆",
-                "description": "蕾米莉亚大小姐的住所，她住在这里"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_mansion"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_mansion"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_13",
-      "description": "atomic query 13",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "日常",
-            "习惯"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她喝红茶前会小心吹凉，因为猫舌，还喜欢制作独特的红茶",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_tea_time"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_tea_time"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "关系"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "红魔乡事件后，她和博丽灵梦之间从敌对变成了没有敌意的关系",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_hongmao_incident"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_hongmao_incident"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_15",
-      "description": "atomic query 15",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在妖妖梦事件中击败了白玉楼的主人西行寺幽幽子，但发现她并非真正主犯",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_youyoumu"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_youyoumu"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_16",
-      "description": "atomic query 16",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那位深不可测的间隙妖怪",
-                "description": "幻想乡的创建者之一，她不太喜欢打交道但给予基本尊重"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_yukari"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_yukari"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_17",
-      "description": "atomic query 17",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "月之贤者八意永琳",
-                "description": "永远亭的医师，在永夜抄相遇时对咲夜的存在感到惊讶，暗示咲夜可能是月人"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_yagokoro"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_yagokoro"
+      "bonus_combined_ranking": [
+        "sem_patchouli",
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -632,15 +806,23 @@
         {
           "priority": 5,
           "tag": [
-            "事件",
-            "人物"
+            "日常",
+            "工作"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "大小姐半夜派她去香霖堂买吉利的东西，她有时会趁店主不在做些调皮的事",
-                "location": null,
-                "participants": null,
+                "narrative": "她每天在红魔馆的待办事项：打扫巨型洋馆、伺候任性大小姐、管理帮不上忙的妖精们",
+                "location": [
+                  {
+                    "name": "红魔馆"
+                  }
+                ],
+                "participants": [
+                  {
+                    "role": "女仆长"
+                  }
+                ],
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -653,12 +835,24 @@
         {
           "q": 0,
           "ranking": [
-            "sem_morichika"
+            "sit_daily_work"
+          ],
+          "bonus_ranking": [
+            "sem_remilia",
+            "sem_mansion",
+            "sem_fairy_maids",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_morichika"
+        "sit_daily_work"
+      ],
+      "bonus_combined_ranking": [
+        "sem_remilia",
+        "sem_mansion",
+        "sem_fairy_maids",
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -667,16 +861,31 @@
       "description": "atomic query 19",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 4,
           "tag": [
-            "人物",
-            "关系"
+            "日常",
+            "购物"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "改变她性格的两人",
-                "description": "与博丽灵梦和雾雨魔理沙的相遇让她性格变得温和，意识到人类和妖怪不必对立"
+                "narrative": "她现在会去人类村庄买东西，和村民交谈，以前她几乎不出馆",
+                "location": [
+                  {
+                    "name": "人间之里"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "购物"
+                  },
+                  {
+                    "action": "交谈"
+                  }
+                ]
               }
             ]
           }
@@ -686,14 +895,20 @@
         {
           "q": 0,
           "ranking": [
-            "sem_reimu",
-            "sem_marisa"
+            "sit_shopping"
+          ],
+          "bonus_ranking": [
+            "sem_gensokyo",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_reimu",
-        "sem_marisa"
+        "sit_shopping"
+      ],
+      "bonus_combined_ranking": [
+        "sem_gensokyo",
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -702,16 +917,31 @@
       "description": "atomic query 20",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 5,
           "tag": [
-            "人物",
-            "关系"
+            "日常",
+            "饮食"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "她的月人身份疑云",
-                "description": "名字'咲夜'与木花咲耶姬有关，与八意永琳的关联暗示她可能是月人"
+                "narrative": "她喝红茶前会小心地吹凉，因为怕烫，也很享受制作独创红茶",
+                "location": [
+                  {
+                    "name": "红魔馆内"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "吹凉"
+                  },
+                  {
+                    "action": "品尝"
+                  }
+                ]
               }
             ]
           }
@@ -721,14 +951,20 @@
         {
           "q": 0,
           "ranking": [
-            "sem_self",
-            "sem_yagokoro"
+            "sit_tea_time"
+          ],
+          "bonus_ranking": [
+            "proc_blow_tea",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_self",
-        "sem_yagokoro"
+        "sit_tea_time"
+      ],
+      "bonus_combined_ranking": [
+        "proc_blow_tea",
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -737,16 +973,25 @@
       "description": "atomic query 21",
       "sub_queries": [
         {
-          "priority": 3,
+          "priority": 6,
           "tag": [
-            "习惯"
+            "事件",
+            "异变"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她习惯在思考时摆弄腰间的怀表，也有把玩飞刀的习惯",
-                "location": null,
-                "participants": null,
+                "narrative": "在萃梦想异变中她遇到了豪爽的鬼，后者是异变的起因之一",
+                "location": [
+                  {
+                    "name": "红魔馆附近"
+                  }
+                ],
+                "participants": [
+                  {
+                    "role": "鬼"
+                  }
+                ],
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -759,18 +1004,185 @@
         {
           "q": 0,
           "ranking": [
+            "sit_suika_incident"
+          ],
+          "bonus_ranking": [
+            "sem_suika",
             "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
+        "sit_suika_incident"
+      ],
+      "bonus_combined_ranking": [
+        "sem_suika",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_remilia",
+      "description": "查询她为主的主人蕾米莉亚·斯卡雷特",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "红魔馆"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的主人",
+                "description": "红魔馆那位外表年幼但实力强大的吸血鬼大小姐"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "红魔馆"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "赐予她名字的人",
+                "description": "那个将她从无名之地带出并给了她新生的人，她绝对忠诚"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "红魔馆"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她无微不至照顾的大小姐",
+                "description": "那位住在红魔馆、有时会提出任性要求的吸血鬼主人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "红魔馆"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "蕾米莉亚·斯卡雷特",
+                "description": "她效忠的主人，红魔馆的真正统治者，一个被封印的古老吸血鬼"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "红魔馆"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个让她心甘情愿奉献一切的银发大小姐",
+                "description": "不仅赐予了她名字，还让她找到了活着的意义"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "红魔馆"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她口中永远的大小姐",
+                "description": "她每天都要照顾其起居、满足其愿望的那位威严主人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_remilia"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_remilia"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_remilia"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_remilia"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_remilia"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_remilia"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_remilia"
+      ],
+      "bonus_combined_ranking": [
         "sem_self"
       ],
       "expected_actions": []
     },
     {
       "name": "set_time_ability",
-      "description": "查询十六夜咲夜的时间操控能力",
+      "description": "查询她的时间操控能力",
       "sub_queries": [
         {
           "priority": 9,
@@ -780,8 +1192,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "时间停止",
-                "description": "她能停止时间的能力，咲夜最招牌的招数"
+                "concept_identifier": "她的时停能力",
+                "description": "能让她独自在停止的世界中自由行动的核心力量"
               }
             ]
           }
@@ -794,8 +1206,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "时停能力",
-                "description": "她的核心能力，可以冻结时间流动"
+                "concept_identifier": "操纵时间的能力",
+                "description": "停止、加速、减缓时间流动，无法倒流过去"
               }
             ]
           }
@@ -808,8 +1220,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "操纵时间",
-                "description": "不仅能停止，还能加速减速时间"
+                "concept_identifier": "她的'咲夜的世界'",
+                "description": "她著名的符卡，能暂停时间约5秒，战场上等于永恒"
               }
             ]
           }
@@ -822,8 +1234,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "咲夜的世界",
-                "description": "她符卡里能停止5秒时间的绝招"
+                "concept_identifier": "她能加速时间的能力",
+                "description": "可以用来发酵物体或实现超高速移动"
               }
             ]
           }
@@ -836,36 +1248,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "时间操控",
-                "description": "她凭借这个能力成为完美女仆的秘密武器"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "能力"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个玩时间的能力",
-                "description": "她的时间能力无法让已发生的事倒流"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "能力"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "银怀表相关的力量",
-                "description": "时间能力与她腰间的怀表有关联吗？实际上是她的天赋"
+                "concept_identifier": "那个让她在打扫时也利用的能力",
+                "description": "她习惯在停止时间的情况下工作，避免尘土飞扬"
               }
             ]
           }
@@ -876,68 +1260,325 @@
           "q": 0,
           "ranking": [
             "sem_time_ability"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 1,
           "ranking": [
             "sem_time_ability"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 2,
           "ranking": [
             "sem_time_ability"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 3,
           "ranking": [
             "sem_time_ability"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 4,
           "ranking": [
             "sem_time_ability"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_time_ability"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_time_ability"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_time_ability"
       ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
       "expected_actions": []
     },
     {
       "name": "set_hongmao_incident",
-      "description": "查询红魔乡事件",
+      "description": "查询红魔乡事件中她与灵梦的对峙",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 10,
           "tag": [
-            "事件"
+            "事件",
+            "异变"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "红魔乡那次与巫女的冲突，她试图阻拦但没成功",
+                "narrative": "红魔乡异变里她试图阻拦前来讨伐大小姐的巫女",
                 "location": null,
-                "participants": null,
+                "participants": [
+                  {
+                    "role": "阻拦者"
+                  },
+                  {
+                    "role": "入侵者"
+                  }
+                ],
                 "time_span": null,
                 "environment": null,
+                "event": [
+                  {
+                    "action": "阻止"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 10,
+          "tag": [
+            "事件",
+            "异变"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那次她与博丽灵梦在红魔馆门前发生的战斗",
+                "location": [
+                  {
+                    "name": "红魔馆"
+                  }
+                ],
+                "participants": [
+                  {
+                    "role": "女仆长"
+                  },
+                  {
+                    "role": "巫女"
+                  }
+                ],
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "对峙"
+                },
                 "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 10,
+          "tag": [
+            "事件",
+            "异变"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她第一次与那个博丽巫女交手的情景",
+                "location": null,
+                "participants": [
+                  {
+                    "role": "阻止者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "交手"
+                  },
+                  {
+                    "action": "被突破"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 10,
+          "tag": [
+            "事件",
+            "异变"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那个被她称为'红魔乡事件'的异变中，她作为红魔馆的守护者出战",
+                "location": null,
+                "participants": [
+                  {
+                    "role": "入侵者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "守护"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 10,
+          "tag": [
+            "事件",
+            "异变"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她与灵梦之间最初的冲突，那之后她们反而不再敌对",
+                "location": null,
+                "participants": [
+                  {
+                    "role": "对手后来变成熟人"
+                  }
+                ],
+                "time_span": null,
+                "environment": {
+                  "tone": "紧张"
+                },
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 10,
+          "tag": [
+            "事件",
+            "异变"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她第一次使用时间能力阻挡外敌的重要战斗",
+                "location": null,
+                "participants": [
+                  {
+                    "role": "入侵巫女"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "阻挡"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_hongmao_incident"
+          ],
+          "bonus_ranking": [
+            "sem_reimu",
+            "sem_remilia",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_hongmao_incident"
+          ],
+          "bonus_ranking": [
+            "sem_reimu",
+            "sem_remilia",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_hongmao_incident"
+          ],
+          "bonus_ranking": [
+            "sem_reimu",
+            "sem_remilia",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_hongmao_incident"
+          ],
+          "bonus_ranking": [
+            "sem_reimu",
+            "sem_remilia",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_hongmao_incident"
+          ],
+          "bonus_ranking": [
+            "sem_reimu",
+            "sem_remilia",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_hongmao_incident"
+          ],
+          "bonus_ranking": [
+            "sem_reimu",
+            "sem_remilia",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_hongmao_incident"
+      ],
+      "bonus_combined_ranking": [
+        "sem_reimu",
+        "sem_remilia",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_knife",
+      "description": "查询她的飞刀武器及相关使用",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "武器",
+            "战斗"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她使用的银质飞刀",
+                "description": "主要投掷武器，精准无比，能在二十间外命中目标"
               }
             ]
           }
@@ -945,12 +1586,170 @@
         {
           "priority": 8,
           "tag": [
-            "事件"
+            "武器",
+            "战斗"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她平时在指间转来转去的那把小刀",
+                "description": "既是武器也是玩具，战斗中用完还会停止时间回收"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "武器",
+            "战斗"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她布下飞刀阵的核心武器",
+                "description": "配合时间停止战术，在对手身边布满飞刀然后瞬间发动袭击"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "武器",
+            "战斗"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那些银制的投掷小刀",
+                "description": "银对大小姐是弱点，但作为武器很实用，她正在考虑其他材料"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "武器",
+            "战斗"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她随手把玩的飞刀",
+                "description": "她习惯让飞刀在指间转动，既是练习也是习惯性动作"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_knife"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "proc_knife_fidget"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_knife"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "proc_recover_knives"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_knife"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "proc_battle_tactic"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_knife"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_time_ability"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_knife"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_knife"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "proc_knife_fidget",
+        "proc_recover_knives",
+        "proc_battle_tactic",
+        "sem_time_ability"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_tea_habit",
+      "description": "查询她喝红茶时怕烫的习惯",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "日常",
+            "饮食",
+            "习惯"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在红魔馆大门前阻止灵梦闯入的事件",
+                "narrative": "她喝红茶前总会先吹一吹降降温",
+                "location": null,
+                "participants": [
+                  {
+                    "role": "自己"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "吹凉"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "日常",
+            "饮食",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "因为怕烫，她每次享用热红茶都要仔细吹凉后才入口",
                 "location": [
                   {
                     "name": "红魔馆"
@@ -959,97 +1758,120 @@
                 "participants": null,
                 "time_span": null,
                 "environment": null,
+                "event": [
+                  {
+                    "action": "吹凉"
+                  },
+                  {
+                    "action": "品尝"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "日常",
+            "饮食",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她制作独创红茶并小心吹凉后再喝的日常场景",
+                "location": null,
+                "participants": [
+                  {
+                    "role": "制作者与饮用者"
+                  }
+                ],
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "悠闲"
+                },
                 "event": null
               }
             ]
           }
         },
         {
-          "priority": 8,
+          "priority": 5,
           "tag": [
-            "事件"
+            "日常",
+            "饮食",
+            "习惯"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "大小姐被巫女找上门时她出面迎战",
+                "narrative": "她身为猫舌却爱喝红茶，所以总有那个轻轻吹气的动作",
                 "location": null,
                 "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": null
+                "event": [
+                  {
+                    "action": "吹气"
+                  }
+                ]
               }
             ]
           }
         },
         {
-          "priority": 8,
+          "priority": 5,
           "tag": [
-            "事件"
+            "日常",
+            "饮食",
+            "习惯"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她第一次和博丽灵梦战斗的经历，后来关系缓和了",
-                "location": null,
+                "narrative": "她坐在红魔馆内享受自己泡的红茶，但总要先等它凉一凉",
+                "location": [
+                  {
+                    "name": "红魔馆内"
+                  }
+                ],
                 "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": null
+                "event": [
+                  {
+                    "action": "等待降温"
+                  }
+                ]
               }
             ]
           }
         },
         {
-          "priority": 8,
+          "priority": 5,
           "tag": [
-            "事件"
+            "日常",
+            "饮食",
+            "习惯"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "那次异变中她作为红魔馆女仆长的职责是守护大小姐",
+                "narrative": "她放松时喜欢喝茶，但总得小心翼翼地吹凉，因为一着急就会烫到",
                 "location": null,
-                "participants": null,
+                "participants": [
+                  {
+                    "role": "她"
+                  }
+                ],
                 "time_span": null,
                 "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "红魔乡事件中她与灵梦的对峙，最终被突破防线",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她性格改变的契机之一：红魔馆前那场战斗",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "event": [
+                  {
+                    "action": "吹凉"
+                  }
+                ]
               }
             ]
           }
@@ -1059,65 +1881,89 @@
         {
           "q": 0,
           "ranking": [
-            "sit_hongmao_incident"
+            "sit_tea_time"
+          ],
+          "bonus_ranking": [
+            "proc_blow_tea",
+            "sem_self"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sit_hongmao_incident"
+            "sit_tea_time"
+          ],
+          "bonus_ranking": [
+            "proc_blow_tea",
+            "sem_self"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sit_hongmao_incident"
+            "sit_tea_time"
+          ],
+          "bonus_ranking": [
+            "proc_blow_tea",
+            "sem_self"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sit_hongmao_incident"
+            "sit_tea_time"
+          ],
+          "bonus_ranking": [
+            "proc_blow_tea",
+            "sem_self"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sit_hongmao_incident"
+            "sit_tea_time"
+          ],
+          "bonus_ranking": [
+            "proc_blow_tea",
+            "sem_self"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sit_hongmao_incident"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_hongmao_incident"
+            "sit_tea_time"
+          ],
+          "bonus_ranking": [
+            "proc_blow_tea",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_hongmao_incident"
+        "sit_tea_time"
+      ],
+      "bonus_combined_ranking": [
+        "proc_blow_tea",
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
       "name": "set_patchouli",
-      "description": "查询咲夜与帕秋莉的关系和互动",
+      "description": "查询图书馆魔女帕秋莉·诺蕾姬",
       "sub_queries": [
         {
           "priority": 7,
           "tag": [
-            "人物"
+            "人物",
+            "红魔馆",
+            "魔女"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "图书馆的那位魔女",
-                "description": "帕秋莉大人，教她小魔法的人，叫她猫"
+                "concept_identifier": "住在图书馆的魔女",
+                "description": "大小姐的朋友，也是她的魔法老师，会教她实用小魔法"
               }
             ]
           }
@@ -1125,13 +1971,31 @@
         {
           "priority": 7,
           "tag": [
-            "人物"
+            "人物",
+            "红魔馆",
+            "魔女"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个叫她'猫'的紫发魔女",
+                "description": "有一套猫度体系评估她的猫度，满分96分她得了24分"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "红魔馆",
+            "魔女"
           ],
           "variant": {
             "Semantic": [
               {
                 "concept_identifier": "帕秋莉大人",
-                "description": "大小姐的朋友，居住在大图书馆的魔女，也是她在魔法上的老师"
+                "description": "她和大小姐是朋友，在虹龙洞事件中她帮对方回收能力卡片"
               }
             ]
           }
@@ -1139,13 +2003,15 @@
         {
           "priority": 7,
           "tag": [
-            "人物"
+            "人物",
+            "红魔馆",
+            "魔女"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "猫度24分的魔女",
-                "description": "帕秋莉有一套猫度衡量体系，她有24分（满分96）"
+                "concept_identifier": "红魔馆大图书馆的管理者",
+                "description": "体弱的魔女，但魔法知识渊博，曾教她不用火柴点燃壁炉的小法术"
               }
             ]
           }
@@ -1153,71 +2019,15 @@
         {
           "priority": 7,
           "tag": [
-            "事件"
+            "人物",
+            "红魔馆",
+            "魔女"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "她在虹龙洞事件中帮助帕秋莉回收能力卡片",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "帕秋莉教她不用火柴点燃壁炉的小魔法",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "帕秋莉称她为猫，并有一套猫度评分系统",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她帮图书馆的魔女跑腿回收卡片那次事件",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "那位将她的猫度评为24的魔女",
+                "description": "她的评价标准很特别，满分96分，她得了24分算是中等偏下"
               }
             ]
           }
@@ -1228,562 +2038,53 @@
           "q": 0,
           "ranking": [
             "sem_patchouli"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 1,
           "ranking": [
             "sem_patchouli"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 2,
           "ranking": [
             "sem_patchouli"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 3,
           "ranking": [
             "sem_patchouli"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 4,
           "ranking": [
             "sem_patchouli"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_patchouli"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_patchouli"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_patchouli"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_reimu",
-      "description": "查询咲夜与博丽灵梦的关系",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "人物",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "博丽的巫女",
-                "description": "幻想乡的巫女，和她从对手变成无恶意的关系"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "人物",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "红魔乡那个闯进来的巫女",
-                "description": "灵梦，首次见面就是战斗"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "人物",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "让她性格变温和的人之一",
-                "description": "与灵梦的相遇让她不再那么严厉"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在红魔馆前阻止博丽灵梦的战斗，最终被突破",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "红魔乡事件中她与灵梦交手，此后关系缓和",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "灵梦突破阻拦进入红魔馆教训大小姐的场景",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "与灵梦的相遇让她意识到人类和妖怪不必对立",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_reimu",
-            "sit_hongmao_incident"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_reimu",
-            "sit_hongmao_incident"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_reimu",
-            "sit_hongmao_incident"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_reimu",
-            "sit_hongmao_incident"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_reimu",
-            "sit_hongmao_incident"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_reimu",
-            "sit_hongmao_incident"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_reimu",
-            "sit_hongmao_incident"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_reimu",
-        "sit_hongmao_incident"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_daily_work",
-      "description": "查询咲夜的日常工作习惯",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "日常"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "红魔馆的女仆长职责",
-                "description": "她负责整个红魔馆的运作，包括打扫、照顾大小姐、管理下属"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "日常"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的时停工作法",
-                "description": "习惯在停止时间的情况下工作，避免尘土飞扬"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "日常"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "没有休假的女仆",
-                "description": "她的日常就是永无止境的工作，但对大小姐忠诚无怨言"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "日常"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她每天打扫庞大的红魔馆，照顾任性的大小姐",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "日常"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "习惯在停止时间下打扫，高效完成清洁",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "日常"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她会去人类村庄购买必需品，和村里人交谈",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "日常"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "管理工作包括提醒打瞌睡的门番和调教妖精女仆",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_daily_work"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_daily_work"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_daily_work"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_daily_work"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_daily_work"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_daily_work"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_daily_work"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_daily_work"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_youyoumu",
-      "description": "查询妖妖梦事件中的对手",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "白玉楼的庭师",
-                "description": "魂魄妖梦，妖妖梦中与她交手，剑术了得"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "击败的亡灵公主",
-                "description": "西行寺幽幽子，被她击倒但并非主犯"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "修复结界相关的妖怪",
-                "description": "八云紫，在妖妖梦中为修复结界和她交手"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在冥界与白玉楼的庭师战斗，对方剑术高超",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "击败西行寺幽幽子后发现她不是真正的幕后黑手",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "为了修复结界与八云紫在妖妖梦中对峙",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "妖妖梦事件中她前往冥界调查异变，与多人交手",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_youyoumu"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_youyoumu"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_youyoumu"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_youyoumu"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_youyoumu"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_youyoumu"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_youyoumu"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_youyoumu"
+      "bonus_combined_ranking": [
+        "sem_self"
       ],
       "expected_actions": []
     }

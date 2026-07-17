@@ -12,20 +12,26 @@ use crate::reporter::ReporterRegistry;
 use crate::state::batch_mode::BatchModeState;
 use crate::state::batch_run::BatchRunState;
 use crate::state::command::CommandState;
+use crate::state::compare_results::CompareResultsState;
 use crate::state::dataset::DatasetState;
 use crate::state::inspect::InspectState;
 use crate::state::main::MainState;
 use crate::state::params::ParamState;
 use crate::state::results::ResultsState;
+use crate::state::retrieve_mode::RetrieveModeSelectState;
 use crate::state::running::RunningState;
+use crate::state::select_algo::SelectAlgoState;
 
 pub enum AppState {
     Main(MainState),
     CommandMode(CommandState),
     SelectDataset(DatasetState),
+    RetrieveModeSelect(RetrieveModeSelectState),
+    SelectAlgo(SelectAlgoState),
     ConfigParams(ParamState),
     TestRunning(RunningState),
     TestResults(ResultsState),
+    CompareResults(CompareResultsState),
     SelectBatchDir(DatasetState),
     BatchModeSelect(BatchModeState),
     BatchRunning(BatchRunState),
@@ -71,6 +77,7 @@ impl App {
                             AlgoType::Retrieve(RetrieveMode::Association)
                         }
                         "retrieve/full" | "rf" => AlgoType::Retrieve(RetrieveMode::FullPipeline),
+                        "compare" => AlgoType::Compare,
                         "consolidate" | "c" => AlgoType::Consolidate,
                         "forget" | "f" => AlgoType::Forget,
                         _ => return None,
@@ -159,9 +166,12 @@ impl App {
             AppState::CommandMode(s) => s.render(frame),
             AppState::SelectDataset(s) => s.view(frame),
             AppState::SelectBatchDir(s) => s.view(frame),
+            AppState::RetrieveModeSelect(s) => s.view(frame),
+            AppState::SelectAlgo(s) => s.view(frame),
             AppState::ConfigParams(s) => s.view(frame),
             AppState::TestRunning(s) => s.view(frame),
             AppState::TestResults(s) => s.view(frame),
+            AppState::CompareResults(s) => s.view(frame),
             AppState::BatchModeSelect(s) => s.view(frame),
             AppState::BatchRunning(s) => s.view(frame),
             AppState::InspectData(s) => s.view(frame),
@@ -174,7 +184,10 @@ impl App {
         }
         let transition = match &mut self.app_state {
             AppState::Main(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::RetrieveModeSelect(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::SelectAlgo(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::TestResults(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::CompareResults(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::BatchModeSelect(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::CommandMode(s) => s.handle_key(key, &self.cmd_registry),
             AppState::SelectDataset(s) => s.handle_event(ComponentEvent::Key(key)),
@@ -190,6 +203,9 @@ impl App {
     fn handle_mouse(&mut self, mouse: MouseEvent) {
         match &mut self.app_state {
             AppState::TestResults(s) => {
+                s.handle_event(ComponentEvent::Mouse(mouse));
+            }
+            AppState::CompareResults(s) => {
                 s.handle_event(ComponentEvent::Mouse(mouse));
             }
             AppState::BatchRunning(s) => {
@@ -217,6 +233,18 @@ impl App {
                 self.app_state = AppState::CommandMode(cmd);
                 false
             }
+            Transition::ToRetrieveModeSelect => {
+                self.app_state = AppState::RetrieveModeSelect(RetrieveModeSelectState::new());
+                false
+            }
+            Transition::ToSelectAlgo => {
+                self.app_state = AppState::SelectAlgo(SelectAlgoState::new());
+                false
+            }
+            Transition::ToSelectCompareDataset => {
+                self.app_state = AppState::SelectDataset(DatasetState::new_compare());
+                false
+            }
             Transition::ToSelectDataset(algo) => {
                 self.app_state = AppState::SelectDataset(DatasetState::new(algo));
                 false
@@ -229,8 +257,16 @@ impl App {
                 self.app_state = AppState::BatchModeSelect(BatchModeState::new(dir));
                 false
             }
-            Transition::ToBatchRun(dir, mode) => {
-                self.app_state = AppState::BatchRunning(BatchRunState::new(dir, mode));
+            Transition::ToBatchConfigParams(algo, dir) => {
+                self.app_state = AppState::ConfigParams(ParamState::new(algo, dir, true));
+                false
+            }
+            Transition::ToBatchRun(dir, mode, params) => {
+                self.app_state = AppState::BatchRunning(BatchRunState::new(dir, mode, params));
+                false
+            }
+            Transition::ToBatchCompareRun(dir, params) => {
+                self.app_state = AppState::BatchRunning(BatchRunState::new_compare(dir, params));
                 false
             }
             Transition::ToInspect(path) => {
@@ -242,7 +278,7 @@ impl App {
                 false
             }
             Transition::ToConfigParams(algo, path) => {
-                self.app_state = AppState::ConfigParams(ParamState::new(algo, path));
+                self.app_state = AppState::ConfigParams(ParamState::new(algo, path, false));
                 false
             }
             Transition::ToTestRunning(config) => {
@@ -251,6 +287,10 @@ impl App {
             }
             Transition::ToTestResults(report) => {
                 self.app_state = AppState::TestResults(ResultsState::new(report));
+                false
+            }
+            Transition::ToCompareResults(report) => {
+                self.app_state = AppState::CompareResults(CompareResultsState::new(report));
                 false
             }
             Transition::Quit => true,

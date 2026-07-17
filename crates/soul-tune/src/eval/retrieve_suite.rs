@@ -36,6 +36,8 @@ pub struct PerQueryExpectationRaw {
     #[serde(rename = "q")]
     pub query_index: usize,
     pub ranking: Vec<String>,
+    #[serde(default)]
+    pub bonus_ranking: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -45,6 +47,8 @@ pub struct TestCaseQueryRaw {
     pub sub_queries: Vec<SubQueryRaw>,
     pub expected_per_query: Vec<PerQueryExpectationRaw>,
     pub expected_combined_ranking: Vec<String>,
+    #[serde(default)]
+    pub bonus_combined_ranking: Vec<String>,
     #[serde(default)]
     pub expected_actions: Vec<String>,
 }
@@ -159,6 +163,7 @@ pub struct RetrieveCaseData {
     pub variant_weight: f32,
     pub id_names: Option<Arc<HashMap<MemoryId, NodeSummary>>>,
     pub expected_combined_ranking: Vec<MemoryId>,
+    pub bonus_combined_ranking: Vec<MemoryId>,
     pub graph_names: Option<Arc<HashMap<MemoryId, String>>>,
     pub sub_queries: Vec<SubQuery>,
 }
@@ -322,6 +327,7 @@ impl RetrieveSuite {
                     .map(|epq| PerQueryExpectation {
                         query_index: epq.query_index,
                         ranking: resolve_ids(&epq.ranking, &id_map),
+                        bonus_ranking: resolve_ids(&epq.bonus_ranking, &id_map),
                     })
                     .collect();
 
@@ -331,6 +337,7 @@ impl RetrieveSuite {
                     sub_queries,
                     expected_per_query,
                     expected_combined_ranking: resolve_ids(&tc.expected_combined_ranking, &id_map),
+                    bonus_combined_ranking: resolve_ids(&tc.bonus_combined_ranking, &id_map),
                     expected_actions: resolve_ids(&tc.expected_actions, &id_map),
                 }
             })
@@ -480,9 +487,8 @@ impl TestSuite for RetrieveSuite {
         }
 
         // ── Pipeline-mode-specific: convert similarity results to final ranking ──
-        let (combined_ids, combined_ranking) = match self.pipeline_mode {
+        let (combined_ids, combined_ranking, passed) = match self.pipeline_mode {
             RetrieveMode::Embedding => {
-                // Direct merge by priority (current behavior)
                 let all_retrieved: Vec<(MemoryId, f32, u32)> = all_similarity
                     .into_iter()
                     .enumerate()
@@ -495,24 +501,15 @@ impl TestSuite for RetrieveSuite {
                     .collect();
                 let merged = merge_by_priority(all_retrieved, self.meta.max_results);
                 let ids: Vec<MemoryId> = merged.iter().map(|(id, _)| *id).collect();
-                let metrics = compute_ranking_metrics(
+                let (full_metrics, must_hit) = compute_split_metrics(
                     &ids,
                     &test_case.expected_combined_ranking,
+                    &test_case.bonus_combined_ranking,
                     &self.meta.test_k_values,
                 );
-                (
-                    ids,
-                    RankingMetrics {
-                        recall_at: metrics.recall_at,
-                        precision_at: metrics.precision_at,
-                        mrr: metrics.mrr,
-                        ndcg_at: metrics.ndcg_at,
-                        hit_rate: metrics.hit_rate,
-                    },
-                )
+                (ids, full_metrics, must_hit)
             }
             RetrieveMode::Association | RetrieveMode::FullPipeline => {
-                // Similarity → PPR association
                 let mut all_associated: Vec<(MemoryId, f64, u32)> = Vec::new();
                 for (sq_idx, results) in all_similarity.into_iter().enumerate() {
                     let priority = test_case.sub_queries[sq_idx].priority;
@@ -527,7 +524,6 @@ impl TestSuite for RetrieveSuite {
                         all_associated.push((id, score, priority));
                     }
                 }
-                // Merge PPR results by priority
                 let merged = merge_by_priority(
                     all_associated
                         .into_iter()
@@ -536,21 +532,13 @@ impl TestSuite for RetrieveSuite {
                     self.meta.max_results,
                 );
                 let ids: Vec<MemoryId> = merged.iter().map(|(id, _)| *id).collect();
-                let metrics = compute_ranking_metrics(
+                let (full_metrics, must_hit) = compute_split_metrics(
                     &ids,
                     &test_case.expected_combined_ranking,
+                    &test_case.bonus_combined_ranking,
                     &self.meta.test_k_values,
                 );
-                (
-                    ids,
-                    RankingMetrics {
-                        recall_at: metrics.recall_at,
-                        precision_at: metrics.precision_at,
-                        mrr: metrics.mrr,
-                        ndcg_at: metrics.ndcg_at,
-                        hit_rate: metrics.hit_rate,
-                    },
-                )
+                (ids, full_metrics, must_hit)
             }
         };
 
@@ -568,8 +556,6 @@ impl TestSuite for RetrieveSuite {
             }
         };
 
-        let passed = combined_ranking.hit_rate > 0.0;
-
         TestCaseOutcome {
             case_name: test_case.name.clone(),
             description: test_case.description.clone(),
@@ -585,6 +571,7 @@ impl TestSuite for RetrieveSuite {
                 variant_weight: tcw.variant_weight,
                 id_names: Some(self.id_names.clone()),
                 expected_combined_ranking: test_case.expected_combined_ranking.clone(),
+                bonus_combined_ranking: test_case.bonus_combined_ranking.clone(),
                 graph_names: Some(self.graph_names.clone()),
                 sub_queries: test_case.sub_queries.clone(),
             }),
@@ -633,6 +620,7 @@ impl TestSuite for RetrieveSuite {
                     variant_weight: data.variant_weight,
                     id_names: data.id_names.clone(),
                     expected_combined_ranking: data.expected_combined_ranking.clone(),
+                    bonus_combined_ranking: data.bonus_combined_ranking.clone(),
                     graph_names: data.graph_names.clone(),
                     sub_queries: data.sub_queries.clone(),
                 });
@@ -643,7 +631,9 @@ impl TestSuite for RetrieveSuite {
         let mut summary_groups = Vec::new();
         let mut detail_rows = Vec::new();
 
-        for (tag_n, var_n) in by_weight.keys().copied().collect::<Vec<_>>() {
+        let mut keys: Vec<_> = by_weight.keys().copied().collect();
+        keys.sort();
+        for (tag_n, var_n) in keys {
             let tag_w = tag_n as f64 / 100.0;
             let var_w = var_n as f64 / 100.0;
 
@@ -725,6 +715,24 @@ fn merge_by_priority(results: Vec<(MemoryId, f32, u32)>, top_k: usize) -> Vec<(M
     sorted.sort_by(|a, b| b.1.total_cmp(&a.1));
     sorted.truncate(top_k);
     sorted
+}
+
+/// 分拆评估：must_include 决定 pass/fail，must+bonus 合起来算完整指标
+fn compute_split_metrics(
+    ids: &[MemoryId],
+    must: &[MemoryId],
+    bonus: &[MemoryId],
+    k: &[usize],
+) -> (RankingMetrics, bool) {
+    let must_metrics = compute_ranking_metrics(ids, must, k);
+    let must_hit = must_metrics.hit_rate > 0.0;
+    let full_gt: Vec<MemoryId> = must.iter().chain(bonus.iter()).copied().collect();
+    let full_metrics = if full_gt.is_empty() {
+        must_metrics
+    } else {
+        compute_ranking_metrics(ids, &full_gt, k)
+    };
+    (full_metrics, must_hit)
 }
 
 #[cfg(test)]

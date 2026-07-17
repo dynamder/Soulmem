@@ -27,31 +27,32 @@ pub struct ParamState {
     pub rows: Vec<ParamRow>,
     pub selected: usize,
     pub editing: Option<usize>,
+    pub batch_mode: bool,
     pub table_scroll: ScrollContainer,
     pub textareas: Vec<TextArea<'static>>,
 }
 
 impl ParamState {
-    pub fn new(algo_type: AlgoType, dataset_path: PathBuf) -> Self {
+    pub fn new(algo_type: AlgoType, dataset_path: PathBuf, batch_mode: bool) -> Self {
         let default_rows = vec![
             ParamRow {
                 name: "top_k".into(),
-                value: "10".into(),
-                description: "最大返回数量".into(),
+                value: String::new(),
+                description: "最大返回数量（留空=数据集默认）".into(),
             },
             ParamRow {
                 name: "threshold".into(),
-                value: "0.7".into(),
-                description: "相似度阈值".into(),
+                value: String::new(),
+                description: "相似度阈值（留空=数据集默认）".into(),
             },
             ParamRow {
                 name: "damping".into(),
-                value: "0.85".into(),
+                value: String::new(),
                 description: "PPR 阻尼因子".into(),
             },
             ParamRow {
                 name: "iterations".into(),
-                value: "20".into(),
+                value: String::new(),
                 description: "迭代次数".into(),
             },
         ];
@@ -59,6 +60,7 @@ impl ParamState {
         Self {
             algo_type,
             dataset_path,
+            batch_mode,
             rows: default_rows,
             selected: 0,
             editing: None,
@@ -174,11 +176,24 @@ impl ParamState {
                     .iter()
                     .map(|r| (r.name.clone(), r.value.clone()))
                     .collect();
-                Transition::ToTestRunning(TestConfig {
-                    algo: self.algo_type,
-                    dataset_path: self.dataset_path.clone(),
-                    params,
-                })
+
+                if self.batch_mode {
+                    match self.algo_type {
+                        AlgoType::Retrieve(mode) => {
+                            Transition::ToBatchRun(self.dataset_path.clone(), mode, params)
+                        }
+                        AlgoType::Compare => {
+                            Transition::ToBatchCompareRun(self.dataset_path.clone(), params)
+                        }
+                        _ => Transition::ToMain,
+                    }
+                } else {
+                    Transition::ToTestRunning(TestConfig {
+                        algo: self.algo_type,
+                        dataset_path: self.dataset_path.clone(),
+                        params,
+                    })
+                }
             }
             KeyCode::Enter => {
                 self.editing = Some(self.selected);

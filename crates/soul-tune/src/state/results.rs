@@ -13,6 +13,8 @@ use crate::eval::retrieve_suite::RetrieveCaseData;
 use crate::tui::components::expandable_list::ExpandableList;
 use crate::tui::components::scroll_container::ScrollContainer;
 use crate::tui::components::status_bar;
+use std::collections::HashMap;
+
 use soul_mem_core::memory_note::MemoryId;
 use soul_mem_query::query::retrieve::MemoryRetrieveQueryVariant;
 
@@ -38,12 +40,24 @@ pub struct ResultsState {
 
 impl ResultsState {
     pub fn new(report: TestReport) -> Self {
-        let case_details = report
-            .suite_report
-            .outcomes
-            .iter()
-            .filter_map(|o| o.data.downcast_ref::<RetrieveCaseData>().cloned())
-            .collect();
+        let mut by_weight: HashMap<(u32, u32), Vec<RetrieveCaseData>> = HashMap::new();
+        for outcome in &report.suite_report.outcomes {
+            if let Some(data) = outcome.data.downcast_ref::<RetrieveCaseData>() {
+                let key = (
+                    (data.tag_weight * 100.0).round() as u32,
+                    (data.variant_weight * 100.0).round() as u32,
+                );
+                by_weight.entry(key).or_default().push(data.clone());
+            }
+        }
+        let mut keys: Vec<_> = by_weight.keys().copied().collect();
+        keys.sort();
+        let mut case_details = Vec::new();
+        for key in keys {
+            if let Some(mut group) = by_weight.remove(&key) {
+                case_details.append(&mut group);
+            }
+        }
         Self {
             report,
             active_tab: ResultTab::Summary,

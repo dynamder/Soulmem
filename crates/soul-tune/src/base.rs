@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use ratatui::crossterm;
 
+use crate::eval::compare::CompareReport;
 use crate::eval::runner::SuiteReport;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -26,6 +27,7 @@ impl std::fmt::Display for RetrieveMode {
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum AlgoType {
     Retrieve(RetrieveMode),
+    Compare,
     Consolidate,
     Forget,
 }
@@ -34,6 +36,7 @@ impl std::fmt::Display for AlgoType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             AlgoType::Retrieve(mode) => write!(f, "retrieve/{}", mode),
+            AlgoType::Compare => write!(f, "compare"),
             AlgoType::Consolidate => write!(f, "consolidate"),
             AlgoType::Forget => write!(f, "forget"),
         }
@@ -62,12 +65,18 @@ pub enum Transition {
     ToMain,
     ToCommand(String),
     ToSelectDataset(AlgoType),
+    ToRetrieveModeSelect,
+    ToSelectAlgo,
+    ToSelectCompareDataset,
     ToConfigParams(AlgoType, PathBuf),
     ToTestRunning(TestConfig),
     ToTestResults(TestReport),
+    ToCompareResults(CompareReport),
     ToSelectBatchDir,
     ToBatchModeSelect(PathBuf),
-    ToBatchRun(PathBuf, RetrieveMode),
+    ToBatchConfigParams(AlgoType, PathBuf),
+    ToBatchCompareRun(PathBuf, HashMap<String, String>),
+    ToBatchRun(PathBuf, RetrieveMode, HashMap<String, String>),
     ToInspect(PathBuf),
     Quit,
 }

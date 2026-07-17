@@ -5,7 +5,7 @@ use ratatui::style::{Color, Stylize};
 use ratatui::widgets::{Block, Paragraph};
 use ratatui::Frame;
 
-use crate::base::{AlgoType, RetrieveMode, Transition};
+use crate::base::Transition;
 use crate::component::{Component, ComponentEvent};
 use crate::tui::components::status_bar;
 
@@ -42,7 +42,8 @@ pub fn render(frame: &mut Frame) {
     let content = vec![
         "",
         "  快捷键:",
-        "    [R]  Retrieve             完整流水线检索测试",
+        "    [R]  Retrieve             检索测试（选择模式）",
+        "    [D]  Diff/对比            比对 Embedding vs Full Pipeline",
         "    [C]  Consolidate          巩固（未实现）",
         "    [F]  Forget               遗忘（未实现）",
         "    [I]  Inspect              直接检视测试数据",
@@ -59,6 +60,7 @@ pub fn render(frame: &mut Frame) {
         layout[2],
         &[
             ("[R]".into(), "检索".into()),
+            ("[D]".into(), "对比".into()),
             ("[I]".into(), "检视".into()),
             ("[B]".into(), "批量".into()),
             ("[:]".into(), "命令".into()),
@@ -69,9 +71,8 @@ pub fn render(frame: &mut Frame) {
 
 pub fn handle_key(key: KeyEvent) -> Transition {
     match key.code {
-        KeyCode::Char('r') | KeyCode::Char('R') => {
-            Transition::ToSelectDataset(AlgoType::Retrieve(RetrieveMode::FullPipeline))
-        }
+        KeyCode::Char('r') | KeyCode::Char('R') => Transition::ToRetrieveModeSelect,
+        KeyCode::Char('d') | KeyCode::Char('D') => Transition::ToSelectAlgo,
         KeyCode::Char('f') | KeyCode::Char('F') => Transition::ToMain,
         KeyCode::Char('c') | KeyCode::Char('C') => Transition::ToMain,
         KeyCode::Char('i') | KeyCode::Char('I') => Transition::ToCommand("inspect ".into()),

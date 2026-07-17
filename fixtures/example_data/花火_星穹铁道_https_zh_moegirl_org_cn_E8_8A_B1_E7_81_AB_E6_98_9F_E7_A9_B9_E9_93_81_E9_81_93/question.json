@@ -19,14 +19,14 @@
         {
           "priority": 9,
           "tag": [
-            "自身",
-            "人物"
+            "角色",
+            "自身"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个黑红双马尾的雌小鬼",
-                "description": "假面愚者成员，擅长易容和恶作剧，自称花火大人"
+                "concept_identifier": "雌小鬼花火",
+                "description": "假面愚者的那位爱恶作剧的少女，擅长易容和变身"
               }
             ]
           }
@@ -37,49 +37,25 @@
           "q": 0,
           "ranking": [
             "sem_self"
+          ],
+          "bonus_ranking": [
+            "sem_merry_go_round",
+            "sem_aha"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_self"
       ],
+      "bonus_combined_ranking": [
+        "sem_merry_go_round",
+        "sem_aha"
+      ],
       "expected_actions": []
     },
     {
       "name": "query_1",
       "description": "atomic query 1",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "雅利洛VI上的诈骗商人",
-                "description": "假面愚者同僚，被花火借用了名号"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_sampo"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_sampo"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_2",
-      "description": "atomic query 2",
       "sub_queries": [
         {
           "priority": 8,
@@ -89,40 +65,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "流光忆庭的忆者",
-                "description": "优雅危险，曾清除花火和桑博的记忆"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_black_swan"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_black_swan"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_3",
-      "description": "atomic query 3",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "小灰毛",
-                "description": "被花火各种戏弄的星穹列车无名客"
+                "concept_identifier": "被她戏弄的小灰毛",
+                "description": "星穹列车上总被花火各种恶作剧捉弄的开拓者"
               }
             ]
           }
@@ -133,156 +77,34 @@
           "q": 0,
           "ranking": [
             "sem_trailblazer"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_trailblazer"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_4",
-      "description": "atomic query 4",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "打电动的雇主",
-                "description": "星核猎手，出钱让花火当导演确保流萤安全"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_silverwolf"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_silverwolf"
+      "bonus_combined_ranking": [
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_5",
-      "description": "atomic query 5",
+      "name": "query_2",
+      "description": "atomic query 2",
       "sub_queries": [
         {
           "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "鸡翅膀男孩",
-                "description": "橡木家系家主，揭穿花火假扮知更鸟"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_sunday"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_sunday"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_6",
-      "description": "atomic query 6",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "小鸟儿",
-                "description": "被花火用愚者牌游戏设陷阱，后来收到面具邀请加入假面愚者"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_vita"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_vita"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_7",
-      "description": "atomic query 7",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "自灭者",
-                "description": "在幻境中被花火困住并战斗，打碎了花火所有面具"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_yellow_spring"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_yellow_spring"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_8",
-      "description": "atomic query 8",
-      "sub_queries": [
-        {
-          "priority": 6,
           "tag": [
             "组织"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "假面愚者",
-                "description": "追随阿哈的激进派，有面具文化和世界尽头酒馆"
+                "concept_identifier": "追随欢愉星神的激进组织",
+                "description": "花火所属的那个相信世界是笑话的愚者团体"
               }
             ]
           }
@@ -293,230 +115,35 @@
           "q": 0,
           "ranking": [
             "sem_merry_go_round"
+          ],
+          "bonus_ranking": [
+            "sem_aha"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_merry_go_round"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_9",
-      "description": "atomic query 9",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "星神"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "欢愉之主",
-                "description": "当祂的笑声撕裂宇宙，假面愚者将其奉为神明"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_aha"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
+      "bonus_combined_ranking": [
         "sem_aha"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_10",
-      "description": "atomic query 10",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "价值观"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "乐趣至上理念",
-                "description": "花火信奉的笑话无法改变世界但至少不虚伪"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_joy_philosophy"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_joy_philosophy"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_11",
-      "description": "atomic query 11",
-      "sub_queries": [
-        {
-          "priority": 3,
-          "tag": [
-            "价值观"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "破坏秩序的信条",
-                "description": "认为规则就是用来打破的，连笑话好不好笑都要管才最好笑"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_rule_breaking"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_rule_breaking"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_12",
-      "description": "atomic query 12",
-      "sub_queries": [
-        {
-          "priority": 3,
-          "tag": [
-            "价值观"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "匹诺康尼最诚实的人",
-                "description": "花火从不否认自己在撒谎，这算是最大的诚实"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_self_honesty"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_self_honesty"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_13",
-      "description": "atomic query 13",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "传说"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "人偶末裔传说",
-                "description": "花火身世版本之一，面具能令死人复生"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_doll_clan"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_doll_clan"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "恶作剧"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "假扮成桑博跟踪那个小灰毛和萤火虫女孩，把两人拉进了稚子的梦",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_track_trailblazer"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_track_trailblazer"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_15",
-      "description": "atomic query 15",
+      "name": "query_3",
+      "description": "atomic query 3",
       "sub_queries": [
         {
           "priority": 8,
           "tag": [
-            "事件",
-            "伪装"
+            "人物",
+            "关系"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "扮成知更鸟去找鸡翅膀男孩结果被当场揭穿，还得知真知更鸟已经被杀了",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "她假扮过的歌手和那个被揭穿的家族家主",
+                "description": "花火假扮过那个歌手的哥哥来接近他"
               }
             ]
           }
@@ -526,95 +153,70 @@
         {
           "q": 0,
           "ranking": [
-            "sit_robin_exposed"
+            "sem_robin",
+            "sem_sunday"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_robin_exposed"
+        "sem_robin",
+        "sem_sunday"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_16",
-      "description": "atomic query 16",
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "计划",
+            "剧本"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "星核猎手给她安排的导演任务",
+                "description": "银狼出钱雇佣花火在匹诺康尼导演的三步走剧本"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_silverwolf_script"
+          ],
+          "bonus_ranking": [
+            "sem_silverwolf",
+            "sem_firefly"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_silverwolf_script"
+      ],
+      "bonus_combined_ranking": [
+        "sem_silverwolf",
+        "sem_firefly"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
       "sub_queries": [
         {
           "priority": 8,
-          "tag": [
-            "事件",
-            "恶作剧"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "一锤子把小灰毛打飞到流萤怀里，给他俩制造了二人世界",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_hammer_trailblazer"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_hammer_trailblazer"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_17",
-      "description": "atomic query 17",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "游戏"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "设陷阱把小鸟儿卷入愚者牌游戏，被她发现幕后黑手，后来送了面具邀请她",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_vita_card_game"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_vita_card_game"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_18",
-      "description": "atomic query 18",
-      "sub_queries": [
-        {
-          "priority": 7,
           "tag": [
             "事件",
             "战斗"
@@ -622,7 +224,7 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "在幻境里困住那个自灭者，变出星核猎手幻象跟她打，结果面具全被打碎了",
+                "narrative": "她设下幻境困住一位强大的自灭者，结果精心准备的面具全被打碎了",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -638,28 +240,171 @@
           "q": 0,
           "ranking": [
             "sit_trap_yellow_spring"
+          ],
+          "bonus_ranking": [
+            "sem_yellow_spring",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_trap_yellow_spring"
       ],
+      "bonus_combined_ranking": [
+        "sem_yellow_spring",
+        "sem_self"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_19",
-      "description": "atomic query 19",
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "恶作剧"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她假扮成桑博在黄金的时刻偷偷跟随一个列车成员和星核猎手女孩",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_track_trailblazer"
+          ],
+          "bonus_ranking": [
+            "sem_trailblazer",
+            "sem_firefly"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_track_trailblazer"
+      ],
+      "bonus_combined_ranking": [
+        "sem_trailblazer",
+        "sem_firefly"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "事件",
+            "表演"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她和假面愚者的同僚搭档表演了一场假面双人舞",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_duo_dance"
+          ],
+          "bonus_ranking": [
+            "sem_sampo",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_duo_dance"
+      ],
+      "bonus_combined_ranking": [
+        "sem_sampo",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "崩坏3"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她设下愚者牌陷阱邀请一个崩坏世界的少女加入假面愚者",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_vita_card_game"
+          ],
+          "bonus_ranking": [
+            "sem_vita",
+            "sem_merry_go_round"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_vita_card_game"
+      ],
+      "bonus_combined_ranking": [
+        "sem_vita",
+        "sem_merry_go_round"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
       "sub_queries": [
         {
           "priority": 6,
           "tag": [
             "事件",
-            "合体"
+            "分身"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在二相乐园搞了火花大会，和那个网络主播分身又重新合为一体了",
+                "narrative": "在二相乐园她和自己的网络主播分身重新合二为一",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -675,64 +420,36 @@
           "q": 0,
           "ranking": [
             "sit_sparkle_festival"
+          ],
+          "bonus_ranking": [
+            "sem_sparkle_alter",
+            "sem_two_phase_paradise"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_sparkle_festival"
       ],
+      "bonus_combined_ranking": [
+        "sem_sparkle_alter",
+        "sem_two_phase_paradise"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_20",
-      "description": "atomic query 20",
+      "name": "query_10",
+      "description": "atomic query 10",
       "sub_queries": [
         {
           "priority": 7,
           "tag": [
             "事件",
-            "伪装"
+            "星神"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在谐乐大典假扮成知更鸟安抚目击者，还每人发了个引爆器让他们高潮时一起按",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_robin_ceremony"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_robin_ceremony"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_21",
-      "description": "atomic query 21",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在世界尽头酒馆从钟珊那里拿到阿哈的赐礼，用来抵消模因病毒",
+                "narrative": "在世界尽头酒馆她从钟珊那里获得了欢愉星神的模因病毒赐礼",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -748,28 +465,41 @@
           "q": 0,
           "ranking": [
             "sit_aha_gift"
+          ],
+          "bonus_ranking": [
+            "sem_aha",
+            "sem_merry_go_round"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_aha_gift"
       ],
+      "bonus_combined_ranking": [
+        "sem_aha",
+        "sem_merry_go_round"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_22",
-      "description": "atomic query 22",
+      "name": "query_11",
+      "description": "atomic query 11",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 7,
           "tag": [
-            "计划"
+            "事件",
+            "伪装"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "三步走死亡剧本",
-                "description": "银狼雇花火当导演，确保流萤的三次死亡安全实现"
+                "narrative": "她假扮成知名歌手接近家族家主，结果被当场识破",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -779,29 +509,265 @@
         {
           "q": 0,
           "ranking": [
-            "sem_silverwolf_script"
+            "sit_robin_exposed"
+          ],
+          "bonus_ranking": [
+            "sem_robin",
+            "sem_sunday",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_silverwolf_script"
+        "sit_robin_exposed"
+      ],
+      "bonus_combined_ranking": [
+        "sem_robin",
+        "sem_sunday",
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_23",
-      "description": "atomic query 23",
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "事件",
+            "烟花"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她在晖长石号上布置了九百九十九个烟花炸弹准备在谐乐大典上制造效果",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_fireworks_plan"
+          ],
+          "bonus_ranking": [
+            "sem_penacony"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_fireworks_plan"
+      ],
+      "bonus_combined_ranking": [
+        "sem_penacony"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "恶作剧"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她一锤子把一个灰发开拓者打到萤火虫女孩怀里，给他们制造二人世界",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_hammer_trailblazer"
+          ],
+          "bonus_ranking": [
+            "sem_trailblazer",
+            "sem_firefly"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_hammer_trailblazer"
+      ],
+      "bonus_combined_ranking": [
+        "sem_trailblazer",
+        "sem_firefly"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
       "sub_queries": [
         {
           "priority": 4,
           "tag": [
-            "价值观"
+            "事件",
+            "恶作剧"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她假扮成列车长给开拓者发诈骗短信说引擎室有东西",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_pam_sms"
+          ],
+          "bonus_ranking": [
+            "sem_pam",
+            "sem_trailblazer"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_pam_sms"
+      ],
+      "bonus_combined_ranking": [
+        "sem_pam",
+        "sem_trailblazer"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "事件",
+            "恶作剧"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她假扮成忆者给开拓者发短信想骗走梦泡",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_black_swan_sms"
+          ],
+          "bonus_ranking": [
+            "sem_black_swan",
+            "sem_trailblazer"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_black_swan_sms"
+      ],
+      "bonus_combined_ranking": [
+        "sem_black_swan",
+        "sem_trailblazer"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "记忆"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她和桑博曾被一位优雅而危险的忆者清除过记忆",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_memory_wiped"
+          ],
+          "bonus_ranking": [
+            "sem_black_swan",
+            "sem_sampo",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_memory_wiped"
+      ],
+      "bonus_combined_ranking": [
+        "sem_black_swan",
+        "sem_sampo",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "价值观",
+            "哲学"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "扮演的艺术哲学",
-                "description": "花火认为谎言和表演不同，为了想象力而沉迷角色"
+                "concept_identifier": "表演的艺术",
+                "description": "花火认为谎言和表演不是一回事，她享受扮演角色的过程"
               }
             ]
           }
@@ -812,333 +778,682 @@
           "q": 0,
           "ranking": [
             "sem_performance_philosophy"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_performance_philosophy"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_person_sampo",
-      "description": "查询花火在假面愚者的同僚桑博",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "桑博老兄",
-                "description": "花火在假面愚者里的搭档，一起演过假面双人舞"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个雅利洛的商人",
-                "description": "被花火借了名字去跟踪别人的同僚"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "诈骗犯同伙",
-                "description": "有底线但办事靠谱，最后要回了面具"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "愚者同僚",
-                "description": "花火借用的名义，一起演过双人舞的家伙"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "不戴面具的愚者",
-                "description": "在雅利洛混生意的同僚，曾和花火搭档"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_sampo"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_sampo"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_sampo"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_sampo"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_sampo"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_sampo"
+      "bonus_combined_ranking": [
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_event_hammer",
-      "description": "查询花火锤飞开拓者制造二人世界的事件",
+      "name": "query_18",
+      "description": "atomic query 18",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 5,
           "tag": [
-            "事件",
-            "恶作剧"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "花火用锤子把小灰毛打飞到流萤怀里",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "恶作剧"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "为了让开拓者和流萤独处，一锤子把他送了过去",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "恶作剧"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在匹诺康尼把那个小灰毛打飞，让他恰好落到萤火虫女孩的怀里",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "恶作剧"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "花火当红娘的方法很暴力，直接用锤子把开拓者打到流萤身边",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "恶作剧"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "花火用一记重锤给开拓者和流萤创造了二人世界",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_hammer_trailblazer"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_hammer_trailblazer"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_hammer_trailblazer"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_hammer_trailblazer"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_hammer_trailblazer"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_hammer_trailblazer"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_philosophy_joy",
-      "description": "查询花火信奉的欢愉哲学和打破规则的价值观",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "价值观"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "花火的欢愉信条",
-                "description": "认为笑话不能改变世界但至少不虚伪"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 4,
-          "tag": [
-            "价值观"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "乐趣至上的世界观",
-                "description": "宇宙无情，欢愉可以消弭痛苦"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 4,
-          "tag": [
-            "价值观"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "欢乐的终极意义",
-                "description": "假面愚者深信世界的真相只是一个笑话"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 3,
-          "tag": [
-            "价值观"
+            "价值观",
+            "叛逆"
           ],
           "variant": {
             "Semantic": [
               {
                 "concept_identifier": "规则就是用来打破的",
-                "description": "花火认为秩序、道德和笑话规定都很可笑"
+                "description": "她的信条之一，认为秩序和道德准则试图管束最好的笑话"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_rule_breaking"
+          ],
+          "bonus_ranking": [
+            "sem_self_honesty"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_rule_breaking"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self_honesty"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "哲学",
+            "回答"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "沉睡的意义",
+                "description": "她对哲学问题的回答是‘还不是开心就好’，认为欢愉最重要"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_sleep_question"
+          ],
+          "bonus_ranking": [
+            "sem_joy_philosophy"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_sleep_question"
+      ],
+      "bonus_combined_ranking": [
+        "sem_joy_philosophy"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "传说",
+            "身世"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "人偶末裔的身世",
+                "description": "花火的一个身世版本中提到她是人偶一族的末裔，面具能赋予灵魂"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_doll_clan"
+          ],
+          "bonus_ranking": [
+            "sem_mask_culture"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_doll_clan"
+      ],
+      "bonus_combined_ranking": [
+        "sem_mask_culture"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "战斗",
+            "风格"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她的战斗像一场华丽的舞台剧，充满表演性",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_dramatic_battle"
+          ],
+          "bonus_ranking": [
+            "proc_battle_style",
+            "sem_harmony_path"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_dramatic_battle"
+      ],
+      "bonus_combined_ranking": [
+        "proc_battle_style",
+        "sem_harmony_path"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "社交"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她会对拒绝她的人记在心里，找机会连本带利地回报",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_rejected_participant"
+          ],
+          "bonus_ranking": [
+            "proc_rejected_reaction",
+            "sem_rule_breaking"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_rejected_participant"
+      ],
+      "bonus_combined_ranking": [
+        "proc_rejected_reaction",
+        "sem_rule_breaking"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "sparkle_trailblazer",
+      "description": "查询花火与开拓者之间的互动",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "小灰毛",
+                "description": "花火经常戏弄的那个星穹列车的无名客"
               }
             ]
           }
         },
         {
-          "priority": 3,
+          "priority": 8,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被她锤飞的开拓者",
+                "description": "那个被她一锤子打到萤火虫女孩怀里的灰发主角"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她假扮桑博跟踪一个灰发开拓者和星核猎手女孩",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她假扮列车长发诈骗短信给开拓者说引擎室进了东西",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "诈骗短信受害者",
+                "description": "那个被花火用各种身份发短信骗的开拓者"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她一锤子把一个灰发开拓者打飞，给他制造二人世界",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被捉弄的对象",
+                "description": "花火在匹诺康尼最重要的玩伴，被她各种恶作剧的开拓者"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_trailblazer"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_trailblazer"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_firefly"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_track_trailblazer"
+          ],
+          "bonus_ranking": [
+            "sem_trailblazer",
+            "sem_firefly"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_pam_sms"
+          ],
+          "bonus_ranking": [
+            "sem_trailblazer",
+            "sem_pam"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_trailblazer"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_hammer_trailblazer"
+          ],
+          "bonus_ranking": [
+            "sem_trailblazer",
+            "sem_firefly"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_trailblazer"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_trailblazer",
+        "sit_track_trailblazer",
+        "sit_pam_sms",
+        "sit_hammer_trailblazer"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_firefly",
+        "sem_trailblazer",
+        "sem_pam"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "sparkle_disguise",
+      "description": "查询花火假扮他人的各个事件",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "伪装"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她假扮成歌手知更鸟安抚目击者并发放引爆器",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "伪装"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她假扮成知更鸟接近家族家主星期日，被当场揭穿",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "伪装"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她假扮成桑博在黄金的时刻跟踪开拓者和流萤",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "事件",
+            "伪装"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她假扮成列车长帕姆给开拓者发诈骗短信",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "事件",
+            "伪装"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她假扮成忆者黑天鹅给开拓者发短信想骗梦泡",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "伪装"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她假扮成知更鸟在谐乐大典上安抚人群",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_robin_ceremony"
+          ],
+          "bonus_ranking": [
+            "sem_robin",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_robin_exposed"
+          ],
+          "bonus_ranking": [
+            "sem_robin",
+            "sem_sunday",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_track_trailblazer"
+          ],
+          "bonus_ranking": [
+            "sem_sampo",
+            "sem_trailblazer"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_pam_sms"
+          ],
+          "bonus_ranking": [
+            "sem_pam",
+            "sem_trailblazer"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_black_swan_sms"
+          ],
+          "bonus_ranking": [
+            "sem_black_swan",
+            "sem_trailblazer"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_robin_ceremony"
+          ],
+          "bonus_ranking": [
+            "sem_robin",
+            "sem_penacony"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_robin_ceremony",
+        "sit_robin_exposed",
+        "sit_track_trailblazer",
+        "sit_pam_sms",
+        "sit_black_swan_sms"
+      ],
+      "bonus_combined_ranking": [
+        "sem_robin",
+        "sem_self",
+        "sem_sunday",
+        "sem_sampo",
+        "sem_trailblazer",
+        "sem_pam",
+        "sem_black_swan",
+        "sem_penacony"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "sparkle_philosophy",
+      "description": "查询花火的价值观和信念",
+      "sub_queries": [
+        {
+          "priority": 5,
           "tag": [
             "价值观"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "打破秩序的态度",
-                "description": "花火蔑视一切试图管束她的规则"
+                "concept_identifier": "欢愉至上",
+                "description": "花火认为宇宙无情，欢愉可以消弭痛苦"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "价值观"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "打破规则",
+                "description": "她认为规则就是用来打破的"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "价值观"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "扮演哲学",
+                "description": "她认为谎言和表演不同，享受扮演过程"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "价值观"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "只在乎有趣",
+                "description": "她对世界既不怀恶意也不怀善意，只在乎有没有趣"
               }
             ]
           }
@@ -1151,8 +1466,22 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "欢愉与反叛",
-                "description": "花火既信奉欢愉哲学又热衷于打破规则"
+                "concept_identifier": "最诚实的人",
+                "description": "她声称自己从不否认在撒谎，是最诚实的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "哲学"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "沉睡的意义",
+                "description": "她对生命因何而沉睡的回答是‘还不是开心就好’"
               }
             ]
           }
@@ -1163,190 +1492,88 @@
           "q": 0,
           "ranking": [
             "sem_joy_philosophy"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_joy_philosophy"
+            "sem_rule_breaking"
+          ],
+          "bonus_ranking": [
+            "sem_self_honesty"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_joy_philosophy"
+            "sem_performance_philosophy"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_rule_breaking"
+            "sem_attitude_toward_others"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_rule_breaking"
+            "sem_self_honesty"
+          ],
+          "bonus_ranking": [
+            "sem_attitude_toward_others"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sem_joy_philosophy",
-            "sem_rule_breaking"
+            "sem_sleep_question"
+          ],
+          "bonus_ranking": [
+            "sem_joy_philosophy"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_joy_philosophy",
-        "sem_rule_breaking"
+        "sem_rule_breaking",
+        "sem_performance_philosophy",
+        "sem_attitude_toward_others",
+        "sem_self_honesty",
+        "sem_sleep_question"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_self_honesty",
+        "sem_attitude_toward_others",
+        "sem_joy_philosophy"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_relation_silverwolf",
-      "description": "查询花火与银狼的关系以及银狼的剧本",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "打电动的朋友",
-                "description": "花火在游戏里认识星核猎手银狼，后来被雇佣当导演"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "出大价钱的雇主",
-                "description": "银狼付钱让花火来匹诺康尼导演流萤的三次死亡"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "星核猎手的玩家",
-                "description": "和花火在游戏里认识，委托她执行剧本"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "计划"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "死亡剧本三步走",
-                "description": "银狼精心设计的计划，由花火确保流萤安全"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "计划"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "银狼的导演委托",
-                "description": "花火在匹诺康尼的主要任务就是按照这个剧本行动"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_silverwolf"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_silverwolf"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_silverwolf"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_silverwolf_script"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_silverwolf_script"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_silverwolf",
-        "sem_silverwolf_script"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_mixed_robin",
-      "description": "查询花火假扮知更鸟相关的语义和情境信息",
+      "name": "sparkle_penacony",
+      "description": "查询花火在匹诺康尼期间发生的重要事件",
       "sub_queries": [
         {
           "priority": 7,
           "tag": [
-            "人物"
+            "事件",
+            "烟花"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那位同谐歌手",
-                "description": "花火能完美模仿她，曾假扮她被揭穿"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "星期日的妹妹",
-                "description": "花火假扮她安抚目击者并发放引爆器"
+                "concept_identifier": "烟花炸弹布置",
+                "description": "她在晖长石号上布置了999个烟花炸弹准备在谐乐大典上使用"
               }
             ]
           }
@@ -1354,12 +1581,13 @@
         {
           "priority": 8,
           "tag": [
-            "事件"
+            "事件",
+            "伪装"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "花火扮成知更鸟接近星期日，被当场拆穿",
+                "narrative": "她在谐乐大典假扮知更鸟安抚目击者并发放引爆器",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1372,12 +1600,27 @@
         {
           "priority": 7,
           "tag": [
-            "事件"
+            "计划"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "三步走剧本",
+                "description": "她受银狼雇佣来匹诺康尼导演流萤三次死亡的剧本"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "恶作剧"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "谐乐大典上花火假扮知更鸟发引爆器",
+                "narrative": "她把开拓者一锤子打飞到流萤怀里",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1390,14 +1633,48 @@
         {
           "priority": 8,
           "tag": [
-            "人物",
-            "事件"
+            "事件",
+            "伪装"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "被花火假扮过的歌手",
-                "description": "花火曾假扮她询问星期日本体是否知情"
+                "concept_identifier": "被揭穿的假扮",
+                "description": "她假扮知更鸟接近星期日，被当场揭穿"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "表演"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她和桑博在匹诺康尼搭档表演假面双人舞",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "伪装"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "黄金的时刻的伪装",
+                "description": "她在黄金的时刻假扮桑博跟踪开拓者"
               }
             ]
           }
@@ -1407,39 +1684,463 @@
         {
           "q": 0,
           "ranking": [
-            "sem_robin"
+            "sit_fireworks_plan"
+          ],
+          "bonus_ranking": [
+            "sem_penacony"
           ]
         },
         {
           "q": 1,
-          "ranking": [
-            "sem_robin"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_robin_exposed"
-          ]
-        },
-        {
-          "q": 3,
           "ranking": [
             "sit_robin_ceremony"
+          ],
+          "bonus_ranking": [
+            "sem_robin",
+            "sem_penacony"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_silverwolf_script"
+          ],
+          "bonus_ranking": [
+            "sem_silverwolf",
+            "sem_firefly"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_hammer_trailblazer"
+          ],
+          "bonus_ranking": [
+            "sem_trailblazer",
+            "sem_firefly"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_robin",
             "sit_robin_exposed"
+          ],
+          "bonus_ranking": [
+            "sem_robin",
+            "sem_sunday"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_duo_dance"
+          ],
+          "bonus_ranking": [
+            "sem_sampo",
+            "sem_merry_go_round"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_track_trailblazer"
+          ],
+          "bonus_ranking": [
+            "sem_sampo",
+            "sem_trailblazer"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_robin",
+        "sit_fireworks_plan",
+        "sit_robin_ceremony",
+        "sem_silverwolf_script",
+        "sit_hammer_trailblazer",
         "sit_robin_exposed",
-        "sit_robin_ceremony"
+        "sit_duo_dance",
+        "sit_track_trailblazer"
+      ],
+      "bonus_combined_ranking": [
+        "sem_penacony",
+        "sem_robin",
+        "sem_silverwolf",
+        "sem_firefly",
+        "sem_trailblazer",
+        "sem_sunday",
+        "sem_sampo",
+        "sem_merry_go_round"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "sparkle_allies",
+      "description": "查询花火的关系密切的人物",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的同僚桑博",
+                "description": "假面愚者的伙伴，她借用过他的名号还一起演了双人舞"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "造孽的玩伴开拓者",
+                "description": "星穹列车的无名客，被她各种恶作剧捉弄"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "打电动的朋友银狼",
+                "description": "星核猎手的成员，她的雇主，出钱让她导演死亡剧本"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "小鸟儿薇塔",
+                "description": "崩坏3世界的人物，她设陷阱邀请加入假面愚者"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "萤火虫女孩流萤",
+                "description": "星核猎手成员，她帮她制造了浪漫场景"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "分身"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "分身火花",
+                "description": "她在二相乐园分离出的网络主播分身，最后又合二为一"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_sampo"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_merry_go_round"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_trailblazer"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_silverwolf"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_silverwolf_script"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_vita"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_merry_go_round"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_firefly"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_trailblazer"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_sparkle_alter"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_two_phase_paradise"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_sampo",
+        "sem_trailblazer",
+        "sem_silverwolf",
+        "sem_vita",
+        "sem_firefly",
+        "sem_sparkle_alter"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_merry_go_round",
+        "sem_silverwolf_script",
+        "sem_trailblazer",
+        "sem_two_phase_paradise"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "sparkle_opponents",
+      "description": "查询花火与其他强大或难惹的角色之间的交锋",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她设下幻境困住自灭者黄泉，结果面具全被打碎",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "伪装"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她假扮知更鸟接近星期日，被他揭穿并后来困入了太一之梦",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "记忆"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她和桑博被忆者黑天鹅清除了记忆",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "崩坏3"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她设下愚者牌陷阱被薇塔揭穿幕后黑手身份",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "事件",
+            "恶作剧"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她假扮黑天鹅发短信被开拓者识破",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "事件",
+            "恶作剧"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她假扮帕姆发短信被开拓者识破",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_trap_yellow_spring"
+          ],
+          "bonus_ranking": [
+            "sem_yellow_spring",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_robin_exposed"
+          ],
+          "bonus_ranking": [
+            "sem_sunday",
+            "sem_robin",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_memory_wiped"
+          ],
+          "bonus_ranking": [
+            "sem_black_swan",
+            "sem_sampo",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_vita_card_game"
+          ],
+          "bonus_ranking": [
+            "sem_vita",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_black_swan_sms"
+          ],
+          "bonus_ranking": [
+            "sem_black_swan",
+            "sem_trailblazer"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_pam_sms"
+          ],
+          "bonus_ranking": [
+            "sem_pam",
+            "sem_trailblazer"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_trap_yellow_spring",
+        "sit_robin_exposed",
+        "sit_memory_wiped",
+        "sit_vita_card_game",
+        "sit_black_swan_sms",
+        "sit_pam_sms"
+      ],
+      "bonus_combined_ranking": [
+        "sem_yellow_spring",
+        "sem_self",
+        "sem_sunday",
+        "sem_robin",
+        "sem_black_swan",
+        "sem_sampo",
+        "sem_vita",
+        "sem_trailblazer",
+        "sem_pam"
       ],
       "expected_actions": []
     }

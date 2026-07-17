@@ -1,9 +1,12 @@
 pub mod batch_mode;
 pub mod batch_run;
 pub mod command;
+pub mod compare_results;
 pub mod dataset;
 pub mod inspect;
 pub mod main;
 pub mod params;
 pub mod results;
+pub mod retrieve_mode;
 pub mod running;
+pub mod select_algo;

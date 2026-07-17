@@ -19,14 +19,13 @@
         {
           "priority": 9,
           "tag": [
-            "角色",
             "自身"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "第七席的那个发条人偶",
-                "description": "想知道她自己的身份和代号是什么"
+                "concept_identifier": "代号木偶的执行官",
+                "description": "发条公主的真名和身份"
               }
             ]
           }
@@ -37,12 +36,14 @@
           "q": 0,
           "ranking": [
             "sem_self"
-          ]
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
         "sem_self"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
@@ -58,8 +59,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "制造她的那位枫丹天才",
-                "description": "那个发明了芒荒能源，被称为奇械公的人"
+                "concept_identifier": "奇械公",
+                "description": "枫丹的天才，发明芒荒湮灭能源的人"
               }
             ]
           }
@@ -70,12 +71,14 @@
           "q": 0,
           "ranking": [
             "sem_alain"
-          ]
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
         "sem_alain"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
@@ -86,46 +89,13 @@
           "priority": 9,
           "tag": [
             "人物",
-            "挚友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "最喜欢唱歌的第三席",
-                "description": "愚人众执行官里和她关系最好的那个少女"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_columbina"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_columbina"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_3",
-      "description": "atomic query 3",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
             "敌人"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "第二席的那个疯子",
-                "description": "她最看不顺眼的执行官，总想操控一切"
+                "concept_identifier": "被木偶设计诈死的执行官",
+                "description": "愚人众第二席，木偶最不齿的人"
               }
             ]
           }
@@ -136,12 +106,49 @@
           "q": 0,
           "ranking": [
             "sem_dottore"
-          ]
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
         "sem_dottore"
       ],
+      "bonus_combined_ranking": [],
+      "expected_actions": []
+    },
+    {
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "第三席那位歌手",
+                "description": "喜欢在木偶门口唱歌的执行官"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_columbina"
+          ],
+          "bonus_ranking": []
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_columbina"
+      ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
@@ -149,16 +156,15 @@
       "description": "atomic query 4",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 7,
           "tag": [
-            "人物",
-            "上级"
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "至冬的女皇陛下",
-                "description": "她效忠的君主，给予她研究自由的那位"
+                "concept_identifier": "被她挡刀的金发旅人",
+                "description": "挪德卡莱出现的变数"
               }
             ]
           }
@@ -168,13 +174,15 @@
         {
           "q": 0,
           "ranking": [
-            "sem_tsaritsa"
-          ]
+            "sem_traveler"
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
-        "sem_tsaritsa"
+        "sem_traveler"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
@@ -182,49 +190,15 @@
       "description": "atomic query 5",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 7,
           "tag": [
-            "人物",
-            "茶会"
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那位说一不二的仆人",
-                "description": "茶会四人组里办事雷厉风行的那个朋友"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_arlecchino"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_arlecchino"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_6",
-      "description": "atomic query 6",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "人物",
-            "帮助者"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "前执行官第六席",
-                "description": "主动提供算力帮她研发术式的前执行官"
+                "concept_identifier": "提供算力的前执行官",
+                "description": "使用世界树核心帮助木偶研发术式的人"
               }
             ]
           }
@@ -235,29 +209,30 @@
           "q": 0,
           "ranking": [
             "sem_wanderer"
-          ]
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
         "sem_wanderer"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
-      "name": "query_7",
-      "description": "atomic query 7",
+      "name": "query_6",
+      "description": "atomic query 6",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 7,
           "tag": [
-            "造物",
-            "冒险家协会"
+            "造物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "遍布各国的接待员人偶",
-                "description": "她制作的那些遍布提瓦特冒险家协会的人偶"
+                "concept_identifier": "冒险家协会的接待员",
+                "description": "遍布提瓦特的仿生人偶系列"
               }
             ]
           }
@@ -268,12 +243,49 @@
           "q": 0,
           "ranking": [
             "sem_katherine"
-          ]
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
         "sem_katherine"
       ],
+      "bonus_combined_ranking": [],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "部下"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被派去诱捕伊涅芙的造物",
+                "description": "木偶的部下之一"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_virgil"
+          ],
+          "bonus_ranking": []
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_virgil"
+      ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
@@ -281,16 +293,16 @@
       "description": "atomic query 8",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 7,
           "tag": [
             "造物",
-            "战斗"
+            "机械"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那台巨型机械",
-                "description": "从阿兰那里继承的、在挪德卡莱被破坏的巨型机械"
+                "concept_identifier": "巨型计算机械",
+                "description": "阿兰制造后交给木偶的战友"
               }
             ]
           }
@@ -301,12 +313,14 @@
           "q": 0,
           "ranking": [
             "sem_plonia"
-          ]
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
         "sem_plonia"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
@@ -314,16 +328,15 @@
       "description": "atomic query 9",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 5,
           "tag": [
-            "社交",
-            "团体"
+            "地点"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "定期喝茶的几个女执行官",
-                "description": "由她和另外三位女性执行官组成的非正式茶会团体"
+                "concept_identifier": "枫丹的孤儿院",
+                "description": "阿兰的起点，木偶将他葬在附近"
               }
             ]
           }
@@ -333,13 +346,15 @@
         {
           "q": 0,
           "ranking": [
-            "abstract_tea_party_group"
-          ]
+            "sem_narcissus_cross"
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
-        "abstract_tea_party_group"
+        "sem_narcissus_cross"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
@@ -347,16 +362,15 @@
       "description": "atomic query 10",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 5,
           "tag": [
-            "研究",
-            "能量"
+            "地点"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "挪德卡莱的月相关能量",
-                "description": "她在挪德卡莱研究的那种与月亮相关的能量形式"
+                "concept_identifier": "动能工程研究院",
+                "description": "由阿兰创立的枫丹科学院"
               }
             ]
           }
@@ -366,13 +380,15 @@
         {
           "q": 0,
           "ranking": [
-            "abstract_lunar_force"
-          ]
+            "sem_fontaine_academy"
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
-        "abstract_lunar_force"
+        "sem_fontaine_academy"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
@@ -380,16 +396,16 @@
       "description": "atomic query 11",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 8,
           "tag": [
-            "价值观",
-            "信仰"
+            "人物",
+            "上级"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她对理性的执着",
-                "description": "她相信世界可以用理性和公式理解的那种工程学思维"
+                "concept_identifier": "至冬女皇",
+                "description": "木偶效忠的君主"
               }
             ]
           }
@@ -399,13 +415,15 @@
         {
           "q": 0,
           "ranking": [
-            "abstract_engineering_belief"
-          ]
+            "sem_tsaritsa"
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
-        "abstract_engineering_belief"
+        "sem_tsaritsa"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
@@ -415,14 +433,13 @@
         {
           "priority": 6,
           "tag": [
-            "理念",
-            "阿兰"
+            "理念"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "阿兰提出的灵魂重生说",
-                "description": "阿兰认为她这个发条机关拥有真正灵魂的理念"
+                "concept_identifier": "阿兰提出的灵魂学说",
+                "description": "认为木偶拥有真正灵魂的理念"
               }
             ]
           }
@@ -433,12 +450,14 @@
           "q": 0,
           "ranking": [
             "abstract_soul_rebirth"
-          ]
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
         "abstract_soul_rebirth"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
@@ -446,16 +465,117 @@
       "description": "atomic query 13",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 6,
           "tag": [
-            "自身身份",
-            "概念"
+            "价值观"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "齿轮瞳孔的构造",
-                "description": "她作为发条机关的本质，以已故妹妹为原型的设计"
+                "concept_identifier": "木偶的理性信仰",
+                "description": "相信世界可以用公式理解"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "abstract_engineering_belief"
+          ],
+          "bonus_ranking": []
+        }
+      ],
+      "expected_combined_ranking": [
+        "abstract_engineering_belief"
+      ],
+      "bonus_combined_ranking": [],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "能量"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "挪德卡莱的月能量",
+                "description": "木偶在月矩力试验设计局研究的力量"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "abstract_lunar_force"
+          ],
+          "bonus_ranking": []
+        }
+      ],
+      "expected_combined_ranking": [
+        "abstract_lunar_force"
+      ],
+      "bonus_combined_ranking": [],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "能源"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "芒荒湮灭体系",
+                "description": "阿兰发明的能源体系"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "abstract_vanishing_energy"
+          ],
+          "bonus_ranking": []
+        }
+      ],
+      "expected_combined_ranking": [
+        "abstract_vanishing_energy"
+      ],
+      "bonus_combined_ranking": [],
+      "expected_actions": []
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "自身身份"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "发条机关",
+                "description": "以阿兰已故妹妹为原型的构造"
               }
             ]
           }
@@ -466,29 +586,30 @@
           "q": 0,
           "ranking": [
             "abstract_clockwork"
-          ]
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
         "abstract_clockwork"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
-      "name": "query_14",
-      "description": "atomic query 14",
+      "name": "query_17",
+      "description": "atomic query 17",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 8,
           "tag": [
-            "网络",
-            "造物"
+            "事件"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "共享精神网络",
-                "description": "所有凯瑟琳人偶共享的那个精神网络"
+                "concept_identifier": "空月之歌篇章",
+                "description": "围绕哥伦比娅回归月亮的旅程"
               }
             ]
           }
@@ -498,44 +619,40 @@
         {
           "q": 0,
           "ranking": [
-            "abstract_katherine_network"
-          ]
+            "abstract_moonsong"
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
-        "abstract_katherine_network"
+        "abstract_moonsong"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
-      "name": "query_15",
-      "description": "atomic query 15",
+      "name": "query_18",
+      "description": "atomic query 18",
       "sub_queries": [
         {
           "priority": 9,
           "tag": [
-            "重要事件",
-            "告别"
+            "事件"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "阿兰临终前委托她销毁手稿并送出普隆尼亚，还说了什么",
-                "location": [
-                  {
-                    "name": "阿兰的工坊"
-                  }
-                ],
+                "narrative": "奇械公临终前对发条公主的嘱托",
+                "location": null,
                 "participants": [
                   {
                     "name": "阿兰·吉约丹",
-                    "role": "创造者"
+                    "role": "逝者"
                   }
                 ],
                 "time_span": null,
                 "environment": {
-                  "atmosphere": "沉重",
-                  "tone": "告别"
+                  "atmosphere": "沉重"
                 },
                 "event": null
               }
@@ -548,74 +665,30 @@
           "q": 0,
           "ranking": [
             "sit_alain_deathbed"
-          ]
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
         "sit_alain_deathbed"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
-      "name": "query_16",
-      "description": "atomic query 16",
+      "name": "query_19",
+      "description": "atomic query 19",
       "sub_queries": [
         {
           "priority": 9,
           "tag": [
-            "葬礼",
-            "荒谬"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "罗莎琳葬礼上其他人争吵，她只觉得荒谬，日记里只写了那天下雪",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "普契涅拉",
-                    "role": "争吵者"
-                  },
-                  {
-                    "name": "潘塔罗涅",
-                    "role": "争吵者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_rosalyne_funeral"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_rosalyne_funeral"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_17",
-      "description": "atomic query 17",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "决战",
+            "事件",
             "牺牲"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在挪德卡莱她替旅行者挡下了多托雷的致命一击，为自己的选择而死",
+                "narrative": "木偶在挪德卡莱为金发旅人挡下致命一击",
                 "location": [
                   {
                     "name": "挪德卡莱"
@@ -625,10 +698,6 @@
                   {
                     "name": "多托雷",
                     "role": "攻击者"
-                  },
-                  {
-                    "name": "旅行者",
-                    "role": "被保护者"
                   }
                 ],
                 "time_span": null,
@@ -644,34 +713,31 @@
           "q": 0,
           "ranking": [
             "sit_battle_nodkalai"
-          ]
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
         "sit_battle_nodkalai"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
-      "name": "query_18",
-      "description": "atomic query 18",
+      "name": "query_20",
+      "description": "atomic query 20",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 7,
           "tag": [
-            "告别",
-            "丢人"
+            "事件"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "哥伦比娅祈月之夜离开前转身，她小声说了句话被派蒙听到，觉得最丢人",
+                "narrative": "哥伦比娅离开时木偶小声被派蒙听到",
                 "location": null,
                 "participants": [
-                  {
-                    "name": "哥伦比娅",
-                    "role": "离开者"
-                  },
                   {
                     "name": "派蒙",
                     "role": "见证者"
@@ -690,31 +756,32 @@
           "q": 0,
           "ranking": [
             "sit_columbina_leave"
-          ]
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
         "sit_columbina_leave"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
-      "name": "query_19",
-      "description": "atomic query 19",
+      "name": "query_21",
+      "description": "atomic query 21",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 7,
           "tag": [
-            "葬礼",
-            "碑文"
+            "事件"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "把阿兰葬在水仙十字院附近，碑文写了‘很遗憾，但这就是结局’",
+                "narrative": "木偶独自将阿兰葬在水仙十字院附近",
                 "location": [
                   {
-                    "name": "水仙十字院旧址"
+                    "name": "水仙十字院"
                   }
                 ],
                 "participants": null,
@@ -731,37 +798,84 @@
           "q": 0,
           "ranking": [
             "sit_alain_grave"
-          ]
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
         "sit_alain_grave"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
-      "name": "query_20",
-      "description": "atomic query 20",
+      "name": "query_22",
+      "description": "atomic query 22",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 7,
           "tag": [
-            "地点",
-            "研究"
+            "事件"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "大部分时间待在至冬愚人众总部的实验室里工作",
-                "location": [
+                "narrative": "冬夜愚戏中木偶对已故女士葬礼的感受",
+                "location": null,
+                "participants": [
                   {
-                    "name": "实验室",
-                    "coordinates": "至冬愚人众总部"
+                    "name": "普契涅拉",
+                    "role": "争吵者"
+                  },
+                  {
+                    "name": "潘塔罗涅",
+                    "role": "争吵者"
                   }
                 ],
+                "time_span": null,
+                "environment": {
+                  "tone": "肃穆"
+                },
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_rosalyne_funeral"
+          ],
+          "bonus_ranking": []
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_rosalyne_funeral"
+      ],
+      "bonus_combined_ranking": [],
+      "expected_actions": []
+    },
+    {
+      "name": "query_23",
+      "description": "atomic query 23",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "地点"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "木偶在至冬实验室熬夜研究发条机械",
+                "location": null,
                 "participants": null,
                 "time_span": null,
-                "environment": null,
+                "environment": {
+                  "atmosphere": "专注"
+                },
                 "event": null
               }
             ]
@@ -773,179 +887,18 @@
           "q": 0,
           "ranking": [
             "sit_laboratory"
-          ]
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
         "sit_laboratory"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
-      "name": "query_21",
-      "description": "atomic query 21",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "社交",
-            "娱乐"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "定期举办茶会，准备点心招待朋友",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "举办茶会",
-                    "initiator": "我",
-                    "target": "茶会参与者"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_tea_party_event"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_tea_party_event"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_22",
-      "description": "atomic query 22",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "技能",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在挪德卡莱的战斗中用意念操控双手剑，不用手握住",
-                "location": [
-                  {
-                    "name": "挪德卡莱"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "多托雷",
-                    "role": "攻击者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_battle_nodkalai"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_battle_nodkalai"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_23",
-      "description": "atomic query 23",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "工作",
-            "氛围"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "工作时喜欢安静专注的氛围，在枫丹科学院也经常",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_work_environment"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_work_environment"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_24",
-      "description": "atomic query 24",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "社交",
-            "参与者"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "茶会的参与者包括少女、仆人和已故的女士",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_participant_tea_group"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_participant_tea_group"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_creator_alain",
+      "name": "set_alain",
       "description": "查询木偶的创造者阿兰·吉约丹",
       "sub_queries": [
         {
@@ -958,7 +911,22 @@
             "Semantic": [
               {
                 "concept_identifier": "她的创造者",
-                "description": "那个被称为奇械公的枫丹天才，发明了芒荒湮灭能源"
+                "description": "枫丹最伟大的天才，发明芒荒湮灭的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "创造者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "奇械公",
+                "description": "被木偶亲手葬在孤儿院附近的恩人"
               }
             ]
           }
@@ -973,37 +941,7 @@
             "Semantic": [
               {
                 "concept_identifier": "阿兰·吉约丹",
-                "description": "她的主人，临终前委托她销毁手稿的人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "创造者"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个她最敬重的人",
-                "description": "她是由谁制造的，又是谁相信她有灵魂"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "创造者"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "已故的奇械公",
-                "description": "木偶的创造者，葬在水仙十字院附近的那个人"
+                "description": "认为木偶拥有真正灵魂的工程师"
               }
             ]
           }
@@ -1018,7 +956,7 @@
             "Semantic": [
               {
                 "concept_identifier": "护国的白骑士",
-                "description": "发明了普隆尼亚和凯瑟琳网络的天才工程师"
+                "description": "临终前让木偶销毁手稿并送出机械的人"
               }
             ]
           }
@@ -1032,8 +970,38 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她的创造者阿兰",
-                "description": "从水仙十字院出身的枫丹天才，她视之如父的人"
+                "concept_identifier": "已故的发明家",
+                "description": "木偶为他立碑写得很遗憾"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "创造者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "枫丹的传奇天才",
+                "description": "木偶的创造者，也是她的主人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "创造者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "改造发条智能的元老",
+                "description": "木偶一生侍奉的创造者"
               }
             ]
           }
@@ -1044,89 +1012,75 @@
           "q": 0,
           "ranking": [
             "sem_alain"
-          ]
+          ],
+          "bonus_ranking": []
         },
         {
           "q": 1,
           "ranking": [
             "sem_alain"
-          ]
+          ],
+          "bonus_ranking": []
         },
         {
           "q": 2,
           "ranking": [
             "sem_alain"
-          ]
+          ],
+          "bonus_ranking": []
         },
         {
           "q": 3,
           "ranking": [
             "sem_alain"
-          ]
+          ],
+          "bonus_ranking": []
         },
         {
           "q": 4,
           "ranking": [
             "sem_alain"
-          ]
+          ],
+          "bonus_ranking": []
         },
         {
           "q": 5,
           "ranking": [
             "sem_alain"
-          ]
+          ],
+          "bonus_ranking": []
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_alain"
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
         "sem_alain"
       ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
-      "name": "set_rosalyne_funeral",
-      "description": "查询罗莎琳葬礼上的荒谬场景",
+      "name": "set_battle",
+      "description": "查询木偶在挪德卡莱为旅行者挡刀事件",
       "sub_queries": [
         {
           "priority": 9,
           "tag": [
-            "葬礼",
-            "荒谬"
+            "事件",
+            "牺牲"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "罗莎琳葬礼上其他人争吵，她只觉得荒谬，日记里只写了那天下雪",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "普契涅拉",
-                    "role": "争吵者"
-                  },
-                  {
-                    "name": "潘塔罗涅",
-                    "role": "争吵者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "葬礼",
-            "荒谬"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在女士的灵柩前，公鸡和富人大吵大闹，她只写了‘大雪’两个字",
+                "narrative": "她替金发旅人挡下了致命一击",
                 "location": [
                   {
-                    "name": "葬礼地点"
+                    "name": "挪德卡莱"
                   }
                 ],
                 "participants": null,
@@ -1140,22 +1094,22 @@
         {
           "priority": 9,
           "tag": [
-            "葬礼",
-            "荒谬"
+            "事件",
+            "牺牲"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "冬夜愚戏里，同僚们为死去的女士争吵，她觉得可笑",
+                "narrative": "挪德卡莱决战中为了完成术式条件而牺牲",
                 "location": null,
                 "participants": [
                   {
-                    "name": "普契涅拉",
-                    "role": "争吵者"
+                    "name": "多托雷",
+                    "role": "攻击者"
                   },
                   {
-                    "name": "潘塔罗涅",
-                    "role": "争吵者"
+                    "name": "旅行者",
+                    "role": "被保护者"
                   }
                 ],
                 "time_span": null,
@@ -1168,27 +1122,18 @@
         {
           "priority": 9,
           "tag": [
-            "葬礼",
-            "荒谬"
+            "事件",
+            "牺牲"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "女士死后那场葬礼，现场乱成一团，她只记了天气",
+                "narrative": "木偶赴死那场战斗的经过",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "普契涅拉",
-                    "role": "争吵者"
-                  },
-                  {
-                    "name": "潘塔罗涅",
-                    "role": "争吵者"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": {
-                  "atmosphere": "寒冷"
+                  "atmosphere": "悲壮"
                 },
                 "event": null
               }
@@ -1198,13 +1143,56 @@
         {
           "priority": 9,
           "tag": [
-            "葬礼",
-            "荒谬"
+            "事件",
+            "牺牲"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她没有参与争吵，只是在日记里写那天下了很大的雪",
+                "narrative": "连普隆尼亚都坏掉的惨烈战役",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "普隆尼亚",
+                    "role": "战友"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "牺牲"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "让博士以为成功除掉了对手的事件",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "牺牲"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她为自己选择的最后一个战场",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1219,42 +1207,566 @@
         {
           "q": 0,
           "ranking": [
-            "sit_rosalyne_funeral"
+            "sit_battle_nodkalai"
+          ],
+          "bonus_ranking": [
+            "sem_traveler",
+            "sem_dottore"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sit_rosalyne_funeral"
+            "sit_battle_nodkalai"
+          ],
+          "bonus_ranking": [
+            "sem_traveler",
+            "sem_dottore"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sit_rosalyne_funeral"
+            "sit_battle_nodkalai"
+          ],
+          "bonus_ranking": [
+            "sem_traveler",
+            "sem_dottore"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sit_rosalyne_funeral"
+            "sit_battle_nodkalai"
+          ],
+          "bonus_ranking": [
+            "sem_traveler",
+            "sem_dottore"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sit_rosalyne_funeral"
+            "sit_battle_nodkalai"
+          ],
+          "bonus_ranking": [
+            "sem_traveler",
+            "sem_dottore"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_battle_nodkalai"
+          ],
+          "bonus_ranking": [
+            "sem_traveler",
+            "sem_dottore"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_rosalyne_funeral"
+        "sit_battle_nodkalai"
+      ],
+      "bonus_combined_ranking": [
+        "sem_traveler",
+        "sem_dottore"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_best_friend",
-      "description": "查询木偶的挚友哥伦比娅",
+      "name": "set_tea_party",
+      "description": "查询木偶组织的愚人众女性执行官茶会",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "社交",
+            "团体"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "四位女性执行官的茶会",
+                "description": "由木偶、少女、仆人和女士组成的定期聚会"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "社交",
+            "团体"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "愚人众私下的友谊圈",
+                "description": "最不像愚人众的社交活动"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "社交",
+            "团体"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "茶会四人组",
+                "description": "木偶是组织者之一"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "社交",
+            "团体"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "木偶定期在至冬举办的下午茶宴",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "茶会参与者",
+                    "role": "社交对象"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "社交",
+            "团体"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "哥伦比娅和罗莎琳都在的小团体聚会",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "社交",
+            "团体"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "木偶的小姐妹沙龙",
+                "description": "连已故的女士也曾是成员"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "abstract_tea_party_group"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_columbina",
+            "sem_arlecchino"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "abstract_tea_party_group"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_columbina",
+            "sem_arlecchino"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "abstract_tea_party_group"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_columbina",
+            "sem_arlecchino"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "abstract_tea_party_group"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_columbina",
+            "sem_arlecchino"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "abstract_tea_party_group"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_columbina",
+            "sem_arlecchino"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "abstract_tea_party_group"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_columbina",
+            "sem_arlecchino"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "abstract_tea_party_group"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_columbina",
+        "sem_arlecchino"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_dottore",
+      "description": "查询木偶最厌恶的执行官博士",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "敌人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个让她不惜假死的对手",
+                "description": "愚人众第二席，木偶最不齿的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "敌人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "博士",
+                "description": "试图操控一切，被木偶用死亡骗过"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "敌人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "多托雷",
+                "description": "木偶在仪式中隐藏真核心骗过的对手"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "敌人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "第二席的混蛋",
+                "description": "认为所有东西都可消耗的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "敌人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她最恨的愚人众同僚",
+                "description": "两人之间敌对关系很深"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "敌人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "虚伪的学术败类",
+                "description": "木偶最为不齿的执行官"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_dottore"
+          ],
+          "bonus_ranking": []
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_dottore"
+          ],
+          "bonus_ranking": []
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_dottore"
+          ],
+          "bonus_ranking": []
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_dottore"
+          ],
+          "bonus_ranking": []
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_dottore"
+          ],
+          "bonus_ranking": []
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_dottore"
+          ],
+          "bonus_ranking": []
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_dottore"
+      ],
+      "bonus_combined_ranking": [],
+      "expected_actions": []
+    },
+    {
+      "name": "set_katherine",
+      "description": "查询遍布提瓦特的仿生人偶凯瑟琳",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "造物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "冒险家协会接待员",
+                "description": "由木偶制造的系列人偶"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "造物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "凯瑟琳",
+                "description": "提瓦特各国冒险家协会的绿衣接待员"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "造物"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "木偶创造第一个凯瑟琳时的工作场景",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "专注"
+                },
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "造物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "共享精神网络的仿生人",
+                "description": "所有凯瑟琳由木偶统一制造，逐渐产生差异"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "造物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "木偶的杰作之一",
+                "description": "比普通发条机关更智能的接待员"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "造物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个和木偶长相相似的人偶",
+                "description": "旅行者第一次见面时把木偶误认为她"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_katherine"
+          ],
+          "bonus_ranking": [
+            "abstract_katherine_network"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_katherine"
+          ],
+          "bonus_ranking": [
+            "abstract_katherine_network"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_katherine"
+          ],
+          "bonus_ranking": [
+            "abstract_katherine_network"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_katherine"
+          ],
+          "bonus_ranking": [
+            "abstract_katherine_network"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_katherine"
+          ],
+          "bonus_ranking": [
+            "abstract_katherine_network"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_katherine"
+          ],
+          "bonus_ranking": [
+            "abstract_katherine_network"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_katherine"
+      ],
+      "bonus_combined_ranking": [
+        "abstract_katherine_network"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_columbina",
+      "description": "查询木偶最好的朋友少女",
       "sub_queries": [
         {
           "priority": 9,
@@ -1265,8 +1777,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她最好的朋友",
-                "description": "那个喜欢唱歌，常在她门口唱歌的愚人众少女"
+                "concept_identifier": "那个总在她门口唱歌的执行官",
+                "description": "第三席少女，木偶最在乎的朋友"
               }
             ]
           }
@@ -1281,7 +1793,7 @@
             "Semantic": [
               {
                 "concept_identifier": "哥伦比娅",
-                "description": "茶会四人组里最天真可爱的那个，她总说讨厌但实际很关心"
+                "description": "木偶为她研发跨时空连接术式并牺牲自己帮她回归"
               }
             ]
           }
@@ -1295,8 +1807,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "第三席少女",
-                "description": "她最在乎的朋友之一，曾为她研发跨时空术式的那个人"
+                "concept_identifier": "霜月女神",
+                "description": "挪德卡莱篇章的主角，木偶帮助她回归月亮"
               }
             ]
           }
@@ -1311,7 +1823,7 @@
             "Semantic": [
               {
                 "concept_identifier": "库塔尔",
-                "description": "她的挚友，霜月女神身份，她曾为她牺牲"
+                "description": "木偶嘴上讨厌实际很关心的朋友"
               }
             ]
           }
@@ -1325,8 +1837,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个在门口唱歌的人",
-                "description": "她嘴上嫌烦但心里很重视的伙伴，离开时她忍不住说了话"
+                "concept_identifier": "她的挚友",
+                "description": "离开时木偶小声惋惜被派蒙听到的人"
               }
             ]
           }
@@ -1340,8 +1852,23 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她的朋友哥伦比娅",
-                "description": "她付出很多帮助回归月亮的朋友，在告别时她没忍住说话"
+                "concept_identifier": "茶会里最爱唱歌的女孩",
+                "description": "木偶为了她不惜牺牲自己的好伙伴"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "第三席执行官少女",
+                "description": "木偶最在意的朋友，天性天真喜欢唱歌"
               }
             ]
           }
@@ -1352,591 +1879,56 @@
           "q": 0,
           "ranking": [
             "sem_columbina"
-          ]
+          ],
+          "bonus_ranking": []
         },
         {
           "q": 1,
           "ranking": [
             "sem_columbina"
-          ]
+          ],
+          "bonus_ranking": []
         },
         {
           "q": 2,
           "ranking": [
             "sem_columbina"
-          ]
+          ],
+          "bonus_ranking": []
         },
         {
           "q": 3,
           "ranking": [
             "sem_columbina"
-          ]
+          ],
+          "bonus_ranking": []
         },
         {
           "q": 4,
           "ranking": [
             "sem_columbina"
-          ]
+          ],
+          "bonus_ranking": []
         },
         {
           "q": 5,
           "ranking": [
             "sem_columbina"
-          ]
+          ],
+          "bonus_ranking": []
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_columbina"
+          ],
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
         "sem_columbina"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_battle_nodkalai",
-      "description": "查询挪德卡莱的决战",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "决战",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在挪德卡莱她替旅行者挡下了多托雷的致命一击，为自己的选择而死",
-                "location": [
-                  {
-                    "name": "挪德卡莱"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "多托雷",
-                    "role": "攻击者"
-                  },
-                  {
-                    "name": "旅行者",
-                    "role": "被保护者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "决战",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "最终决战时，博士的攻击指向那个旅行者，她用自己的身体挡了下来",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "多托雷",
-                    "role": "攻击者"
-                  },
-                  {
-                    "name": "旅行者",
-                    "role": "被保护者"
-                  }
-                ],
-                "time_span": null,
-                "environment": {
-                  "atmosphere": "危机"
-                },
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "决战",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她为了术式成功选择死在挪德卡莱，但早就留了后路",
-                "location": [
-                  {
-                    "name": "挪德卡莱"
-                  }
-                ],
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "决战",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "博士想杀旅行者，她冲上去挨了那一下，那是她自己的决定",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "多托雷",
-                    "role": "攻击者"
-                  },
-                  {
-                    "name": "旅行者",
-                    "role": "被保护者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "决战",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "挪德卡莱那场战斗，她替那个旅行者挡刀，然后看似死了但其实有后手",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_battle_nodkalai"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_battle_nodkalai"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_battle_nodkalai"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_battle_nodkalai"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_battle_nodkalai"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_battle_nodkalai"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_combat_skill",
-      "description": "查询木偶的战斗技能（意念操控武器）",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "技能",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在挪德卡莱的战斗中用意念操控双手剑，不用手握住",
-                "location": [
-                  {
-                    "name": "挪德卡莱"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "多托雷",
-                    "role": "攻击者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "技能",
-            "战斗"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的战斗方式",
-                "description": "她战斗时不用手拿剑，剑会自己悬浮攻击"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "技能",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她不用手触碰武器，凭意念让双手剑在空中飞舞攻击",
-                "location": [
-                  {
-                    "name": "挪德卡莱"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "多托雷",
-                    "role": "对手"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "技能",
-            "战斗"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "意念控剑",
-                "description": "她拥有用意念操控双手剑进行战斗的特殊能力"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "技能",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "和博士对战时，她只用念头就让巨剑飞起来格挡攻击",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "技能",
-            "战斗"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她怎么打架",
-                "description": "她战斗时双手空着，剑自己悬浮砍人，像是隔空控物"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_battle_nodkalai"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_battle_nodkalai"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_battle_nodkalai"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_battle_nodkalai"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_battle_nodkalai"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_battle_nodkalai"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_battle_nodkalai"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_tea_party",
-      "description": "查询木偶举办的茶会活动",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "社交",
-            "娱乐"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "定期举办茶会，准备点心招待朋友",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "举办茶会",
-                    "initiator": "我",
-                    "target": "茶会参与者"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "社交",
-            "娱乐"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她举办的茶会",
-                "description": "她和少女、仆人、已故女士定期喝茶的小聚会"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "社交",
-            "娱乐"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她喜欢偶尔邀请几个朋友来喝茶吃点心，打发无聊时光",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "哥伦比娅",
-                    "role": "常客"
-                  },
-                  {
-                    "name": "阿蕾奇诺",
-                    "role": "常客"
-                  },
-                  {
-                    "name": "已故的女士",
-                    "role": "曾经的常客"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "社交",
-            "娱乐"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "茶会四人组的活动",
-                "description": "由她组织的愚人众执行官中的非正式茶会，定期举行"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "社交",
-            "娱乐"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "无聊的时候她就会准备茶点，叫上几个关系好的同僚来坐坐",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "社交",
-            "娱乐"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她和朋友们的茶会",
-                "description": "她生活中难得的社交时光，参与者除了少女还有仆人和已故的女士"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "社交",
-            "娱乐"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她经常在实验室忙完就搞个茶会，招待那几位女性执行官",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "哥伦比娅",
-                    "role": "客人"
-                  },
-                  {
-                    "name": "阿蕾奇诺",
-                    "role": "客人"
-                  },
-                  {
-                    "name": "罗莎琳",
-                    "role": "过去常来"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_tea_party_event"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_tea_party_event"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_tea_party_event"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_tea_party_event"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_tea_party_event"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_tea_party_event"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_tea_party_event"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_tea_party_event"
-      ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     }
   ]

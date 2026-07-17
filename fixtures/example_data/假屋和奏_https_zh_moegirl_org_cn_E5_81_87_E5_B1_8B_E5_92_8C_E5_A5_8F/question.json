@@ -19,14 +19,13 @@
         {
           "priority": 9,
           "tag": [
-            "人物",
-            "恋人"
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "死鱼眼的男朋友",
-                "description": "小学同学，高中重逢后向我告白的那个弹贝斯的男生"
+                "concept_identifier": "那个死鱼眼的贝斯手",
+                "description": "每次看人都像没睡醒，但弹贝斯很帅的男生"
               }
             ]
           }
@@ -37,11 +36,17 @@
           "q": 0,
           "ranking": [
             "sem_hoshina_toshi"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_hoshina_toshi"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -50,16 +55,15 @@
       "description": "atomic query 1",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 7,
           "tag": [
-            "人物",
-            "家人"
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "喜欢弹吉他的老爸",
-                "description": "让我爱上音乐的人，经常在家弹吉他的父亲"
+                "concept_identifier": "黑猫咖啡店的老板娘",
+                "description": "气场强大但对员工很好的女性老板"
               }
             ]
           }
@@ -69,12 +73,18 @@
         {
           "q": 0,
           "ranking": [
-            "sem_father"
+            "sem_soma_nanao"
+          ],
+          "bonus_ranking": [
+            "sem_schwarz_katze"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_father"
+        "sem_soma_nanao"
+      ],
+      "bonus_combined_ranking": [
+        "sem_schwarz_katze"
       ],
       "expected_actions": []
     },
@@ -83,16 +93,15 @@
       "description": "atomic query 2",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 8,
           "tag": [
-            "物品",
-            "乐器"
+            "物品"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那把六弦琴",
-                "description": "我最喜欢的乐器，每天都在练习但不敢上台"
+                "concept_identifier": "她最爱的六弦乐器",
+                "description": "每天都要练习，但不敢在人前弹的乐器"
               }
             ]
           }
@@ -103,11 +112,17 @@
           "q": 0,
           "ranking": [
             "sem_guitar"
+          ],
+          "bonus_ranking": [
+            "proc_daily_practice"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_guitar"
+      ],
+      "bonus_combined_ranking": [
+        "proc_daily_practice"
       ],
       "expected_actions": []
     },
@@ -116,49 +131,15 @@
       "description": "atomic query 3",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 6,
           "tag": [
-            "性格",
-            "缺点"
+            "关系"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "上台就手抖的毛病",
-                "description": "明明自己练得挺好，一有人听就紧张得弹不了"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_stage_fright"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_stage_fright"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_4",
-      "description": "atomic query 4",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "关系",
-            "概念"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "命运般的重逢",
-                "description": "小学同班，转学后高中又遇到了以前的朋友这叫什么来着"
+                "concept_identifier": "命运般的再会",
+                "description": "小学同班后来转学又重逢的缘分"
               }
             ]
           }
@@ -169,11 +150,59 @@
           "q": 0,
           "ranking": [
             "sem_destined_childhood"
+          ],
+          "bonus_ranking": [
+            "sem_hoshina_toshi",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sem_destined_childhood"
+      ],
+      "bonus_combined_ranking": [
+        "sem_hoshina_toshi",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "价值观"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "比语言更有力的东西",
+                "description": "她认为可以传达内心真实想法的事物"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_music_importance"
+          ],
+          "bonus_ranking": [
+            "sem_guitar",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_music_importance"
+      ],
+      "bonus_combined_ranking": [
+        "sem_guitar",
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -182,26 +211,330 @@
       "description": "atomic query 5",
       "sub_queries": [
         {
+          "priority": 7,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "主动提议组乐队的开朗男生",
+                "description": "柊史的死党，活泼外向，是乐队发起人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_kaito_hideaki"
+          ],
+          "bonus_ranking": [
+            "sem_band",
+            "sem_hoshina_toshi"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kaito_hideaki"
+      ],
+      "bonus_combined_ranking": [
+        "sem_band",
+        "sem_hoshina_toshi"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
           "priority": 10,
           "tag": [
-            "事件",
-            "告白"
+            "事件"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "改变关系的校园活动",
+                "description": "超自然研究部主办的派对，发生了重要的告白"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_halloween_party"
+          ],
+          "bonus_ranking": [
+            "sit_halloween_confession",
+            "sem_song_daisuki"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_halloween_party"
+      ],
+      "bonus_combined_ranking": [
+        "sit_halloween_confession",
+        "sem_song_daisuki"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "容易脸红的特质",
+                "description": "被夸奖就会立刻红透的那种性格"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_shyness"
+          ],
+          "bonus_ranking": [
+            "proc_shy",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_shyness"
+      ],
+      "bonus_combined_ranking": [
+        "proc_shy",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "口是心非的样子",
+                "description": "心里喜欢却偏要否认，典型的反差性格"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_tsundere"
+          ],
+          "bonus_ranking": [
+            "proc_tsundere_speak",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_tsundere"
+      ],
+      "bonus_combined_ranking": [
+        "proc_tsundere_speak",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "弹吉他教她的家人",
+                "description": "那个让她从小迷恋上吉他的重要男性"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_father"
+          ],
+          "bonus_ranking": [
+            "sem_guitar",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_father"
+      ],
+      "bonus_combined_ranking": [
+        "sem_guitar",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "社团"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "超自然研究部",
+                "description": "柊史、宁宁和䌷参加的社团，主办了万圣节派对"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_paranormal_club"
+          ],
+          "bonus_ranking": [
+            "sem_halloween_party"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_paranormal_club"
+      ],
+      "bonus_combined_ranking": [
+        "sem_halloween_party"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "知识"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她姓氏的由来",
+                "description": "据说和日本一种犬有关"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_yamagoya_dog"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_yamagoya_dog"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "音乐"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "乐队唱过的英文歌",
+                "description": "另一首表达感情的插曲"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_song_without_you"
+          ],
+          "bonus_ranking": [
+            "sem_band"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_song_without_you"
+      ],
+      "bonus_combined_ranking": [
+        "sem_band"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在学校的万圣节活动上，那个死鱼眼男生突然大声表白，我一开始给了他一巴掌，后来还是追上去答应了",
+                "narrative": "在全校师生面前被突然表白，她一着急扇了对方又追上去",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "死鱼眼男生",
-                    "role": "告白者"
-                  },
-                  {
-                    "name": "我",
-                    "role": "被告白者"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -215,33 +548,82 @@
           "q": 0,
           "ranking": [
             "sit_halloween_confession"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_hoshina_toshi",
+            "sem_halloween_party"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_halloween_confession"
       ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_hoshina_toshi",
+        "sem_halloween_party"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_6",
-      "description": "atomic query 6",
+      "name": "query_14",
+      "description": "atomic query 14",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 6,
           "tag": [
-            "地点",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和秀明一起在音乐室合奏练习，她弹吉他时总是紧张",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_event_band_practice"
+          ],
+          "bonus_ranking": [
+            "sem_band",
+            "sem_guitar"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_event_band_practice"
+      ],
+      "bonus_combined_ranking": [
+        "sem_band",
+        "sem_guitar"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
             "环境"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在名叫黑猫的咖啡馆打工，老板气场很强但店里氛围很温馨",
-                "location": [
-                  {
-                    "name": "黑猫咖啡馆"
-                  }
-                ],
+                "narrative": "在黑猫咖啡馆打工的温馨氛围，和七绪小姐一起忙碌",
+                "location": null,
                 "participants": null,
                 "time_span": null,
                 "environment": null,
@@ -256,43 +638,37 @@
           "q": 0,
           "ranking": [
             "sit_env_cafe"
+          ],
+          "bonus_ranking": [
+            "sem_schwarz_katze",
+            "sem_soma_nanao"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_env_cafe"
       ],
+      "bonus_combined_ranking": [
+        "sem_schwarz_katze",
+        "sem_soma_nanao"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_7",
-      "description": "atomic query 7",
+      "name": "query_16",
+      "description": "atomic query 16",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 6,
           "tag": [
-            "事件",
-            "乐队"
+            "习惯"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "我们三个人一起练习乐队曲目，我弹吉他，柊史弹贝斯，秀明打鼓",
+                "narrative": "每天独自练琴成为雷打不动的习惯，但一有人就停",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "吉他手"
-                  },
-                  {
-                    "name": "死鱼眼男生",
-                    "role": "贝斯手"
-                  },
-                  {
-                    "name": "秀明",
-                    "role": "鼓手"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -306,28 +682,79 @@
           "q": 0,
           "ranking": [
             "sit_event_band_practice"
+          ],
+          "bonus_ranking": [
+            "proc_daily_practice",
+            "sem_guitar"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_event_band_practice"
       ],
+      "bonus_combined_ranking": [
+        "proc_daily_practice",
+        "sem_guitar"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_8",
-      "description": "atomic query 8",
+      "name": "query_17",
+      "description": "atomic query 17",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
-            "地点",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "告白发生后她追出去的后续，两个人在夜空下重新说喜欢",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_halloween_confession"
+          ],
+          "bonus_ranking": [
+            "sem_hoshina_toshi",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_halloween_confession"
+      ],
+      "bonus_combined_ranking": [
+        "sem_hoshina_toshi",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
             "日常"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在姬松学院上学，和同班同学一起上课",
+                "narrative": "在姬松学院2-A班上课的平淡日常",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -343,246 +770,37 @@
           "q": 0,
           "ranking": [
             "sit_loc_school"
+          ],
+          "bonus_ranking": [
+            "sem_himamatsu_gakuen",
+            "sem_class_2a"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_loc_school"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_9",
-      "description": "atomic query 9",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "同学"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "班上那个很漂亮的女生",
-                "description": "同班同学，超自然研究部的成员，人缘很好"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_ayachi_nene"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_ayachi_nene"
+      "bonus_combined_ranking": [
+        "sem_himamatsu_gakuen",
+        "sem_class_2a"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_10",
-      "description": "atomic query 10",
+      "name": "query_19",
+      "description": "atomic query 19",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 4,
           "tag": [
-            "人物",
-            "朋友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "柊史的死党",
-                "description": "开朗的男生，主动组乐队，是我们乐队的一员"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_kaito_hideaki"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_kaito_hideaki"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_11",
-      "description": "atomic query 11",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "人物",
-            "老板"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "咖啡馆的女老板",
-                "description": "气场很强但对员工好的老板娘"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_soma_nanao"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_soma_nanao"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_12",
-      "description": "atomic query 12",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "社团",
-            "团体"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个神秘社团",
-                "description": "柊史他们加入的社团，主办了万圣节派对"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_paranormal_club"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_paranormal_club"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_13",
-      "description": "atomic query 13",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "歌曲",
-            "音乐"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那首属于我的歌",
-                "description": "在万圣节派对上演唱的，表达心意的歌"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_song_daisuki"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_song_daisuki"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "事件",
-            "告白"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "他表白后我虽然甩了他一巴掌，但看到他落寞的样子我就后悔了，赶紧追过去说其实我也喜欢你",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "告白者"
-                  },
-                  {
-                    "name": "他",
-                    "role": "被追的人"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_halloween_confession"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_halloween_confession"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_15",
-      "description": "atomic query 15",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "事件",
             "日常"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "和朋友们课间聚在一起聊天，宁宁和䌷也经常在",
+                "narrative": "和朋友们在课间聊天打闹，宁宁和䌷也在一起",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "朋友们",
-                    "role": "同学"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -596,140 +814,19 @@
           "q": 0,
           "ranking": [
             "sit_part_friends"
+          ],
+          "bonus_ranking": [
+            "sem_ayachi_nene",
+            "sem_shiiba_tsumugi"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_part_friends"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_16",
-      "description": "atomic query 16",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "知识"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "奇怪的犬种",
-                "description": "我的姓氏据说来源于一种狗，好像是叫山假屋"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_yamagoya_dog"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_yamagoya_dog"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_17",
-      "description": "atomic query 17",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "地点",
-            "班级"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "我们那个班",
-                "description": "二年A组，柊史宁宁秀明他们都在这班"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_class_2a"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_class_2a"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_18",
-      "description": "atomic query 18",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "价值观"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "最重要的品质",
-                "description": "认为做人要真诚，讨厌虚伪的人"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_sincerity"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_sincerity"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_19",
-      "description": "atomic query 19",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "性格"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "动不动就脸红",
-                "description": "很害羞，别人一夸就脸红，尤其在喜欢的人面前"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_shyness"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_shyness"
+      "bonus_combined_ranking": [
+        "sem_ayachi_nene",
+        "sem_shiiba_tsumugi"
       ],
       "expected_actions": []
     },
@@ -738,20 +835,59 @@
       "description": "atomic query 20",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 7,
           "tag": [
-            "环境",
-            "关系"
+            "情感"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "七绪小姐虽然严格，但在她店里打工很温馨",
-                "location": [
-                  {
-                    "name": "黑猫咖啡馆"
-                  }
-                ],
+                "narrative": "告白后她独自一人时内心的感动和害羞混合的复杂心情",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_halloween_confession"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_shyness"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_halloween_confession"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_shyness"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在咖啡馆里和常客聊天，被称赞咖啡好喝",
+                "location": null,
                 "participants": null,
                 "time_span": null,
                 "environment": null,
@@ -766,39 +902,37 @@
           "q": 0,
           "ranking": [
             "sit_env_cafe"
+          ],
+          "bonus_ranking": [
+            "sem_schwarz_katze",
+            "proc_toxic"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_env_cafe"
       ],
+      "bonus_combined_ranking": [
+        "sem_schwarz_katze",
+        "proc_toxic"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_21",
-      "description": "atomic query 21",
+      "name": "query_22",
+      "description": "atomic query 22",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 7,
           "tag": [
-            "事件",
-            "乐队"
+            "事件"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "秀明打鼓特别卖力，柊史弹贝斯时一脸认真",
+                "narrative": "乐队合奏时她因为紧张弹错了和弦，柊史耐心等她重来",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "秀明",
-                    "role": "鼓手"
-                  },
-                  {
-                    "name": "死鱼眼男生",
-                    "role": "贝斯手"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -812,28 +946,955 @@
           "q": 0,
           "ranking": [
             "sit_event_band_practice"
+          ],
+          "bonus_ranking": [
+            "sem_hoshina_toshi",
+            "proc_stage_fright"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_event_band_practice"
       ],
+      "bonus_combined_ranking": [
+        "sem_hoshina_toshi",
+        "proc_stage_fright"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_22",
-      "description": "atomic query 22",
+      "name": "query_23",
+      "description": "atomic query 23",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 8,
           "tag": [
-            "日常",
-            "地点"
+            "音乐"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "中午和朋友们一起在食堂吃饭，有说有笑",
+                "narrative": "在万圣节派对上鼓起勇气唱了《超喜欢》，同学们都喝彩",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_halloween_confession"
+          ],
+          "bonus_ranking": [
+            "sem_song_daisuki",
+            "sem_halloween_party"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_halloween_confession"
+      ],
+      "bonus_combined_ranking": [
+        "sem_song_daisuki",
+        "sem_halloween_party"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_boyfriend",
+      "description": "检索她的恋人保科柊史",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个死鱼眼的贝斯手",
+                "description": "总是一副没精打采的样子但弹贝斯很帅"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的小学同学兼男友",
+                "description": "从小学就认识，高中重逢后在一起了"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "抢先告白的男生",
+                "description": "在派对上当着全校的面先表白了"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "乐队里的贝斯手",
+                "description": "和她还有秀明一起组乐队，弹低音的"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个看似冷漠却很温柔的人",
+                "description": "外表死鱼眼，内心其实很勇敢"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "命运般重逢的青梅竹马",
+                "description": "小学同班后转学，又在高中同班"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "在派对上向她表白的人",
+                "description": "当着所有学生的面说喜欢她"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_hoshina_toshi"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_hoshina_toshi"
+          ],
+          "bonus_ranking": [
+            "sem_destined_childhood"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_hoshina_toshi"
+          ],
+          "bonus_ranking": [
+            "sit_halloween_confession"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_hoshina_toshi"
+          ],
+          "bonus_ranking": [
+            "sem_band"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_hoshina_toshi"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_hoshina_toshi"
+          ],
+          "bonus_ranking": [
+            "sem_destined_childhood"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_hoshina_toshi"
+          ],
+          "bonus_ranking": [
+            "sit_halloween_confession",
+            "sem_halloween_party"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_hoshina_toshi"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_destined_childhood",
+        "sit_halloween_confession",
+        "sem_band",
+        "sem_halloween_party"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_confession",
+      "description": "检索万圣节告白事件",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在全校师生面前被突然表白的经历",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "万圣节派对上他当众告白，她害羞得打了他",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "派对结束后她追出去重新说喜欢",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她先拒绝了告白然后后悔追上的夜晚",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在校园祭上发生的让她终生难忘的告白",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "乐队表演后他立刻拿起麦克风说喜欢她",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她最害羞又最感动的那一刻，全校都在起哄",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_halloween_confession"
+          ],
+          "bonus_ranking": [
+            "sem_hoshina_toshi",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_halloween_confession"
+          ],
+          "bonus_ranking": [
+            "sem_halloween_party"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_halloween_confession"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_hoshina_toshi"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_halloween_confession"
+          ],
+          "bonus_ranking": [
+            "sem_tsundere"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_halloween_confession"
+          ],
+          "bonus_ranking": [
+            "sem_halloween_party"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_halloween_confession"
+          ],
+          "bonus_ranking": [
+            "sem_band",
+            "sem_song_daisuki"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_halloween_confession"
+          ],
+          "bonus_ranking": [
+            "sem_shyness",
+            "sem_himamatsu_gakuen"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_halloween_confession"
+      ],
+      "bonus_combined_ranking": [
+        "sem_hoshina_toshi",
+        "sem_self",
+        "sem_halloween_party",
+        "sem_tsundere",
+        "sem_band",
+        "sem_song_daisuki",
+        "sem_shyness",
+        "sem_himamatsu_gakuen"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_band",
+      "description": "检索乐队相关的概念和活动",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "团体"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她和柊史秀明组成的三人音乐团体",
+                "description": "她弹吉他主唱，柊史贝斯，秀明可能鼓"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "团体"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "在万圣节派对上表演的乐队",
+                "description": "演奏了《超喜欢》的那个组合"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "团体"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "包含吉他贝斯的三人乐队",
+                "description": "学校里的轻音小组"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "团体"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "让她逐渐克服舞台恐惧的演奏集体",
+                "description": "和死鱼眼还有秀明一起演出"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "团体"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "在音乐室练习的三重奏",
+                "description": "放学后常聚在一起练歌"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "团体"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "由海道秀明提议组成的乐队",
+                "description": "她、柊史和秀明的三人组"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "团体"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她和恋人都参加的乐队",
+                "description": "弹吉他主唱配贝斯"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_band"
+          ],
+          "bonus_ranking": [
+            "sem_hoshina_toshi",
+            "sem_kaito_hideaki"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_band"
+          ],
+          "bonus_ranking": [
+            "sem_halloween_party",
+            "sem_song_daisuki"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_band"
+          ],
+          "bonus_ranking": [
+            "sem_guitar",
+            "sem_bass"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_band"
+          ],
+          "bonus_ranking": [
+            "proc_stage_fright",
+            "sem_stage_fright"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_band"
+          ],
+          "bonus_ranking": [
+            "sit_event_band_practice"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_band"
+          ],
+          "bonus_ranking": [
+            "sem_kaito_hideaki"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_band"
+          ],
+          "bonus_ranking": [
+            "sem_hoshina_toshi",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_band"
+      ],
+      "bonus_combined_ranking": [
+        "sem_hoshina_toshi",
+        "sem_kaito_hideaki",
+        "sem_halloween_party",
+        "sem_song_daisuki",
+        "sem_guitar",
+        "sem_bass",
+        "proc_stage_fright",
+        "sem_stage_fright",
+        "sit_event_band_practice",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_father",
+      "description": "检索她的父亲，音乐启蒙者",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她爱弹吉他的爸爸",
+                "description": "经常在家弹吉他，让她也爱上音乐"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "让她迷恋上吉他的家人",
+                "description": "小时候坐在他腿上听弹唱的父亲"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "家里弹吉他的中年男人",
+                "description": "她的音乐启蒙者"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "教她第一首吉他和弦的人",
+                "description": "父亲大人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她姓氏来源的假屋家主人",
+                "description": "也是她最重要的家人之一"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "假屋家的吉他手爸爸",
+                "description": "对她的音乐道路影响很大"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "小时候经常弹琴给她听的男人",
+                "description": "让她爱上音乐的亲人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_father"
+          ],
+          "bonus_ranking": [
+            "sem_guitar",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_father"
+          ],
+          "bonus_ranking": [
+            "sem_guitar"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_father"
+          ],
+          "bonus_ranking": [
+            "sem_music_importance"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_father"
+          ],
+          "bonus_ranking": [
+            "sem_guitar",
+            "proc_daily_practice"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_father"
+          ],
+          "bonus_ranking": [
+            "sem_yamagoya_dog"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_father"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_father"
+          ],
+          "bonus_ranking": [
+            "sem_music_importance"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_father"
+      ],
+      "bonus_combined_ranking": [
+        "sem_guitar",
+        "sem_self",
+        "sem_music_importance",
+        "proc_daily_practice",
+        "sem_yamagoya_dog"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_school",
+      "description": "检索学校日常情境",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在姬松学院2-A班上课的课间休息",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和宁宁䌷她们一起去食堂吃午饭",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "放学后和柊史在图书室遇见",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在教室里被秀明逗得又羞又生气",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "考试前和同学们一起紧张复习",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "社团活动结束后独自留在教室练吉他",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在天台和朋友们分享零食的时光",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -849,1076 +1910,86 @@
           "q": 0,
           "ranking": [
             "sit_loc_school"
+          ],
+          "bonus_ranking": [
+            "sem_himamatsu_gakuen",
+            "sem_class_2a"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_loc_school"
+          ],
+          "bonus_ranking": [
+            "sem_ayachi_nene",
+            "sem_shiiba_tsumugi"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_loc_school"
+          ],
+          "bonus_ranking": [
+            "sem_hoshina_toshi",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_loc_school"
+          ],
+          "bonus_ranking": [
+            "sem_kaito_hideaki",
+            "proc_toxic"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_loc_school"
+          ],
+          "bonus_ranking": [
+            "sem_class_2a"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_loc_school"
+          ],
+          "bonus_ranking": [
+            "sem_guitar",
+            "proc_shy"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_loc_school"
+          ],
+          "bonus_ranking": [
+            "sem_ayachi_nene",
+            "sem_shiiba_tsumugi"
           ]
         }
       ],
       "expected_combined_ranking": [
         "sit_loc_school"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_lover",
-      "description": "检索恋人保科柊史",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "恋人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "小学同学",
-                "description": "那个小学同学，高中再遇并告白的人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "恋人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "弹贝斯的那位",
-                "description": "在乐队里弹贝斯的男生，我男朋友"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "恋人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "抢先告白的笨蛋",
-                "description": "在万圣节派对上当众向我表白的那个人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "恋人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "死鱼眼的主人",
-                "description": "总是没精打采但内心温柔，和我从小认识的男生"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "恋人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "重要的人",
-                "description": "在我生命中最重要的人，我们组成了乐队"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "恋人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "保科柊史",
-                "description": "我的男朋友，也是乐队的贝斯手"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "恋人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个死鱼眼",
-                "description": "死对头一样的存在，但其实是喜欢的人"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_hoshina_toshi"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_hoshina_toshi"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_hoshina_toshi"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_hoshina_toshi"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_hoshina_toshi"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_hoshina_toshi"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_hoshina_toshi"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_hoshina_toshi"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_confession",
-      "description": "检索万圣节告白事件",
-      "sub_queries": [
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "告白"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在万圣节活动上，他突然当着大家的面说喜欢我",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "告白"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "全校面前被表白，我一时冲动打了他后来后悔了",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "告白"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "那天派对上，他拿起话筒就对我喊喜欢，我愣了半天",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "告白"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "他告白后我逃跑了，但后来又跑回去找他答应了他",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "告白"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "万圣节那天，一切都变了，我成为了他的女朋友",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "告白"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "当着所有同学的面，他说对我一见钟情，其实我们早就认识",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 10,
-          "tag": [
-            "事件",
-            "告白"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在姬松学院的万圣节派对，我被告白了",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_halloween_confession"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_halloween_confession"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_halloween_confession"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_halloween_confession"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_halloween_confession"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_halloween_confession"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_halloween_confession"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_halloween_confession"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_guitar",
-      "description": "检索吉他",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "物品",
-            "乐器"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "木质乐器",
-                "description": "我最爱的乐器，父亲教我弹的"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "物品",
-            "乐器"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "六根弦的宝贝",
-                "description": "每天都练习但不敢公开演奏的乐器"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "物品",
-            "乐器"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "电吉他的弦",
-                "description": "乐队里我弹的乐器"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "物品",
-            "乐器"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那把Fender",
-                "description": "我房间里那把陪伴我多年的乐器"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "物品",
-            "乐器"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "我的吉他",
-                "description": "最珍贵的东西，和音乐梦想相连"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "物品",
-            "乐器"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "弹唱用的乐器",
-                "description": "我在乐队中担任主唱时弹的乐器"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "物品",
-            "乐器"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "父亲留给我的影响",
-                "description": "受父亲影响开始弹的乐器"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_guitar"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_guitar"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_guitar"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_guitar"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_guitar"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_guitar"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_guitar"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_guitar"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_cafe",
-      "description": "检索咖啡店打工环境",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "地点",
-            "环境"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在德语意为黑猫的咖啡馆打工，氛围很温馨",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "地点",
-            "环境"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "店里混合咖啡特别好喝，老板叫七绪小姐",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "地点",
-            "环境"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "打工的地方是间咖啡馆，老板很严格但店里气氛好",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "地点",
-            "环境"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "Schwarz Katze，那是七绪小姐开的店",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "地点",
-            "环境"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "我在一家黑猫标志的咖啡馆打工",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "地点",
-            "环境"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "那家温暖的小咖啡馆，是放学后常去的地方",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "地点",
-            "环境"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "七绪小姐的店里总是飘着咖啡香",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_env_cafe"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_env_cafe"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_env_cafe"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_env_cafe"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_env_cafe"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_env_cafe"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_env_cafe"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_env_cafe"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_stage_fright_band",
-      "description": "检索舞台恐惧和乐队练习中的紧张",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "性格",
-            "缺点",
-            "事件"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "上台恐惧症",
-                "description": "乐队练习时大家让我独奏一段，结果紧张得按错了弦"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "性格",
-            "缺点",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "乐队练习时大家让我独奏一段，我紧张得按错了弦",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "性格",
-            "缺点",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "虽然每天练琴，但只要有人看着我就弹不好",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "性格",
-            "缺点",
-            "事件"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "舞台恐惧的毛病",
-                "description": "明明在房间里弹得很好，一上台就手抖，乐队练习时尤其明显"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "性格",
-            "缺点",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在万圣节派对演出前，我躲在后场不敢出去，柊史来给我打气",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "性格",
-            "缺点",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "柊史握住我的手说没关系，我才敢上台，但依然紧张",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "性格",
-            "缺点",
-            "事件"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "羞耻的紧张感",
-                "description": "在重要的人面前演奏时尤其严重，像是乐队排练时"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_stage_fright",
-            "sit_event_band_practice"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_stage_fright",
-            "sit_event_band_practice"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_stage_fright",
-            "sit_event_band_practice"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_stage_fright",
-            "sit_event_band_practice"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_stage_fright",
-            "sit_event_band_practice"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_stage_fright",
-            "sit_event_band_practice"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_stage_fright",
-            "sit_event_band_practice"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_stage_fright",
-        "sit_event_band_practice"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_tsundere_confession",
-      "description": "检索傲娇性格和万圣节告白中的傲娇表现",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "性格",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "口是心非的性格",
-                "description": "在万圣节告白时明明喜欢却先打了对方"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "性格",
-            "关系"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "他告白时我第一反应是'谁要和你交往'，但转头就后悔了",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "性格",
-            "关系"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "嘴上说着不要，身体却很诚实，最后还是追了上去",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "性格",
-            "关系"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在万圣节派对后他夸我吉他弹得好，我脸红着说'别废话'但其实很开心",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "性格",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "傲娇属性",
-                "description": "在万圣节告白事件中容易害羞却要用刺人的话来掩饰"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "性格",
-            "关系"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "被朋友说恋爱了，我大声反驳'才没有！'但大家都知道，就像万圣节那天一样",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "性格",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "教科书式的傲娇",
-                "description": "心里喜欢却要假装不在意，最后又会后悔，就像万圣节告白时的反应"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_tsundere",
-            "sit_halloween_confession"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_tsundere",
-            "sit_halloween_confession"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_tsundere",
-            "sit_halloween_confession"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_tsundere",
-            "sit_halloween_confession"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_tsundere",
-            "sit_halloween_confession"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_tsundere",
-            "sit_halloween_confession"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_tsundere",
-            "sit_halloween_confession"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_tsundere",
-        "sit_halloween_confession"
+      "bonus_combined_ranking": [
+        "sem_himamatsu_gakuen",
+        "sem_class_2a",
+        "sem_ayachi_nene",
+        "sem_shiiba_tsumugi",
+        "sem_hoshina_toshi",
+        "sem_self",
+        "sem_kaito_hideaki",
+        "proc_toxic",
+        "sem_guitar",
+        "proc_shy"
       ],
       "expected_actions": []
     }

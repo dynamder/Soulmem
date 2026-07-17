@@ -693,11 +693,27 @@ fn parse_query_cases(val: &serde_json::Value) -> Vec<InspectEntry> {
             format!("[{}]", expected.join(", "))
         };
 
+        let bonus: Vec<String> = tc
+            .get("bonus_combined_ranking")
+            .and_then(|v| v.as_array())
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let bonus_str = if bonus.is_empty() {
+            "(空)".to_string()
+        } else {
+            format!("[{}]", bonus.join(", "))
+        };
+
         // Preview lines
         let preview_lines = vec![
             format!("描述: {}", case_desc),
             format!("子查询数: {}", sub_queries),
             format!("期望结果: {}", expected_str),
+            format!("奖励结果: {}", bonus_str),
         ];
 
         // Detail lines
@@ -749,6 +765,7 @@ fn parse_query_cases(val: &serde_json::Value) -> Vec<InspectEntry> {
 
         detail_lines.push(format!(""));
         detail_lines.push(format!("期望排序 (combined): {}", expected_str));
+        detail_lines.push(format!("奖励排序 (bonus): {}", bonus_str));
         if let Some(per_q) = tc.get("expected_per_query").and_then(|v| v.as_array()) {
             for eq in per_q {
                 let qidx = eq.get("q").and_then(|v| v.as_u64()).unwrap_or(0);
@@ -762,6 +779,18 @@ fn parse_query_cases(val: &serde_json::Value) -> Vec<InspectEntry> {
                     })
                     .unwrap_or_default();
                 detail_lines.push(format!("  Q{} 期望: [{}]", qidx, ranking.join(", ")));
+                let bonus_ranking: Vec<String> = eq
+                    .get("bonus_ranking")
+                    .and_then(|v| v.as_array())
+                    .map(|a| {
+                        a.iter()
+                            .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                if !bonus_ranking.is_empty() {
+                    detail_lines.push(format!("     奖励: [{}]", bonus_ranking.join(", ")));
+                }
             }
         }
 
