@@ -249,22 +249,25 @@ impl InspectState {
         let inner = block.inner(area);
         block.render(area, frame.buffer_mut());
 
-        let mut lines: Vec<Line> = Vec::new();
         let green = Style::new().green();
         let yellow = Style::new().yellow().bold();
         let gray = Style::new().dark_gray();
         let _red = Style::new().red();
 
-        // Node info section
-        lines.push(Line::from(Span::styled(" ── 基本信息 ──", yellow)));
+        // --- Fixed header: 基本信息 ---
+        let mut header_lines: Vec<Line> = Vec::new();
+        header_lines.push(Line::from(Span::styled(" ── 基本信息 ──", yellow)));
         for line in &entry.detail_lines {
-            lines.push(Line::from(Span::raw(format!("  {}", line))));
+            header_lines.push(Line::from(Span::raw(format!("  {}", line))));
         }
-        lines.push(Line::from(""));
+        header_lines.push(Line::from(""));
 
-        // Links section
+        // --- Scrollable content: 连接 + 导航信息 ---
+        let mut link_lines: Vec<Line> = Vec::new();
+        let mut link_cursor_line: Option<usize> = None;
+
         if !entry.links.is_empty() {
-            lines.push(Line::from(Span::styled(" ── 连接 (Links) ──", yellow)));
+            link_lines.push(Line::from(Span::styled(" ── 连接 (Links) ──", yellow)));
 
             let outgoing: Vec<usize> = entry
                 .links
@@ -284,17 +287,20 @@ impl InspectState {
             let link_cursor = self.detail.as_ref().and_then(|d| d.link_cursor);
 
             if !outgoing.is_empty() {
-                lines.push(Line::from(Span::raw("  出边 (→):")));
+                link_lines.push(Line::from(Span::raw("  出边 (→):")));
                 for &idx in &outgoing {
                     let l = &entry.links[idx];
                     let is_active = link_cursor == Some(idx);
+                    if is_active {
+                        link_cursor_line = Some(link_lines.len());
+                    }
                     let prefix = if is_active { "▶ " } else { "  " };
                     let style = if is_active {
                         Style::default().fg(Color::Black).bg(Color::Cyan)
                     } else {
                         Style::default()
                     };
-                    lines.push(Line::from(vec![
+                    link_lines.push(Line::from(vec![
                         Span::styled(format!("{}→ {}  ", prefix, l.to_id), style),
                         Span::styled(format!("{} ", l.link_type_desc), gray),
                         Span::styled(format!("{:.2}", l.intensity), green),
@@ -303,17 +309,20 @@ impl InspectState {
             }
 
             if !incoming.is_empty() {
-                lines.push(Line::from(Span::raw("  入边 (←):")));
+                link_lines.push(Line::from(Span::raw("  入边 (←):")));
                 for &idx in &incoming {
                     let l = &entry.links[idx];
                     let is_active = link_cursor == Some(idx);
+                    if is_active {
+                        link_cursor_line = Some(link_lines.len());
+                    }
                     let prefix = if is_active { "▶ " } else { "  " };
                     let style = if is_active {
                         Style::default().fg(Color::Black).bg(Color::Cyan)
                     } else {
                         Style::default()
                     };
-                    lines.push(Line::from(vec![
+                    link_lines.push(Line::from(vec![
                         Span::styled(format!("{}← {}  ", prefix, l.from_id), style),
                         Span::styled(format!("{} ", l.link_type_desc), gray),
                         Span::styled(format!("{:.2}", l.intensity), green),
@@ -321,25 +330,46 @@ impl InspectState {
                 }
             }
         } else {
-            lines.push(Line::from(Span::styled(" (无连接)", gray)));
+            link_lines.push(Line::from(Span::styled(" (无连接)", gray)));
         }
 
         // Show navigation info
         let stack_depth = self.detail.as_ref().map(|d| d.nav_stack.len()).unwrap_or(0);
         if stack_depth > 0 {
-            lines.push(Line::from(""));
-            lines.push(Line::from(Span::styled(
+            link_lines.push(Line::from(""));
+            link_lines.push(Line::from(Span::styled(
                 format!(" (导航栈: {}层, Backspace可回退)", stack_depth),
                 gray,
             )));
         }
 
-        let (content_rect, bar_rect) = ScrollContainer::split_area(inner);
-        let line_count = lines.len();
+        // --- Constraint layout: fixed header + scrollable links ---
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Length(header_lines.len().min(inner.height as usize) as u16),
+                Constraint::Fill(1),
+            ])
+            .split(inner);
+
+        // Render fixed header
         frame.render_widget(
-            Paragraph::new(Text::from(lines))
+            Paragraph::new(Text::from(header_lines)).wrap(Wrap { trim: false }),
+            chunks[0],
+        );
+
+        // Render scrollable links with auto-scroll
+        let (content_rect, bar_rect) = ScrollContainer::split_area(chunks[1]);
+        let line_count = link_lines.len();
+        let scroll_offset = if let Some(l) = link_cursor_line {
+            ScrollContainer::offset(content_rect.height, line_count, l)
+        } else {
+            self.detail_scroll.offset
+        };
+        frame.render_widget(
+            Paragraph::new(Text::from(link_lines))
                 .wrap(Wrap { trim: false })
-                .scroll((self.detail_scroll.offset as u16, 0)),
+                .scroll((scroll_offset as u16, 0)),
             content_rect,
         );
         ScrollContainer::render_scrollbar(
@@ -347,7 +377,7 @@ impl InspectState {
             bar_rect,
             line_count,
             content_rect.height,
-            self.detail_scroll.offset,
+            scroll_offset,
         );
     }
 
@@ -398,7 +428,7 @@ impl InspectState {
                         }
                         match detail.link_cursor {
                             None | Some(0) => {
-                                detail.link_cursor = Some(0);
+                                detail.link_cursor = Some(entry.links.len().saturating_sub(1));
                             }
                             Some(c) => {
                                 detail.link_cursor = Some(c - 1);
@@ -426,10 +456,14 @@ impl InspectState {
                             None => {
                                 detail.link_cursor = Some(0);
                             }
-                            Some(c) if c + 1 < entry.links.len() => {
-                                detail.link_cursor = Some(c + 1);
+                            Some(c) => {
+                                let next = c + 1;
+                                if next >= entry.links.len() {
+                                    detail.link_cursor = Some(0);
+                                } else {
+                                    detail.link_cursor = Some(next);
+                                }
                             }
-                            _ => {}
                         }
                     }
                 } else if self.list_scroll.cursor + 1 < self.entries.len() {
@@ -600,6 +634,11 @@ fn parse_graph_nodes(val: &serde_json::Value) -> Vec<InspectEntry> {
                 }
             }
         }
+    }
+
+    // Sort links so outgoing come before incoming (matches render order)
+    for entry in &mut entries {
+        entry.links.sort_by_key(|l| !l.is_outgoing);
     }
 
     entries
