@@ -10,6 +10,9 @@ use ratatui::Frame;
 use ratatui_textarea::TextArea;
 
 use crate::base::{AlgoType, TestConfig, Transition};
+use crate::component::{Component, ComponentEvent};
+use crate::tui::components::scroll::ScrollState;
+use crate::tui::components::scroll_container::ScrollContainer;
 use crate::tui::components::{editable_table, status_bar};
 
 pub struct ParamRow {
@@ -24,7 +27,7 @@ pub struct ParamState {
     pub rows: Vec<ParamRow>,
     pub selected: usize,
     pub editing: Option<usize>,
-    pub scroll: usize,
+    pub table_scroll: ScrollContainer,
     pub textareas: Vec<TextArea<'static>>,
 }
 
@@ -59,7 +62,7 @@ impl ParamState {
             rows: default_rows,
             selected: 0,
             editing: None,
-            scroll: 0,
+            table_scroll: ScrollContainer::new(),
             textareas,
         }
     }
@@ -87,14 +90,32 @@ impl ParamState {
             .fg(Color::Cyan)
             .render(layout[0], frame.buffer_mut());
 
+        let inner = layout[1];
+        let (content_rect, bar_rect) = ScrollContainer::split_area(inner);
+        let offset = ScrollContainer::offset(
+            content_rect.height.saturating_sub(1),
+            self.rows.len(),
+            self.table_scroll.cursor,
+        );
+        let scroll_state = ScrollState {
+            cursor: self.table_scroll.cursor,
+            offset,
+        };
         editable_table::render_editable_table(
             frame,
-            layout[1],
+            content_rect,
             &self.rows,
             &self.textareas,
             self.selected,
             self.editing,
-            self.scroll,
+            &scroll_state,
+        );
+        ScrollContainer::render_scrollbar(
+            frame,
+            bar_rect,
+            self.rows.len(),
+            content_rect.height.saturating_sub(1),
+            offset,
         );
 
         status_bar::render_status_bar(
@@ -170,5 +191,17 @@ impl ParamState {
             }
             _ => Transition::None,
         }
+    }
+}
+
+impl Component for ParamState {
+    fn handle_event(&mut self, event: ComponentEvent) -> Transition {
+        match event {
+            ComponentEvent::Key(key) => self.handle_key(key),
+            _ => Transition::None,
+        }
+    }
+    fn view(&self, frame: &mut Frame) {
+        self.render(frame);
     }
 }

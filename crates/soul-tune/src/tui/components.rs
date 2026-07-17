@@ -1,8 +1,15 @@
 pub mod chart;
 pub mod command_bar;
+pub mod drilldown;
 pub mod editable_table;
+pub mod expandable_list;
+pub mod expandable_row;
 pub mod gauge;
 pub mod kv_table;
 pub mod list;
+pub mod scroll;
+pub mod scroll_container;
+pub mod scrollable_paragraph;
 pub mod status_bar;
 pub mod tab_bar;
+pub mod table;

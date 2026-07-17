@@ -1,7 +1,9 @@
 use ratatui::layout::Rect;
-use ratatui::style::{Color, Stylize};
+use ratatui::style::Color;
 use ratatui::widgets::Paragraph;
 use ratatui::Frame;
+
+use super::scroll::ScrollState;
 
 pub struct KvRow {
     pub key: String,
@@ -13,35 +15,36 @@ pub struct KvGroup {
     pub rows: Vec<KvRow>,
 }
 
-pub fn render_kv_table(frame: &mut Frame, area: Rect, groups: &[KvGroup], scroll: &mut usize) {
-    let mut y = area.y;
-
+/// Render grouped key-value table with ScrollState.
+/// Uses ratatui Constraint system for layout.
+pub fn render_kv_table(frame: &mut Frame, area: Rect, groups: &[KvGroup], scroll: &ScrollState) {
+    // Build flat display text lines first
+    let mut lines: Vec<String> = Vec::new();
     for group in groups {
-        if y > area.y + area.height {
+        lines.push(format!(" {} ", group.title));
+        for row in &group.rows {
+            lines.push(format!("  {}: {}", row.key, row.value));
+        }
+        lines.push(String::new());
+    }
+
+    let visible = area.height as usize;
+    let end = (scroll.offset + visible).min(lines.len());
+    for (i, y_offset) in (scroll.offset..end).enumerate() {
+        if i >= visible {
             break;
         }
-        let title = format!(" {} ", group.title);
+        let y = area.y + i as u16;
+        let line = &lines[y_offset];
+        let is_title = line.starts_with(' ') && !line.starts_with("  ");
+        let style = if is_title {
+            ratatui::style::Style::default().fg(Color::Yellow).bold()
+        } else {
+            ratatui::style::Style::default()
+        };
         frame.render_widget(
-            Paragraph::new(title).fg(Color::Yellow).bold(),
+            Paragraph::new(line.as_str()).style(style),
             Rect::new(area.x, y, area.width, 1),
         );
-        y += 1;
-
-        for row in &group.rows {
-            if y > area.y + area.height {
-                break;
-            }
-            if *scroll > 0 {
-                *scroll -= 1;
-                continue;
-            }
-            let line = format!("  {}: {}", row.key, row.value);
-            frame.render_widget(
-                Paragraph::new(line),
-                Rect::new(area.x + 1, y, area.width - 2, 1),
-            );
-            y += 1;
-        }
-        y += 1;
     }
 }

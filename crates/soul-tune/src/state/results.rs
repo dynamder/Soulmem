@@ -1,4 +1,4 @@
-use ratatui::crossterm::event::{KeyCode, KeyEvent, MouseEvent, MouseEventKind};
+use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MouseEvent, MouseEventKind};
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::prelude::Widget;
 use ratatui::style::{Color, Style, Stylize};
@@ -8,7 +8,10 @@ use ratatui::widgets::{Axis, Block, Chart, Dataset, GraphType, Paragraph, Tabs, 
 use ratatui::Frame;
 
 use crate::base::{TestReport, Transition};
+use crate::component::{Component, ComponentEvent};
 use crate::eval::retrieve_suite::RetrieveCaseData;
+use crate::tui::components::expandable_list::ExpandableList;
+use crate::tui::components::scroll_container::ScrollContainer;
 use crate::tui::components::status_bar;
 use soul_mem_core::memory_note::MemoryId;
 use soul_mem_query::query::retrieve::MemoryRetrieveQueryVariant;
@@ -22,18 +25,14 @@ pub enum ResultTab {
 pub struct ResultsState {
     pub report: TestReport,
     pub active_tab: ResultTab,
-    pub kv_scroll: usize,
+    pub kv_scroll: ScrollContainer,
     pub metric_group_idx: usize,
-    #[allow(dead_code)]
-    pub chart_scroll: usize,
     pub log_filter: String,
-    #[allow(dead_code)]
-    pub log_search: String,
     pub detail_selected: Option<usize>,
-    pub drill_scroll: usize,
-    pub detail_cursor: usize,
-    pub compare_cursor: usize,
-    pub expanded_row: Option<usize>,
+    pub drill_scroll: ScrollContainer,
+    pub detail_scroll: ScrollContainer,
+    pub compare_scroll: ScrollContainer,
+    pub expanded: ExpandableList,
     case_details: Vec<RetrieveCaseData>,
 }
 
@@ -48,16 +47,14 @@ impl ResultsState {
         Self {
             report,
             active_tab: ResultTab::Summary,
-            kv_scroll: 0,
+            kv_scroll: ScrollContainer::new(),
             metric_group_idx: 0,
-            chart_scroll: 0,
             log_filter: "ALL".into(),
-            log_search: String::new(),
             detail_selected: None,
-            drill_scroll: 0,
-            detail_cursor: 0,
-            compare_cursor: 0,
-            expanded_row: None,
+            drill_scroll: ScrollContainer::new(),
+            detail_scroll: ScrollContainer::new(),
+            compare_scroll: ScrollContainer::new(),
+            expanded: ExpandableList::new(0),
             case_details,
         }
     }
@@ -269,25 +266,31 @@ impl ResultsState {
 
         // Rows with cursor highlight, auto-scroll to keep cursor visible
         let header_offset = 1;
-        let visible = (log_inner.height as usize).saturating_sub(header_offset);
-        let scroll = if self.detail_cursor >= visible {
-            self.detail_cursor - visible + 1
-        } else {
-            0
-        };
+        let _visible = (log_inner.height as usize).saturating_sub(header_offset);
+        let (content_rect, bar_rect) = ScrollContainer::split_area(Rect::new(
+            log_inner.x,
+            log_inner.y + 1,
+            log_inner.width,
+            log_inner.height.saturating_sub(1),
+        ));
+        let offset = ScrollContainer::offset(
+            content_rect.height,
+            self.report.suite_report.detail_rows.len(),
+            self.detail_scroll.cursor,
+        );
         for (i, row) in self
             .report
             .suite_report
             .detail_rows
             .iter()
             .enumerate()
-            .skip(scroll)
+            .skip(offset)
         {
-            let y = log_inner.y + 1u16 + (i - scroll) as u16;
+            let y = log_inner.y + 1u16 + (i - offset) as u16;
             if y >= log_inner.y + log_inner.height {
                 break;
             }
-            let is_active = i == self.detail_cursor;
+            let is_active = i == self.detail_scroll.cursor;
             let (color, bg) = if is_active {
                 (Color::Black, Color::Cyan)
             } else if row.has_error {
@@ -297,9 +300,16 @@ impl ResultsState {
             };
             frame.render_widget(
                 Paragraph::new(row.text.as_str()).fg(color).bg(bg),
-                Rect::new(log_inner.x, y, log_inner.width, 1),
+                Rect::new(content_rect.x, y, content_rect.width, 1),
             );
         }
+        ScrollContainer::render_scrollbar(
+            frame,
+            bar_rect,
+            self.report.suite_report.detail_rows.len(),
+            content_rect.height,
+            offset,
+        );
     }
 
     fn render_detail_drilldown(&self, frame: &mut Frame, area: Rect, index: usize) {
@@ -418,9 +428,11 @@ impl ResultsState {
             .min(10)
             .max(data.expected_combined_ranking.len().min(5));
 
+        // We can't mutate self here (render takes &self), so we use whatever size is set.
+        // resize happens in handle_key when opening drill-down or switching case.
         for pos in 0..n_max {
-            let is_cursor = pos == self.compare_cursor;
-            let is_expanded = self.expanded_row == Some(pos);
+            let is_cursor = pos == self.compare_scroll.cursor;
+            let is_expanded = self.expanded.is_expanded(pos);
             let mut spans = Vec::new();
             spans.push(Span::styled(
                 format!(" {}  #{}", if is_cursor { "▶" } else { " " }, pos + 1),
@@ -497,20 +509,30 @@ impl ResultsState {
         let block = Block::bordered().title(" 用例详情 ").fg(Color::Cyan);
         let inner = block.inner(layout[0]);
         block.render(layout[0], frame.buffer_mut());
+        let (content_rect, bar_rect) = ScrollContainer::split_area(inner);
+        let line_count = lines.len();
         frame.render_widget(
             Paragraph::new(Text::from(lines))
                 .wrap(Wrap { trim: false })
-                .scroll((self.drill_scroll as u16, 0)),
-            inner,
+                .scroll((self.drill_scroll.offset as u16, 0)),
+            content_rect,
+        );
+        ScrollContainer::render_scrollbar(
+            frame,
+            bar_rect,
+            line_count,
+            content_rect.height,
+            self.drill_scroll.offset,
         );
     }
 
-    pub fn handle_key(&mut self, key: KeyEvent) -> Transition {
+    fn handle_key(&mut self, key: KeyEvent) -> Transition {
         match key.code {
             KeyCode::Char('q') | KeyCode::Char('Q') => {
                 if self.detail_selected.is_some() {
                     self.detail_selected = None;
-                    self.drill_scroll = 0;
+                    self.drill_scroll.reset();
+                    self.expanded.clear_all();
                     Transition::None
                 } else {
                     Transition::ToMain
@@ -518,7 +540,8 @@ impl ResultsState {
             }
             KeyCode::Tab => {
                 self.detail_selected = None;
-                self.drill_scroll = 0;
+                self.drill_scroll.reset();
+                self.expanded.clear_all();
                 self.active_tab = match self.active_tab {
                     ResultTab::Summary => ResultTab::Detail,
                     ResultTab::Detail => ResultTab::Summary,
@@ -528,20 +551,26 @@ impl ResultsState {
             KeyCode::Enter => {
                 if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
                     // In drill-down: toggle expand on cursor row
-                    let row = self.compare_cursor;
-                    if self.expanded_row == Some(row) {
-                        self.expanded_row = None;
-                    } else {
-                        self.expanded_row = Some(row);
-                    }
+                    let row = self.compare_scroll.cursor;
+                    self.expanded.toggle(row);
                     Transition::None
                 } else if self.active_tab == ResultTab::Detail && self.detail_selected.is_none() {
                     // In list: open drill-down
-                    if self.detail_cursor < self.case_details.len() {
-                        self.detail_selected = Some(self.detail_cursor);
-                        self.drill_scroll = 0;
-                        self.compare_cursor = 0;
-                        self.expanded_row = None;
+                    if self.detail_scroll.cursor < self.case_details.len() {
+                        self.detail_selected = Some(self.detail_scroll.cursor);
+                        self.drill_scroll.reset();
+                        self.compare_scroll.reset();
+                        self.expanded.clear_all();
+                        if let Some(detail) = self.detail_selected {
+                            if let Some(data) = self.case_details.get(detail) {
+                                let n_max = data
+                                    .combined_retrieved_ids
+                                    .len()
+                                    .min(10)
+                                    .max(data.expected_combined_ranking.len().min(5));
+                                self.expanded.resize(n_max);
+                            }
+                        }
                     }
                     Transition::None
                 } else {
@@ -553,10 +582,10 @@ impl ResultsState {
             {
                 // Jump to next failed case
                 let rows = &self.report.suite_report.detail_rows;
-                let start = self.detail_cursor + 1;
+                let start = self.detail_scroll.cursor + 1;
                 let found = (start..rows.len()).find(|&i| rows[i].has_error);
                 if let Some(idx) = found {
-                    self.detail_cursor = idx;
+                    self.detail_scroll.move_to(idx);
                 }
                 Transition::None
             }
@@ -565,10 +594,18 @@ impl ResultsState {
             {
                 // Jump to previous failed case
                 let rows = &self.report.suite_report.detail_rows;
-                let found = (0..self.detail_cursor).rev().find(|&i| rows[i].has_error);
+                let found = (0..self.detail_scroll.cursor)
+                    .rev()
+                    .find(|&i| rows[i].has_error);
                 if let Some(idx) = found {
-                    self.detail_cursor = idx;
+                    self.detail_scroll.move_to(idx);
                 }
+                Transition::None
+            }
+            KeyCode::Char('x') | KeyCode::Char('X')
+                if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() =>
+            {
+                self.expanded.clear_all();
                 Transition::None
             }
             KeyCode::Left if self.active_tab == ResultTab::Summary && self.metric_group_idx > 0 => {
@@ -580,23 +617,23 @@ impl ResultsState {
                 Transition::None
             }
             KeyCode::Up => {
+                let shift = key.modifiers.contains(KeyModifiers::SHIFT);
                 if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
-                    // Drill-down: move compare cursor only
-                    if self.compare_cursor > 0 {
-                        self.compare_cursor -= 1;
+                    // Drill-down: move compare cursor
+                    self.compare_scroll.move_up();
+                    if shift {
+                        self.expanded.expand(self.compare_scroll.cursor);
                     }
                 } else {
                     match self.active_tab {
-                        ResultTab::Summary if self.kv_scroll > 0 => self.kv_scroll -= 1,
-                        ResultTab::Detail if self.detail_cursor > 0 => {
-                            self.detail_cursor -= 1;
-                        }
-                        _ => {}
+                        ResultTab::Summary => self.kv_scroll.scroll_up(),
+                        ResultTab::Detail => self.detail_scroll.move_up(),
                     }
                 }
                 Transition::None
             }
             KeyCode::Down => {
+                let shift = key.modifiers.contains(KeyModifiers::SHIFT);
                 if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
                     // Drill-down: move compare cursor down
                     let data = &self.case_details[self.detail_selected.unwrap()];
@@ -605,17 +642,18 @@ impl ResultsState {
                         .len()
                         .min(10)
                         .max(data.expected_combined_ranking.len().min(5));
-                    if self.compare_cursor < n_max.saturating_sub(1) {
-                        self.compare_cursor += 1;
+                    if n_max > 0 {
+                        self.compare_scroll.move_down(n_max);
+                        if shift {
+                            self.expanded.expand(self.compare_scroll.cursor);
+                        }
                     }
                 } else {
                     match self.active_tab {
-                        ResultTab::Summary => self.kv_scroll += 1,
+                        ResultTab::Summary => self.kv_scroll.scroll_down(),
                         ResultTab::Detail => {
-                            let max = self.report.suite_report.detail_rows.len().saturating_sub(1);
-                            if self.detail_cursor < max {
-                                self.detail_cursor += 1;
-                            }
+                            let max = self.report.suite_report.detail_rows.len();
+                            self.detail_scroll.move_down(max);
                         }
                     }
                 }
@@ -625,27 +663,41 @@ impl ResultsState {
         }
     }
 
-    pub fn handle_mouse(&mut self, mouse: MouseEvent) {
+    fn handle_mouse(&mut self, mouse: MouseEvent) {
         if self.detail_selected.is_some() {
             match mouse.kind {
-                MouseEventKind::ScrollDown => self.drill_scroll += 1,
-                MouseEventKind::ScrollUp if self.drill_scroll > 0 => self.drill_scroll -= 1,
+                MouseEventKind::ScrollDown => self.drill_scroll.scroll_down(),
+                MouseEventKind::ScrollUp => self.drill_scroll.scroll_up(),
                 _ => {}
             }
         } else {
             match mouse.kind {
                 MouseEventKind::ScrollDown => {
-                    let max = self.report.suite_report.detail_rows.len().saturating_sub(1);
-                    if self.detail_cursor < max {
-                        self.detail_cursor += 1;
-                    }
+                    let max = self.report.suite_report.detail_rows.len();
+                    self.detail_scroll.move_down(max);
                 }
-                MouseEventKind::ScrollUp if self.detail_cursor > 0 => {
-                    self.detail_cursor -= 1;
+                MouseEventKind::ScrollUp => {
+                    self.detail_scroll.move_up();
                 }
                 _ => {}
             }
         }
+    }
+}
+
+impl Component for ResultsState {
+    fn handle_event(&mut self, event: ComponentEvent) -> Transition {
+        match event {
+            ComponentEvent::Key(key) => self.handle_key(key),
+            ComponentEvent::Mouse(mouse) => {
+                self.handle_mouse(mouse);
+                Transition::None
+            }
+            ComponentEvent::Tick => Transition::None,
+        }
+    }
+    fn view(&self, frame: &mut Frame) {
+        self.render(frame);
     }
 }
 

@@ -10,7 +10,10 @@ use ratatui::widgets::{Block, Paragraph, Wrap};
 use ratatui::Frame;
 
 use crate::base::Transition;
+use crate::component::{Component, ComponentEvent};
 use crate::tui::components::list;
+use crate::tui::components::scroll::ScrollState;
+use crate::tui::components::scroll_container::ScrollContainer;
 use crate::tui::components::status_bar;
 
 #[derive(Clone, PartialEq)]
@@ -46,10 +49,9 @@ pub struct InspectState {
     pub file_type: InspectFileType,
     pub entries: Vec<InspectEntry>,
     pub stats: Option<Vec<String>>,
-    pub selected: usize,
-    pub scroll: usize,
+    pub list_scroll: ScrollContainer,
     pub detail: Option<DetailState>,
-    pub detail_scroll: usize,
+    pub detail_scroll: ScrollContainer,
 }
 
 impl InspectState {
@@ -93,10 +95,9 @@ impl InspectState {
             file_type,
             entries,
             stats,
-            selected: 0,
-            scroll: 0,
+            list_scroll: ScrollContainer::new(),
             detail: None,
-            detail_scroll: 0,
+            detail_scroll: ScrollContainer::new(),
         }
     }
 
@@ -193,13 +194,21 @@ impl InspectState {
         block.render(area, frame.buffer_mut());
 
         let items: Vec<String> = self.entries.iter().map(|e| e.summary.clone()).collect();
-        let visible_height = inner.height as usize;
-        let adj_scroll = if visible_height > 0 && self.selected >= visible_height {
-            self.selected - (visible_height - 1)
-        } else {
-            0
+        let (content_rect, bar_rect) = ScrollContainer::split_area(inner);
+        let offset =
+            ScrollContainer::offset(content_rect.height, items.len(), self.list_scroll.cursor);
+        let s = ScrollState {
+            cursor: self.list_scroll.cursor,
+            offset,
         };
-        list::render_list(frame, inner, &items, self.selected, adj_scroll);
+        list::render_simple_list(frame, content_rect, &items, &s);
+        ScrollContainer::render_scrollbar(
+            frame,
+            bar_rect,
+            items.len(),
+            content_rect.height,
+            offset,
+        );
     }
 
     fn render_detail_panel(&self, frame: &mut Frame, area: Rect) {
@@ -211,7 +220,7 @@ impl InspectState {
             return;
         }
 
-        let entry = &self.entries[self.selected];
+        let entry = &self.entries[self.list_scroll.cursor];
 
         if self.detail.is_some() {
             self.render_full_detail(frame, area, entry);
@@ -325,11 +334,20 @@ impl InspectState {
             )));
         }
 
+        let (content_rect, bar_rect) = ScrollContainer::split_area(inner);
+        let line_count = lines.len();
         frame.render_widget(
             Paragraph::new(Text::from(lines))
                 .wrap(Wrap { trim: false })
-                .scroll((self.detail_scroll as u16, 0)),
-            inner,
+                .scroll((self.detail_scroll.offset as u16, 0)),
+            content_rect,
+        );
+        ScrollContainer::render_scrollbar(
+            frame,
+            bar_rect,
+            line_count,
+            content_rect.height,
+            self.detail_scroll.offset,
         );
     }
 
@@ -348,7 +366,7 @@ impl InspectState {
                         self.pop_nav();
                     } else {
                         self.detail = None;
-                        self.detail_scroll = 0;
+                        self.detail_scroll.reset();
                     }
                 } else {
                     return Transition::ToMain;
@@ -366,7 +384,7 @@ impl InspectState {
                         self.pop_nav();
                     } else {
                         self.detail = None;
-                        self.detail_scroll = 0;
+                        self.detail_scroll.reset();
                     }
                 }
                 Transition::None
@@ -374,7 +392,7 @@ impl InspectState {
             KeyCode::Up => {
                 if ctrl && self.detail.is_some() {
                     if let Some(ref mut detail) = self.detail {
-                        let entry = &self.entries[self.selected];
+                        let entry = &self.entries[self.list_scroll.cursor];
                         if entry.links.is_empty() {
                             return Transition::None;
                         }
@@ -387,23 +405,20 @@ impl InspectState {
                             }
                         }
                     }
-                } else if self.selected > 0 {
-                    self.selected -= 1;
-                    if self.selected < self.scroll && self.scroll > 0 {
-                        self.scroll -= 1;
-                    }
+                } else if self.list_scroll.cursor > 0 {
+                    self.list_scroll.move_up();
                     let idx = self.first_outgoing_idx();
                     if let Some(ref mut detail) = self.detail {
                         detail.link_cursor = Some(idx);
                     }
-                    self.detail_scroll = 0;
+                    self.detail_scroll.reset();
                 }
                 Transition::None
             }
             KeyCode::Down => {
                 if ctrl && self.detail.is_some() {
                     if let Some(ref mut detail) = self.detail {
-                        let entry = &self.entries[self.selected];
+                        let entry = &self.entries[self.list_scroll.cursor];
                         if entry.links.is_empty() {
                             return Transition::None;
                         }
@@ -417,24 +432,20 @@ impl InspectState {
                             _ => {}
                         }
                     }
-                } else if self.selected + 1 < self.entries.len() {
-                    self.selected += 1;
-                    let visible = 10usize;
-                    if self.selected >= self.scroll + visible {
-                        self.scroll += 1;
-                    }
+                } else if self.list_scroll.cursor + 1 < self.entries.len() {
+                    self.list_scroll.move_down(self.entries.len());
                     let idx = self.first_outgoing_idx();
                     if let Some(ref mut detail) = self.detail {
                         detail.link_cursor = Some(idx);
                     }
-                    self.detail_scroll = 0;
+                    self.detail_scroll.reset();
                 }
                 Transition::None
             }
             KeyCode::Enter => {
                 if self.detail.is_none() {
                     // Open detail mode, cursor starts at first outgoing link
-                    let has_links = !self.entries[self.selected].links.is_empty();
+                    let has_links = !self.entries[self.list_scroll.cursor].links.is_empty();
                     self.detail = Some(DetailState {
                         link_cursor: if has_links {
                             Some(self.first_outgoing_idx())
@@ -443,19 +454,20 @@ impl InspectState {
                         },
                         nav_stack: Vec::new(),
                     });
-                    self.detail_scroll = 0;
+                    self.detail_scroll.reset();
                 } else if let Some(ref mut detail) = self.detail {
                     if let Some(cursor) = detail.link_cursor {
-                        let entry = &self.entries[self.selected];
+                        let entry = &self.entries[self.list_scroll.cursor];
                         if cursor < entry.links.len() {
                             let target = entry.links[cursor].target_idx;
-                            if target < self.entries.len() && target != self.selected {
-                                detail.nav_stack.push((self.selected, cursor));
-                                self.selected = target;
+                            if target < self.entries.len() && target != self.list_scroll.cursor {
+                                let prev_cursor = self.list_scroll.cursor;
+                                detail.nav_stack.push((prev_cursor, cursor));
+                                self.list_scroll.move_to(target);
                                 if let Some(ref mut d) = self.detail {
                                     d.link_cursor = None;
                                 }
-                                self.detail_scroll = 0;
+                                self.detail_scroll.reset();
                             }
                         }
                     }
@@ -481,7 +493,7 @@ impl InspectState {
     }
 
     fn first_outgoing_idx(&self) -> usize {
-        if let Some(entry) = self.entries.get(self.selected) {
+        if let Some(entry) = self.entries.get(self.list_scroll.cursor) {
             entry.links.iter().position(|l| l.is_outgoing).unwrap_or(0)
         } else {
             0
@@ -491,9 +503,9 @@ impl InspectState {
     fn pop_nav(&mut self) {
         if let Some(ref mut detail) = self.detail {
             if let Some((prev_sel, prev_cursor)) = detail.nav_stack.pop() {
-                self.selected = prev_sel;
+                self.list_scroll.move_to(prev_sel);
                 detail.link_cursor = Some(prev_cursor);
-                self.detail_scroll = 0;
+                self.detail_scroll.reset();
             }
         }
     }
@@ -1056,4 +1068,16 @@ fn format_variant_preview(val: &serde_json::Value, indent: usize) -> Vec<String>
         }
     }
     out
+}
+
+impl Component for InspectState {
+    fn handle_event(&mut self, event: ComponentEvent) -> Transition {
+        match event {
+            ComponentEvent::Key(key) => self.handle_key(key),
+            _ => Transition::None,
+        }
+    }
+    fn view(&self, frame: &mut Frame) {
+        self.render(frame);
+    }
 }

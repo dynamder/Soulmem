@@ -1,10 +1,11 @@
-use ratatui::layout::Rect;
+use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::prelude::Widget;
-use ratatui::style::{Color, Style};
+use ratatui::style::{Color, Style, Stylize};
 use ratatui::widgets::{Block, Paragraph};
 use ratatui::Frame;
 use ratatui_textarea::TextArea;
 
+use super::scroll::ScrollState;
 use crate::state::params::ParamRow;
 
 pub fn render_editable_table(
@@ -14,59 +15,81 @@ pub fn render_editable_table(
     textareas: &[TextArea],
     selected: usize,
     editing: Option<usize>,
-    _scroll: usize,
+    scroll: &ScrollState,
 ) {
     let block = Block::bordered();
     let inner = block.inner(area);
     block.render(area, frame.buffer_mut());
 
-    // Header
-    let header = "  参数名              当前值              描述";
-    let header_style = Style::default().fg(Color::Cyan).bold();
-    frame.render_widget(
-        Paragraph::new(header).style(header_style),
-        Rect::new(inner.x, inner.y, inner.width, 1),
-    );
+    let header_hints: [Constraint; 6] = [
+        Constraint::Length(1),
+        Constraint::Length(20),
+        Constraint::Length(1),
+        Constraint::Length(18),
+        Constraint::Length(1),
+        Constraint::Fill(1),
+    ];
 
-    let line_style = Style::default().fg(Color::DarkGray);
-    frame.render_widget(
-        Paragraph::new("  ").style(line_style),
-        Rect::new(inner.x, inner.y + 1, inner.width, 1),
-    );
+    // Header row
+    let h_row = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints(header_hints)
+        .split(Rect::new(inner.x, inner.y, inner.width, 1));
+    frame.render_widget(Paragraph::new("参数名").bold().fg(Color::Cyan), h_row[1]);
+    frame.render_widget(Paragraph::new("当前值").bold().fg(Color::Cyan), h_row[3]);
+    frame.render_widget(Paragraph::new("描述").bold().fg(Color::Cyan), h_row[5]);
 
-    for (i, row) in rows.iter().enumerate() {
-        let y = inner.y + 2 + i as u16;
+    // Data rows
+    let visible = inner.height.saturating_sub(1) as usize;
+    let end = (scroll.offset + visible).min(rows.len());
+    for (disp_i, actual_idx) in (scroll.offset..end).enumerate() {
+        let row = &rows[actual_idx];
+        let y = inner.y + 1 + disp_i as u16;
         if y >= inner.y + inner.height {
             break;
         }
 
-        let is_selected = i == selected;
-        let is_editing = editing == Some(i);
-
-        let prefix = if is_selected { "▶ " } else { "  " };
-        let value_display = if is_editing { "[EDITING]" } else { &row.value };
-
-        let line = format!(
-            "{}{:<20} {:<18} {}",
-            prefix, row.name, value_display, row.description
-        );
-        let style = if is_selected {
+        let is_selected = actual_idx == selected;
+        let is_editing = editing == Some(actual_idx);
+        let bg_style = if is_selected {
             Style::default().bg(Color::DarkGray)
         } else {
             Style::default()
         };
 
-        frame.render_widget(
-            Paragraph::new(line).style(style),
-            Rect::new(inner.x, y, inner.width, 1),
-        );
+        let row_rect = Rect::new(inner.x, y, inner.width, 1);
+        let cols = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(header_hints)
+            .split(row_rect);
 
+        // Cursor marker
+        frame.render_widget(
+            Paragraph::new(if is_selected { "▶" } else { "" }).style(bg_style),
+            cols[0],
+        );
+        // Name
+        frame.render_widget(Paragraph::new(row.name.as_str()).style(bg_style), cols[1]);
+        // Spacer
+        frame.render_widget(Paragraph::new(" ").style(bg_style), cols[2]);
+        // Value (or editing indicator)
         if is_editing {
-            if let Some(ta) = textareas.get(i) {
-                let edit_area =
-                    Rect::new(inner.x + 23, y, inner.width.saturating_sub(24).min(18), 1);
-                frame.render_widget(ta, edit_area);
+            frame.render_widget(
+                Paragraph::new("[EDITING]").style(bg_style.fg(Color::Yellow)),
+                cols[3],
+            );
+            if let Some(ta) = textareas.get(actual_idx) {
+                frame.render_widget(ta, cols[3]);
             }
+        } else {
+            frame.render_widget(Paragraph::new(row.value.as_str()).style(bg_style), cols[3]);
         }
+        // Spacer
+        frame.render_widget(Paragraph::new(" ").style(bg_style), cols[4]);
+        // Description
+        frame.render_widget(
+            Paragraph::new(row.description.as_str()).style(bg_style),
+            cols[5],
+        );
     }
 }

@@ -1,35 +1,59 @@
-use ratatui::layout::Rect;
+use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Style};
 use ratatui::widgets::Paragraph;
 use ratatui::Frame;
+use std::fmt::Display;
 
-pub fn render_list(
+use super::scroll::ScrollState;
+
+/// Render a scrollable list of items with cursor highlight.
+/// Uses ratatui Constraint system for layout.
+pub fn render_list<T: Display>(
     frame: &mut Frame,
     area: Rect,
-    items: &[String],
-    selected: usize,
-    scroll: usize,
+    items: &[T],
+    scroll: &ScrollState,
+    highlight_prefix: &str,
+    highlight_style: Style,
 ) {
-    let visible_items: Vec<&String> = items.iter().skip(scroll).collect();
-    for (i, item) in visible_items.iter().enumerate() {
-        let y = area.y + i as u16;
-        if y >= area.y + area.height {
+    let n = items.len().min(area.height as usize);
+    let line_rects = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![Constraint::Length(1); n])
+        .split(Rect::new(area.x, area.y, area.width, n as u16));
+
+    for (i, line_rect) in line_rects.iter().enumerate() {
+        let actual_idx = scroll.offset + i;
+        if actual_idx >= items.len() {
             break;
         }
-        let actual_idx = scroll + i;
-        let line = if actual_idx == selected {
-            format!("▸ {}", item)
-        } else {
-            format!("  {}", item)
-        };
-        let style = if actual_idx == selected {
-            Style::default().fg(Color::Yellow).bg(Color::DarkGray)
+        let is_cursor = actual_idx == scroll.cursor;
+        let prefix = if is_cursor { highlight_prefix } else { "  " };
+        let style = if is_cursor {
+            highlight_style
         } else {
             Style::default()
         };
         frame.render_widget(
-            Paragraph::new(line).style(style),
-            Rect::new(area.x, y, area.width, 1),
+            Paragraph::new(format!("{}{}", prefix, items[actual_idx])).style(style),
+            *line_rect,
         );
     }
+}
+
+/// Convenience: render a scrollable list with default styling (yellow highlight, "▸ " prefix).
+pub fn render_simple_list<T: Display>(
+    frame: &mut Frame,
+    area: Rect,
+    items: &[T],
+    scroll: &ScrollState,
+) {
+    render_list(
+        frame,
+        area,
+        items,
+        scroll,
+        "▸ ",
+        Style::default().fg(Color::Yellow).bg(Color::DarkGray),
+    );
 }

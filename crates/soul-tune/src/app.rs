@@ -1,11 +1,12 @@
 use std::time::Duration;
 
-use ratatui::crossterm::event::{self, Event, KeyEvent, KeyEventKind, MouseEvent, MouseEventKind};
+use ratatui::crossterm::event::{self, Event, KeyEvent, KeyEventKind, MouseEvent};
 use ratatui::crossterm::execute;
 use ratatui::{DefaultTerminal, Frame};
 
 use crate::base::{AlgoType, RetrieveMode, Transition};
 use crate::cmd::CmdRegistry;
+use crate::component::{Component, ComponentEvent};
 use crate::metric::MetricRegistry;
 use crate::reporter::ReporterRegistry;
 use crate::state::batch_mode::BatchModeState;
@@ -19,7 +20,7 @@ use crate::state::results::ResultsState;
 use crate::state::running::RunningState;
 
 pub enum AppState {
-    Main,
+    Main(MainState),
     CommandMode(CommandState),
     SelectDataset(DatasetState),
     ConfigParams(ParamState),
@@ -105,7 +106,7 @@ impl App {
 
         Ok(Self {
             terminal,
-            app_state: AppState::Main,
+            app_state: AppState::Main(MainState),
             saved_state: None,
             cmd_registry,
             metric_registry: MetricRegistry::new(),
@@ -144,30 +145,26 @@ impl App {
     }
 
     fn tick_running(&mut self) {
-        if let AppState::TestRunning(state) = &mut self.app_state {
-            if let Some(transition) = state.tick() {
-                self.apply(transition);
-            }
-        }
-        if let AppState::BatchRunning(state) = &mut self.app_state {
-            if let Some(transition) = state.tick() {
-                self.apply(transition);
-            }
-        }
+        let t = match &mut self.app_state {
+            AppState::TestRunning(s) => s.handle_event(ComponentEvent::Tick),
+            AppState::BatchRunning(s) => s.handle_event(ComponentEvent::Tick),
+            _ => Transition::None,
+        };
+        self.apply(t);
     }
 
     fn render_state(frame: &mut Frame, state: &AppState) {
         match state {
-            AppState::Main => MainState::render(frame),
+            AppState::Main(s) => Component::view(s, frame),
             AppState::CommandMode(s) => s.render(frame),
-            AppState::SelectDataset(s) => s.render(frame),
-            AppState::SelectBatchDir(s) => s.render(frame),
-            AppState::ConfigParams(s) => s.render(frame),
-            AppState::TestRunning(s) => s.render(frame),
-            AppState::TestResults(s) => s.render(frame),
-            AppState::BatchModeSelect(s) => s.render(frame),
-            AppState::BatchRunning(s) => s.render(frame),
-            AppState::InspectData(s) => s.render(frame),
+            AppState::SelectDataset(s) => s.view(frame),
+            AppState::SelectBatchDir(s) => s.view(frame),
+            AppState::ConfigParams(s) => s.view(frame),
+            AppState::TestRunning(s) => s.view(frame),
+            AppState::TestResults(s) => s.view(frame),
+            AppState::BatchModeSelect(s) => s.view(frame),
+            AppState::BatchRunning(s) => s.view(frame),
+            AppState::InspectData(s) => s.view(frame),
         }
     }
 
@@ -175,25 +172,30 @@ impl App {
         if key.kind != KeyEventKind::Press {
             return false;
         }
-        let cmd_registry = &self.cmd_registry;
         let transition = match &mut self.app_state {
-            AppState::Main => MainState::handle_key(key),
-            AppState::CommandMode(s) => s.handle_key(key, cmd_registry),
-            AppState::SelectDataset(s) => s.handle_key(key),
-            AppState::SelectBatchDir(s) => s.handle_key(key),
-            AppState::ConfigParams(s) => s.handle_key(key),
-            AppState::TestRunning(s) => s.handle_key(key),
-            AppState::TestResults(s) => s.handle_key(key),
-            AppState::BatchModeSelect(s) => s.handle_key(key),
-            AppState::BatchRunning(s) => s.handle_key(key),
-            AppState::InspectData(s) => s.handle_key(key),
+            AppState::Main(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::TestResults(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::BatchModeSelect(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::CommandMode(s) => s.handle_key(key, &self.cmd_registry),
+            AppState::SelectDataset(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::SelectBatchDir(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::ConfigParams(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::TestRunning(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::BatchRunning(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::InspectData(s) => s.handle_event(ComponentEvent::Key(key)),
         };
         self.apply(transition)
     }
 
     fn handle_mouse(&mut self, mouse: MouseEvent) {
-        if let AppState::TestResults(state) = &mut self.app_state {
-            let _ = state.handle_mouse(mouse);
+        match &mut self.app_state {
+            AppState::TestResults(s) => {
+                s.handle_event(ComponentEvent::Mouse(mouse));
+            }
+            AppState::BatchRunning(s) => {
+                s.handle_event(ComponentEvent::Mouse(mouse));
+            }
+            _ => {}
         }
     }
 
@@ -204,7 +206,7 @@ impl App {
                 if let Some(saved) = self.saved_state.take() {
                     self.app_state = saved;
                 } else {
-                    self.app_state = AppState::Main;
+                    self.app_state = AppState::Main(MainState);
                 }
                 false
             }

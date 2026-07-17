@@ -8,7 +8,13 @@ use ratatui::widgets::{Block, Paragraph, Wrap};
 use ratatui::Frame;
 use ratatui_textarea::TextArea;
 
+use ratatui::crossterm::event::KeyModifiers;
+
 use crate::base::Transition;
+use crate::component::{Component, ComponentEvent};
+use crate::eval::loader::clear_embedding_cache;
+use crate::tui::components::scroll::ScrollState;
+use crate::tui::components::scroll_container::ScrollContainer;
 use crate::tui::components::{list, status_bar};
 
 pub(crate) enum Panel {
@@ -26,8 +32,7 @@ pub struct DatasetState {
     pub algo_type: crate::base::AlgoType,
     pub current_dir: PathBuf,
     pub entries: Vec<FileEntry>,
-    pub selected: usize,
-    pub scroll: usize,
+    pub list_scroll: ScrollContainer,
     #[allow(dead_code)]
     pub path_input: TextArea<'static>,
     pub active_panel: Panel,
@@ -81,8 +86,7 @@ impl DatasetState {
             algo_type,
             current_dir: cwd,
             entries: Vec::new(),
-            selected: 0,
-            scroll: 0,
+            list_scroll: ScrollContainer::new(),
             path_input: TextArea::default(),
             active_panel: Panel::FileList,
             preview_content: None,
@@ -164,14 +168,12 @@ impl DatasetState {
             files.sort_by(|a, b| b.is_dir.cmp(&a.is_dir).then(a.name.cmp(&b.name)));
             self.entries.extend(files);
         }
-        if self.selected >= self.entries.len() {
-            self.selected = self.entries.len().saturating_sub(1);
-        }
+        self.list_scroll.clamp_cursor(self.entries.len());
         self.update_preview();
     }
 
     fn update_preview(&mut self) {
-        if let Some(entry) = self.entries.get(self.selected) {
+        if let Some(entry) = self.entries.get(self.list_scroll.cursor) {
             if !entry.is_dir {
                 if let Ok(content) = std::fs::read_to_string(&entry.path) {
                     if let Ok(val) = serde_json::from_str::<serde_json::Value>(&content) {
@@ -270,6 +272,7 @@ impl DatasetState {
                 ("[↑↓]".into(), "选择".into()),
                 ("[Enter]".into(), "确认/进入".into()),
                 ("[I]".into(), "检视".into()),
+                ("[Shift+C]".into(), "清缓存".into()),
                 ("[Esc]".into(), "返回".into()),
             ]
         };
@@ -305,13 +308,21 @@ impl DatasetState {
             })
             .collect();
 
-        let visible_height = inner.height as usize;
-        let scroll = if visible_height > 0 && self.selected >= visible_height {
-            self.selected - (visible_height - 1)
-        } else {
-            0
+        let (content_rect, bar_rect) = ScrollContainer::split_area(inner);
+        let offset =
+            ScrollContainer::offset(content_rect.height, items.len(), self.list_scroll.cursor);
+        let s = ScrollState {
+            cursor: self.list_scroll.cursor,
+            offset,
         };
-        list::render_list(frame, inner, &items, self.selected, scroll);
+        list::render_simple_list(frame, content_rect, &items, &s);
+        ScrollContainer::render_scrollbar(
+            frame,
+            bar_rect,
+            items.len(),
+            content_rect.height,
+            offset,
+        );
     }
 
     fn render_preview(&self, frame: &mut Frame, area: Rect) {
@@ -332,36 +343,36 @@ impl DatasetState {
     pub fn handle_key(&mut self, key: KeyEvent) -> Transition {
         match key.code {
             KeyCode::Char('i') | KeyCode::Char('I') => {
-                if let Some(entry) = self.entries.get(self.selected) {
+                if let Some(entry) = self.entries.get(self.list_scroll.cursor) {
                     if !entry.is_dir {
                         return Transition::ToInspect(entry.path.clone());
                     }
                 }
                 Transition::None
             }
+            KeyCode::Char('C') if key.modifiers.contains(KeyModifiers::SHIFT) => {
+                clear_embedding_cache(&self.current_dir);
+                Transition::None
+            }
             KeyCode::Esc => Transition::ToMain,
             KeyCode::Up => {
-                if self.selected > 0 {
-                    self.selected -= 1;
-                    self.update_preview();
-                }
+                self.list_scroll.move_up();
+                self.update_preview();
                 Transition::None
             }
             KeyCode::Down => {
-                if self.selected + 1 < self.entries.len() {
-                    self.selected += 1;
-                    self.update_preview();
-                }
+                self.list_scroll.move_down(self.entries.len());
+                self.update_preview();
                 Transition::None
             }
             KeyCode::Enter => {
-                if let Some(entry) = self.entries.get(self.selected) {
+                let selected = self.list_scroll.cursor;
+                if let Some(entry) = self.entries.get(selected) {
                     if entry.is_dir && entry.name != ".." && self.batch_mode {
                         Transition::ToBatchModeSelect(entry.path.clone())
                     } else if entry.is_dir {
                         self.current_dir = entry.path.clone();
-                        self.selected = 0;
-                        self.scroll = 0;
+                        self.list_scroll.reset();
                         self.refresh_dir();
                         Transition::None
                     } else if self.inspect_mode {
@@ -382,5 +393,17 @@ impl DatasetState {
             }
             _ => Transition::None,
         }
+    }
+}
+
+impl Component for DatasetState {
+    fn handle_event(&mut self, event: ComponentEvent) -> Transition {
+        match event {
+            ComponentEvent::Key(key) => self.handle_key(key),
+            _ => Transition::None,
+        }
+    }
+    fn view(&self, frame: &mut Frame) {
+        self.render(frame);
     }
 }

@@ -11,6 +11,7 @@ use ratatui_textarea::TextArea;
 
 use crate::base::{AlgoType, RetrieveMode, Transition};
 use crate::cmd::CmdRegistry;
+use crate::tui::components::scroll::ScrollState;
 use crate::tui::components::{command_bar, status_bar};
 
 pub struct CommandState {
@@ -191,14 +192,14 @@ impl CommandState {
             }
         }
         let visible = (layout[1].height as usize).saturating_sub(1);
-        let selected_in_lines = self.selected_suggestion + 1; // +1 for "  匹配命令:" header
-        let scroll = if selected_in_lines > visible {
-            selected_in_lines - visible
-        } else {
-            0
-        };
+        let _selected_in_lines = self.selected_suggestion + 1;
+        let scroll_off = ScrollState::scroll_offset(
+            visible as u16,
+            suggestion_lines.len(),
+            self.selected_suggestion,
+        );
         frame.render_widget(
-            Paragraph::new(suggestion_lines.join("\n")).scroll((scroll as u16, 0)),
+            Paragraph::new(suggestion_lines.join("\n")).scroll((scroll_off as u16, 0)),
             layout[1],
         );
 
