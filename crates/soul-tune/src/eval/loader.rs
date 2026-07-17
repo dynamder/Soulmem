@@ -12,16 +12,107 @@ use soul_mem_query::embedding::note::EmbeddedMemoryNote;
 use soul_mem_query::embedding::Embeddable;
 use soul_mem_runtime::working_memory::WorkingMemory;
 
+/// Download model files from HF mirror and place them in the correct cache
+/// structure so hf-hub finds them locally and skips re-download.
+fn prefill_mirror_cache() -> bool {
+    use std::io::Write;
+    use std::process::Command;
+
+    let model_id = "BAAI/bge-small-zh-v1.5";
+    let files = ["config.json", "tokenizer.json", "model.safetensors"];
+
+    let cache_root = std::env::var("HF_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            let home = std::env::var("HOME")
+                .or_else(|_| std::env::var("USERPROFILE"))
+                .unwrap_or_else(|_| ".".into());
+            Path::new(&home).join(".cache").join("huggingface")
+        });
+    let hub_dir = cache_root.join("hub");
+    let model_tag = model_id.replace('/', "--");
+    let model_dir = hub_dir.join(format!("models--{}", model_tag));
+    let snapshots_dir = model_dir.join("snapshots");
+
+    // First, discover the commit hash via a HEAD request (extract from redirect Location)
+    let test_url = format!(
+        "https://hf-mirror.com/{}/resolve/main/config.json",
+        model_id
+    );
+    let commit_hash = match Command::new("curl").args(["-sI", &test_url]).output() {
+        Ok(out) => {
+            let raw = String::from_utf8_lossy(&out.stdout);
+            // Extract Location header: Location: /api/resolve-cache/.../{hash}/...
+            let loc = raw
+                .lines()
+                .find(|l| l.to_ascii_lowercase().starts_with("location:"))
+                .unwrap_or("")
+                .trim();
+            // Location: /api/resolve-cache/models/{org}/{model}/{commit_hash}/config.json?...
+            // split: [0]"" [1]"api" [2]"resolve-cache" [3]"models" [4]"{org}" [5]"{model}" [6]"{commit_hash} [7]"config.json?..."
+            let hash = loc.split('/').nth(6).unwrap_or("").to_string();
+            if hash.len() >= 10 {
+                hash
+            } else {
+                String::new()
+            }
+        }
+        Err(_) => return false,
+    };
+    if commit_hash.is_empty() || commit_hash.len() < 10 {
+        return false;
+    }
+
+    eprintln!("  镜像站 commit: {}", commit_hash);
+
+    // Write refs/main
+    let refs_dir = model_dir.join("refs");
+    let _ = std::fs::create_dir_all(&refs_dir);
+    if let Ok(mut f) = std::fs::File::create(refs_dir.join("main")) {
+        // hf-hub reads refs/main as raw string, no trailing whitespace
+        let _ = write!(f, "{}", commit_hash);
+    }
+
+    // Download each file into snapshots/{commit_hash}/
+    let snap_dir = snapshots_dir.join(&commit_hash);
+    let _ = std::fs::create_dir_all(&snap_dir);
+
+    let mut ok = true;
+    for file in &files {
+        let url = format!("https://hf-mirror.com/{}/resolve/main/{}", model_id, file);
+        let target = snap_dir.join(file);
+        if target.exists() {
+            eprintln!("  {} 已缓存，跳过", file);
+            continue;
+        }
+        let status = Command::new("curl")
+            .args(["-fsSL", "-o", target.to_str().unwrap(), &url])
+            .status();
+        match status {
+            Ok(s) if s.success() => eprintln!("  下载 {} 成功", file),
+            _ => {
+                eprintln!("  下载 {} 失败", file);
+                let _ = std::fs::remove_file(&target);
+                ok = false;
+            }
+        }
+    }
+    ok
+}
+
 pub fn get_bge_model() -> &'static BgeSmallZh {
     static MODEL: OnceLock<BgeSmallZh> = OnceLock::new();
     MODEL.get_or_init(|| match BgeSmallZh::default_cpu() {
         Ok(m) => m,
-        Err(_) => {
-            eprintln!("直连 huggingface.co 失败，切换到 HF 镜像站 hf-mirror.com...");
-            // SAFETY: OnceLock::get_or_init ensures this runs at most once,
-            // before any other threads exist to read HF_ENDPOINT.
-            unsafe { std::env::set_var("HF_ENDPOINT", "https://hf-mirror.com") };
-            BgeSmallZh::default_cpu().expect("HF 镜像站也初始化失败")
+        Err(e) => {
+            eprintln!("直连 huggingface.co 失败: {e}");
+            eprintln!("尝试从 HF 镜像站 hf-mirror.com 预下载模型文件...");
+            if prefill_mirror_cache() {
+                eprintln!("预下载完成，重试初始化...");
+                BgeSmallZh::default_cpu().expect("预下载后模型初始化仍然失败")
+            } else {
+                panic!("所有下载方式均失败")
+            }
         }
     })
 }
