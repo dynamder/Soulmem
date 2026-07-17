@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType};
@@ -14,33 +14,16 @@ use soul_mem_runtime::working_memory::WorkingMemory;
 
 pub fn get_bge_model() -> &'static BgeSmallZh {
     static MODEL: OnceLock<BgeSmallZh> = OnceLock::new();
-    MODEL.get_or_init(|| BgeSmallZh::default_cpu().expect("初始化 BGE 模型失败"))
-}
-
-fn get_cached_graph(
-    path: &Path,
-) -> Result<(WorkingMemory, HashMap<String, MemoryId>), Box<dyn std::error::Error>> {
-    static CACHE: OnceLock<
-        std::sync::Mutex<
-            HashMap<std::path::PathBuf, Result<(WorkingMemory, HashMap<String, MemoryId>), String>>,
-        >,
-    > = OnceLock::new();
-    let cache = CACHE.get_or_init(|| std::sync::Mutex::new(HashMap::new()));
-    let key = path.to_path_buf();
-    if let Some(entry) = cache.lock().unwrap().get(&key) {
-        return match entry {
-            Ok((wm, id_map)) => {
-                // Return clones since WorkingMemory uses Arc internally
-                // We need to reconstruct
-                // Actually this won't work well with WorkingMemory's internal Arc...
-                // Let me just return an error for the cache approach for now
-                Err("cache miss - working memory".into())
-            }
-            Err(e) => Err(e.clone().into()),
-        };
-    }
-    // Let me just not cache for now and focus on model caching
-    Err("cache miss".into())
+    MODEL.get_or_init(|| match BgeSmallZh::default_cpu() {
+        Ok(m) => m,
+        Err(_) => {
+            eprintln!("直连 huggingface.co 失败，切换到 HF 镜像站 hf-mirror.com...");
+            // SAFETY: OnceLock::get_or_init ensures this runs at most once,
+            // before any other threads exist to read HF_ENDPOINT.
+            unsafe { std::env::set_var("HF_ENDPOINT", "https://hf-mirror.com") };
+            BgeSmallZh::default_cpu().expect("HF 镜像站也初始化失败")
+        }
+    })
 }
 
 /// Direct-deserialization types (matches core types exactly).
@@ -196,6 +179,84 @@ pub fn load_graph(
     });
 
     Ok((wm, id_map))
+}
+
+#[derive(Serialize, Deserialize)]
+struct EmbeddingCache {
+    id_map: HashMap<String, MemoryId>,
+    notes: Vec<EmbeddedMemoryNote>,
+}
+
+fn cache_path(graph_path: &Path) -> PathBuf {
+    let mut p = graph_path.to_path_buf();
+    let ext = p
+        .extension()
+        .map(|e| format!("{}.embcache", e.to_string_lossy()))
+        .unwrap_or_else(|| "embcache".into());
+    p.set_extension(ext);
+    p
+}
+
+pub fn cached_load_graph(
+    path: &Path,
+) -> Result<(WorkingMemory, HashMap<String, MemoryId>), Box<dyn std::error::Error>> {
+    let cp = cache_path(path);
+    if cp.exists() {
+        let file = std::fs::File::open(&cp)?;
+        let reader = std::io::BufReader::new(file);
+        if let Ok(cache) = serde_json::from_reader::<_, EmbeddingCache>(reader) {
+            let wm = WorkingMemory::new(10);
+            let cluster = wm.memory_cluster();
+            cluster.write(|c| {
+                for note in cache.notes {
+                    c.add_single_node(note);
+                }
+            });
+            return Ok((wm, cache.id_map));
+        }
+    }
+
+    let (wm, id_map) = load_graph(path)?;
+
+    // Write cache
+    let notes: Vec<EmbeddedMemoryNote> = wm
+        .memory_cluster()
+        .read_or_compute(|c| c.graph().node_weights().map(|n| n.clone()).collect());
+
+    if let Ok(file) = std::fs::File::create(&cp) {
+        let writer = std::io::BufWriter::new(file);
+        let _ = serde_json::to_writer(
+            writer,
+            &EmbeddingCache {
+                id_map: id_map.clone(),
+                notes,
+            },
+        );
+    }
+
+    Ok((wm, id_map))
+}
+
+pub fn clear_embedding_cache(dir: &Path) -> usize {
+    let mut count = 0;
+    if !dir.is_dir() {
+        return count;
+    }
+    let mut stack = vec![dir.to_path_buf()];
+    while let Some(d) = stack.pop() {
+        if let Ok(entries) = std::fs::read_dir(&d) {
+            for entry in entries.flatten() {
+                let p = entry.path();
+                if p.is_dir() {
+                    stack.push(p);
+                } else if p.extension().map(|e| e == "embcache").unwrap_or(false) {
+                    let _ = std::fs::remove_file(&p);
+                    count += 1;
+                }
+            }
+        }
+    }
+    count
 }
 
 #[cfg(test)]
