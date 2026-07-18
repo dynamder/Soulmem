@@ -14,7 +14,7 @@ impl BgeSmallZh {
     pub fn default_cpu() -> Result<Self> {
         Ok(Self {
             splitter: TextSplitter::new(200), //should be 6000
-            model: BertEmbedder::new("BAAI/bge-small-zh-v1.5".to_string(), None, None)?,
+            model: BertEmbedder::new("BAAI/bge-small-zh-v1.5".to_string(), None, None, None)?,
         })
     }
 }
