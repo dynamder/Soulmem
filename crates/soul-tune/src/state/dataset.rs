@@ -144,7 +144,10 @@ impl DatasetState {
                     }
                     if let Ok(content) = std::fs::read_to_string(&path) {
                         if let Ok(val) = serde_json::from_str::<serde_json::Value>(&content) {
-                            return val.get("test_cases").is_some() || val.get("nodes").is_some();
+                            return val.get("test_cases").is_some()
+                                || val.get("nodes").is_some()
+                                || (val.get("graph_path").is_some()
+                                    && val.get("conversations").is_some());
                         }
                     }
                     false

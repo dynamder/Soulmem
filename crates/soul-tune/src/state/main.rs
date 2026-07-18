@@ -44,6 +44,7 @@ pub fn render(frame: &mut Frame) {
         "  快捷键:",
         "    [R]  Retrieve             检索测试（选择模式）",
         "    [D]  Diff/对比            比对 Embedding vs Full Pipeline",
+        "    [P]  PlayTest             角色扮演测试",
         "    [C]  Consolidate          巩固（未实现）",
         "    [F]  Forget               遗忘（未实现）",
         "    [I]  Inspect              直接检视测试数据",
@@ -57,10 +58,11 @@ pub fn render(frame: &mut Frame) {
 
     status_bar::render_status_bar(
         frame,
-        layout[2],
+        layout[3],
         &[
             ("[R]".into(), "检索".into()),
             ("[D]".into(), "对比".into()),
+            ("[P]".into(), "扮演".into()),
             ("[I]".into(), "检视".into()),
             ("[B]".into(), "批量".into()),
             ("[:]".into(), "命令".into()),
@@ -73,6 +75,7 @@ pub fn handle_key(key: KeyEvent) -> Transition {
     match key.code {
         KeyCode::Char('r') | KeyCode::Char('R') => Transition::ToRetrieveModeSelect,
         KeyCode::Char('d') | KeyCode::Char('D') => Transition::ToSelectAlgo,
+        KeyCode::Char('p') | KeyCode::Char('P') => Transition::ToPlayTestSelect,
         KeyCode::Char('f') | KeyCode::Char('F') => Transition::ToMain,
         KeyCode::Char('c') | KeyCode::Char('C') => Transition::ToMain,
         KeyCode::Char('i') | KeyCode::Char('I') => Transition::ToCommand("inspect ".into()),

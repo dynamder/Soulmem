@@ -3,5 +3,6 @@ pub mod compare;
 pub mod dataset;
 pub mod loader;
 pub mod metrics;
+pub mod playtest;
 pub mod retrieve_suite;
 pub mod runner;

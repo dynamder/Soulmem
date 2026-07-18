@@ -17,3 +17,6 @@ soul-mem-query = { path = "../soul-mem-query" }
 soul-mem-runtime = { path = "../soul-mem-runtime" }
 serde.workspace = true
 rayon = "1.10.0"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync"] }
+rand = "0.8"
+async-openai = { version = "0.32.4", features = ["chat-completion"] }

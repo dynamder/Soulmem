@@ -5,9 +5,10 @@ use std::time::Duration;
 use ratatui::crossterm;
 
 use crate::eval::compare::CompareReport;
+use crate::eval::playtest::PlayTestResult;
 use crate::eval::runner::SuiteReport;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RetrieveMode {
     Embedding,
     Association,
@@ -28,6 +29,7 @@ impl std::fmt::Display for RetrieveMode {
 pub enum AlgoType {
     Retrieve(RetrieveMode),
     Compare,
+    PlayTest,
     Consolidate,
     Forget,
 }
@@ -37,6 +39,7 @@ impl std::fmt::Display for AlgoType {
         match self {
             AlgoType::Retrieve(mode) => write!(f, "retrieve/{}", mode),
             AlgoType::Compare => write!(f, "compare"),
+            AlgoType::PlayTest => write!(f, "playtest"),
             AlgoType::Consolidate => write!(f, "consolidate"),
             AlgoType::Forget => write!(f, "forget"),
         }
@@ -72,6 +75,8 @@ pub enum Transition {
     ToTestRunning(TestConfig),
     ToTestResults(TestReport),
     ToCompareResults(CompareReport),
+    ToPlayTestSelect,
+    ToPlayTestJudge(PlayTestResult),
     ToSelectBatchDir,
     ToBatchModeSelect(PathBuf),
     ToBatchConfigParams(AlgoType, PathBuf),

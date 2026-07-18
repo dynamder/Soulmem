@@ -7,6 +7,7 @@ use ratatui::{DefaultTerminal, Frame};
 use crate::base::{AlgoType, RetrieveMode, Transition};
 use crate::cmd::CmdRegistry;
 use crate::component::{Component, ComponentEvent};
+use crate::eval::playtest::DialogueFile;
 use crate::metric::MetricRegistry;
 use crate::reporter::ReporterRegistry;
 use crate::state::batch_mode::BatchModeState;
@@ -17,6 +18,8 @@ use crate::state::dataset::DatasetState;
 use crate::state::inspect::InspectState;
 use crate::state::main::MainState;
 use crate::state::params::ParamState;
+use crate::state::playtest_judge::PlayTestJudgeState;
+use crate::state::playtest_run::PlayTestRunState;
 use crate::state::results::ResultsState;
 use crate::state::retrieve_mode::RetrieveModeSelectState;
 use crate::state::running::RunningState;
@@ -32,6 +35,9 @@ pub enum AppState {
     TestRunning(RunningState),
     TestResults(ResultsState),
     CompareResults(CompareResultsState),
+    PlayTestSelect(DatasetState),
+    PlayTestRun(PlayTestRunState),
+    PlayTestJudge(PlayTestJudgeState),
     SelectBatchDir(DatasetState),
     BatchModeSelect(BatchModeState),
     BatchRunning(BatchRunState),
@@ -155,6 +161,7 @@ impl App {
         let t = match &mut self.app_state {
             AppState::TestRunning(s) => s.handle_event(ComponentEvent::Tick),
             AppState::BatchRunning(s) => s.handle_event(ComponentEvent::Tick),
+            AppState::PlayTestRun(s) => s.handle_event(ComponentEvent::Tick),
             _ => Transition::None,
         };
         self.apply(t);
@@ -175,6 +182,9 @@ impl App {
             AppState::BatchModeSelect(s) => s.view(frame),
             AppState::BatchRunning(s) => s.view(frame),
             AppState::InspectData(s) => s.view(frame),
+            AppState::PlayTestSelect(s) => s.view(frame),
+            AppState::PlayTestRun(s) => s.view(frame),
+            AppState::PlayTestJudge(s) => s.view(frame),
         }
     }
 
@@ -196,6 +206,9 @@ impl App {
             AppState::TestRunning(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::BatchRunning(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::InspectData(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::PlayTestSelect(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::PlayTestRun(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::PlayTestJudge(s) => s.handle_event(ComponentEvent::Key(key)),
         };
         self.apply(transition)
     }
@@ -209,6 +222,9 @@ impl App {
                 s.handle_event(ComponentEvent::Mouse(mouse));
             }
             AppState::BatchRunning(s) => {
+                s.handle_event(ComponentEvent::Mouse(mouse));
+            }
+            AppState::PlayTestJudge(s) => {
                 s.handle_event(ComponentEvent::Mouse(mouse));
             }
             _ => {}
@@ -269,6 +285,14 @@ impl App {
                 self.app_state = AppState::BatchRunning(BatchRunState::new_compare(dir, params));
                 false
             }
+            Transition::ToPlayTestSelect => {
+                self.app_state = AppState::PlayTestSelect(DatasetState::new(AlgoType::PlayTest));
+                false
+            }
+            Transition::ToPlayTestJudge(result) => {
+                self.app_state = AppState::PlayTestJudge(PlayTestJudgeState::new(result));
+                false
+            }
             Transition::ToInspect(path) => {
                 let prev = std::mem::replace(
                     &mut self.app_state,
@@ -277,10 +301,26 @@ impl App {
                 self.saved_state = Some(prev);
                 false
             }
-            Transition::ToConfigParams(algo, path) => {
-                self.app_state = AppState::ConfigParams(ParamState::new(algo, path, false));
-                false
-            }
+            Transition::ToConfigParams(algo, path) => match algo {
+                AlgoType::PlayTest => {
+                    match std::fs::read_to_string(&path).and_then(|s| {
+                        serde_json::from_str::<DialogueFile>(&s).map_err(|e| e.into())
+                    }) {
+                        Ok(dialogue) => {
+                            self.app_state =
+                                AppState::PlayTestRun(PlayTestRunState::new(dialogue, path));
+                        }
+                        Err(e) => {
+                            self.app_state = AppState::Main(MainState);
+                        }
+                    }
+                    false
+                }
+                _ => {
+                    self.app_state = AppState::ConfigParams(ParamState::new(algo, path, false));
+                    false
+                }
+            },
             Transition::ToTestRunning(config) => {
                 self.app_state = AppState::TestRunning(RunningState::new(config));
                 false
