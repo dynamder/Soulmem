@@ -1,0 +1,15 @@
+[package]
+name = "soul-mem-benches"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+soul-mem-algo = { path = "../crates/soul-mem-algo" }
+petgraph = { workspace = true }
+
+[dev-dependencies]
+criterion = "0.8.2"
+
+[[bench]]
+name = "ppr"
+harness = false

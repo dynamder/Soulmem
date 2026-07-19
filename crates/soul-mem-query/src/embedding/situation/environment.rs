@@ -1,7 +1,9 @@
-use crate::embedding::{Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling};
+use serde::{Deserialize, Serialize};
+
+use crate::embedding::{mean_pooling, Embeddable, EmbeddingCalcResult, EmbeddingVec};
 use soul_mem_core::memory_note::situation_mem::Environment;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EnvironmentEmbedding {
     atmosphere: EmbeddingVec,
     tone: EmbeddingVec,

@@ -1,14 +1,16 @@
+use serde::{Deserialize, Serialize};
+
 use super::EmbeddingGenResult;
 use super::EmbeddingModel;
 use super::EmbeddingVec;
 
-use crate::embedding::Embeddable;
-use crate::embedding::EmbeddingCalcResult;
 use crate::embedding::note::MemoryEmbeddingVariant;
 use crate::embedding::raw_linear_blend;
+use crate::embedding::Embeddable;
+use crate::embedding::EmbeddingCalcResult;
 use soul_mem_core::memory_note::sem_mem::SemMemory;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SemanticEmbedding {
     content: EmbeddingVec,
     fused_aliases: EmbeddingVec,
@@ -60,6 +62,16 @@ impl Embeddable for SemMemory {
     fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<Self::EmbeddingGen> {
         let content_vec = model.infer_with_chunk(&self.content)?;
 
+        let description_vec = model.infer_with_chunk(&self.description)?;
+
+        if self.aliases.is_empty() {
+            return Ok(SemanticEmbedding {
+                content: content_vec.clone(),
+                fused_aliases: content_vec,
+                description: description_vec,
+            });
+        }
+
         let aliases_vec = model.infer_and_fuse(
             &self
                 .aliases
@@ -68,8 +80,6 @@ impl Embeddable for SemMemory {
                 .collect::<Vec<&str>>(),
         )?;
         let fused_aliases_vec = raw_linear_blend(&content_vec, &aliases_vec, 0.6).unwrap(); //SAFEUNWRAP: 由同一个嵌入模型生成的嵌入向量，维度相同
-
-        let description_vec = model.infer_with_chunk(&self.description)?;
 
         Ok(SemanticEmbedding {
             content: content_vec,
