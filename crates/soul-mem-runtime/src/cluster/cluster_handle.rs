@@ -25,6 +25,7 @@ mod tests {
     use petgraph::algo::UnitMeasure;
     use soul_mem_algo::common::ord_float::OrdFloat;
     use soul_mem_algo::common::ppr::weighted_ppr_fp;
+    use soul_mem_core::memory_links::sem_mem::SemMemLink;
     use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType};
     use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
     use soul_mem_core::memory_note::{MemoryId, MemoryNoteBuilder, MemoryType};
@@ -229,11 +230,7 @@ mod tests {
             cluster.add_single_node(make_note(id2, "B"));
             cluster.add_single_node(make_note(id3, "C"));
 
-            let sem_link = soul_mem_core::memory_links::sem_mem::SemMemLink::new(
-                "related".to_string(),
-                1.0,
-                1.0,
-            );
+            let sem_link = SemMemLink::new("related".to_string(), 1.0);
             let link_type = MemoryLinkType::Sem(sem_link);
             let _link1 = MemoryLink::new(id1, id2, link_type.clone());
             let _link2 = MemoryLink::new(id2, id3, link_type.clone());
@@ -259,12 +256,12 @@ mod tests {
                 OrdFloat::from_f64(0.85),
                 source_bias,
                 OrdFloat::from_f64(0.001),
-                |_, _| OrdFloat::from_f64(1.0),
-                &"query",
+                |_, _, _| OrdFloat::from_f64(1.0),
+                Some(&"query"),
             )
         });
 
-        let sum: f64 = ppr_result.values().copied().map(|v| v.into_inner()).sum();
+        let sum: f64 = ppr_result.iter().copied().map(|v| v.1.into_inner()).sum();
         assert!(
             (sum - 1.0).abs() < 1e-5,
             "PPR values should sum to 1, got {}",

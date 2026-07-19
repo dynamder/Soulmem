@@ -20,6 +20,7 @@ pub enum WorkingState {
 }
 
 // 工作记忆结构体(SlidingWindow & MemoryCluster & records)
+#[derive(Debug)]
 pub struct WorkingMemory {
     state: WorkingState,
     sliding_window: SlidingWindow,
