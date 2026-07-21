@@ -10,10 +10,14 @@ thiserror = { workspace = true }
 anyhow = { workspace = true }
 chrono = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
 candle-core = {version = "=0.9.1"}
 embed_anything = "0.6.7"
 rayon = "1.10.0"
 text-splitter = "0.29.3"
+parking_lot = { version = "0.12.4" }
+surrealdb = "3.2.1"
 
 soul-mem-core = {path = "../soul-mem-core"}
 

@@ -1,9 +1,9 @@
 // 数据库抽象接口，也就是仓储 trait
 
-
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 
-use crate::memory::{
+use soul_mem_core::{
     memory_links::MemoryLink,
     memory_note::{MemoryId, MemoryNote},
 };
@@ -11,8 +11,8 @@ use crate::memory::{
 use super::{
     error::StorageResult,
     model::{
-        FeedbackEventRecord, MemoryLinkRecord, MemoryNoteRecord, RetrievalEventRecord,
-        SimilarityHit, SimilarityQuery,
+        EventStats, EventWindow, FeedbackEventRecord, MemoryLinkRecord, MemoryNoteRecord,
+        RetrievalEventRecord, SimilarityHit, SimilarityQuery,
     },
 };
 
@@ -31,7 +31,14 @@ pub trait MemoryRepository: Send + Sync {
     }
 
     async fn get_note(&self, memory_id: MemoryId) -> StorageResult<Option<MemoryNoteRecord>>;
+    async fn load_note(&self, memory_id: MemoryId) -> StorageResult<Option<MemoryNote>>;
     async fn delete_note(&self, memory_id: MemoryId) -> StorageResult<bool>;
+    async fn set_note_embedding(
+        &self,
+        memory_id: MemoryId,
+        embedding: Vec<f32>,
+    ) -> StorageResult<()>;
+    async fn get_note_embedding(&self, memory_id: MemoryId) -> StorageResult<Option<Vec<f32>>>;
 
     async fn upsert_link(&self, link: &MemoryLink) -> StorageResult<MemoryLinkRecord>;
     async fn delete_link(&self, link_id: &str) -> StorageResult<bool>;
@@ -44,9 +51,45 @@ pub trait MemoryRepository: Send + Sync {
 
     async fn append_retrieval_event(&self, event: RetrievalEventRecord) -> StorageResult<()>;
     async fn append_feedback_event(&self, event: FeedbackEventRecord) -> StorageResult<()>;
+    async fn list_retrieval_events(
+        &self,
+        memory_id: MemoryId,
+        window: EventWindow,
+    ) -> StorageResult<Vec<RetrievalEventRecord>>;
+    async fn list_feedback_events(
+        &self,
+        memory_id: MemoryId,
+        window: EventWindow,
+    ) -> StorageResult<Vec<FeedbackEventRecord>>;
+
+    async fn get_retrieval_event_stats(
+        &self,
+        memory_id: MemoryId,
+        window: EventWindow,
+    ) -> StorageResult<EventStats> {
+        let events = self.list_retrieval_events(memory_id, window).await?;
+        Ok(event_stats_from_times(
+            events.into_iter().map(|event| event.occurred_at),
+        ))
+    }
+
+    async fn get_feedback_event_stats(
+        &self,
+        memory_id: MemoryId,
+        window: EventWindow,
+    ) -> StorageResult<EventStats> {
+        let events = self.list_feedback_events(memory_id, window).await?;
+        Ok(event_stats_from_times(
+            events.into_iter().map(|event| event.occurred_at),
+        ))
+    }
 
     async fn query_similar_notes(
         &self,
         query: SimilarityQuery,
     ) -> StorageResult<Vec<SimilarityHit>>;
+}
+
+fn event_stats_from_times(times: impl IntoIterator<Item = DateTime<Utc>>) -> EventStats {
+    EventStats::from_timestamps(times)
 }

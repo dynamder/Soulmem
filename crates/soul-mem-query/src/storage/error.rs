@@ -1,6 +1,5 @@
 // 数据库层统一错误类型
 
-
 use thiserror::Error;
 
 pub type StorageResult<T> = Result<T, StorageError>;
