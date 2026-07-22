@@ -6,6 +6,7 @@ pub mod dataset;
 pub mod inspect;
 pub mod main;
 pub mod params;
+pub mod playtest_input;
 pub mod playtest_judge;
 pub mod playtest_run;
 pub mod results;

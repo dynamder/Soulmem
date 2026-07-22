@@ -10,14 +10,18 @@ pub(crate) mod tui;
 pub(crate) mod utils;
 
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use base::{AlgoType, RetrieveMode, TestReport};
 use eval::batch::{print_batch_result, run_batch, scan_question_jsons};
+use eval::llama_server::LlamaServer;
+use eval::playtest::{DialogueFile, PlayTestRunner};
 use eval::retrieve_suite::RetrieveSuite;
 use eval::runner::TestSuite;
 use state::inspect::{InspectFileType, InspectState};
 
 fn main() -> color_eyre::Result<()> {
+    dotenvy::dotenv().ok();
     let args: Vec<String> = std::env::args().collect();
 
     if args.len() >= 3 && args[1] == "inspect" {
@@ -71,6 +75,10 @@ fn main() -> color_eyre::Result<()> {
             println!();
         }
         return Ok(());
+    }
+
+    if args.len() >= 3 && args[1] == "playtest" {
+        return run_headless_playtest(&args);
     }
 
     if args.len() >= 4 && args[1] == "run" {
@@ -204,6 +212,111 @@ fn run_headless_batch(dir: &Path, mode: RetrieveMode) {
 
     let result = run_batch(&datasets, mode, None);
     print_batch_result(&result);
+}
+
+fn run_headless_playtest(args: &[String]) -> color_eyre::Result<()> {
+    // soul-tune playtest <graph_dir> <dialogue_file>
+    if args.len() < 4 {
+        eprintln!("用法: soul-tune playtest <graph_dir> <dialogue_file>");
+        eprintln!("环境变量: SOUL_TUNE_CANDLE_MODEL_PATH 必须设置");
+        std::process::exit(1);
+    }
+
+    let graph_dir = PathBuf::from(&args[2]);
+    let dialogue_path = PathBuf::from(&args[3]);
+
+    if !graph_dir.exists() {
+        eprintln!("图目录不存在: {}", graph_dir.display());
+        std::process::exit(1);
+    }
+    if !dialogue_path.exists() {
+        eprintln!("对话文件不存在: {}", dialogue_path.display());
+        std::process::exit(1);
+    }
+
+    let model_path = match std::env::var("SOUL_TUNE_CANDLE_MODEL_PATH") {
+        Ok(p) => p,
+        Err(_) => {
+            eprintln!("请设置环境变量 SOUL_TUNE_CANDLE_MODEL_PATH");
+            std::process::exit(1);
+        }
+    };
+
+    println!("=== 角色扮演测试 (CLI) ===");
+    println!("图目录: {}", graph_dir.display());
+    println!("对话: {}", dialogue_path.display());
+    println!("模型: {}\n", model_path);
+
+    println!("[1/3] 加载角色图...");
+    let runner = PlayTestRunner::load(&graph_dir)
+        .map_err(|e| color_eyre::eyre::eyre!("加载图失败: {}", e))?;
+    let runner = Arc::new(runner);
+    println!("  ✓ 图加载完成");
+
+    println!("[2/3] 启动 LLM 服务...");
+    let llm = LlamaServer::load(&model_path)
+        .map_err(|e| color_eyre::eyre::eyre!("启动 LLM 失败: {}", e))?;
+    println!("  ✓ LLM 服务就绪");
+
+    println!("[3/3] 运行对话...\n");
+    let dialogue: DialogueFile = serde_json::from_str(
+        &std::fs::read_to_string(&dialogue_path)
+            .map_err(|e| color_eyre::eyre::eyre!("读取对话文件失败: {}", e))?,
+    )
+    .map_err(|e| color_eyre::eyre::eyre!("解析对话文件失败: {}", e))?;
+
+    let n = dialogue.conversations.len();
+    let mut results = Vec::with_capacity(n);
+
+    for (i, entry) in dialogue.conversations.iter().enumerate() {
+        println!("--- 第 {}/{} 轮 ---", i + 1, n);
+        println!("用户: {}", entry.user_message);
+
+        let turn = runner.process_turn(entry, i, &llm);
+        results.push(turn);
+
+        let last = results.last().unwrap();
+
+        if let Some(ref err) = last.error {
+            println!("  错误: {}", err);
+        }
+
+        println!(
+            "  查询: {}",
+            &last
+                .generated_queries_json
+                .chars()
+                .take(120)
+                .collect::<String>()
+        );
+
+        if let Some(ref think) = last.think_content {
+            println!("  思考: {}", think);
+        }
+
+        if let Some(ref resp) = last.embedding_response {
+            println!(
+                "  Embedding 响应: {}",
+                resp.chars().take(80).collect::<String>()
+            );
+        }
+        if let Some(ref resp) = last.fullpipeline_response {
+            println!(
+                "  FullPipeline 响应: {}",
+                resp.chars().take(80).collect::<String>()
+            );
+        }
+        println!();
+    }
+
+    println!(
+        "调试输出已写入: {}",
+        std::env::temp_dir()
+            .join("soul_tune_llm_output.txt")
+            .display()
+    );
+
+    Ok(())
 }
 
 fn print_report(report: &TestReport) {

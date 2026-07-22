@@ -1,8 +1,10 @@
 pub mod batch;
 pub mod compare;
 pub mod dataset;
+pub mod llama_server;
 pub mod loader;
 pub mod metrics;
 pub mod playtest;
+pub mod qwen35;
 pub mod retrieve_suite;
 pub mod runner;

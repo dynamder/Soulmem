@@ -5,6 +5,7 @@ edition = "2024"
 description = "Test framework for SoulMem."
 
 [dependencies]
+anyhow.workspace = true
 color-eyre = "0.6.5"
 nucleo = "0.5.0"
 parking_lot = "0.12.5"
@@ -17,6 +18,11 @@ soul-mem-query = { path = "../soul-mem-query" }
 soul-mem-runtime = { path = "../soul-mem-runtime" }
 serde.workspace = true
 rayon = "1.10.0"
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync"] }
-rand = "0.8"
-async-openai = { version = "0.32.4", features = ["chat-completion"] }
+rand = "0.9"
+candle-core = { workspace = true }
+candle-nn = { workspace = true }
+candle-transformers = { workspace = true }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json"] }
+paw-rs = { version = "0.2", default-features = false, features = ["candle"] }
+tokio.workspace = true
+dotenvy = "0.15.7"

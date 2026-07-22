@@ -54,6 +54,10 @@ impl ScrollContainer {
         self.offset = self.offset.saturating_add(1);
     }
 
+    pub fn clamp_offset(&mut self, max_offset: usize) {
+        self.offset = self.offset.min(max_offset);
+    }
+
     /// Compute scroll offset to keep cursor visible.
     /// Pure function — called in render(&self).
     pub fn offset(visible: u16, total: usize, cursor: usize) -> usize {

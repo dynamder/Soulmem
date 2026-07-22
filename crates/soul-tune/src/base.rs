@@ -5,7 +5,7 @@ use std::time::Duration;
 use ratatui::crossterm;
 
 use crate::eval::compare::CompareReport;
-use crate::eval::playtest::PlayTestResult;
+use crate::eval::playtest::{DialogueFile, PlayTestResult};
 use crate::eval::runner::SuiteReport;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -75,6 +75,10 @@ pub enum Transition {
     ToTestRunning(TestConfig),
     ToTestResults(TestReport),
     ToCompareResults(CompareReport),
+    ToPlayTestInput,
+    ToGraphBrowse,
+    ToGraphSelected(std::path::PathBuf),
+    ToPlayTestManualRun(DialogueFile),
     ToPlayTestSelect,
     ToPlayTestJudge(PlayTestResult),
     ToSelectBatchDir,

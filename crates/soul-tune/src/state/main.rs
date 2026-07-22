@@ -58,7 +58,7 @@ pub fn render(frame: &mut Frame) {
 
     status_bar::render_status_bar(
         frame,
-        layout[3],
+        layout[2],
         &[
             ("[R]".into(), "检索".into()),
             ("[D]".into(), "对比".into()),

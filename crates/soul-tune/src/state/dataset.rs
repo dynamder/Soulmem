@@ -39,6 +39,7 @@ pub struct DatasetState {
     pub preview_content: Option<String>,
     pub batch_mode: bool,
     pub inspect_mode: bool,
+    pub graph_pick_mode: bool,
 }
 
 impl DatasetState {
@@ -96,6 +97,7 @@ impl DatasetState {
             preview_content: None,
             batch_mode,
             inspect_mode: false,
+            graph_pick_mode: false,
         };
         state.refresh_dir();
         state
@@ -116,6 +118,9 @@ impl DatasetState {
                 .filter_map(|e| e.ok())
                 .filter(|e| {
                     let is_dir = e.file_type().map(|t| t.is_dir()).unwrap_or(false);
+                    if self.graph_pick_mode {
+                        return is_dir;
+                    }
                     if is_dir {
                         return true;
                     }
@@ -184,6 +189,52 @@ impl DatasetState {
             if !entry.is_dir {
                 if let Ok(content) = std::fs::read_to_string(&entry.path) {
                     if let Ok(val) = serde_json::from_str::<serde_json::Value>(&content) {
+                        // PlayTest dialogue file
+                        if val.get("graph_path").is_some() && val.get("conversations").is_some() {
+                            let name = val.get("name").and_then(|v| v.as_str()).unwrap_or("?");
+                            let graph_path = val
+                                .get("graph_path")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("?");
+                            let conversations = val
+                                .get("conversations")
+                                .and_then(|v| v.as_array())
+                                .map(|a| a.len())
+                                .unwrap_or(0);
+                            let samples: Vec<String> = val
+                                .get("conversations")
+                                .and_then(|v| v.as_array())
+                                .map(|a| {
+                                    a.iter()
+                                        .take(3)
+                                        .filter_map(|c| {
+                                            c.get("user_message").and_then(|m| m.as_str())
+                                        })
+                                        .map(|m| {
+                                            let s = if m.len() > 40 {
+                                                format!("{}...", &m[..40])
+                                            } else {
+                                                m.to_string()
+                                            };
+                                            format!("  \"{}\"", s)
+                                        })
+                                        .collect()
+                                })
+                                .unwrap_or_default();
+                            let mut preview = format!(
+                                "名称: {}\n格式: 角色扮演测试\n图路径: {}\n对话轮数: {}",
+                                name, graph_path, conversations
+                            );
+                            if !samples.is_empty() {
+                                preview.push_str(&format!(
+                                    "\n前 {} 条:\n{}",
+                                    samples.len(),
+                                    samples.join("\n")
+                                ));
+                            }
+                            self.preview_content = Some(preview);
+                            return;
+                        }
                         let name = val.get("name").and_then(|v| v.as_str()).unwrap_or("?");
                         let desc = val
                             .get("description")
@@ -230,6 +281,8 @@ impl DatasetState {
             " 选择检视文件 — Enter检视选中文件 ".to_string()
         } else if self.batch_mode {
             " 选择批量目录 — Enter选择目录批量运行 ".to_string()
+        } else if self.graph_pick_mode {
+            " 选择图目录 — Enter选择带有 [G] 标记的目录 ".to_string()
         } else {
             format!(" 选择数据集 · {} ", self.algo_type)
         };
@@ -274,6 +327,21 @@ impl DatasetState {
                 ("[Enter]".into(), "检视".into()),
                 ("[Esc]".into(), "返回".into()),
             ]
+        } else if self.graph_pick_mode {
+            vec![
+                ("[↑↓]".into(), "选择".into()),
+                ("[Enter]".into(), "选择图目录".into()),
+                ("[Esc]".into(), "返回".into()),
+            ]
+        } else if self.algo_type == crate::base::AlgoType::PlayTest {
+            vec![
+                ("[↑↓]".into(), "选择".into()),
+                ("[Enter]".into(), "确认/进入".into()),
+                ("[M]".into(), "手动输入".into()),
+                ("[I]".into(), "检视".into()),
+                ("[Shift+C]".into(), "清缓存".into()),
+                ("[Esc]".into(), "返回".into()),
+            ]
         } else {
             vec![
                 ("[↑↓]".into(), "选择".into()),
@@ -303,12 +371,31 @@ impl DatasetState {
         let inner = block.inner(area);
         block.render(area, frame.buffer_mut());
 
+        let algo = self.algo_type;
         let items: Vec<String> = self
             .entries
             .iter()
             .map(|e| {
-                if e.is_dir {
+                if e.is_dir && self.graph_pick_mode {
+                    if e.path.join("graph.json").exists() {
+                        format!("[G] {}", e.name)
+                    } else {
+                        format!("[DIR] {}", e.name)
+                    }
+                } else if e.is_dir {
                     format!("[DIR] {}", e.name)
+                } else if algo == crate::base::AlgoType::PlayTest
+                    && e.path.extension().map(|ext| ext == "json").unwrap_or(false)
+                {
+                    if let Ok(content) = std::fs::read_to_string(&e.path) {
+                        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&content) {
+                            if val.get("graph_path").is_some() && val.get("conversations").is_some()
+                            {
+                                return format!("[PT] {}", e.name);
+                            }
+                        }
+                    }
+                    format!("[FILE] {}", e.name)
                 } else {
                     format!("[FILE] {}", e.name)
                 }
@@ -372,11 +459,28 @@ impl DatasetState {
                 self.update_preview();
                 Transition::None
             }
+            KeyCode::Char('m') | KeyCode::Char('M') => {
+                if self.algo_type == crate::base::AlgoType::PlayTest && !self.inspect_mode {
+                    Transition::ToPlayTestInput
+                } else {
+                    Transition::None
+                }
+            }
             KeyCode::Enter => {
                 let selected = self.list_scroll.cursor;
                 if let Some(entry) = self.entries.get(selected) {
                     if entry.is_dir && entry.name != ".." && self.batch_mode {
                         Transition::ToBatchModeSelect(entry.path.clone())
+                    } else if self.graph_pick_mode
+                        && entry.is_dir
+                        && entry.path.join("graph.json").exists()
+                    {
+                        Transition::ToGraphSelected(entry.path.clone())
+                    } else if entry.is_dir && entry.name == ".." {
+                        self.current_dir = entry.path.clone();
+                        self.list_scroll.reset();
+                        self.refresh_dir();
+                        Transition::None
                     } else if entry.is_dir {
                         self.current_dir = entry.path.clone();
                         self.list_scroll.reset();

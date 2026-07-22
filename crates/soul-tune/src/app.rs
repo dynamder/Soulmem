@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::time::Duration;
 
 use ratatui::crossterm::event::{self, Event, KeyEvent, KeyEventKind, MouseEvent};
@@ -18,6 +19,7 @@ use crate::state::dataset::DatasetState;
 use crate::state::inspect::InspectState;
 use crate::state::main::MainState;
 use crate::state::params::ParamState;
+use crate::state::playtest_input::PlayTestInputState;
 use crate::state::playtest_judge::PlayTestJudgeState;
 use crate::state::playtest_run::PlayTestRunState;
 use crate::state::results::ResultsState;
@@ -36,6 +38,7 @@ pub enum AppState {
     TestResults(ResultsState),
     CompareResults(CompareResultsState),
     PlayTestSelect(DatasetState),
+    PlayTestInput(PlayTestInputState),
     PlayTestRun(PlayTestRunState),
     PlayTestJudge(PlayTestJudgeState),
     SelectBatchDir(DatasetState),
@@ -183,6 +186,7 @@ impl App {
             AppState::BatchRunning(s) => s.view(frame),
             AppState::InspectData(s) => s.view(frame),
             AppState::PlayTestSelect(s) => s.view(frame),
+            AppState::PlayTestInput(s) => s.view(frame),
             AppState::PlayTestRun(s) => s.view(frame),
             AppState::PlayTestJudge(s) => s.view(frame),
         }
@@ -207,6 +211,7 @@ impl App {
             AppState::BatchRunning(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::InspectData(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::PlayTestSelect(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::PlayTestInput(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::PlayTestRun(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::PlayTestJudge(s) => s.handle_event(ComponentEvent::Key(key)),
         };
@@ -283,6 +288,39 @@ impl App {
             }
             Transition::ToBatchCompareRun(dir, params) => {
                 self.app_state = AppState::BatchRunning(BatchRunState::new_compare(dir, params));
+                false
+            }
+            Transition::ToPlayTestInput => {
+                self.app_state = AppState::PlayTestInput(PlayTestInputState::new());
+                false
+            }
+            Transition::ToGraphBrowse => {
+                let prev = std::mem::replace(
+                    &mut self.app_state,
+                    AppState::PlayTestSelect({
+                        let mut ds = DatasetState::new(AlgoType::PlayTest);
+                        ds.graph_pick_mode = true;
+                        ds
+                    }),
+                );
+                self.saved_state = Some(prev);
+                false
+            }
+            Transition::ToGraphSelected(dir) => {
+                if let Some(saved) = self.saved_state.take() {
+                    if let AppState::PlayTestInput(state) = saved {
+                        self.app_state = AppState::PlayTestInput(state.with_graph_dir(dir));
+                    } else {
+                        self.app_state = saved;
+                    }
+                } else {
+                    self.app_state = AppState::Main(MainState);
+                }
+                false
+            }
+            Transition::ToPlayTestManualRun(dialogue) => {
+                self.app_state =
+                    AppState::PlayTestRun(PlayTestRunState::new(dialogue, PathBuf::from(".")));
                 false
             }
             Transition::ToPlayTestSelect => {
