@@ -14,6 +14,7 @@ use crate::engine::suite::{MetricFormat, ReportMetric};
 use crate::widgets::expandable::ExpandableList;
 use crate::widgets::scroll::ScrollState;
 use crate::widgets::status_bar;
+use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 
 use soul_mem_core::memory_note::MemoryId;
@@ -37,6 +38,10 @@ pub struct ResultsState {
     pub compare_scroll: ScrollState,
     pub expanded: ExpandableList,
     case_details: Vec<RetrieveCaseData>,
+    /// Line offsets (in `lines`) where each comparison row begins.
+    /// Populated during `render_detail_drilldown` via interior mutability.
+    comparison_lines: RefCell<Vec<usize>>,
+    drill_viewport: Cell<usize>,
 }
 
 impl ResultsState {
@@ -71,6 +76,8 @@ impl ResultsState {
             compare_scroll: ScrollState::new(),
             expanded: ExpandableList::new(0),
             case_details,
+            comparison_lines: RefCell::new(Vec::new()),
+            drill_viewport: Cell::new(0),
         }
     }
 
@@ -457,8 +464,10 @@ impl ResultsState {
             .min(10)
             .max(data.expected_combined_ranking.len().min(5));
 
-        // We can't mutate self here (render takes &self), so we use whatever size is set.
         // resize happens in handle_key when opening drill-down or switching case.
+        {
+            self.comparison_lines.borrow_mut().clear();
+        }
         for pos in 0..n_max {
             let is_cursor = pos == self.compare_scroll.cursor;
             let is_expanded = self.expanded.is_expanded(pos);
@@ -500,6 +509,7 @@ impl ResultsState {
             } else {
                 spans.push(Span::raw(format!(" {:<10}", "—")));
             }
+            self.comparison_lines.borrow_mut().push(lines.len());
             lines.push(Line::from(spans));
 
             if is_expanded {
@@ -539,6 +549,7 @@ impl ResultsState {
         let inner = block.inner(layout[0]);
         block.render(layout[0], frame.buffer_mut());
         let (content_rect, bar_rect) = ScrollState::split_area(inner);
+        self.drill_viewport.set(content_rect.height as usize);
         let line_count = lines.len();
         frame.render_widget(
             Paragraph::new(Text::from(lines))
@@ -553,6 +564,21 @@ impl ResultsState {
             content_rect.height,
             self.drill_scroll.offset,
         );
+    }
+
+    fn scroll_to_comparison_cursor(&mut self) {
+        let vis = self.drill_viewport.get();
+        if vis == 0 {
+            return;
+        }
+        let lines = self.comparison_lines.borrow();
+        if let Some(&line_off) = lines.get(self.compare_scroll.cursor) {
+            if line_off < self.drill_scroll.offset {
+                self.drill_scroll.offset = line_off;
+            } else if line_off >= self.drill_scroll.offset + vis {
+                self.drill_scroll.offset = line_off.saturating_sub(vis.saturating_sub(1));
+            }
+        }
     }
 
     fn handle_key(&mut self, key: KeyEvent) -> Transition {
@@ -650,6 +676,7 @@ impl ResultsState {
                 if self.active_tab == ResultTab::Detail && self.detail_selected.is_some() {
                     // Drill-down: move compare cursor
                     self.compare_scroll.move_up();
+                    self.scroll_to_comparison_cursor();
                     if shift {
                         self.expanded.expand(self.compare_scroll.cursor);
                     }
@@ -673,6 +700,7 @@ impl ResultsState {
                         .max(data.expected_combined_ranking.len().min(5));
                     if n_max > 0 {
                         self.compare_scroll.move_down(n_max);
+                        self.scroll_to_comparison_cursor();
                         if shift {
                             self.expanded.expand(self.compare_scroll.cursor);
                         }

@@ -12,6 +12,8 @@ use crate::engine::compare::{CompareCaseData, CompareReport};
 use crate::widgets::expandable::ExpandableList;
 use crate::widgets::scroll::ScrollState;
 use crate::widgets::status_bar;
+use std::cell::{Cell, RefCell};
+
 use soul_mem_core::memory_note::MemoryId;
 
 pub struct CompareResultsState {
@@ -22,6 +24,8 @@ pub struct CompareResultsState {
     compare_cursor: usize,
     expanded: ExpandableList,
     case_details: Vec<CompareCaseData>,
+    comparison_lines: RefCell<Vec<usize>>,
+    drill_viewport: Cell<usize>,
 }
 
 impl CompareResultsState {
@@ -45,6 +49,8 @@ impl CompareResultsState {
             expanded: ExpandableList::new(n_max),
             case_details: report.cases.clone(),
             report,
+            comparison_lines: RefCell::new(Vec::new()),
+            drill_viewport: Cell::new(0),
         }
     }
 
@@ -302,6 +308,9 @@ impl CompareResultsState {
             data.expected_combined_ranking.iter().collect();
 
         for pos in 0..n_max {
+            if pos == 0 {
+                self.comparison_lines.borrow_mut().clear();
+            }
             let is_cursor = pos == self.compare_cursor;
             let is_expanded = self.expanded.is_expanded(pos);
             let mut spans = Vec::new();
@@ -339,6 +348,7 @@ impl CompareResultsState {
                     spans.push(Span::styled("✗未命中", red));
                 }
             }
+            self.comparison_lines.borrow_mut().push(lines.len());
             lines.push(Line::from(spans));
 
             if is_expanded {
@@ -356,6 +366,7 @@ impl CompareResultsState {
 
         let block = Block::bordered().title(" 用例详情 ").fg(Color::Cyan);
         let inner = block.inner(layout[0]);
+        self.drill_viewport.set(inner.height as usize);
         block.render(layout[0], frame.buffer_mut());
         frame.render_widget(
             Paragraph::new(Text::from(lines))
@@ -363,6 +374,21 @@ impl CompareResultsState {
                 .scroll((self.drill_scroll.offset as u16, 0)),
             inner,
         );
+    }
+
+    fn scroll_to_comparison_cursor(&mut self) {
+        let vis = self.drill_viewport.get();
+        if vis == 0 {
+            return;
+        }
+        let lines = self.comparison_lines.borrow();
+        if let Some(&line_off) = lines.get(self.compare_cursor) {
+            if line_off < self.drill_scroll.offset {
+                self.drill_scroll.offset = line_off;
+            } else if line_off >= self.drill_scroll.offset + vis {
+                self.drill_scroll.offset = line_off.saturating_sub(vis.saturating_sub(1));
+            }
+        }
     }
 
     pub fn handle_key(&mut self, key: KeyEvent) -> Transition {
@@ -402,6 +428,7 @@ impl CompareResultsState {
                 if self.detail_selected.is_some() {
                     if self.compare_cursor > 0 {
                         self.compare_cursor -= 1;
+                        self.scroll_to_comparison_cursor();
                         if shift {
                             self.expanded.expand(self.compare_cursor);
                         }
@@ -422,6 +449,7 @@ impl CompareResultsState {
                             .max(data.expected_combined_ranking.len().min(5));
                         if self.compare_cursor + 1 < n_max {
                             self.compare_cursor += 1;
+                            self.scroll_to_comparison_cursor();
                             if shift {
                                 self.expanded.expand(self.compare_cursor);
                             }

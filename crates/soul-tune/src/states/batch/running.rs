@@ -11,6 +11,7 @@ use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
+use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 
 use soul_mem_core::memory_note::MemoryId;
@@ -93,6 +94,8 @@ pub struct BatchRunState {
     compare_cursor: usize,
     drill_scroll: ScrollState,
     expanded: ExpandableList,
+    comparison_lines: RefCell<Vec<usize>>,
+    drill_viewport: Cell<usize>,
 }
 
 impl BatchRunState {
@@ -112,6 +115,8 @@ impl BatchRunState {
             compare_cursor: 0,
             drill_scroll: ScrollState::new(),
             expanded: ExpandableList::new(0),
+            comparison_lines: RefCell::new(Vec::new()),
+            drill_viewport: Cell::new(0),
         }
     }
 
@@ -131,6 +136,8 @@ impl BatchRunState {
             compare_cursor: 0,
             drill_scroll: ScrollState::new(),
             expanded: ExpandableList::new(0),
+            comparison_lines: RefCell::new(Vec::new()),
+            drill_viewport: Cell::new(0),
         }
     }
 
@@ -964,6 +971,9 @@ impl BatchRunState {
                     .min(10)
                     .max(rc.expected_combined_ranking.len().min(5));
                 for pos in 0..nm {
+                    if pos == 0 {
+                        self.comparison_lines.borrow_mut().clear();
+                    }
                     let is_cursor = pos == self.compare_cursor;
                     let (mut spans, prefix) = (Vec::new(), if is_cursor { "▶" } else { " " });
                     spans.push(Span::styled(
@@ -1005,6 +1015,7 @@ impl BatchRunState {
                     } else {
                         spans.push(Span::raw(format!(" {:<10}", "—")));
                     }
+                    self.comparison_lines.borrow_mut().push(l.len());
                     l.push(Line::from(spans).style(if is_cursor {
                         Style::default().bg(Color::DarkGray)
                     } else {
@@ -1047,6 +1058,7 @@ impl BatchRunState {
                 ))
                 .fg(Color::Cyan);
             let inner = block.inner(area);
+            self.drill_viewport.set(inner.height as usize);
             block.render(area, frame.buffer_mut());
             frame.render_widget(
                 Paragraph::new(Text::from(lines))
@@ -1054,6 +1066,21 @@ impl BatchRunState {
                     .scroll((self.drill_scroll.offset as u16, 0)),
                 inner,
             );
+        }
+    }
+
+    fn scroll_to_comparison_cursor(&mut self) {
+        let vis = self.drill_viewport.get();
+        if vis == 0 {
+            return;
+        }
+        let lines = self.comparison_lines.borrow();
+        if let Some(&line_off) = lines.get(self.compare_cursor) {
+            if line_off < self.drill_scroll.offset {
+                self.drill_scroll.offset = line_off;
+            } else if line_off >= self.drill_scroll.offset + vis {
+                self.drill_scroll.offset = line_off.saturating_sub(vis.saturating_sub(1));
+            }
         }
     }
 
@@ -1102,6 +1129,7 @@ impl BatchRunState {
                 if self.drill_dataset.is_some() {
                     if self.compare_cursor > 0 {
                         self.compare_cursor -= 1;
+                        self.scroll_to_comparison_cursor();
                         if shift {
                             self.expanded.expand(self.compare_cursor);
                         }
@@ -1125,6 +1153,7 @@ impl BatchRunState {
                                         .max(rc.expected_combined_ranking.len().min(5));
                                     if self.compare_cursor + 1 < nm {
                                         self.compare_cursor += 1;
+                                        self.scroll_to_comparison_cursor();
                                         if shift {
                                             self.expanded.expand(self.compare_cursor);
                                         }
