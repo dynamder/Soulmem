@@ -1,31 +1,28 @@
 use std::path::PathBuf;
-use std::time::Duration;
 
-use ratatui::crossterm::event::{self, Event, KeyEvent, KeyEventKind, MouseEvent};
 use ratatui::crossterm::execute;
-use ratatui::{DefaultTerminal, Frame};
+use ratatui::DefaultTerminal;
 
 use crate::base::{AlgoType, RetrieveMode, Transition};
 use crate::cmd::CmdRegistry;
-use crate::component::{Component, ComponentEvent};
-use crate::eval::playtest::DialogueFile;
-use crate::metric::MetricRegistry;
-use crate::reporter::ReporterRegistry;
-use crate::state::batch_mode::BatchModeState;
-use crate::state::batch_run::BatchRunState;
-use crate::state::command::CommandState;
-use crate::state::compare_results::CompareResultsState;
-use crate::state::dataset::DatasetState;
-use crate::state::inspect::InspectState;
-use crate::state::main::MainState;
-use crate::state::params::ParamState;
-use crate::state::playtest_input::PlayTestInputState;
-use crate::state::playtest_judge::PlayTestJudgeState;
-use crate::state::playtest_run::PlayTestRunState;
-use crate::state::results::ResultsState;
-use crate::state::retrieve_mode::RetrieveModeSelectState;
-use crate::state::running::RunningState;
-use crate::state::select_algo::SelectAlgoState;
+use crate::engine::playtest::DialogueFile;
+use crate::states::batch::running::BatchRunState;
+use crate::states::batch::BatchModeState;
+use crate::states::command_palette::CommandState;
+use crate::states::compare_mode::SelectAlgoState;
+use crate::states::compare_results::CompareResultsState;
+use crate::states::dataset_browser::DatasetState;
+use crate::states::inspect::InspectState;
+use crate::states::main_menu::MainState;
+use crate::states::params_config::ParamState;
+use crate::states::playtest::input::PlayTestInputState;
+use crate::states::playtest::judge::PlayTestJudgeState;
+use crate::states::playtest::run_state::PlayTestRunState;
+use crate::states::results::ResultsState;
+use crate::states::retrieve_mode::RetrieveModeSelectState;
+use crate::states::running::RunningState;
+
+pub mod event_loop;
 
 pub enum AppState {
     Main(MainState),
@@ -52,10 +49,6 @@ pub struct App {
     app_state: AppState,
     saved_state: Option<AppState>,
     cmd_registry: CmdRegistry,
-    #[allow(dead_code)]
-    metric_registry: MetricRegistry,
-    #[allow(dead_code)]
-    reporter_registry: ReporterRegistry,
 }
 
 impl App {
@@ -67,7 +60,6 @@ impl App {
         );
         let mut cmd_registry = CmdRegistry::new();
 
-        // Register built-in commands
         use crate::base::SoulTuneEvent;
         use crate::cmd::UserCmdBuilder;
         cmd_registry.register(
@@ -125,118 +117,10 @@ impl App {
             app_state: AppState::Main(MainState),
             saved_state: None,
             cmd_registry,
-            metric_registry: MetricRegistry::new(),
-            reporter_registry: ReporterRegistry::new(),
         })
     }
 
-    pub fn run(&mut self) -> color_eyre::Result<()> {
-        loop {
-            let state = &self.app_state;
-            self.terminal
-                .draw(|frame| App::render_state(frame, state))?;
-
-            self.tick_running();
-
-            if event::poll(Duration::from_millis(40))? {
-                match event::read()? {
-                    Event::Key(key) => {
-                        if self.handle_key(key) {
-                            break;
-                        }
-                    }
-                    Event::Mouse(mouse) => {
-                        self.handle_mouse(mouse);
-                    }
-                    _ => {}
-                }
-            }
-        }
-        let _ = execute!(
-            std::io::stdout(),
-            ratatui::crossterm::event::DisableMouseCapture
-        );
-        ratatui::restore();
-        Ok(())
-    }
-
-    fn tick_running(&mut self) {
-        let t = match &mut self.app_state {
-            AppState::TestRunning(s) => s.handle_event(ComponentEvent::Tick),
-            AppState::BatchRunning(s) => s.handle_event(ComponentEvent::Tick),
-            AppState::PlayTestRun(s) => s.handle_event(ComponentEvent::Tick),
-            _ => Transition::None,
-        };
-        self.apply(t);
-    }
-
-    fn render_state(frame: &mut Frame, state: &AppState) {
-        match state {
-            AppState::Main(s) => Component::view(s, frame),
-            AppState::CommandMode(s) => s.render(frame),
-            AppState::SelectDataset(s) => s.view(frame),
-            AppState::SelectBatchDir(s) => s.view(frame),
-            AppState::RetrieveModeSelect(s) => s.view(frame),
-            AppState::SelectAlgo(s) => s.view(frame),
-            AppState::ConfigParams(s) => s.view(frame),
-            AppState::TestRunning(s) => s.view(frame),
-            AppState::TestResults(s) => s.view(frame),
-            AppState::CompareResults(s) => s.view(frame),
-            AppState::BatchModeSelect(s) => s.view(frame),
-            AppState::BatchRunning(s) => s.view(frame),
-            AppState::InspectData(s) => s.view(frame),
-            AppState::PlayTestSelect(s) => s.view(frame),
-            AppState::PlayTestInput(s) => s.view(frame),
-            AppState::PlayTestRun(s) => s.view(frame),
-            AppState::PlayTestJudge(s) => s.view(frame),
-        }
-    }
-
-    fn handle_key(&mut self, key: KeyEvent) -> bool {
-        if key.kind != KeyEventKind::Press {
-            return false;
-        }
-        let transition = match &mut self.app_state {
-            AppState::Main(s) => s.handle_event(ComponentEvent::Key(key)),
-            AppState::RetrieveModeSelect(s) => s.handle_event(ComponentEvent::Key(key)),
-            AppState::SelectAlgo(s) => s.handle_event(ComponentEvent::Key(key)),
-            AppState::TestResults(s) => s.handle_event(ComponentEvent::Key(key)),
-            AppState::CompareResults(s) => s.handle_event(ComponentEvent::Key(key)),
-            AppState::BatchModeSelect(s) => s.handle_event(ComponentEvent::Key(key)),
-            AppState::CommandMode(s) => s.handle_key(key, &self.cmd_registry),
-            AppState::SelectDataset(s) => s.handle_event(ComponentEvent::Key(key)),
-            AppState::SelectBatchDir(s) => s.handle_event(ComponentEvent::Key(key)),
-            AppState::ConfigParams(s) => s.handle_event(ComponentEvent::Key(key)),
-            AppState::TestRunning(s) => s.handle_event(ComponentEvent::Key(key)),
-            AppState::BatchRunning(s) => s.handle_event(ComponentEvent::Key(key)),
-            AppState::InspectData(s) => s.handle_event(ComponentEvent::Key(key)),
-            AppState::PlayTestSelect(s) => s.handle_event(ComponentEvent::Key(key)),
-            AppState::PlayTestInput(s) => s.handle_event(ComponentEvent::Key(key)),
-            AppState::PlayTestRun(s) => s.handle_event(ComponentEvent::Key(key)),
-            AppState::PlayTestJudge(s) => s.handle_event(ComponentEvent::Key(key)),
-        };
-        self.apply(transition)
-    }
-
-    fn handle_mouse(&mut self, mouse: MouseEvent) {
-        match &mut self.app_state {
-            AppState::TestResults(s) => {
-                s.handle_event(ComponentEvent::Mouse(mouse));
-            }
-            AppState::CompareResults(s) => {
-                s.handle_event(ComponentEvent::Mouse(mouse));
-            }
-            AppState::BatchRunning(s) => {
-                s.handle_event(ComponentEvent::Mouse(mouse));
-            }
-            AppState::PlayTestJudge(s) => {
-                s.handle_event(ComponentEvent::Mouse(mouse));
-            }
-            _ => {}
-        }
-    }
-
-    fn apply(&mut self, transition: Transition) -> bool {
+    pub fn apply(&mut self, transition: Transition) -> bool {
         match transition {
             Transition::None => false,
             Transition::ToMain => {
@@ -348,7 +232,7 @@ impl App {
                             self.app_state =
                                 AppState::PlayTestRun(PlayTestRunState::new(dialogue, path));
                         }
-                        Err(e) => {
+                        Err(_e) => {
                             self.app_state = AppState::Main(MainState);
                         }
                     }

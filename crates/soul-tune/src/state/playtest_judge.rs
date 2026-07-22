@@ -8,11 +8,12 @@ use ratatui::Frame;
 
 use crate::base::Transition;
 use crate::component::{Component, ComponentEvent};
-use crate::eval::playtest::{split_response, HitStage, PlayTestResult, PlayTurnResult};
-use crate::tui::components::expandable_list::ExpandableList;
-use crate::tui::components::scroll::display_width;
-use crate::tui::components::scroll_container::ScrollContainer;
-use crate::tui::components::status_bar;
+use crate::engine::playtest::repair::split_response;
+use crate::engine::playtest::{HitStage, PlayTestResult, PlayTurnResult};
+use crate::widgets::expandable::ExpandableList;
+use crate::widgets::scroll::display_width;
+use crate::widgets::scroll::ScrollState;
+use crate::widgets::status_bar;
 
 fn wrapped_line_count(text: &str, col_width: u16) -> usize {
     if col_width < 2 {
@@ -51,9 +52,9 @@ pub struct PlayTestJudgeState {
     debug_view: DebugView,
     think_fold_a: ExpandableList,
     think_fold_b: ExpandableList,
-    scroll_a: ScrollContainer,
-    scroll_b: ScrollContainer,
-    json_scroll: ScrollContainer,
+    scroll_a: ScrollState,
+    scroll_b: ScrollState,
+    json_scroll: ScrollState,
 }
 
 impl PlayTestJudgeState {
@@ -66,9 +67,9 @@ impl PlayTestJudgeState {
             debug_view: DebugView::Hidden,
             think_fold_a: ExpandableList::new(n),
             think_fold_b: ExpandableList::new(n),
-            scroll_a: ScrollContainer::new(),
-            scroll_b: ScrollContainer::new(),
-            json_scroll: ScrollContainer::new(),
+            scroll_a: ScrollState::new(),
+            scroll_b: ScrollState::new(),
+            json_scroll: ScrollState::new(),
         }
     }
 
@@ -296,7 +297,7 @@ impl PlayTestJudgeState {
         area: Rect,
         label: &str,
         color: Color,
-        scroll: &ScrollContainer,
+        scroll: &ScrollState,
         expanded: bool,
         is_panel_a: bool,
         resp: &(Option<String>, String),
@@ -308,7 +309,7 @@ impl PlayTestJudgeState {
         let (think, body) = resp;
         let lines = self.build_panel_lines(think, body, expanded, is_panel_a);
 
-        let (content_rect, bar_rect) = ScrollContainer::split_area(inner);
+        let (content_rect, bar_rect) = ScrollState::split_area(inner);
         let total_wrapped = wrapped_line_count(
             &lines
                 .iter()
@@ -326,7 +327,7 @@ impl PlayTestJudgeState {
                 .scroll((clamped_offset as u16, 0)),
             content_rect,
         );
-        ScrollContainer::render_scrollbar(
+        ScrollState::render_scrollbar(
             frame,
             bar_rect,
             total_wrapped,
@@ -450,14 +451,14 @@ impl PlayTestJudgeState {
         }
 
         let line_count = lines.len();
-        let (content_rect, bar_rect) = ScrollContainer::split_area(inner);
+        let (content_rect, bar_rect) = ScrollState::split_area(inner);
         frame.render_widget(
             Paragraph::new(Text::from(lines))
                 .wrap(Wrap { trim: false })
                 .scroll((self.scroll_a.offset as u16, 0)),
             content_rect,
         );
-        ScrollContainer::render_scrollbar(
+        ScrollState::render_scrollbar(
             frame,
             bar_rect,
             line_count,
@@ -493,7 +494,7 @@ impl PlayTestJudgeState {
             .map(|l| Line::from(Span::raw(l.to_string())))
             .collect();
 
-        let (content_rect, bar_rect) = ScrollContainer::split_area(inner);
+        let (content_rect, bar_rect) = ScrollState::split_area(inner);
         let total_wrapped = wrapped_line_count(&pretty, content_rect.width);
         let max_offset = total_wrapped.saturating_sub(content_rect.height as usize);
         let clamped = self.json_scroll.offset.min(max_offset);
@@ -504,7 +505,7 @@ impl PlayTestJudgeState {
                 .scroll((clamped as u16, 0)),
             content_rect,
         );
-        ScrollContainer::render_scrollbar(
+        ScrollState::render_scrollbar(
             frame,
             bar_rect,
             total_wrapped,

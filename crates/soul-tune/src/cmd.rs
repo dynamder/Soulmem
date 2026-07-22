@@ -143,3 +143,63 @@ impl CmdRegistry {
         todo!()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::base::SoulTuneEvent;
+
+    #[test]
+    fn test_register_and_get_by_name() {
+        let mut reg = CmdRegistry::new();
+        let cmd = UserCmdBuilder::new("test").description("run test").build();
+        reg.register(cmd);
+        assert!(reg.get("test").is_some());
+        assert_eq!(reg.get("test").unwrap().name(), "test");
+    }
+
+    #[test]
+    fn test_get_nonexistent_returns_none() {
+        let reg = CmdRegistry::new();
+        assert!(reg.get("no_such_cmd").is_none());
+    }
+
+    #[test]
+    fn test_builder_default_handler_returns_none() {
+        let cmd = UserCmdBuilder::new("dummy").build();
+        let handler = cmd.handler();
+        assert!(handler(&["arg1".into()]).is_none());
+    }
+
+    #[test]
+    fn test_builder_custom_handler() {
+        let cmd = UserCmdBuilder::new("quit")
+            .handler(|_| Some(SoulTuneEvent::Quit))
+            .build();
+        let handler = cmd.handler();
+        let result = handler(&[]);
+        assert!(matches!(result, Some(SoulTuneEvent::Quit)));
+    }
+
+    #[test]
+    fn test_builder_sets_metadata() {
+        let cmd = UserCmdBuilder::new("inspect")
+            .aliases(["i"])
+            .description("inspect file")
+            .usage("inspect <path>")
+            .build();
+        assert_eq!(cmd.name(), "inspect");
+        assert_eq!(cmd.description(), "inspect file");
+        assert_eq!(cmd.usage(), "inspect <path>");
+        assert_eq!(cmd.aliases(), &["i".to_string()]);
+    }
+
+    #[test]
+    fn test_get_all_returns_all() {
+        let mut reg = CmdRegistry::new();
+        reg.register(UserCmdBuilder::new("a").build());
+        reg.register(UserCmdBuilder::new("b").build());
+        let all = reg.get_all();
+        assert_eq!(all.len(), 2);
+    }
+}

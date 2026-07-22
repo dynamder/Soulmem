@@ -4,9 +4,9 @@ use std::time::Duration;
 
 use ratatui::crossterm;
 
-use crate::eval::compare::CompareReport;
-use crate::eval::playtest::{DialogueFile, PlayTestResult};
-use crate::eval::runner::SuiteReport;
+use crate::engine::compare::CompareReport;
+use crate::engine::playtest::{DialogueFile, PlayTestResult};
+use crate::engine::suite::SuiteReport;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RetrieveMode {

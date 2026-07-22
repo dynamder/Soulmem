@@ -68,3 +68,45 @@ impl Default for FuzzyPatternBuilder {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fuzzy_match_exact() {
+        let pattern = FuzzyPatternBuilder::default().build("test");
+        let items = vec!["test", "other", "testing"];
+        let results = fuzzy_match(pattern, items, false);
+        assert!(!results.is_empty(), "should have matches");
+        // exact match should score highest
+        let first = &results[0];
+        assert_eq!(first.0, "test");
+    }
+
+    #[test]
+    fn test_fuzzy_match_partial() {
+        let pattern = FuzzyPatternBuilder::default().build("tst");
+        let items = vec!["test", "testing", "other"];
+        let results = fuzzy_match(pattern, items, false);
+        assert!(!results.is_empty(), "partial should also match");
+    }
+
+    #[test]
+    fn test_fuzzy_match_no_match() {
+        let pattern = FuzzyPatternBuilder::default().build("xyz123_never");
+        let items = vec!["test", "other"];
+        let results = fuzzy_match(pattern, items, false);
+        assert!(results.is_empty(), "no match for unrelated pattern");
+    }
+
+    #[test]
+    fn test_pattern_builder_default() {
+        let b = FuzzyPatternBuilder::default();
+        let atom = b.build("query");
+        let items = vec!["query", "other"];
+        let results = fuzzy_match(atom, items, false);
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].0, "query");
+    }
+}

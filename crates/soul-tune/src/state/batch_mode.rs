@@ -9,7 +9,7 @@ use ratatui::Frame;
 
 use crate::base::{AlgoType, RetrieveMode, Transition};
 use crate::component::{Component, ComponentEvent};
-use crate::tui::components::status_bar;
+use crate::widgets::status_bar;
 
 pub struct BatchModeState {
     pub dir: PathBuf,

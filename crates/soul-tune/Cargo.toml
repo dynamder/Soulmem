@@ -19,10 +19,20 @@ soul-mem-runtime = { path = "../soul-mem-runtime" }
 serde.workspace = true
 rayon = "1.10.0"
 rand = "0.9"
-candle-core = { workspace = true }
-candle-nn = { workspace = true }
-candle-transformers = { workspace = true }
+candle-core = { workspace = true, optional = true }
+candle-nn = { workspace = true, optional = true }
+candle-transformers = { workspace = true, optional = true }
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "json"] }
 paw-rs = { version = "0.2", default-features = false, features = ["candle"] }
 tokio.workspace = true
 dotenvy = "0.15.7"
+tokenizers = { version = "0.21", optional = true }
+
+[features]
+default = ["llamacpp"]
+llamacpp = []
+candle = ["dep:candle-core", "dep:candle-nn", "dep:candle-transformers", "dep:tokenizers"]
+
+[dev-dependencies]
+insta = { workspace = true }
+tempfile = "3"

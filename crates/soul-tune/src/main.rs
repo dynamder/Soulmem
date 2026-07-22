@@ -1,24 +1,34 @@
-pub(crate) mod app;
-pub(crate) mod base;
-pub(crate) mod cmd;
-pub(crate) mod component;
-pub(crate) mod eval;
-pub(crate) mod metric;
-pub(crate) mod reporter;
-pub(crate) mod state;
-pub(crate) mod tui;
-pub(crate) mod utils;
+mod app;
+mod base;
+mod cmd;
+mod component;
+mod engine;
+mod states;
+mod widgets;
+mod utils;
+
+#[cfg(test)]
+mod tests_state_machine;
+#[cfg(test)]
+mod tests_widgets;
+#[cfg(test)]
+mod tests_states;
+#[cfg(test)]
+mod tests_playtest_mock;
+#[cfg(test)]
+mod tests_cli;
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use base::{AlgoType, RetrieveMode, TestReport};
-use eval::batch::{print_batch_result, run_batch, scan_question_jsons};
-use eval::llama_server::LlamaServer;
-use eval::playtest::{DialogueFile, PlayTestRunner};
-use eval::retrieve_suite::RetrieveSuite;
-use eval::runner::TestSuite;
-use state::inspect::{InspectFileType, InspectState};
+use engine::batch::{print_batch_result, run_batch, scan_question_jsons};
+use engine::llm::LlamaServer;
+use engine::playtest::{DialogueFile, PlayTestRunner};
+use engine::retrieve::batch::process_one_dataset;
+use engine::retrieve::RetrieveSuite;
+use engine::suite::{MetricFormat, ReportMetric, TestSuite};
+use states::inspect::{InspectFileType, InspectState};
 
 fn main() -> color_eyre::Result<()> {
     dotenvy::dotenv().ok();
@@ -91,7 +101,6 @@ fn main() -> color_eyre::Result<()> {
             } else {
                 &args[algo_idx - 1]
             };
-            // Reconstruct path: --batch takes a dir, not a file
             let path_str = &args[dir_idx];
             (algo, path_str)
         } else {
@@ -129,7 +138,6 @@ fn main() -> color_eyre::Result<()> {
             run_headless_single(algo, dataset_path)?;
         }
     } else {
-        // TUI mode
         color_eyre::install()?;
         let mut app = app::App::new()?;
         app.run()?;
@@ -210,12 +218,13 @@ fn run_headless_batch(dir: &Path, mode: RetrieveMode) {
     }
     println!("找到 {} 个数据集\n", datasets.len());
 
-    let result = run_batch(&datasets, mode, None);
+    let result = run_batch(&datasets, mode, |path, mode, params, start| {
+        process_one_dataset(path, mode, params, start, |_, _| {}, |_| {})
+    }, None);
     print_batch_result(&result);
 }
 
 fn run_headless_playtest(args: &[String]) -> color_eyre::Result<()> {
-    // soul-tune playtest <graph_dir> <dialogue_file>
     if args.len() < 4 {
         eprintln!("用法: soul-tune playtest <graph_dir> <dialogue_file>");
         eprintln!("环境变量: SOUL_TUNE_CANDLE_MODEL_PATH 必须设置");
@@ -254,7 +263,7 @@ fn run_headless_playtest(args: &[String]) -> color_eyre::Result<()> {
     println!("  ✓ 图加载完成");
 
     println!("[2/3] 启动 LLM 服务...");
-    let llm = LlamaServer::load(&model_path)
+    let mut llm = LlamaServer::load(&model_path)
         .map_err(|e| color_eyre::eyre::eyre!("启动 LLM 失败: {}", e))?;
     println!("  ✓ LLM 服务就绪");
 
@@ -272,7 +281,7 @@ fn run_headless_playtest(args: &[String]) -> color_eyre::Result<()> {
         println!("--- 第 {}/{} 轮 ---", i + 1, n);
         println!("用户: {}", entry.user_message);
 
-        let turn = runner.process_turn(entry, i, &llm);
+        let turn = runner.process_turn(entry, i, &mut llm);
         results.push(turn);
 
         let last = results.last().unwrap();
@@ -336,16 +345,28 @@ fn print_report(report: &TestReport) {
         report.elapsed.as_secs_f64(),
     );
 
-    // Summary groups
-    for group in &report.suite_report.summary_groups {
-        println!("--- {} ---", group.label);
-        for (k, v) in &group.items {
-            println!("  {}: {}", k, v);
+    let mut groups: std::collections::BTreeMap<String, Vec<&dyn ReportMetric>> = std::collections::BTreeMap::new();
+    for metric in &report.suite_report.metrics {
+        groups.entry(metric.group().to_string())
+            .or_default()
+            .push(metric.as_ref());
+    }
+
+    for (group, items) in &groups {
+        println!("--- {} ---", group);
+        for m in items {
+            match m.format() {
+                MetricFormat::KeyValue { value } => {
+                    println!("  {}: {}", m.label(), value);
+                }
+                MetricFormat::Chart { .. } => {
+                    println!("  {}: [图表数据]", m.label());
+                }
+            }
         }
         println!();
     }
 
-    // Detail
     if !report.suite_report.detail_header.is_empty() {
         println!("--- 详细 ---");
         println!("{}", report.suite_report.detail_header);
