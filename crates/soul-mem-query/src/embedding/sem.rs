@@ -1,14 +1,16 @@
+use serde::{Deserialize, Serialize};
+
 use super::EmbeddingGenResult;
 use super::EmbeddingModel;
 use super::EmbeddingVec;
 
-use crate::embedding::Embeddable;
-use crate::embedding::EmbeddingCalcResult;
 use crate::embedding::note::MemoryEmbeddingVariant;
 use crate::embedding::raw_linear_blend;
+use crate::embedding::Embeddable;
+use crate::embedding::EmbeddingCalcResult;
 use soul_mem_core::memory_note::sem_mem::SemMemory;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SemanticEmbedding {
     content: EmbeddingVec,
     fused_aliases: EmbeddingVec,

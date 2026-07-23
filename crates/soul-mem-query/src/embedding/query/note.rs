@@ -1,15 +1,31 @@
-use crate::{
-    embedding::{
-        Embeddable, EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
-        query::{sem::SemanticQueryUnitEmbedding, situation::SituationQueryUnitEmbedding},
-    },
-    query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant},
+use crate::embedding::{
+    blend_weights::BlendWeights,
+    query::{sem::SemanticQueryUnitEmbedding, situation::SituationQueryUnitEmbedding},
+    Embeddable, EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
 };
+use crate::query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum MemoryRetrieveQueryVariantEmbedding {
     Semantic(Vec<SemanticQueryUnitEmbedding>),
     Situation(Vec<SituationQueryUnitEmbedding>),
+}
+impl MemoryRetrieveQueryVariantEmbedding {
+    /// 将 blend weights 递归传播到所有子单元
+    pub fn set_blend_weights(&mut self, bw: &BlendWeights) {
+        match self {
+            Self::Semantic(units) => {
+                for u in units.iter_mut() {
+                    u.set_blend_weights(bw);
+                }
+            }
+            Self::Situation(units) => {
+                for u in units.iter_mut() {
+                    u.set_blend_weights(bw);
+                }
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -54,6 +70,8 @@ impl Embeddable for MemoryRetrieveQueryVariant {
 pub struct MemoryRetrieveQueryEmbedding {
     tag: EmbeddingVec,
     variant: MemoryRetrieveQueryVariantEmbedding,
+    pub tag_weight: f32,
+    pub variant_weight: f32,
 }
 impl MemoryRetrieveQueryEmbedding {
     pub fn tag(&self) -> &EmbeddingVec {
@@ -67,7 +85,17 @@ impl MemoryRetrieveQueryEmbedding {
         Self {
             tag,
             variant: MemoryRetrieveQueryVariantEmbedding::Semantic(vec![]),
+            tag_weight: 0.4,
+            variant_weight: 0.6,
         }
+    }
+
+    /// 设置自定义 blend weights 并传播到所有子单元
+    pub fn with_weights(mut self, bw: BlendWeights) -> Self {
+        self.tag_weight = bw.tag;
+        self.variant_weight = bw.variant;
+        self.variant.set_blend_weights(&bw);
+        self
     }
 }
 
@@ -89,6 +117,8 @@ impl Embeddable for MemoryRetrieveQuery {
         Ok(MemoryRetrieveQueryEmbedding {
             tag: tag_vec,
             variant: variant_vec,
+            tag_weight: 0.4,
+            variant_weight: 0.6,
         })
     }
     fn embed_and_fuse(

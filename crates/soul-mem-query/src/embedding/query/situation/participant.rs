@@ -1,12 +1,12 @@
-use crate::{
-    embedding::{Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling},
-    query::retrieve::ParticipantQueryUnit,
-};
+use crate::embedding::blend_weights::BlendWeights;
+use crate::embedding::{mean_pooling, Embeddable, EmbeddingCalcResult, EmbeddingVec};
+use crate::query::retrieve::ParticipantQueryUnit;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ParticipantQueryUnitEmbedding {
     name: Option<EmbeddingVec>,
     role: Option<EmbeddingVec>,
+    pub blend_weights: BlendWeights,
 }
 impl ParticipantQueryUnitEmbedding {
     pub fn name(&self) -> Option<&EmbeddingVec> {
@@ -14,6 +14,9 @@ impl ParticipantQueryUnitEmbedding {
     }
     pub fn role(&self) -> Option<&EmbeddingVec> {
         self.role.as_ref()
+    }
+    pub fn set_blend_weights(&mut self, bw: &BlendWeights) {
+        self.blend_weights = bw.clone();
     }
     pub fn mean_pooling(vecs: &[Self]) -> EmbeddingCalcResult<Option<Self>> {
         if vecs.is_empty() {
@@ -36,6 +39,7 @@ impl ParticipantQueryUnitEmbedding {
         Ok(Some(Self {
             name: name_vec,
             role: role_vec,
+            blend_weights: BlendWeights::default(),
         }))
     }
 }
@@ -70,6 +74,7 @@ impl Embeddable for ParticipantQueryUnit {
         Ok(ParticipantQueryUnitEmbedding {
             name: name_vec,
             role: role_vec,
+            blend_weights: BlendWeights::default(),
         })
     }
     fn embed_and_fuse(

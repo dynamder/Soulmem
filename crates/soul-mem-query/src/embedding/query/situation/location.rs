@@ -1,12 +1,12 @@
-use crate::{
-    embedding::{Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling},
-    query::retrieve::LocationQueryUnit,
-};
+use crate::embedding::blend_weights::BlendWeights;
+use crate::embedding::{mean_pooling, Embeddable, EmbeddingCalcResult, EmbeddingVec};
+use crate::query::retrieve::LocationQueryUnit;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct LocationQueryUnitEmbedding {
     name: EmbeddingVec,
     coordinates: Option<EmbeddingVec>,
+    pub blend_weights: BlendWeights,
 }
 impl LocationQueryUnitEmbedding {
     pub fn name(&self) -> &EmbeddingVec {
@@ -14,6 +14,9 @@ impl LocationQueryUnitEmbedding {
     }
     pub fn coordinates(&self) -> Option<&EmbeddingVec> {
         self.coordinates.as_ref()
+    }
+    pub fn set_blend_weights(&mut self, bw: &BlendWeights) {
+        self.blend_weights = bw.clone();
     }
     pub fn mean_pooling(vecs: &[Self]) -> EmbeddingCalcResult<Option<Self>> {
         if vecs.is_empty() {
@@ -35,6 +38,7 @@ impl LocationQueryUnitEmbedding {
         Ok(Some(LocationQueryUnitEmbedding {
             name: name_embedding,
             coordinates: coordinate_embedding,
+            blend_weights: BlendWeights::default(),
         }))
     }
 }
@@ -66,6 +70,7 @@ impl Embeddable for LocationQueryUnit {
         Ok(LocationQueryUnitEmbedding {
             name: name_vec,
             coordinates: coordinates_vec,
+            blend_weights: BlendWeights::default(),
         })
     }
     fn embed_and_fuse(

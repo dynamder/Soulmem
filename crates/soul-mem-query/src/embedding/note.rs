@@ -1,10 +1,11 @@
 use crate::embedding::{
-    Embeddable, EmbeddingCalcResult, EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
-    sem::SemanticEmbedding, situation::SituationEmbedding,
+    sem::SemanticEmbedding, situation::SituationEmbedding, Embeddable, EmbeddingCalcResult,
+    EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
 };
+use serde::{Deserialize, Serialize};
 use soul_mem_core::memory_note::{MemoryNote, MemoryType};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct MemoryEmbedding {
     tag: EmbeddingVec,
     variant: MemoryEmbeddingVariant,
@@ -21,7 +22,7 @@ impl MemoryEmbedding {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum MemoryEmbeddingVariant {
     Situation(SituationEmbedding),
     Procedure(),
@@ -127,7 +128,7 @@ impl Embeddable for MemoryType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EmbeddedMemoryNote {
     pub embedding: MemoryEmbedding,
     pub note: MemoryNote,
@@ -172,8 +173,8 @@ impl Embeddable for MemoryNote {
 mod tests {
     use super::*;
     use crate::embedding::embedding_model::bge::BgeSmallZh;
-    use soul_mem_core::memory_note::MemoryNoteBuilder;
     use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
+    use soul_mem_core::memory_note::MemoryNoteBuilder;
 
     #[test]
     fn test_memory_note_embedding() {

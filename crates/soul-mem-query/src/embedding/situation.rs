@@ -5,18 +5,20 @@ pub mod event;
 pub mod location;
 pub mod participant;
 pub mod sensory_data;
+use serde::{Deserialize, Serialize};
+
 use crate::embedding::{
-    Embeddable, EmbeddingVec,
     situation::{
         context::ContextEmbedding, environment::EnvironmentEmbedding, event::EventEmbedding,
         participant::ParticipantEmbedding,
     },
+    Embeddable, EmbeddingVec,
 };
 use location::LocationEmbedding;
 use soul_mem_core::memory_note::situation_mem::{
     AbstractSituation, SituationType, SpecificSituation,
 };
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SituationEmbedding {
     Specific(SpecificSituationEmbedding),
     Abstract(AbstractSituationEmbedding),
@@ -41,7 +43,7 @@ impl From<AbstractSituationEmbedding> for SituationEmbedding {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SpecificSituationEmbedding {
     narrative: EmbeddingVec,
     context: ContextEmbedding,
@@ -84,7 +86,7 @@ pub struct EmbeddedSpecificSituation {
     pub specific_situation: SpecificSituation,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum AbstractSituationEmbedding {
     Location(LocationEmbedding),
     Participant(ParticipantEmbedding),

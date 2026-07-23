@@ -1,14 +1,16 @@
+use serde::{Deserialize, Serialize};
+
 use crate::embedding::{
-    Embeddable,
     situation::{
         emotion::EmotionEmbedding, environment::EnvironmentEmbedding, event::EventEmbedding,
         location::LocationEmbedding, participant::ParticipantEmbedding,
         sensory_data::SensoryDataEmbedding,
     },
+    Embeddable,
 };
 use soul_mem_core::memory_note::situation_mem::Context;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ContextEmbedding {
     location: Option<LocationEmbedding>,
     fused_participant: Option<ParticipantEmbedding>,

@@ -1,7 +1,9 @@
+use serde::{Deserialize, Serialize};
+
 use crate::embedding::{Embeddable, EmbeddingCalcError, EmbeddingCalcResult, EmbeddingVec};
 use soul_mem_core::memory_note::situation_mem::SensoryData;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SensoryDataEmbedding {
     sensory: EmbeddingVec,
     intensity: f32,

@@ -1,12 +1,12 @@
-use crate::{
-    embedding::{Embeddable, EmbeddingVec},
-    query::retrieve::SemanticQueryUnit,
-};
+use crate::embedding::blend_weights::BlendWeights;
+use crate::embedding::{Embeddable, EmbeddingVec};
+use crate::query::retrieve::SemanticQueryUnit;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct SemanticQueryUnitEmbedding {
     concept_identifier: Option<EmbeddingVec>,
     description: Option<EmbeddingVec>,
+    pub blend_weights: BlendWeights,
 }
 impl SemanticQueryUnitEmbedding {
     pub fn concept_identifier(&self) -> Option<&EmbeddingVec> {
@@ -15,6 +15,10 @@ impl SemanticQueryUnitEmbedding {
 
     pub fn description(&self) -> Option<&EmbeddingVec> {
         self.description.as_ref()
+    }
+
+    pub fn set_blend_weights(&mut self, bw: &BlendWeights) {
+        self.blend_weights = bw.clone();
     }
 }
 
@@ -52,6 +56,7 @@ impl Embeddable for SemanticQueryUnit {
         Ok(SemanticQueryUnitEmbedding {
             concept_identifier: concept_identifier_vec,
             description: description_vec,
+            blend_weights: BlendWeights::default(),
         })
     }
     fn embed_and_fuse(

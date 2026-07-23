@@ -1,13 +1,13 @@
-use crate::{
-    embedding::{Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling},
-    query::retrieve::EventQueryUnit,
-};
+use crate::embedding::blend_weights::BlendWeights;
+use crate::embedding::{mean_pooling, Embeddable, EmbeddingCalcResult, EmbeddingVec};
+use crate::query::retrieve::EventQueryUnit;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct EventQueryUnitEmbedding {
     action: EmbeddingVec,
     initiator: Option<EmbeddingVec>,
     target: Option<EmbeddingVec>,
+    pub blend_weights: BlendWeights,
 }
 impl EventQueryUnitEmbedding {
     pub fn action(&self) -> &EmbeddingVec {
@@ -18,6 +18,10 @@ impl EventQueryUnitEmbedding {
     }
     pub fn target(&self) -> Option<&EmbeddingVec> {
         self.target.as_ref()
+    }
+
+    pub fn set_blend_weights(&mut self, bw: &BlendWeights) {
+        self.blend_weights = bw.clone();
     }
     pub fn mean_pooling(vecs: &[EventQueryUnitEmbedding]) -> EmbeddingCalcResult<Option<Self>> {
         if vecs.is_empty() {
@@ -51,6 +55,7 @@ impl EventQueryUnitEmbedding {
             action: action_vec,
             initiator: initiator_vec,
             target: target_vec,
+            blend_weights: BlendWeights::default(),
         }))
     }
 }
@@ -90,6 +95,7 @@ impl Embeddable for EventQueryUnit {
             action: action_vec,
             initiator: initiator_vec,
             target: target_vec,
+            blend_weights: BlendWeights::default(),
         })
     }
     fn embed_and_fuse(
