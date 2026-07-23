@@ -26,7 +26,7 @@ use crate::engine::loader::{cached_load_graph, get_bge_model};
 use crate::engine::retrieve::data::NodeSummary;
 
 use super::repair::{
-    extract_json_array, extract_think_content, strip_think_block, RawQuery, RawVariant,
+    extract_think_content, robust_json_extract, strip_think_block, RawQuery, RawVariant,
 };
 use super::trace::{HitStage, QueryTrace, RetrievalTrace, TracedNode};
 
@@ -39,11 +39,34 @@ pub struct PlayConfig {
     pub ppr_top_k: usize,
     pub damping_factor: f64,
     pub residue_threshold: f64,
+    pub runs_per_turn: usize,
 }
 
 const CHAT_INSTRUCTION: &str = "注意：这是短信聊天场景，回复必须自然口语化，像真人发消息。\
 严禁使用括号描述动作、神态或心理活动，如（笑）、（叹气）、*摇头*等。\
-只输出对话内容，不加任何表演注释。";
+只输出对话内容，不加任何表演注释。\
+回复必须简短，一句话即可，不要重复用户的话，不要解释你的回复。";
+
+/// Strip 思维链 content from response and trim to a uniform max length for fair comparison.
+const RESPONSE_MAX_CHARS: usize = 200;
+
+fn strip_and_trim(s: &str) -> String {
+    let mut text = s.to_string();
+    while let Some(start) = text.find("<｜end▁of▁thinking｜>") {
+        let end = text[start..]
+            .find(" response")
+            .map(|p| start + p + 7)
+            .or_else(|| text[start..].find("<think/>").map(|p| start + p + 8))
+            .unwrap_or(text.len());
+        text.replace_range(start..end, "");
+    }
+    let trimmed = text.trim().to_string();
+    if trimmed.chars().count() > RESPONSE_MAX_CHARS {
+        trimmed.chars().take(RESPONSE_MAX_CHARS).collect()
+    } else {
+        trimmed
+    }
+}
 
 impl Default for PlayConfig {
     fn default() -> Self {
@@ -54,6 +77,7 @@ impl Default for PlayConfig {
             ppr_top_k: 8,
             damping_factor: 0.15,
             residue_threshold: 1e-5,
+            runs_per_turn: 5,
         }
     }
 }
@@ -73,19 +97,24 @@ pub struct ConversationEntry {
 }
 
 #[derive(Debug, Clone)]
-pub struct PlayTurnResult {
-    pub index: usize,
-    pub user_message: String,
-    pub system_prompt: String,
-    pub generated_queries_json: String,
-    pub think_content: Option<String>,
-    pub embedding_trace: Option<RetrievalTrace>,
-    pub fullpipeline_trace: Option<RetrievalTrace>,
+pub struct PlayRunSnapshot {
     pub embedding_response: Option<String>,
     pub fullpipeline_response: Option<String>,
     pub swap: bool,
     pub human_pick: Option<u8>,
     pub error: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct PlayTurnResult {
+    pub index: usize,
+    pub user_message: String,
+    pub system_prompt: String,
+    pub generated_queries_json: String,
+    pub query_think_content: Option<String>,
+    pub embedding_trace: Option<RetrievalTrace>,
+    pub fullpipeline_trace: Option<RetrievalTrace>,
+    pub runs: Vec<PlayRunSnapshot>,
 }
 
 #[derive(Debug, Clone)]
@@ -210,7 +239,7 @@ impl PlayTestRunner {
         llm: &mut dyn LlmBackend,
     ) -> PlayTurnResult {
         let gen_query_result = self.generate_queries(entry, llm);
-        let (queries, queries_json, think_content) = match gen_query_result {
+        let (queries, queries_json, query_think_content) = match gen_query_result {
             Ok((q, j, tc)) => (q, j, tc),
             Err(e) => {
                 return PlayTurnResult {
@@ -218,14 +247,16 @@ impl PlayTestRunner {
                     user_message: entry.user_message.clone(),
                     system_prompt: self.system_prompt.clone(),
                     generated_queries_json: String::new(),
-                    think_content: None,
+                    query_think_content: None,
                     embedding_trace: None,
                     fullpipeline_trace: None,
-                    embedding_response: None,
-                    fullpipeline_response: None,
-                    swap: false,
-                    human_pick: None,
-                    error: Some(format!("Query generation failed: {}", e)),
+                    runs: vec![PlayRunSnapshot {
+                        embedding_response: None,
+                        fullpipeline_response: None,
+                        swap: false,
+                        human_pick: None,
+                        error: Some(format!("Query generation failed: {}", e)),
+                    }],
                 };
             }
         };
@@ -247,46 +278,61 @@ impl PlayTestRunner {
 
         let mut chat_prompt = format!("{}\n\n{}", self.system_prompt, CHAT_INSTRUCTION);
         if let Some(ref role) = self.human_role {
-            chat_prompt = format!("{}\n\n{}", chat_prompt, role);
+            chat_prompt = format!("{}\n\n现在与你对话的是: {}", chat_prompt, role);
         }
-        let resp_emb = llm.generate_response(&chat_prompt, &emb_context, &entry.user_message);
-        let resp_full = llm.generate_response(&chat_prompt, &full_context, &entry.user_message);
 
-        let mut errors: Vec<String> = Vec::new();
-        let embedding_response = match resp_emb {
-            Ok(s) => Some(s),
-            Err(e) => {
-                errors.push(format!("Embedding 响应失败: {}", e));
-                None
-            }
+        let mut runs: Vec<PlayRunSnapshot> = Vec::with_capacity(self.config.runs_per_turn);
+        let user_text = match &self.human_role {
+            Some(role) => format!(
+                "（对方身份: {}）对方发来消息: \"{}\"",
+                role, entry.user_message
+            ),
+            None => format!("\"{}\"", entry.user_message),
         };
-        let fullpipeline_response = match resp_full {
-            Ok(s) => Some(s),
-            Err(e) => {
-                errors.push(format!("FullPipeline 响应失败: {}", e));
-                None
-            }
-        };
+        for _run_idx in 0..self.config.runs_per_turn {
+            let resp_emb = llm.generate_response(&chat_prompt, &emb_context, &user_text);
+            let resp_full = llm.generate_response(&chat_prompt, &full_context, &user_text);
 
-        let swap = rand::random::<bool>();
+            let mut errors: Vec<String> = Vec::new();
+            let embedding_response = match resp_emb {
+                Ok(s) => Some(strip_and_trim(&s)),
+                Err(e) => {
+                    errors.push(format!("Embedding 响应失败: {}", e));
+                    None
+                }
+            };
+            let fullpipeline_response = match resp_full {
+                Ok(s) => Some(strip_and_trim(&s)),
+                Err(e) => {
+                    errors.push(format!("FullPipeline 响应失败: {}", e));
+                    None
+                }
+            };
+
+            let swap = rand::random::<bool>();
+
+            runs.push(PlayRunSnapshot {
+                embedding_response,
+                fullpipeline_response,
+                swap,
+                human_pick: None,
+                error: if errors.is_empty() {
+                    None
+                } else {
+                    Some(errors.join("; "))
+                },
+            });
+        }
 
         PlayTurnResult {
             index: turn_index,
             user_message: entry.user_message.clone(),
             system_prompt: self.system_prompt.clone(),
             generated_queries_json: queries_json,
-            think_content,
+            query_think_content,
             embedding_trace,
             fullpipeline_trace,
-            embedding_response,
-            fullpipeline_response,
-            swap,
-            human_pick: None,
-            error: if errors.is_empty() {
-                None
-            } else {
-                Some(errors.join("; "))
-            },
+            runs,
         }
     }
 
@@ -316,7 +362,7 @@ impl PlayTestRunner {
         let think_content = extract_think_content(&text);
         let clean = strip_think_block(&text);
 
-        let json_str = extract_json_array(&clean).ok_or_else(|| {
+        let json_str = robust_json_extract(&clean).ok_or_else(|| {
             format!(
                 "No JSON array found in LLM output (think stripped): {}\n---完整原始输出---\n{}",
                 clean, text
@@ -332,10 +378,10 @@ impl PlayTestRunner {
             let _ = writeln!(f, "提取的 JSON:\n{}\n<|end_json|>\n\n", json_str);
         }
 
-        let raw: Vec<RawQuery> = match serde_json::from_str(json_str) {
+        let raw: Vec<RawQuery> = match serde_json::from_str(&json_str) {
             Ok(v) => v,
             Err(orig_err) => {
-                if let Some(repaired) = super::repair::repair_json(json_str) {
+                if let Some(repaired) = super::repair::repair_json(&json_str) {
                     if let Ok(v) = serde_json::from_str(&repaired) {
                         v
                     } else {
@@ -374,7 +420,7 @@ impl PlayTestRunner {
             })
             .collect();
 
-        Ok((queries, json_str.to_string(), think_content))
+        Ok((queries, json_str, think_content))
     }
 
     fn run_embedding_retrieval(
@@ -409,9 +455,15 @@ impl PlayTestRunner {
                 .into_iter()
                 .map(|(id, score)| {
                     let name = self.graph_names.get(&id).cloned().unwrap_or_default();
+                    let content = self
+                        .id_names
+                        .get(&id)
+                        .map(|s| s.primary.clone())
+                        .unwrap_or_default();
                     TracedNode {
                         id,
                         name,
+                        content,
                         score: score as f64,
                         stage: HitStage::Similarity,
                     }
@@ -484,9 +536,15 @@ impl PlayTestRunner {
                 .into_iter()
                 .map(|(id, score)| {
                     let name = self.graph_names.get(&id).cloned().unwrap_or_default();
+                    let content = self
+                        .id_names
+                        .get(&id)
+                        .map(|s| s.primary.clone())
+                        .unwrap_or_default();
                     TracedNode {
                         id,
                         name,
+                        content,
                         score: score as f64,
                         stage: HitStage::Similarity,
                     }
@@ -524,6 +582,11 @@ impl PlayTestRunner {
                     TracedNode {
                         id,
                         name,
+                        content: self
+                            .id_names
+                            .get(&id)
+                            .map(|s| s.primary.clone())
+                            .unwrap_or_default(),
                         score,
                         stage,
                     }
@@ -548,6 +611,11 @@ impl PlayTestRunner {
                     TracedNode {
                         id,
                         name,
+                        content: self
+                            .id_names
+                            .get(&id)
+                            .map(|s| s.primary.clone())
+                            .unwrap_or_default(),
                         score,
                         stage,
                     }

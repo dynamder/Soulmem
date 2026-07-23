@@ -1,25 +1,42 @@
 use serde::Deserialize;
 
+/// Returns (block_start, content_start, content_end, block_end) or None.
+/// Supports `<think>..</think>`, `<think>..<think/>`, and unclosed `<think>..` variants.
+fn find_next_think_block(s: &str) -> Option<(usize, usize, usize, usize)> {
+    let block_start = s.find("<think>")?;
+    let content_start = block_start + 7;
+    let rest = &s[block_start..];
+
+    let (closing_tag_pos, closing_tag_len) = if let Some(pos) = rest.find("</think>") {
+        (pos, 8)
+    } else if let Some(pos) = rest.find("<think/>") {
+        (pos, 8)
+    } else {
+        (rest.len(), 0)
+    };
+
+    let content_end = block_start + closing_tag_pos;
+    let block_end = content_end + closing_tag_len;
+
+    Some((block_start, content_start, content_end, block_end))
+}
+
 pub fn strip_think_block(s: &str) -> String {
     let mut result = s.to_string();
     loop {
-        let start = result.find("<think>");
-        let end = start.and_then(|s| result[s..].find("</think>").map(|e| s + e));
-        match (start, end) {
-            (Some(s), Some(e)) => {
-                result.replace_range(s..e + 8, "");
+        match find_next_think_block(&result) {
+            Some((block_start, _, _, block_end)) => {
+                result.replace_range(block_start..block_end, "");
             }
-            _ => break,
+            None => break,
         }
     }
     result.trim().to_string()
 }
 
 pub fn extract_think_content(s: &str) -> Option<String> {
-    let start = s.find("<think>")?;
-    let remaining = &s[start + 7..];
-    let end = remaining.find("</think>")?;
-    Some(remaining[..end].trim().to_string())
+    let (_, content_start, content_end, _) = find_next_think_block(s)?;
+    Some(s[content_start..content_end].trim().to_string())
 }
 
 pub fn extract_json_array(s: &str) -> Option<&str> {
@@ -32,18 +49,156 @@ pub fn extract_json_array(s: &str) -> Option<&str> {
     }
 }
 
+fn extract_balanced_array(s: &str) -> Option<String> {
+    let start = s.find('[')?;
+    let mut depth = 0u32;
+    let mut in_string = false;
+    let mut escape = false;
+    for (i, ch) in s[start..].char_indices() {
+        if escape {
+            escape = false;
+            continue;
+        }
+        match ch {
+            '\\' if in_string => escape = true,
+            '"' => in_string = !in_string,
+            '[' if !in_string => depth += 1,
+            ']' if !in_string => {
+                depth -= 1;
+                if depth == 0 {
+                    return Some(s[start..=start + i].to_string());
+                }
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+fn strip_markdown_fences(s: &str) -> String {
+    let lines: Vec<&str> = s.trim().lines().collect();
+    let mut result: Vec<&str> = Vec::new();
+    let mut in_fence = false;
+    let mut stripped = false;
+    for line in &lines {
+        if line.trim().starts_with("```") {
+            in_fence = !in_fence;
+            stripped = true;
+            continue;
+        }
+        result.push(line);
+    }
+    if stripped || in_fence {
+        result.join("\n").trim().to_string()
+    } else {
+        s.to_string()
+    }
+}
+
+fn find_matching_brace(s: &str, start: usize) -> (usize, bool) {
+    let mut depth = 0u32;
+    let mut in_string = false;
+    let mut escape = false;
+    for (i, ch) in s[start..].char_indices() {
+        if escape {
+            escape = false;
+            continue;
+        }
+        match ch {
+            '\\' if in_string => escape = true,
+            '"' => in_string = !in_string,
+            '{' if !in_string => depth += 1,
+            '}' if !in_string => {
+                depth -= 1;
+                if depth == 0 {
+                    return (start + i, true);
+                }
+            }
+            _ => {}
+        }
+    }
+    (s.len(), false)
+}
+
+fn extract_top_level_objects(s: &str) -> Option<String> {
+    let mut objects: Vec<String> = Vec::new();
+    let bytes = s.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'{' {
+            let (obj_end, ok) = find_matching_brace(s, i);
+            if ok {
+                let obj = s[i..=obj_end].trim().to_string();
+                if !obj.is_empty() {
+                    objects.push(obj);
+                }
+                i = obj_end + 1;
+                continue;
+            }
+        }
+        i += 1;
+    }
+    if objects.is_empty() {
+        None
+    } else {
+        Some(format!("[{}]", objects.join(",")))
+    }
+}
+
+fn is_valid_query_json(s: &str) -> bool {
+    serde_json::from_str::<Vec<RawQuery>>(s).is_ok()
+}
+
+pub fn robust_json_extract(clean: &str) -> Option<String> {
+    if let Some(j) = extract_balanced_array(clean) {
+        if is_valid_query_json(&j) {
+            return Some(j);
+        }
+    }
+
+    let stripped = strip_markdown_fences(clean);
+
+    if let Some(j) = extract_balanced_array(&stripped) {
+        if is_valid_query_json(&j) {
+            return Some(j);
+        }
+    }
+
+    if let Some(j) = extract_top_level_objects(clean) {
+        if is_valid_query_json(&j) {
+            return Some(j);
+        }
+    }
+
+    if stripped != clean {
+        if let Some(j) = extract_top_level_objects(&stripped) {
+            if is_valid_query_json(&j) {
+                return Some(j);
+            }
+        }
+    }
+
+    if let Some(j) = repair_json(&stripped) {
+        return Some(j);
+    }
+
+    if let Some(j) = repair_json(clean) {
+        return Some(j);
+    }
+
+    None
+}
+
 pub fn split_response(s: &str) -> (Option<String>, String) {
     let mut think_parts: Vec<String> = Vec::new();
     let mut body = s.to_string();
     loop {
-        let start = body.find("<think>");
-        let end = start.and_then(|s| body[s..].find("</think>").map(|e| s + e));
-        match (start, end) {
-            (Some(s), Some(e)) => {
-                think_parts.push(body[s + 7..e].trim().to_string());
-                body.replace_range(s..e + 8, "");
+        match find_next_think_block(&body) {
+            Some((block_start, content_start, content_end, block_end)) => {
+                think_parts.push(body[content_start..content_end].trim().to_string());
+                body.replace_range(block_start..block_end, "");
             }
-            _ => break,
+            None => break,
         }
     }
     let think = if think_parts.is_empty() {
@@ -101,7 +256,8 @@ pub fn repair_json(bad_json: &str) -> Option<String> {
     let f = lock.as_mut()?;
     let prompt = format!("Fix this JSON:\n{}\n\n---\nRepaired JSON:", bad_json);
     let raw = f.run(&prompt).ok()?;
-    extract_json_array(&raw).map(|s| s.to_string())
+    extract_balanced_array(&raw)
+        .or_else(|| extract_json_array(&raw).map(|s| s.to_string()))
 }
 
 struct PawState {
@@ -267,5 +423,158 @@ mod tests {
         let (think, body) = split_response(input);
         assert!(think.is_none());
         assert_eq!(body, "just plain text");
+    }
+
+    #[test]
+    fn test_split_response_self_closing_think() {
+        let input = "<think>reason<think/>final content";
+        let (think, body) = split_response(input);
+        assert_eq!(think, Some("reason".into()));
+        assert_eq!(body, "final content");
+    }
+
+    #[test]
+    fn test_split_response_unclosed_think() {
+        let input = "<think>unclosed thought";
+        let (think, body) = split_response(input);
+        assert_eq!(think, Some("unclosed thought".into()));
+        assert_eq!(body, "");
+    }
+
+    #[test]
+    fn test_split_response_mixed_closing() {
+        let input = "<think>a</think>text<think>b<think/>more";
+        let (think, body) = split_response(input);
+        assert_eq!(think, Some("a\n\nb".into()));
+        assert_eq!(body, "textmore");
+    }
+
+    #[test]
+    fn test_split_response_standalone_selfclose_not_think() {
+        let input = "no think here<think/>still no think";
+        let (think, body) = split_response(input);
+        assert!(think.is_none());
+        assert_eq!(body, "no think here<think/>still no think");
+    }
+
+    #[test]
+    fn test_strip_think_self_closing() {
+        let input = "before<think>remove<think/>after";
+        let result = strip_think_block(input);
+        assert_eq!(result, "beforeafter");
+    }
+
+    #[test]
+    fn test_strip_think_unclosed() {
+        let input = "a<think>incomplete";
+        let result = strip_think_block(input);
+        assert_eq!(result, "a");
+    }
+
+    #[test]
+    fn test_extract_think_self_closing() {
+        let input = "<think>reasoning<think/>body";
+        let result = extract_think_content(input);
+        assert_eq!(result, Some("reasoning".into()));
+    }
+
+    #[test]
+    fn test_extract_think_unclosed() {
+        let input = "<think>just thinking";
+        let result = extract_think_content(input);
+        assert_eq!(result, Some("just thinking".into()));
+    }
+
+    #[test]
+    fn test_extract_think_standalone_selfclose() {
+        let input = "text<think/>more";
+        let result = extract_think_content(input);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_robust_direct_clean_json() {
+        let input = r#"[{"tag":["test"],"variant":{"Semantic":[{"concept_identifier":"x"}]},"priority":1}]"#;
+        let result = robust_json_extract(input);
+        assert_eq!(result.as_deref(), Some(input));
+    }
+
+    #[test]
+    fn test_robust_with_surrounding_text() {
+        let input = "here is the answer:\n[{\"tag\":[\"a\"],\"variant\":{\"Semantic\":[{\"concept_identifier\":\"b\"}]},\"priority\":1}]\ndone";
+        let result = robust_json_extract(input);
+        assert!(result.is_some());
+        let parsed: Vec<RawQuery> = serde_json::from_str(&result.unwrap()).unwrap();
+        assert_eq!(parsed.len(), 1);
+    }
+
+    #[test]
+    fn test_robust_markdown_fence() {
+        let input = "```json\n[{\"tag\":[\"test\"],\"variant\":{\"Semantic\":[{\"concept_identifier\":\"x\"}]},\"priority\":1}]\n```";
+        let result = robust_json_extract(input);
+        assert!(result.is_some());
+        let parsed: Vec<RawQuery> = serde_json::from_str(&result.unwrap()).unwrap();
+        assert_eq!(parsed.len(), 1);
+    }
+
+    #[test]
+    fn test_robust_objects_no_array_wrapper() {
+        let input = "{\"tag\":[\"t1\"],\"variant\":{\"Semantic\":[{\"concept_identifier\":\"a\"}]},\"priority\":1}\n{\"tag\":[\"t2\"],\"variant\":{\"Semantic\":[{\"concept_identifier\":\"b\"}]},\"priority\":2}";
+        let result = robust_json_extract(input);
+        assert!(result.is_some());
+        let parsed: Vec<RawQuery> = serde_json::from_str(&result.unwrap()).unwrap();
+        assert_eq!(parsed.len(), 2);
+    }
+
+    #[test]
+    fn test_robust_single_object_wrapped() {
+        let input = "{\"tag\":[\"t1\"],\"variant\":{\"Semantic\":[{\"concept_identifier\":\"a\"}]},\"priority\":1}";
+        let result = robust_json_extract(input);
+        assert!(result.is_some());
+        let parsed: Vec<RawQuery> = serde_json::from_str(&result.unwrap()).unwrap();
+        assert_eq!(parsed.len(), 1);
+    }
+
+    #[test]
+    #[ignore = "requires PAW service"]
+    fn test_robust_failed_returns_none() {
+        let input = "this is just plain text no json at all";
+        let result = robust_json_extract(input);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_extract_balanced_array_nested() {
+        let input = r#"text [{"a": [1,2]}, {"b": [3]}] more text"#;
+        let result = extract_balanced_array(input);
+        assert_eq!(result.unwrap(), r#"[{"a": [1,2]}, {"b": [3]}]"#);
+    }
+
+    #[test]
+    fn test_extract_balanced_array_unbalanced() {
+        let input = r#"[{"a": "missing close"#;
+        let result = extract_balanced_array(input);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_extract_top_level_objects_multiple() {
+        let input = r#"{"a":1}{"b":2}"#;
+        let result = extract_top_level_objects(input);
+        assert_eq!(result.unwrap(), r#"[{"a":1},{"b":2}]"#);
+    }
+
+    #[test]
+    fn test_strip_markdown_fences_basic() {
+        let input = "```json\n[1,2,3]\n```";
+        let result = strip_markdown_fences(input);
+        assert_eq!(result, "[1,2,3]");
+    }
+
+    #[test]
+    fn test_strip_markdown_fences_no_fence() {
+        let input = "[1,2,3]";
+        let result = strip_markdown_fences(input);
+        assert_eq!(result, "[1,2,3]");
     }
 }

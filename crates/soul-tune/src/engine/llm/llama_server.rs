@@ -13,20 +13,22 @@ pub struct LlamaServer {
 
 impl LlmBackend for LlamaServer {
     fn generate_queries(&mut self, system: &str, user_message: &str) -> Result<String> {
-        let prompt = format!(
-            "{}\n\n用户说: \"{}\"\n\n作为角色，你需要从记忆中检索相关信息才能自然地回应这句话。\
-             \n请输出一个 JSON 数组，格式严格如下，不要包含任何其他内容:\n\n\
-             [\n  {{\n    \"tag\": [\"标签1\", \"标签2\"],\n    \"variant\": {{\n      \"Semantic\": [\n        {{\"concept_identifier\": \"具体概念关键词\"}}\n      ]\n    }},\n    \"priority\": 1\n  }}\n]\n\n\
-             要求:\n\
-             - 数组中的每项必须包含 \"tag\"、\"variant\"、\"priority\" 三个字段\n\
-             - \"tag\" 是字符串数组，描述这个查询的类别\n\
-             - \"variant\" 是对象，key 必须是 \"Semantic\"，value 是数组\n\
-             - \"Semantic\" 数组中的每项必须包含 \"concept_identifier\" 字段\n\
-             - \"priority\" 是 1~10 的整数\n\
-             - 只输出 JSON 数组，不要输出其他任何文本、解释、或标记",
-            system, user_message
+        let user_content = format!(
+            "用户说: \"{}\"\n\n\
+            从角色记忆中检索回应这句话所需的信息。输出一个 JSON 数组，格式如下:\n\
+            [\n  {{\"tag\": [\"概念\", \"规则\"], \"variant\": {{\"Semantic\": [{{\"concept_identifier\": \"弹幕规则\"}}]}}, \"priority\": 7}},\n  {{\"tag\": [\"价值观\"], \"variant\": {{\"Semantic\": [{{\"concept_identifier\": \"欢愉至上\"}}]}}, \"priority\": 5}}\n]\n\n\
+            concept_identifier 必须是具体的名词短语（如 \"弹幕规则\"、\"欢愉至上\"、\"Rust\"），\
+            不能是模糊类别（如 \"爱好\"、\"技能\"）——这类词无法命中记忆中的具体概念。\
+            \n\n只输出 JSON 数组，不要其他内容。",
+            user_message
         );
-        self.raw_completion(&prompt)
+
+        let messages = vec![
+            serde_json::json!({"role": "system", "content": system}),
+            serde_json::json!({"role": "user", "content": user_content}),
+        ];
+
+        self.chat_completion(&messages, 2048)
     }
 
     fn generate_response(
@@ -40,11 +42,13 @@ impl LlmBackend for LlamaServer {
         } else {
             format!("{}\n\n相关记忆:\n{}", system, context)
         };
-        let prompt = format!(
-            "<|im_start|>system\n{}<|im_end|>\n<|im_start|>user\n{}<|im_end|>\n<|im_start|>assistant\n",
-            system_prompt, user_message
-        );
-        self.raw_completion(&prompt)
+
+        let messages = vec![
+            serde_json::json!({"role": "system", "content": system_prompt}),
+            serde_json::json!({"role": "user", "content": user_message}),
+        ];
+
+        self.chat_completion(&messages, 512)
     }
 }
 
@@ -80,7 +84,7 @@ impl LlamaServer {
                 "--port",
                 &port.to_string(),
                 "-c",
-                "4096",
+                "32768",
                 "--no-webui",
                 "-ngl",
                 "99",
@@ -161,15 +165,16 @@ impl LlamaServer {
             .output();
     }
 
-    fn raw_completion(&self, prompt: &str) -> Result<String> {
+    fn chat_completion(&self, messages: &[serde_json::Value], max_tokens: u32) -> Result<String> {
         let body = serde_json::json!({
-            "prompt": prompt,
-            "max_tokens": 512,
+            "messages": messages,
+            "max_tokens": max_tokens,
             "temperature": 0.7,
-            "stream": false
+            "stream": false,
+            "chat_template_kwargs": {"enable_thinking": false}
         });
 
-        let url = format!("{}/v1/completions", self.api_url);
+        let url = format!("{}/v1/chat/completions", self.api_url);
         let resp = self
             .client
             .post(&url)
@@ -184,7 +189,7 @@ impl LlamaServer {
         }
 
         let data: serde_json::Value = resp.json().context("解析 LLM 响应 JSON 失败")?;
-        let text = data["choices"][0]["text"]
+        let text = data["choices"][0]["message"]["content"]
             .as_str()
             .unwrap_or("")
             .trim()

@@ -9,7 +9,7 @@ use ratatui::Frame;
 use crate::base::Transition;
 use crate::component::{Component, ComponentEvent};
 use crate::engine::playtest::repair::split_response;
-use crate::engine::playtest::{HitStage, PlayTestResult, PlayTurnResult};
+use crate::engine::playtest::{HitStage, PlayRunSnapshot, PlayTestResult, PlayTurnResult};
 use crate::widgets::expandable::ExpandableList;
 use crate::widgets::scroll::display_width;
 use crate::widgets::scroll::ScrollState;
@@ -42,12 +42,14 @@ enum DebugView {
 #[derive(PartialEq, Eq)]
 enum JudgePhase {
     Voting,
-    Reveal,
+    AllRevealed,
 }
 
 pub struct PlayTestJudgeState {
     result: PlayTestResult,
     current_turn: usize,
+    current_run: usize,
+    runs_per_turn: usize,
     phase: JudgePhase,
     debug_view: DebugView,
     think_fold_a: ExpandableList,
@@ -55,21 +57,26 @@ pub struct PlayTestJudgeState {
     scroll_a: ScrollState,
     scroll_b: ScrollState,
     json_scroll: ScrollState,
+    reveal_cursor: usize,
 }
 
 impl PlayTestJudgeState {
     pub fn new(result: PlayTestResult) -> Self {
-        let n = result.turns.len();
+        let runs_per_turn = result.config.runs_per_turn.max(1);
+        let total_slots = result.turns.len() * runs_per_turn;
         Self {
             result,
             current_turn: 0,
+            current_run: 0,
+            runs_per_turn,
             phase: JudgePhase::Voting,
             debug_view: DebugView::Hidden,
-            think_fold_a: ExpandableList::new(n),
-            think_fold_b: ExpandableList::new(n),
+            think_fold_a: ExpandableList::new(total_slots),
+            think_fold_b: ExpandableList::new(total_slots),
             scroll_a: ScrollState::new(),
             scroll_b: ScrollState::new(),
             json_scroll: ScrollState::new(),
+            reveal_cursor: 0,
         }
     }
 
@@ -77,12 +84,27 @@ impl PlayTestJudgeState {
         &self.result.turns[self.current_turn]
     }
 
+    fn display_run_idx(&self) -> usize {
+        match self.phase {
+            JudgePhase::Voting => self.current_run,
+            JudgePhase::AllRevealed => self.reveal_cursor,
+        }
+    }
+
+    fn display_run(&self) -> &PlayRunSnapshot {
+        &self.current_turn().runs[self.display_run_idx()]
+    }
+
+    fn flat_display_idx(&self) -> usize {
+        self.current_turn * self.runs_per_turn + self.display_run_idx()
+    }
+
     fn resp_a(&self) -> (Option<String>, String) {
-        let turn = self.current_turn();
-        let val = if turn.swap {
-            turn.fullpipeline_response.as_deref()
+        let run = self.display_run();
+        let val = if run.swap {
+            run.fullpipeline_response.as_deref()
         } else {
-            turn.embedding_response.as_deref()
+            run.embedding_response.as_deref()
         };
         match val {
             Some(s) if !s.is_empty() => split_response(s),
@@ -91,11 +113,11 @@ impl PlayTestJudgeState {
     }
 
     fn resp_b(&self) -> (Option<String>, String) {
-        let turn = self.current_turn();
-        let val = if turn.swap {
-            turn.embedding_response.as_deref()
+        let run = self.display_run();
+        let val = if run.swap {
+            run.embedding_response.as_deref()
         } else {
-            turn.fullpipeline_response.as_deref()
+            run.fullpipeline_response.as_deref()
         };
         match val {
             Some(s) if !s.is_empty() => split_response(s),
@@ -104,14 +126,14 @@ impl PlayTestJudgeState {
     }
 
     fn label_a(&self) -> &str {
-        if self.phase == JudgePhase::Reveal {
-            let turn = self.current_turn();
-            let real = if turn.swap {
+        if self.phase == JudgePhase::AllRevealed {
+            let run = self.display_run();
+            let real = if run.swap {
                 "FullPipeline"
             } else {
                 "Embedding"
             };
-            let picked = if turn.human_pick == Some(0) {
+            let picked = if run.human_pick == Some(0) {
                 " ✓"
             } else {
                 ""
@@ -122,14 +144,14 @@ impl PlayTestJudgeState {
     }
 
     fn label_b(&self) -> &str {
-        if self.phase == JudgePhase::Reveal {
-            let turn = self.current_turn();
-            let real = if turn.swap {
+        if self.phase == JudgePhase::AllRevealed {
+            let run = self.display_run();
+            let real = if run.swap {
                 "Embedding"
             } else {
                 "FullPipeline"
             };
-            let picked = if turn.human_pick == Some(1) {
+            let picked = if run.human_pick == Some(1) {
                 " ✓"
             } else {
                 ""
@@ -140,11 +162,52 @@ impl PlayTestJudgeState {
     }
 
     fn think_a_expanded(&self) -> bool {
-        self.think_fold_a.is_expanded(self.current_turn)
+        self.think_fold_a.is_expanded(self.flat_display_idx())
     }
 
     fn think_b_expanded(&self) -> bool {
-        self.think_fold_b.is_expanded(self.current_turn)
+        self.think_fold_b.is_expanded(self.flat_display_idx())
+    }
+
+    fn count_votes(&self) -> (usize, usize, usize) {
+        let turn = self.current_turn();
+        let mut emb = 0usize;
+        let mut full = 0usize;
+        let mut skipped = 0usize;
+        for run in &turn.runs {
+            match run.human_pick {
+                Some(0) => {
+                    if run.swap {
+                        full += 1;
+                    } else {
+                        emb += 1;
+                    }
+                }
+                Some(1) => {
+                    if run.swap {
+                        emb += 1;
+                    } else {
+                        full += 1;
+                    }
+                }
+                None => skipped += 1,
+                _ => skipped += 1,
+            }
+        }
+        (emb, full, skipped)
+    }
+
+    fn advance_vote(&mut self) {
+        if self.current_run + 1 < self.runs_per_turn {
+            self.current_run += 1;
+            self.scroll_a.reset();
+            self.scroll_b.reset();
+        } else {
+            self.phase = JudgePhase::AllRevealed;
+            self.reveal_cursor = 0;
+            self.scroll_a.reset();
+            self.scroll_b.reset();
+        }
     }
 
     pub fn render(&self, frame: &mut Frame) {
@@ -165,8 +228,10 @@ impl PlayTestJudgeState {
             self.current_turn + 1,
             n,
             match self.phase {
-                JudgePhase::Voting => "选择更好的响应",
-                JudgePhase::Reveal => "结果详情",
+                JudgePhase::Voting => {
+                    format!("第 {} 次投票", self.current_run + 1)
+                }
+                JudgePhase::AllRevealed => "投票结果".to_string(),
             }
         );
         Block::bordered()
@@ -175,6 +240,10 @@ impl PlayTestJudgeState {
             .render(layout[0], frame.buffer_mut());
 
         self.render_info_area(frame, layout[1]);
+
+        if self.phase == JudgePhase::AllRevealed {
+            self.render_reveal_summary(frame, layout[1]);
+        }
 
         let split = Layout::default()
             .direction(Direction::Horizontal)
@@ -199,24 +268,62 @@ impl PlayTestJudgeState {
                 ];
                 h.push(("[↑↓]".into(), "A 滚动".into()));
                 h.push(("[Ctrl+↑↓]".into(), "B 滚动".into()));
+                h.push(("[T]".into(), "展开 A 深思".into()));
+                h.push(("[Ctrl+T]".into(), "展开 B 深思".into()));
                 h.push(("[D]".into(), "详览".into()));
                 h.push(("[Q]".into(), "返回".into()));
                 h
             }
-            JudgePhase::Reveal => {
+            JudgePhase::AllRevealed => {
                 let mut h = vec![
+                    ("[←→]".into(), "切换查看".into()),
                     ("[↑↓]".into(), "A 滚动".into()),
                     ("[Ctrl+↑↓]".into(), "B 滚动".into()),
-                    ("[D]".into(), "切换详览".into()),
                 ];
                 h.push(("[T]".into(), "折叠 A 深思".into()));
                 h.push(("[Ctrl+T]".into(), "折叠 B 深思".into()));
+                h.push(("[D]".into(), "切换详览".into()));
                 h.push(("[Enter]".into(), "下一轮".into()));
                 h.push(("[Q]".into(), "返回列表".into()));
                 h
             }
         };
         status_bar::render_status_bar(frame, layout[3], &hints);
+    }
+
+    fn render_reveal_summary(&self, frame: &mut Frame, _area: Rect) {
+        let (emb, full, skipped) = self.count_votes();
+        let emb_bar = "█".repeat(emb).to_string();
+        let full_bar = "█".repeat(full).to_string();
+
+        let summary = format!(
+            "Embedding: {} {}胜  FullPipeline: {} {}胜  跳过: {}",
+            emb_bar, emb, full_bar, full, skipped
+        );
+        let cursor_info = format!(
+            " {} 第 {} 次 {}",
+            if self.reveal_cursor > 0 { "◄" } else { " " },
+            self.reveal_cursor + 1,
+            if self.reveal_cursor + 1 < self.runs_per_turn {
+                "►"
+            } else {
+                " "
+            }
+        );
+
+        frame.render_widget(
+            Paragraph::new(Line::from(vec![
+                Span::styled(summary, Style::new().fg(Color::Yellow)),
+                Span::raw("   "),
+                Span::styled(cursor_info, Style::new().fg(Color::DarkGray)),
+            ])),
+            Rect {
+                x: _area.x,
+                y: _area.y.saturating_sub(1),
+                width: _area.width,
+                height: 1,
+            },
+        );
     }
 
     fn render_info_area(&self, frame: &mut Frame, area: Rect) {
@@ -234,7 +341,7 @@ impl PlayTestJudgeState {
             turn.user_message
         ))));
 
-        if self.phase == JudgePhase::Reveal && !turn.generated_queries_json.is_empty() {
+        if self.phase == JudgePhase::AllRevealed && !turn.generated_queries_json.is_empty() {
             info_lines.push(Line::from(Span::styled(
                 format!(
                     "Query: {}",
@@ -248,7 +355,8 @@ impl PlayTestJudgeState {
             )));
         }
 
-        if let Some(ref err) = turn.error {
+        let run = self.display_run();
+        if let Some(ref err) = run.error {
             info_lines.push(Line::from(Span::styled(
                 format!("错误: {}", err),
                 Style::new().red(),
@@ -337,8 +445,8 @@ impl PlayTestJudgeState {
     }
 
     fn render_panel_a(&self, frame: &mut Frame, area: Rect) {
-        let color = if self.phase == JudgePhase::Reveal && self.current_turn().human_pick == Some(0)
-        {
+        let run = self.display_run();
+        let color = if self.phase == JudgePhase::AllRevealed && run.human_pick == Some(0) {
             Color::Green
         } else {
             Color::Reset
@@ -356,8 +464,8 @@ impl PlayTestJudgeState {
     }
 
     fn render_panel_b(&self, frame: &mut Frame, area: Rect) {
-        let color = if self.phase == JudgePhase::Reveal && self.current_turn().human_pick == Some(1)
-        {
+        let run = self.display_run();
+        let color = if self.phase == JudgePhase::AllRevealed && run.human_pick == Some(1) {
             Color::Green
         } else {
             Color::Reset
@@ -512,21 +620,28 @@ impl PlayTestJudgeState {
         match self.phase {
             JudgePhase::Voting => match key.code {
                 KeyCode::Char('1') => {
-                    let turn = &mut self.result.turns[self.current_turn];
-                    turn.human_pick = Some(0);
-                    self.phase = JudgePhase::Reveal;
+                    self.result.turns[self.current_turn].runs[self.current_run].human_pick =
+                        Some(0);
+                    self.advance_vote();
                     Transition::None
                 }
                 KeyCode::Char('2') => {
-                    let turn = &mut self.result.turns[self.current_turn];
-                    turn.human_pick = Some(1);
-                    self.phase = JudgePhase::Reveal;
+                    self.result.turns[self.current_turn].runs[self.current_run].human_pick =
+                        Some(1);
+                    self.advance_vote();
                     Transition::None
                 }
                 KeyCode::Char('s') | KeyCode::Char('S') => {
-                    let turn = &mut self.result.turns[self.current_turn];
-                    turn.human_pick = None;
-                    self.phase = JudgePhase::Reveal;
+                    self.result.turns[self.current_turn].runs[self.current_run].human_pick = None;
+                    self.advance_vote();
+                    Transition::None
+                }
+                KeyCode::Char('t') | KeyCode::Char('T') => {
+                    if key.modifiers.contains(KeyModifiers::CONTROL) {
+                        self.think_fold_b.toggle(self.flat_display_idx());
+                    } else {
+                        self.think_fold_a.toggle(self.flat_display_idx());
+                    }
                     Transition::None
                 }
                 KeyCode::Char('d') | KeyCode::Char('D') => {
@@ -560,7 +675,7 @@ impl PlayTestJudgeState {
                 }
                 _ => Transition::None,
             },
-            JudgePhase::Reveal => match key.code {
+            JudgePhase::AllRevealed => match key.code {
                 KeyCode::Char('q') | KeyCode::Char('Q') => Transition::ToMain,
                 KeyCode::Char('d') | KeyCode::Char('D') => {
                     self.debug_view = match self.debug_view {
@@ -572,15 +687,33 @@ impl PlayTestJudgeState {
                 }
                 KeyCode::Char('t') | KeyCode::Char('T') => {
                     if key.modifiers.contains(KeyModifiers::CONTROL) {
-                        self.think_fold_b.toggle(self.current_turn);
+                        self.think_fold_b.toggle(self.flat_display_idx());
                     } else {
-                        self.think_fold_a.toggle(self.current_turn);
+                        self.think_fold_a.toggle(self.flat_display_idx());
+                    }
+                    Transition::None
+                }
+                KeyCode::Left => {
+                    if self.reveal_cursor > 0 {
+                        self.reveal_cursor -= 1;
+                        self.scroll_a.reset();
+                        self.scroll_b.reset();
+                    }
+                    Transition::None
+                }
+                KeyCode::Right => {
+                    if self.reveal_cursor + 1 < self.runs_per_turn {
+                        self.reveal_cursor += 1;
+                        self.scroll_a.reset();
+                        self.scroll_b.reset();
                     }
                     Transition::None
                 }
                 KeyCode::Enter => {
                     if self.current_turn + 1 < self.result.turns.len() {
                         self.current_turn += 1;
+                        self.current_run = 0;
+                        self.reveal_cursor = 0;
                         self.phase = JudgePhase::Voting;
                         self.scroll_a.reset();
                         self.scroll_b.reset();

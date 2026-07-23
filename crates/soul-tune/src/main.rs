@@ -286,7 +286,7 @@ fn run_headless_playtest(args: &[String]) -> color_eyre::Result<()> {
 
         let last = results.last().unwrap();
 
-        if let Some(ref err) = last.error {
+        if let Some(ref err) = last.runs.first().and_then(|r| r.error.as_ref()) {
             println!("  错误: {}", err);
         }
 
@@ -299,17 +299,17 @@ fn run_headless_playtest(args: &[String]) -> color_eyre::Result<()> {
                 .collect::<String>()
         );
 
-        if let Some(ref think) = last.think_content {
+        if let Some(ref think) = last.query_think_content {
             println!("  思考: {}", think);
         }
 
-        if let Some(ref resp) = last.embedding_response {
+        if let Some(ref resp) = last.runs.first().and_then(|r| r.embedding_response.as_ref()) {
             println!(
                 "  Embedding 响应: {}",
                 resp.chars().take(80).collect::<String>()
             );
         }
-        if let Some(ref resp) = last.fullpipeline_response {
+        if let Some(ref resp) = last.runs.first().and_then(|r| r.fullpipeline_response.as_ref()) {
             println!(
                 "  FullPipeline 响应: {}",
                 resp.chars().take(80).collect::<String>()

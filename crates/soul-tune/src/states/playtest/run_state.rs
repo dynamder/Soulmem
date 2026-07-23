@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
+use std::sync::mpsc;
+use std::sync::Arc;
 
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::layout::{Alignment, Constraint, Direction, Layout};
@@ -14,6 +15,19 @@ use crate::component::{Component, ComponentEvent};
 use crate::engine::llm::LlamaServer;
 use crate::engine::playtest::{DialogueFile, PlayTestResult, PlayTestRunner, PlayTurnResult};
 use crate::widgets::status_bar;
+
+enum WorkerMsg {
+    Loading(String),
+    LoadError(String),
+    TurnComplete {
+        turn: PlayTurnResult,
+        total_turns: usize,
+    },
+    AllDone {
+        llm: LlamaServer,
+        runner: Arc<PlayTestRunner>,
+    },
+}
 
 enum RunPhase {
     RoleInput,
@@ -34,8 +48,8 @@ pub struct PlayTestRunState {
     load_error: Option<String>,
     spinner_frame: usize,
     current_description: String,
-    load_result: Arc<Mutex<Option<Result<(Arc<PlayTestRunner>, LlamaServer), String>>>>,
-    _load_thread: Option<std::thread::JoinHandle<()>>,
+    worker_rx: Option<mpsc::Receiver<WorkerMsg>>,
+    worker_thread: Option<std::thread::JoinHandle<()>>,
     human_role_input: TextArea<'static>,
     graph_dir: PathBuf,
     _path: PathBuf,
@@ -77,8 +91,8 @@ impl PlayTestRunState {
             load_error: None,
             spinner_frame: 0,
             current_description: String::new(),
-            load_result: Arc::new(Mutex::new(None)),
-            _load_thread: None,
+            worker_rx: None,
+            worker_thread: None,
             human_role_input: textarea,
             graph_dir,
             _path,
@@ -86,19 +100,26 @@ impl PlayTestRunState {
     }
 
     fn spawn_load_thread(&mut self, human_role: Option<String>) {
-        let dialogue_spawn = self.dialogue.clone();
-        let graph_dir_clone = self.graph_dir.clone();
-        let load_result: Arc<Mutex<Option<Result<(Arc<PlayTestRunner>, LlamaServer), String>>>> =
-            Arc::new(Mutex::new(None));
-        let load_result_clone = load_result.clone();
+        let dialogue = self.dialogue.clone();
+        let graph_dir = self.graph_dir.clone();
+        let (tx, rx) = mpsc::channel();
+        self.worker_rx = Some(rx);
 
-        let _load_thread = std::thread::Builder::new()
-            .name("playtest-loader".into())
-            .spawn(move || {
-                let result = (|| -> Result<(Arc<PlayTestRunner>, LlamaServer), String> {
-                    let runner = PlayTestRunner::load(&graph_dir_clone)
-                        .map_err(|e| format!("加载图失败: {}", e))?;
-                    let runner = if let Some(ref config) = dialogue_spawn.config {
+        let thread = std::thread::Builder::new()
+            .name("playtest-worker".into())
+            .spawn({
+                let tx = tx.clone();
+                move || {
+                    let _ = tx.send(WorkerMsg::Loading("加载角色图...".into()));
+
+                    let runner = match PlayTestRunner::load(&graph_dir) {
+                        Ok(r) => r,
+                        Err(e) => {
+                            let _ = tx.send(WorkerMsg::LoadError(format!("加载图失败: {}", e)));
+                            return;
+                        }
+                    };
+                    let runner = if let Some(ref config) = dialogue.config {
                         runner.with_config(config.clone())
                     } else {
                         runner
@@ -106,66 +127,144 @@ impl PlayTestRunState {
                     let runner = runner.with_human_role(human_role);
                     let runner = Arc::new(runner);
 
-                    let model_path = std::env::var("SOUL_TUNE_CANDLE_MODEL_PATH")
-                        .map_err(|_| "环境变量 SOUL_TUNE_CANDLE_MODEL_PATH 未设置".to_string())?;
-                    let llm = LlamaServer::load(&model_path)
-                        .map_err(|e| format!("启动 LLM 服务失败: {}", e))?;
+                    let _ = tx.send(WorkerMsg::Loading("启动 LLM 模型...".into()));
 
-                    Ok((runner, llm))
-                })();
-                *load_result_clone.lock().unwrap() = Some(result);
+                    let model_path = match std::env::var("SOUL_TUNE_CANDLE_MODEL_PATH") {
+                        Ok(p) => p,
+                        Err(_) => {
+                            let _ = tx.send(WorkerMsg::LoadError(
+                                "环境变量 SOUL_TUNE_CANDLE_MODEL_PATH 未设置".into(),
+                            ));
+                            return;
+                        }
+                    };
+                    let mut llm = match LlamaServer::load(&model_path) {
+                        Ok(l) => l,
+                        Err(e) => {
+                            let _ =
+                                tx.send(WorkerMsg::LoadError(format!("启动 LLM 服务失败: {}", e)));
+                            return;
+                        }
+                    };
+
+                    let total = dialogue.conversations.len();
+                    for (i, entry) in dialogue.conversations.iter().enumerate() {
+                        let turn = runner.process_turn(entry, i, &mut llm);
+                        let _ = tx.send(WorkerMsg::TurnComplete {
+                            turn,
+                            total_turns: total,
+                        });
+                    }
+                    let _ = tx.send(WorkerMsg::AllDone { llm, runner });
+                }
             })
             .ok();
 
-        self.load_result = load_result;
-        self._load_thread = _load_thread;
+        self.worker_thread = thread;
         self.phase = RunPhase::Loading;
         self.current_description = "正在加载角色图和 LLM 模型...".to_string();
     }
 
     fn tick(&mut self) -> Option<Transition> {
-        match &self.phase {
-            RunPhase::RoleInput => None,
-            RunPhase::Loading => {
-                self.spinner_frame = (self.spinner_frame + 1) % 10;
-                if let Some(result) = self.load_result.lock().unwrap().take() {
-                    match result {
-                        Ok((runner, mut llm)) => {
-                            let n = self.dialogue.conversations.len();
-                            self.current_description = format!("准备就绪，共 {} 轮对话", n);
-                            self.runner = Some(runner.clone());
-                            let mut results = Vec::with_capacity(n);
-                            for (i, entry) in self.dialogue.conversations.iter().enumerate() {
-                                let turn = runner.process_turn(entry, i, &mut llm);
-                                results.push(turn);
-                                self.current_description = format!(
-                                    "轮次 {}/{}: {}",
-                                    i + 1,
-                                    n,
-                                    entry.user_message.chars().take(40).collect::<String>()
-                                );
-                            }
-                            self.llm = Some(llm);
-                            self.phase = RunPhase::Done(
-                                PlayTestResult {
-                                    character_name: runner.system_prompt.clone(),
-                                    config: runner.config.clone(),
-                                    turns: results,
-                                    human_role: runner.human_role.clone(),
-                                },
-                                runner,
-                            );
-                        }
-                        Err(e) => {
-                            self.load_error = Some(e.clone());
-                            self.current_description = e;
-                        }
+        let phase = std::mem::replace(
+            &mut self.phase,
+            RunPhase::Processing {
+                total: 0,
+                current: 0,
+                results: vec![],
+            },
+        );
+
+        let next_phase = match phase {
+            RunPhase::RoleInput => phase,
+            RunPhase::Loading => self.tick_loading(),
+            RunPhase::Processing {
+                total,
+                current,
+                results,
+            } => self.tick_processing(total, current, results),
+            RunPhase::Done(..) => phase,
+        };
+
+        self.phase = next_phase;
+        None
+    }
+
+    fn tick_loading(&mut self) -> RunPhase {
+        self.spinner_frame = (self.spinner_frame + 1) % 10;
+
+        if let Some(ref rx) = self.worker_rx {
+            while let Ok(msg) = rx.try_recv() {
+                match msg {
+                    WorkerMsg::Loading(desc) => {
+                        self.current_description = desc;
+                    }
+                    WorkerMsg::LoadError(msg) => {
+                        self.load_error = Some(msg.clone());
+                        self.current_description = msg;
+                    }
+                    WorkerMsg::TurnComplete { turn, total_turns } => {
+                        self.current_description = format!("轮次 1/{}: 处理中...", total_turns);
+                        return RunPhase::Processing {
+                            total: total_turns,
+                            current: 1,
+                            results: vec![turn],
+                        };
+                    }
+                    WorkerMsg::AllDone { llm, runner } => {
+                        let result = PlayTestResult {
+                            character_name: runner.system_prompt.clone(),
+                            config: runner.config.clone(),
+                            turns: vec![],
+                            human_role: runner.human_role.clone(),
+                        };
+                        self.llm = Some(llm);
+                        self.runner = Some(runner.clone());
+                        return RunPhase::Done(result, runner);
                     }
                 }
-                None
             }
-            RunPhase::Processing { .. } => None,
-            RunPhase::Done(..) => None,
+        }
+
+        RunPhase::Loading
+    }
+
+    fn tick_processing(
+        &mut self,
+        total: usize,
+        _current: usize,
+        mut results: Vec<PlayTurnResult>,
+    ) -> RunPhase {
+        if let Some(ref rx) = self.worker_rx {
+            while let Ok(msg) = rx.try_recv() {
+                match msg {
+                    WorkerMsg::TurnComplete { turn, .. } => {
+                        results.push(turn);
+                        let n = results.len();
+                        self.current_description = format!("轮次 {}/{}: 处理中...", n, total);
+                    }
+                    WorkerMsg::AllDone { llm, runner } => {
+                        self.llm = Some(llm);
+                        self.runner = Some(runner.clone());
+                        let turns = std::mem::take(&mut results);
+                        let result = PlayTestResult {
+                            character_name: runner.system_prompt.clone(),
+                            config: runner.config.clone(),
+                            turns,
+                            human_role: runner.human_role.clone(),
+                        };
+                        return RunPhase::Done(result, runner);
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        let current = results.len();
+        RunPhase::Processing {
+            total,
+            current,
+            results,
         }
     }
 
@@ -229,7 +328,7 @@ impl PlayTestRunState {
             RunPhase::Processing {
                 total,
                 current,
-                results,
+                results: _,
             } => {
                 let ratio = if *total > 0 {
                     *current as f64 / *total as f64

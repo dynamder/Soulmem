@@ -398,16 +398,21 @@ impl PlayTestJudgeState {
                 ),
                 Style::new().cyan(),
             )));
-            for n in emb_trace.merged_nodes.iter().take(5) {
+            for n in emb_trace.merged_nodes.iter() {
                 let stage_mark = match n.stage {
                     HitStage::Similarity => "S",
                     HitStage::Ppr => "P",
                     HitStage::Action => "A",
                     HitStage::Both => "B",
                 };
+                let label = if n.content.is_empty() {
+                    &n.name
+                } else {
+                    &n.content
+                };
                 lines.push(Line::from(Span::raw(format!(
-                    "   [{:.2}] {:<20} [{}]",
-                    n.score, n.name, stage_mark
+                    "   [{:.2}] {:<60} [{}]",
+                    n.score, label, stage_mark
                 ))));
             }
         }
@@ -436,16 +441,21 @@ impl PlayTestJudgeState {
                 ),
                 Style::new().green(),
             )));
-            for n in full_trace.merged_nodes.iter().take(8) {
+            for n in full_trace.merged_nodes.iter() {
                 let stage_mark = match n.stage {
                     HitStage::Similarity => "S",
                     HitStage::Ppr => "P",
                     HitStage::Action => "A",
                     HitStage::Both => "B",
                 };
+                let label = if n.content.is_empty() {
+                    &n.name
+                } else {
+                    &n.content
+                };
                 lines.push(Line::from(Span::raw(format!(
-                    "   [{:.2}] {:<20} [{}]",
-                    n.score, n.name, stage_mark
+                    "   [{:.2}] {:<60} [{}]",
+                    n.score, label, stage_mark
                 ))));
             }
         }
@@ -505,13 +515,7 @@ impl PlayTestJudgeState {
                 .scroll((clamped as u16, 0)),
             content_rect,
         );
-        ScrollState::render_scrollbar(
-            frame,
-            bar_rect,
-            total_wrapped,
-            content_rect.height,
-            clamped,
-        );
+        ScrollState::render_scrollbar(frame, bar_rect, total_wrapped, content_rect.height, clamped);
     }
 
     fn handle_key(&mut self, key: KeyEvent) -> Transition {

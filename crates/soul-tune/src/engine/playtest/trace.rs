@@ -8,6 +8,7 @@ use crate::base::RetrieveMode;
 pub struct TracedNode {
     pub id: MemoryId,
     pub name: String,
+    pub content: String,
     pub score: f64,
     pub stage: HitStage,
 }
