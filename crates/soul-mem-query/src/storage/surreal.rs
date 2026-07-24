@@ -562,15 +562,10 @@ impl MemoryRepository for SurrealMemoryRepository {
         self.bootstrap_schema().await
     }
 
-    // 新增或更新记忆节点。
+    // 在事务中新增或更新记忆节点。
     async fn upsert_note(&self, note: &MemoryNote) -> StorageResult<MemoryNoteRecord> {
         self.ensure_bootstrapped()?;
-        let existing_embedding = self
-            .get_note(note.id())
-            .await?
-            .and_then(|record| record.embedding);
-        let mut record = MemoryNoteRecord::from_note(note)?;
-        record.embedding = existing_embedding;
+        let record = MemoryNoteRecord::from_note(note)?;
         let content = Self::content_without_id(
             &record,
             &[
@@ -579,7 +574,11 @@ impl MemoryRepository for SurrealMemoryRepository {
             ],
         )?;
         let db = self.db()?;
-        let response = db
+        let transaction = db.begin().await.map_err(|err| {
+            StorageError::backend(format!("failed to begin note upsert transaction: {err}"))
+        })?;
+
+        let result = transaction
             .query(surql::UPSERT_NOTE)
             .bind(("table", TABLE_MEMORY_NOTE))
             .bind(("record_id", record.id.clone()))
@@ -587,18 +586,207 @@ impl MemoryRepository for SurrealMemoryRepository {
             .await
             .map_err(|err| {
                 StorageError::backend(format!(
-                    "failed to upsert memory_note `{}` into SurrealDB: {err}",
+                    "failed to upsert memory_note `{}` in transaction: {err}",
+                    record.id
+                ))
+            })
+            .and_then(|response| {
+                response.check().map_err(|err| {
+                    StorageError::backend(format!(
+                        "SurrealDB returned an error while upserting memory_note `{}` in transaction: {err}",
+                        record.id
+                    ))
+                }).map(|_| ())
+            });
+
+        match result {
+            Ok(()) => {
+                transaction.commit().await.map_err(|err| {
+                    StorageError::backend(format!("failed to commit note upsert transaction: {err}"))
+                })?;
+                Ok(record)
+            }
+            Err(err) => {
+                transaction.cancel().await.map_err(|cancel_err| {
+                    StorageError::backend(format!(
+                        "{err}; failed to rollback note upsert transaction: {cancel_err}"
+                    ))
+                })?;
+                Err(err)
+            }
+        }
+    }
+
+    // 原子保存节点、节点关系和 embedding。
+    async fn save_note_bundle(
+        &self,
+        note: &MemoryNote,
+        embedding: Vec<f32>,
+    ) -> StorageResult<MemoryNoteRecord> {
+        self.ensure_bootstrapped()?;
+        Self::validate_note_embedding(&embedding)?;
+
+        let mut record = MemoryNoteRecord::from_note(note)?;
+        record.embedding = Some(embedding);
+        let content = Self::content_without_id(
+            &record,
+            &[
+                ("create_time", record.create_time),
+                ("last_accessed_time", record.last_accessed_time),
+            ],
+        )?;
+        let db = self.db()?;
+        let transaction = db.begin().await.map_err(|err| {
+            StorageError::backend(format!("failed to begin note bundle transaction: {err}"))
+        })?;
+
+        let result = async {
+            let response = transaction
+                .query(surql::UPSERT_NOTE)
+                .bind(("table", TABLE_MEMORY_NOTE))
+                .bind(("record_id", record.id.clone()))
+                .bind(("content", content))
+                .await
+                .map_err(|err| {
+                    StorageError::backend(format!(
+                        "failed to upsert memory_note `{}` in transaction: {err}",
+                        record.id
+                    ))
+                })?;
+            response.check().map_err(|err| {
+                StorageError::backend(format!(
+                    "SurrealDB returned an error while upserting memory_note `{}` in transaction: {err}",
                     record.id
                 ))
             })?;
-        response.check().map_err(|err| {
-            StorageError::backend(format!(
-                "SurrealDB returned an error while upserting memory_note `{}`: {err}",
-                record.id
-            ))
-        })?;
 
-        Ok(record)
+            for link in note.links() {
+                let link_record = MemoryLinkRecord::from_link(link)?;
+                let link_content = Self::content_without_id(&link_record, &[])?;
+                let response = transaction
+                    .query(surql::UPSERT_LINK)
+                    .bind(("table", TABLE_MEMORY_LINK))
+                    .bind(("record_id", link_record.id.clone()))
+                    .bind(("content", link_content))
+                    .await
+                    .map_err(|err| {
+                        StorageError::backend(format!(
+                            "failed to upsert memory_link `{}` in transaction: {err}",
+                            link_record.id
+                        ))
+                    })?;
+                response.check().map_err(|err| {
+                    StorageError::backend(format!(
+                        "SurrealDB returned an error while upserting memory_link `{}` in transaction: {err}",
+                        link_record.id
+                    ))
+                })?;
+            }
+
+            Ok::<_, StorageError>(())
+        }
+        .await;
+
+        match result {
+            Ok(()) => {
+                transaction.commit().await.map_err(|err| {
+                    StorageError::backend(format!("failed to commit note bundle transaction: {err}"))
+                })?;
+                Ok(record)
+            }
+            Err(err) => {
+                transaction.cancel().await.map_err(|cancel_err| {
+                    StorageError::backend(format!(
+                        "{err}; failed to rollback note bundle transaction: {cancel_err}"
+                    ))
+                })?;
+                Err(err)
+            }
+        }
+    }
+
+    // 原子保存多个记忆节点及其关系。
+    async fn upsert_notes(&self, notes: &[MemoryNote]) -> StorageResult<Vec<MemoryNoteRecord>> {
+        self.ensure_bootstrapped()?;
+        let db = self.db()?;
+        let transaction = db.begin().await.map_err(|err| {
+            StorageError::backend(format!("failed to begin notes transaction: {err}"))
+        })?;
+        let mut records = Vec::with_capacity(notes.len());
+
+        let result = async {
+            for note in notes {
+                let record = MemoryNoteRecord::from_note(note)?;
+                let content = Self::content_without_id(
+                    &record,
+                    &[
+                        ("create_time", record.create_time),
+                        ("last_accessed_time", record.last_accessed_time),
+                    ],
+                )?;
+                let response = transaction
+                    .query(surql::UPSERT_NOTE)
+                    .bind(("table", TABLE_MEMORY_NOTE))
+                    .bind(("record_id", record.id.clone()))
+                    .bind(("content", content))
+                    .await
+                    .map_err(|err| {
+                        StorageError::backend(format!(
+                            "failed to upsert memory_note `{}` in transaction: {err}",
+                            record.id
+                        ))
+                    })?;
+                response.check().map_err(|err| {
+                    StorageError::backend(format!(
+                        "SurrealDB returned an error while upserting memory_note `{}` in transaction: {err}",
+                        record.id
+                    ))
+                })?;
+
+                for link in note.links() {
+                    let link_record = MemoryLinkRecord::from_link(link)?;
+                    let link_content = Self::content_without_id(&link_record, &[])?;
+                    let response = transaction
+                        .query(surql::UPSERT_LINK)
+                        .bind(("table", TABLE_MEMORY_LINK))
+                        .bind(("record_id", link_record.id.clone()))
+                        .bind(("content", link_content))
+                        .await
+                        .map_err(|err| {
+                            StorageError::backend(format!(
+                                "failed to upsert memory_link `{}` in transaction: {err}",
+                                link_record.id
+                            ))
+                        })?;
+                    response.check().map_err(|err| {
+                        StorageError::backend(format!(
+                            "SurrealDB returned an error while upserting memory_link `{}` in transaction: {err}",
+                            link_record.id
+                        ))
+                    })?;
+                }
+                records.push(record);
+            }
+            Ok::<_, StorageError>(())
+        }
+        .await;
+
+        match result {
+            Ok(()) => {
+                transaction.commit().await.map_err(|err| {
+                    StorageError::backend(format!("failed to commit notes transaction: {err}"))
+                })?;
+                Ok(records)
+            }
+            Err(err) => {
+                transaction.cancel().await.map_err(|cancel_err| {
+                    StorageError::backend(format!(
+                        "{err}; failed to rollback notes transaction: {cancel_err}"
+                    ))
+                })?;
+                Err(err)
+            }
+        }
     }
 
     // 根据 ID 查询记忆节点。
@@ -656,38 +844,62 @@ impl MemoryRepository for SurrealMemoryRepository {
         }
 
         let db = self.db()?;
-        let delete_note = db
-            .query(surql::DELETE_NOTE_BY_ID)
-            .bind(("table", TABLE_MEMORY_NOTE))
-            .bind(("record_id", key.clone()))
-            .await
-            .map_err(|err| {
-                StorageError::backend(format!(
-                    "failed to delete memory_note `{key}` from SurrealDB: {err}"
-                ))
-            })?;
-        delete_note.check().map_err(|err| {
-            StorageError::backend(format!(
-                "SurrealDB returned an error while deleting memory_note `{key}`: {err}"
-            ))
+        let transaction = db.begin().await.map_err(|err| {
+            StorageError::backend(format!("failed to begin delete note transaction: {err}"))
         })?;
 
-        let delete_links = db
-            .query(surql::DELETE_LINKS_BY_MEMORY_ID)
-            .bind(("memory_id", key.clone()))
-            .await
-            .map_err(|err| {
+        let result = async {
+            let delete_note = transaction
+                .query(surql::DELETE_NOTE_BY_ID)
+                .bind(("table", TABLE_MEMORY_NOTE))
+                .bind(("record_id", key.clone()))
+                .await
+                .map_err(|err| {
+                    StorageError::backend(format!(
+                        "failed to delete memory_note `{key}` in transaction: {err}"
+                    ))
+                })?;
+            delete_note.check().map_err(|err| {
                 StorageError::backend(format!(
-                    "failed to delete memory_link rows attached to `{key}`: {err}"
+                    "SurrealDB returned an error while deleting memory_note `{key}` in transaction: {err}"
                 ))
             })?;
-        delete_links.check().map_err(|err| {
-            StorageError::backend(format!(
-                "SurrealDB returned an error while deleting memory_link rows attached to `{key}`: {err}"
-            ))
-        })?;
 
-        Ok(true)
+            let delete_links = transaction
+                .query(surql::DELETE_LINKS_BY_MEMORY_ID)
+                .bind(("memory_id", key.clone()))
+                .await
+                .map_err(|err| {
+                    StorageError::backend(format!(
+                        "failed to delete memory_link rows attached to `{key}` in transaction: {err}"
+                    ))
+                })?;
+            delete_links.check().map_err(|err| {
+                StorageError::backend(format!(
+                    "SurrealDB returned an error while deleting memory_link rows attached to `{key}` in transaction: {err}"
+                ))
+            })?;
+
+            Ok::<_, StorageError>(())
+        }
+        .await;
+
+        match result {
+            Ok(()) => {
+                transaction.commit().await.map_err(|err| {
+                    StorageError::backend(format!("failed to commit delete note transaction: {err}"))
+                })?;
+                Ok(true)
+            }
+            Err(err) => {
+                transaction.cancel().await.map_err(|cancel_err| {
+                    StorageError::backend(format!(
+                        "{err}; failed to rollback delete note transaction: {cancel_err}"
+                    ))
+                })?;
+                Err(err)
+            }
+        }
     }
 
     // 保存记忆节点的 embedding。
@@ -1134,7 +1346,17 @@ mod tests {
             .expect("query similar notes");
         assert!(
             hits.iter()
-                .any(|hit| hit.memory_id == source_note.id().to_string())
+            .any(|hit| hit.memory_id == source_note.id().to_string())
+        );
+
+        repo.upsert_note(&source_note)
+            .await
+            .expect("upsert source without embedding");
+        assert_eq!(
+            repo.get_note_embedding(source_note.id())
+                .await
+                .expect("get cleared embedding"),
+            None
         );
 
         let link = MemoryLink::new(

@@ -41,15 +41,6 @@ impl MemoryNoteKind {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
-pub enum SituationSubtype {
-    Location,
-    Participant,
-    Environment,
-    Event,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
 pub enum MemoryLinkKind {
     Semantic,
     Situation,
@@ -64,41 +55,26 @@ pub struct MemoryNoteRecord {
     pub create_time: DateTime<Utc>,
     pub last_accessed_time: DateTime<Utc>,
     pub kind: MemoryNoteKind,
-    pub situation_subtype: Option<SituationSubtype>,
     pub embedding: Option<Vec<f32>>,
     pub payload: Value,
 }
 
 impl MemoryNoteRecord {
     pub fn from_note(note: &MemoryNote) -> StorageResult<Self> {
-        let (kind, situation_subtype, payload) = match note.mem_type() {
-            MemoryType::Semantic(sem) => {
-                (MemoryNoteKind::Semantic, None, serde_json::to_value(sem)?)
+        let (kind, payload) = match note.mem_type() {
+            MemoryType::Semantic(sem) => (MemoryNoteKind::Semantic, serde_json::to_value(sem)?),
+            MemoryType::Procedure(proc_mem) => {
+                (MemoryNoteKind::Procedure, serde_json::to_value(proc_mem)?)
             }
-            MemoryType::Procedure(proc_mem) => (
-                MemoryNoteKind::Procedure,
-                None,
-                serde_json::to_value(proc_mem)?,
-            ),
             MemoryType::Situation(situation) => match situation {
                 SituationType::SpecificSituation(specific) => (
                     MemoryNoteKind::SituationSpecific,
-                    None,
                     serde_json::to_value(specific)?,
                 ),
-                SituationType::AbstractSituation(abstract_situation) => {
-                    let subtype = Some(match abstract_situation {
-                        AbstractSituation::Location(_) => SituationSubtype::Location,
-                        AbstractSituation::Participant(_) => SituationSubtype::Participant,
-                        AbstractSituation::Environment(_) => SituationSubtype::Environment,
-                        AbstractSituation::Event(_) => SituationSubtype::Event,
-                    });
-                    (
-                        MemoryNoteKind::SituationAbstract,
-                        subtype,
-                        serde_json::to_value(abstract_situation)?,
-                    )
-                }
+                SituationType::AbstractSituation(abstract_situation) => (
+                    MemoryNoteKind::SituationAbstract,
+                    serde_json::to_value(abstract_situation)?,
+                ),
             },
         };
 
@@ -109,7 +85,6 @@ impl MemoryNoteRecord {
             create_time: note.creation_time(),
             last_accessed_time: note.last_accessed_time(),
             kind,
-            situation_subtype,
             embedding: None,
             payload,
         })
@@ -160,37 +135,12 @@ impl MemoryNoteRecord {
                 let abstract_situation =
                     serde_json::from_value::<AbstractSituation>(self.payload.clone())?;
 
-                if let Some(subtype) = &self.situation_subtype
-                    && !matches_situation_subtype(&abstract_situation, subtype)
-                {
-                    return Err(StorageError::invalid_data(format!(
-                        "memory note {} has mismatched situation_subtype",
-                        self.id
-                    )));
-                }
-
                 Ok(MemoryType::Situation(SituationType::AbstractSituation(
                     abstract_situation,
                 )))
             }
         }
     }
-}
-
-fn matches_situation_subtype(situation: &AbstractSituation, subtype: &SituationSubtype) -> bool {
-    matches!(
-        (situation, subtype),
-        (AbstractSituation::Location(_), SituationSubtype::Location)
-            | (
-                AbstractSituation::Participant(_),
-                SituationSubtype::Participant
-            )
-            | (
-                AbstractSituation::Environment(_),
-                SituationSubtype::Environment
-            )
-            | (AbstractSituation::Event(_), SituationSubtype::Event)
-    )
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

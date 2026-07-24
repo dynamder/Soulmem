@@ -7,7 +7,6 @@ pub const MEMORY_NOTE_SCHEMA: &[&str] = &[
     "DEFINE FIELD IF NOT EXISTS create_time ON TABLE memory_note TYPE datetime;",
     "DEFINE FIELD IF NOT EXISTS last_accessed_time ON TABLE memory_note TYPE datetime;",
     "DEFINE FIELD IF NOT EXISTS kind ON TABLE memory_note TYPE string;",
-    "DEFINE FIELD IF NOT EXISTS situation_subtype ON TABLE memory_note TYPE option<string>;",
     "DEFINE FIELD IF NOT EXISTS embedding ON TABLE memory_note TYPE option<array<float>>;",
     "DEFINE FIELD IF NOT EXISTS payload ON TABLE memory_note TYPE object FLEXIBLE;",
     "DEFINE INDEX IF NOT EXISTS idx_memory_note_id ON TABLE memory_note COLUMNS id UNIQUE;",

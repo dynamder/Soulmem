@@ -8,7 +8,6 @@ pub use error::{StorageError, StorageResult};
 pub use model::{
     EventStats, EventWindow, FeedbackEventRecord, FeedbackValue, MemoryLinkKind, MemoryLinkRecord,
     MemoryNoteKind, MemoryNoteRecord, RetrievalEventRecord, SimilarityHit, SimilarityQuery,
-    SituationSubtype,
 };
 pub use repository::MemoryRepository;
 pub use surreal::{SurrealConnectionConfig, SurrealMemoryRepository};

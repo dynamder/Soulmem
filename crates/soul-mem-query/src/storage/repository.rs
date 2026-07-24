@@ -22,13 +22,13 @@ pub trait MemoryRepository: Send + Sync {
 
     async fn upsert_note(&self, note: &MemoryNote) -> StorageResult<MemoryNoteRecord>;
 
-    async fn upsert_notes(&self, notes: &[MemoryNote]) -> StorageResult<Vec<MemoryNoteRecord>> {
-        let mut records = Vec::with_capacity(notes.len());
-        for note in notes {
-            records.push(self.upsert_note(note).await?);
-        }
-        Ok(records)
-    }
+    async fn save_note_bundle(
+        &self,
+        note: &MemoryNote,
+        embedding: Vec<f32>,
+    ) -> StorageResult<MemoryNoteRecord>;
+
+    async fn upsert_notes(&self, notes: &[MemoryNote]) -> StorageResult<Vec<MemoryNoteRecord>>;
 
     async fn get_note(&self, memory_id: MemoryId) -> StorageResult<Option<MemoryNoteRecord>>;
     async fn load_note(&self, memory_id: MemoryId) -> StorageResult<Option<MemoryNote>>;
