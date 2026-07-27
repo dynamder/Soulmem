@@ -1,34 +1,40 @@
 use chrono::{DateTime, Utc};
 use jieba_rs::Jieba;
-use soul_mem_core::memory_note::sem_mem::ConceptType;
 use soul_mem_core::memory_note::{MemoryNote, MemoryType, situation_mem::SituationType};
 use std::future::Future;
 
 use super::decay_calculator::{compute_missing_degree, DEFAULT_MAX_ACTIVATION_CAP};
 use super::mask;
 
-/// 默认参数（半衰期 24 小时，活跃因子 0.1）
+// ========================================================================
+// 默认参数
+// ========================================================================
+
+/// 基础半衰期（小时）
 pub const DEFAULT_BASE_HALF_LIFE_HOURS: f32 = 24.0;
+/// 活跃因子 —— 激活次数对半衰期的加成系数
 pub const DEFAULT_ACTIVE_FACTOR: f32 = 0.1;
 /// 缺失度低于此阈值时不执行任何遗忘操作
 pub const MASK_THRESHOLD: f32 = 0.05;
 /// 缺失度高于此阈值时触发 LLM 修订
 pub const REVISE_THRESHOLD: f32 = 0.15;
-/// 遗忘度低于此值时 Vec 类字段（如 aliases）在对齐时不允许增加长度
-pub const ALIGN_LENGTH_CAP_THRESHOLD: f32 = 0.6;
 
-/// 遗忘操作的结果
+// ========================================================================
+// 遗忘操作结果
+// ========================================================================
+
+/// 对单次惰性遗忘结果的描述
 #[derive(Debug)]
 pub enum ForgetAction {
-    /// 无需遗忘（节点类型不支持或缺失度太低）
+    /// 无需遗忘（节点类型不支持或缺失度低于 MASK_THRESHOLD）
     NoAction,
-    /// 仅执行遮罩（缺失度中等，不调 LLM）
+    /// 仅执行遮罩（缺失度中等，LLM 未被调用）
     MaskOnly {
         missing_degree: f32,
         masked_count: usize,
         masked_text: String,
     },
-    /// 遮罩 + LLM 修订完成
+    /// 遮罩 → LLM 推测修订 → 内容已更新
     Revised {
         old_summary: String,
         new_summary: String,
@@ -36,16 +42,24 @@ pub enum ForgetAction {
     },
 }
 
-/// 对节点执行惰性遗忘
+// ========================================================================
+// 惰性遗忘编排入口
+// ========================================================================
+
+/// 对节点执行惰性遗忘。
 ///
-/// # Arguments
-/// * `node` - 待处理的内存节点（可变引用，可能修改 narrative/content）
-/// * `current_time` - 当前时间
-/// * `jieba` - jieba 分词器实例
-/// * `llm_call` - LLM 调用闭包，签名: FnOnce(&str, &str) -> Future<Output = Result<String, Error>>
+/// 仅在节点被激活时调用，根据时间跨度和激活次数计算缺失度：
+/// - 缺失度 < MASK_THRESHOLD → `NoAction`（无需操作）
+/// - MASK_THRESHOLD ≤ 缺失度 < REVISE_THRESHOLD → 仅遮罩概要，不调 LLM
+/// - 缺失度 ≥ REVISE_THRESHOLD → 遮罩概要 + 调用 LLM 推测重建
 ///
-/// # Returns
-/// `ForgetAction` 描述执行的操作
+/// 仅处理 `SpecificSituation.narrative` 和 `SemMemory.content`。
+///
+/// # 参数
+/// - `node` — 可变的内存节点
+/// - `current_time` — 当前时间
+/// - `jieba` — Jieba 分词器实例
+/// - `llm_call` — LLM 调用闭包 `FnOnce(&str, &str) -> Future<Result<String>>`
 pub async fn lazy_forget<F, Fut>(
     node: &mut MemoryNote,
     current_time: DateTime<Utc>,
@@ -56,12 +70,10 @@ where
     F: FnOnce(&str, &str) -> Fut,
     Fut: Future<Output = Result<String, Box<dyn std::error::Error + Send + Sync>>>,
 {
-    // 只有 SpecificSituation 和 SemMemory 需要遗忘处理
-    let can_forget = matches!(
+    if !matches!(
         node.mem_type(),
         MemoryType::Situation(SituationType::SpecificSituation(_)) | MemoryType::Semantic(_)
-    );
-    if !can_forget {
+    ) {
         return ForgetAction::NoAction;
     }
 
@@ -78,18 +90,16 @@ where
         return ForgetAction::NoAction;
     }
 
-    // 获取摘要文本（克隆以避免异步点借用问题）
     let old_summary = match node.mem_type() {
         MemoryType::Situation(SituationType::SpecificSituation(s)) => s.get_narrative().clone(),
         MemoryType::Semantic(s) => s.content.clone(),
         _ => return ForgetAction::NoAction,
     };
 
-    // 执行遮罩
+    // 步骤一：分词遮罩（独立模块 mask）
     let mask_result = mask::mask_text(&old_summary, md, jieba);
 
     if md < REVISE_THRESHOLD {
-        // 缺失度中等，仅遮罩不调 LLM
         set_summary(node, &mask_result.masked_text);
         return ForgetAction::MaskOnly {
             missing_degree: md,
@@ -98,22 +108,14 @@ where
         };
     }
 
-    // 缺失度高，遮罩并调 LLM 猜测
+    // 步骤二：LLM 补全（独立模块 llm_completion）
     let masked_text = mask_result.masked_text;
-    let system_prompt = "You are Sakuya Izayoi, the perfect and elegant maid of the Scarlet Devil Mansion. You have the ability to manipulate time. Your character card defines who you are, but certain sections have been deliberately removed — memories of specific individuals, particularly those connected to Eientei and the moon, are no longer part of your recorded past. A segment of your memory has been partially masked. As yourself, recall and reconstruct the complete memory naturally based on the remaining fragments, relying only on what your current character card contains. Stay in character as a composed maiden with a touch of elegance and pride. Output only the completed memory text in first person, no explanation.";
-    let user_prompt = format!("Masked text: {}", masked_text);
-
-    match llm_call(system_prompt, &user_prompt).await {
+    match super::llm_completion::reconstruct_summary(&masked_text, llm_call).await {
         Ok(new_summary) => {
             set_summary(node, &new_summary);
-            ForgetAction::Revised {
-                old_summary,
-                new_summary,
-                masked_text,
-            }
+            ForgetAction::Revised { old_summary, new_summary, masked_text }
         }
         Err(_) => {
-            // LLM 调用失败时至少保留遮罩后的文本
             set_summary(node, &masked_text);
             ForgetAction::MaskOnly {
                 missing_degree: md,
@@ -124,130 +126,38 @@ where
     }
 }
 
-/// 更新节点的摘要文本（narrative 或 content）
+// ========================================================================
+// 内部辅助函数
+// ========================================================================
+
 fn set_summary(node: &mut MemoryNote, text: &str) {
     match node.mem_type_mut() {
         MemoryType::Situation(SituationType::SpecificSituation(s)) => {
             *s.get_mut_narrative() = text.to_string();
         }
-        MemoryType::Semantic(s) => {
-            s.content = text.to_string();
-        }
+        MemoryType::Semantic(s) => s.content = text.to_string(),
         _ => {}
     }
 }
 
-/// 在 LLM 修订 SemMemory 的 content 之后，同步更新 aliases/description/concept_type，
-/// 使其与新 content 保持一致。若文意一致则保留原值。
-pub async fn align_sem_fields<F, Fut>(
-    node: &mut MemoryNote,
-    llm_call: F,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
-where
-    F: FnOnce(&str, &str) -> Fut,
-    Fut: Future<Output = Result<String, Box<dyn std::error::Error + Send + Sync>>>,
-{
-    let (content, old_aliases, old_desc, old_ct) = match node.mem_type() {
-        MemoryType::Semantic(s) => (
-            s.content.clone(),
-            s.aliases.clone(),
-            s.description.clone(),
-            format!("{:?}", s.concept_type),
-        ),
-        _ => return Ok(()),
-    };
-
-    let system = "You are Sakuya Izayoi, the perfect and elegant maid of the Scarlet Devil Mansion. Given a memory's content text from your own records, verify and if necessary correct the aliases, description, and concept type fields so they match the content.\n\
-        Respond ONLY in this exact format, one field per line:\n\
-        Aliases: <comma-separated list>\n\
-        Description: <short phrase>\n\
-        ConceptType: Entity|Abstract\n\
-        If the current values are already consistent with the content, keep them unchanged.\n\
-        Do not add any explanation.";
-
-    let user = format!(
-        "Content: {}\nCurrent aliases: {:?}\nCurrent description: {}\nCurrent concept type: {}",
-        content, old_aliases, old_desc, old_ct
-    );
-
-    let response = llm_call(system, &user).await?;
-    let response = response.trim();
-
-    let mut new_aliases: Option<Vec<String>> = None;
-    let mut new_desc: Option<String> = None;
-    let mut new_ct: Option<ConceptType> = None;
-
-    for line in response.lines() {
-        let line = line.trim();
-        if let Some(val) = line.strip_prefix("Aliases:") {
-            let val = val.trim();
-            if val.is_empty() || val.eq_ignore_ascii_case("none") {
-                new_aliases = Some(vec![]);
-            } else {
-                new_aliases = Some(
-                    val.split(',')
-                        .map(|s| s.trim().trim_matches('"').to_string())
-                        .filter(|s| !s.is_empty())
-                        .collect(),
-                );
-            }
-        } else if let Some(val) = line.strip_prefix("Description:") {
-            let val = val.trim();
-            if !val.is_empty() && !val.eq_ignore_ascii_case("none") {
-                new_desc = Some(val.to_string());
-            }
-        } else if let Some(val) = line.strip_prefix("ConceptType:") {
-            let val = val.trim().to_lowercase();
-            if val.contains("entity") {
-                new_ct = Some(ConceptType::Entity);
-            } else if val.contains("abstract") {
-                new_ct = Some(ConceptType::Abstract);
-            }
-        }
-    }
-
-    // 计算当前缺失度，决定是否限制 Vec 长度增长
-    let missing_degree = compute_missing_degree(
-        node.creation_time(),
-        node.retrieval_count(),
-        Utc::now(),
-        DEFAULT_BASE_HALF_LIFE_HOURS,
-        DEFAULT_ACTIVE_FACTOR,
-        DEFAULT_MAX_ACTIVATION_CAP,
-    );
-    let cap_vec_length = missing_degree < ALIGN_LENGTH_CAP_THRESHOLD;
-
-    if let MemoryType::Semantic(s) = node.mem_type_mut() {
-        if let Some(aliases) = new_aliases {
-            if cap_vec_length && aliases.len() > old_aliases.len() {
-                // 遗忘度较低时不允许 aliases 增长
-            } else if !aliases.is_empty() {
-                s.aliases = aliases;
-            }
-        }
-        if let Some(desc) = new_desc {
-            if !desc.is_empty() {
-                s.description = desc;
-            }
-        }
-        if let Some(ct) = new_ct {
-            s.concept_type = ct;
-        }
-    }
-
-    Ok(())
-}
-
-/// 获取节点的摘要文本
+/// 获取节点的概要文本（narrative 或 content）
 pub fn get_summary(node: &MemoryNote) -> Option<String> {
     match node.mem_type() {
-        MemoryType::Situation(SituationType::SpecificSituation(s)) => {
-            Some(s.get_narrative().clone())
-        }
+        MemoryType::Situation(SituationType::SpecificSituation(s)) => Some(s.get_narrative().clone()),
         MemoryType::Semantic(s) => Some(s.content.clone()),
         _ => None,
     }
 }
+
+// ========================================================================
+// 字段对齐（重新导出 llm_completion 模块，对外保持同一调用入口）
+// ========================================================================
+
+pub use super::llm_completion::align_sem_fields;
+
+// ========================================================================
+// 单元测试
+// ========================================================================
 
 #[cfg(test)]
 mod tests {
@@ -258,297 +168,140 @@ mod tests {
     use soul_mem_core::memory_note::situation_mem::{Context, Environment, SpecificSituation};
     use soul_mem_core::memory_note::{MemoryNoteBuilder, MemoryType};
 
+    fn make_old_semantic(content: &str, created: DateTime<Utc>) -> MemoryNote {
+        let sem = SemMemory::new(content.to_string(), ConceptType::Entity, "测试描述".to_string());
+        MemoryNoteBuilder::new(MemoryType::Semantic(sem))
+            .create_time(created).last_accessed_time(created)
+            .build().unwrap()
+    }
+
+    fn make_old_situation(narrative: &str, created: DateTime<Utc>) -> MemoryNote {
+        let ctx = Context::new(None, vec![], vec![], vec![],
+            Environment { atmosphere: "日常".to_string(), tone: "平静".to_string() }, vec![]);
+        MemoryNoteBuilder::new(MemoryType::Situation(SituationType::SpecificSituation(
+            SpecificSituation::new(narrative.to_string(), created, ctx))))
+            .create_time(created).last_accessed_time(created)
+            .build().unwrap()
+    }
+
     #[tokio::test]
     async fn test_no_action_for_procedure() {
-        let proc = MemoryType::Procedure(ProcMemory::new(Action::new(
-            "test".to_string(),
-            ActionType::Think,
-        )));
-        let mut node = MemoryNoteBuilder::new(proc).build().unwrap();
-        let jieba = Jieba::new();
-        let result = lazy_forget(&mut node, Utc::now(), &jieba, |_, _| async {
+        let mut node = MemoryNoteBuilder::new(MemoryType::Procedure(
+            ProcMemory::new(Action::new("test".to_string(), ActionType::Think)),
+        )).build().unwrap();
+        let result = lazy_forget(&mut node, Utc::now(), &Jieba::new(), |_, _| async {
             Ok("reconstructed".to_string())
-        })
-        .await;
+        }).await;
         assert!(matches!(result, ForgetAction::NoAction));
     }
 
     #[tokio::test]
     async fn test_fresh_semantic_no_action() {
-        let sem = SemMemory::new("data".to_string(), ConceptType::Entity, "desc".to_string());
-        let mut node = MemoryNoteBuilder::new(MemoryType::Semantic(sem))
-            .build()
-            .unwrap();
-        let jieba = Jieba::new();
-        let result = lazy_forget(&mut node, Utc::now(), &jieba, |_, _| async {
+        let mut node = MemoryNoteBuilder::new(MemoryType::Semantic(
+            SemMemory::new("data".to_string(), ConceptType::Entity, "desc".to_string()),
+        )).build().unwrap();
+        let result = lazy_forget(&mut node, Utc::now(), &Jieba::new(), |_, _| async {
             Ok("reconstructed".to_string())
-        })
-        .await;
+        }).await;
         assert!(matches!(result, ForgetAction::NoAction));
     }
 
     #[tokio::test]
     async fn test_semantic_high_missing_degree() {
         let past = Utc.with_ymd_and_hms(2024, 6, 1, 0, 0, 0).unwrap();
-        let sem = SemMemory::new(
-            "鲁迅原名周树人浙江绍兴人".to_string(),
-            ConceptType::Entity,
-            "人物".to_string(),
-        );
-        let mut node = MemoryNoteBuilder::new(MemoryType::Semantic(sem))
-            .create_time(past)
-            .last_accessed_time(past)
-            .build()
-            .unwrap();
-        let jieba = Jieba::new();
-        let now = Utc::now();
-        let result = lazy_forget(&mut node, now, &jieba, |_sys, user| {
-            let user_owned = user.to_string();
-            async move {
-                assert!(user_owned.contains(mask::MASK_WORD.trim()));
-                Ok("鲁迅是浙江绍兴人原名周树人".to_string())
-            }
-        })
-        .await;
+        let mut node = MemoryNoteBuilder::new(MemoryType::Semantic(
+            SemMemory::new("鲁迅原名周树人浙江绍兴人".to_string(), ConceptType::Entity, "人物".to_string()),
+        )).create_time(past).last_accessed_time(past).build().unwrap();
+        let result = lazy_forget(&mut node, Utc::now(), &Jieba::new(), |_sys, user| {
+            let u = user.to_string();
+            async move { assert!(u.contains(mask::MASK_WORD.trim())); Ok("鲁迅是浙江绍兴人原名周树人".to_string()) }
+        }).await;
         match &result {
             ForgetAction::Revised { old_summary, new_summary, .. } => {
                 assert_eq!(old_summary, "鲁迅原名周树人浙江绍兴人");
                 assert_eq!(new_summary, "鲁迅是浙江绍兴人原名周树人");
             }
-            ForgetAction::MaskOnly { missing_degree, .. } => {
-                assert!(*missing_degree > REVISE_THRESHOLD);
-            }
+            ForgetAction::MaskOnly { missing_degree, .. } => assert!(*missing_degree > REVISE_THRESHOLD),
             ForgetAction::NoAction => panic!("old node should trigger forget"),
         }
-    }
-
-    // ==================== 随时间变化前后内容差异展示 ====================
-
-    /// 辅助：用当前内容创建一个时间倒退的 SemMemory 节点
-    fn make_old_semantic(content: &str, created: DateTime<Utc>) -> MemoryNote {
-        let sem = SemMemory::new(content.to_string(), ConceptType::Entity, "测试描述".to_string());
-        MemoryNoteBuilder::new(MemoryType::Semantic(sem))
-            .create_time(created)
-            .last_accessed_time(created)
-            .build()
-            .unwrap()
-    }
-
-    /// 辅助：创建旧的 SpecificSituation 节点
-    fn make_old_situation(narrative: &str, created: DateTime<Utc>) -> MemoryNote {
-        let ctx = Context::new(
-            None, vec![], vec![], vec![],
-            Environment { atmosphere: "日常".to_string(), tone: "平静".to_string() },
-            vec![],
-        );
-        let sit = SpecificSituation::new(narrative.to_string(), created, ctx);
-        MemoryNoteBuilder::new(MemoryType::Situation(SituationType::SpecificSituation(sit)))
-            .create_time(created)
-            .last_accessed_time(created)
-            .build()
-            .unwrap()
     }
 
     #[tokio::test]
     async fn test_semantic_content_diff_over_time() {
         let created = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
-        let original_text = "今天下午我和张三在北京王府井的星巴克讨论了项目进展";
-        let mut node = make_old_semantic(original_text, created);
-
-        let jieba = Jieba::new();
-        let now = Utc::now();
-
-        // 遮罩前的原始内容
+        let mut node = make_old_semantic("今天下午我和张三在北京王府井的星巴克讨论了项目进展", created);
         let before = get_summary(&node).unwrap();
-
-        let result = lazy_forget(&mut node, now, &jieba, |_, _| async {
-            Err("mock LLM failure".into())
-        })
-        .await;
-
-        // 遮罩/修订后的内容
+        let result = lazy_forget(&mut node, Utc::now(), &Jieba::new(), |_, _| async {
+            Err("mock".into())
+        }).await;
         let after = get_summary(&node).unwrap();
-
-        // 打印前后对比（在 test output 中可见）
-        println!("===== SemMemory 遗忘前后对比 =====");
-        println!("节点创建时间:  {:?}", created);
-        println!("遗忘触发时间:  {:?}", now);
-        println!("时间跨度:      ~{} 小时", (now - created).num_hours());
-        println!("缺失度:        match-dependent");
         match &result {
-            ForgetAction::NoAction => {
-                println!("操作:          NoAction（未触发遗忘）");
-                assert_eq!(before, after, "NoAction 不应修改内容");
-            }
-            ForgetAction::MaskOnly { missing_degree, masked_count, .. } => {
-                println!("操作:          MaskOnly（仅遮罩）");
-                println!("缺失度:        {:.4}", missing_degree);
-                println!("遮罩词数:      {}/{}", masked_count, 0);
-                println!("原始内容:      {}", before);
-                println!("遮罩后内容:    {}", after);
-                assert_ne!(before, after, "遮罩后内容应发生变化");
-                assert!(after.contains(mask::MASK_WORD.trim()), "遮罩后应包含 [masked]");
-            }
-            ForgetAction::Revised { old_summary, new_summary, .. } => {
-                println!("操作:          Revised（遮罩 + LLM 修订）");
-                println!("修订前:        {}", old_summary);
-                println!("修订后:        {}", new_summary);
-                assert_ne!(old_summary, new_summary);
-            }
+            ForgetAction::NoAction => assert_eq!(before, after),
+            ForgetAction::MaskOnly { .. } => { assert_ne!(before, after); assert!(after.contains(mask::MASK_WORD.trim())); }
+            ForgetAction::Revised { old_summary, new_summary, .. } => assert_ne!(old_summary, new_summary),
         }
-        println!("==================================");
     }
 
     #[tokio::test]
     async fn test_situation_narrative_diff_over_time() {
         let created = Utc.with_ymd_and_hms(2024, 3, 15, 8, 0, 0).unwrap();
-        let original_narrative = "早上八点我在公园慢跑看到一只金毛犬在湖边嬉水";
-        let mut node = make_old_situation(original_narrative, created);
-
-        let jieba = Jieba::new();
-        let now = Utc::now();
-
+        let mut node = make_old_situation("早上八点我在公园慢跑看到一只金毛犬在湖边嬉水", created);
         let before = get_summary(&node).unwrap();
-
-        let result = lazy_forget(&mut node, now, &jieba, |_sys, user| {
-            let user_owned = user.to_string();
-            async move {
-                // 模拟 LLM 成功补全
-                assert!(user_owned.contains(mask::MASK_WORD.trim()));
-                Ok("清晨在公园湖边慢跑时遇见一只金毛犬正在嬉水".to_string())
-            }
-        })
-        .await;
-
+        let result = lazy_forget(&mut node, Utc::now(), &Jieba::new(), |_sys, user| {
+            let u = user.to_string();
+            async move { assert!(u.contains(mask::MASK_WORD.trim())); Ok("清晨在公园湖边慢跑时遇见一只金毛犬正在嬉水".to_string()) }
+        }).await;
         let after = get_summary(&node).unwrap();
-
-        println!("===== SpecificSituation 遗忘前后对比 =====");
-        println!("节点创建时间:  {:?}", created);
-        println!("遗忘触发时间:  {:?}", now);
-        println!("时间跨度:      ~{} 小时", (now - created).num_hours());
         match &result {
-            ForgetAction::NoAction => {
-                println!("操作: NoAction");
-                assert_eq!(before, after);
-            }
-            ForgetAction::MaskOnly { missing_degree, masked_count, .. } => {
-                println!("操作:          MaskOnly");
-                println!("缺失度:        {:.4}", missing_degree);
-                println!("遮罩词数:      {}/{}", masked_count, 0);
-                println!("原始叙述:      {}", before);
-                println!("遮罩后叙述:    {}", after);
-                assert_ne!(before, after);
-            }
-            ForgetAction::Revised { old_summary, new_summary, .. } => {
-                println!("操作:          Revised（LLM 修订）");
-                println!("修订前叙述:    {}", old_summary);
-                println!("修订后叙述:    {}", new_summary);
-                assert_ne!(old_summary, new_summary);
-            }
+            ForgetAction::NoAction => assert_eq!(before, after),
+            ForgetAction::MaskOnly { .. } => assert_ne!(before, after),
+            ForgetAction::Revised { old_summary, new_summary, .. } => assert_ne!(old_summary, new_summary),
         }
-        println!("=========================================");
     }
 
     #[tokio::test]
     async fn test_progressive_forgetting_across_time() {
-        // 模拟在不同时间点对同一个节点做遗忘，展示内容逐渐模糊/变化
         let created = Utc.with_ymd_and_hms(2024, 6, 1, 0, 0, 0).unwrap();
         let original = "张三上个月去杭州出差在西湖边吃了东坡肉和龙井虾仁";
         let mut node = make_old_semantic(original, created);
-        let jieba = Jieba::new();
-
-        println!();
-        println!("========== 遗忘进程演示（同一节点随时间推移） ==========");
-        println!("原始内容:      {}", original);
-        println!("创建时间:      {:?}", created);
-        println!();
-
-        // 定义 4 个时间点的检查点
-        let checkpoints = [
-            ("创建后  3 小时", Utc.with_ymd_and_hms(2024, 6, 1, 3, 0, 0).unwrap()),
-            ("创建后  1 天  ", Utc.with_ymd_and_hms(2024, 6, 2, 0, 0, 0).unwrap()),
-            ("创建后  7 天  ", Utc.with_ymd_and_hms(2024, 6, 8, 0, 0, 0).unwrap()),
-            ("创建后 30 天  ", Utc.with_ymd_and_hms(2024, 7, 1, 0, 0, 0).unwrap()),
-        ];
-
-        for (label, checkpoint_time) in &checkpoints {
-            let before = get_summary(&node).unwrap();
-
-            // 每个时间点调用 lazy_forget（模拟 LLM 失败，仅遮罩）
-            let _result = lazy_forget(&mut node, *checkpoint_time, &jieba, |_, user| {
-                let user_owned = user.to_string();
-                async move {
-                    assert!(user_owned.contains(mask::MASK_WORD.trim()));
-                    Ok(user_owned.replace(mask::MASK_WORD.trim(), "???"))
-                }
-            })
-            .await;
-
-            let after = get_summary(&node).unwrap();
-            println!("【{}】", label);
-            println!("  遗忘前: {}", before);
-            println!("  遗忘后: {}", after);
-            println!();
+        for t in &[
+            Utc.with_ymd_and_hms(2024, 6, 1, 3, 0, 0).unwrap(),
+            Utc.with_ymd_and_hms(2024, 6, 2, 0, 0, 0).unwrap(),
+            Utc.with_ymd_and_hms(2024, 6, 8, 0, 0, 0).unwrap(),
+            Utc.with_ymd_and_hms(2024, 7, 1, 0, 0, 0).unwrap(),
+        ] {
+            let _ = lazy_forget(&mut node, *t, &Jieba::new(), |_, user| {
+                let u = user.to_string();
+                async move { assert!(u.contains(mask::MASK_WORD.trim())); Ok(u.replace(mask::MASK_WORD.trim(), "???")) }
+            }).await;
         }
-
-        // 最终内容应与原始内容不同
-        let final_content = get_summary(&node).unwrap();
-        assert_ne!(final_content, original, "多次遗忘后内容应发生变化");
-        println!("==========================================================");
+        assert_ne!(get_summary(&node).unwrap(), original);
     }
 
     #[tokio::test]
     async fn test_both_node_types_content_change() {
-        // 同时对比 SemMemory 和 SpecificSituation 在遗忘后的差异
         let created = Utc.with_ymd_and_hms(2024, 5, 20, 12, 0, 0).unwrap();
         let jieba = Jieba::new();
         let now = Utc::now();
-
-        // -- SemMemory --
-        let sem_text = "机器学习是人工智能的一个重要分支主要包括监督学习和无监督学习";
-        let mut sem_node = make_old_semantic(sem_text, created);
-        let sem_before = get_summary(&sem_node).unwrap();
-
-        let _ = lazy_forget(&mut sem_node, now, &jieba, |_, user| {
-            let user_owned = user.to_string();
-            async move { Ok(user_owned.replace(mask::MASK_WORD.trim(), "")) }
-        })
-        .await;
-
-        let sem_after = get_summary(&sem_node).unwrap();
-
-        // -- SpecificSituation --
-        let sit_text = "昨天下午我们团队在会议室开了三个小时的 Sprint 回顾会议";
-        let mut sit_node = make_old_situation(sit_text, created);
-        let sit_before = get_summary(&sit_node).unwrap();
-
-        let _ = lazy_forget(&mut sit_node, now, &jieba, |_, user| {
-            let user_owned = user.to_string();
-            async move { Ok(user_owned.replace(mask::MASK_WORD.trim(), "")) }
-        })
-        .await;
-
-        let sit_after = get_summary(&sit_node).unwrap();
-
-        println!("====== 双节点类型遗忘对比 ======");
-        println!("SemMemory:");
-        println!("  原始 content:   {}", sem_before);
-        println!("  遗忘后 content: {}", sem_after);
-        println!();
-        println!("SpecificSituation:");
-        println!("  原始 narrative: {}", sit_before);
-        println!("  遗忘后 narrative:{}", sit_after);
-        println!("=================================");
-
-        // 两种节点类型的内容都应发生变化
-        assert_ne!(sem_before, sem_after, "SemMemory 内容应因遗忘而变化");
-        assert_ne!(sit_before, sit_after, "SpecificSituation 内容应因遗忘而变化");
+        let mut sem = make_old_semantic("机器学习是人工智能的一个重要分支主要包括监督学习和无监督学习", created);
+        let mut sit = make_old_situation("昨天下午我们团队在会议室开了三个小时的 Sprint 回顾会议", created);
+        let sem_before = get_summary(&sem).unwrap();
+        let sit_before = get_summary(&sit).unwrap();
+        let _ = lazy_forget(&mut sem, now, &jieba, |_, user| {
+            let u = user.to_string(); async move { Ok(u.replace(mask::MASK_WORD.trim(), "")) }
+        }).await;
+        let _ = lazy_forget(&mut sit, now, &jieba, |_, user| {
+            let u = user.to_string(); async move { Ok(u.replace(mask::MASK_WORD.trim(), "")) }
+        }).await;
+        assert_ne!(sem_before, get_summary(&sem).unwrap());
+        assert_ne!(sit_before, get_summary(&sit).unwrap());
     }
 }
 
-// ==================== 真实 LLM 集成测试 ====================
-// 需要环境变量: API_KEY, API_BASE, MODEL
+// ========================================================================
+// 真实 LLM 集成测试（需 API_KEY / API_BASE / MODEL 环境变量）
 // 运行: cargo test -p soul-mem-algo -- "real_llm" --nocapture --ignored
+// ========================================================================
 
 #[cfg(test)]
 mod real_llm_tests {
@@ -559,390 +312,147 @@ mod real_llm_tests {
     use soul_mem_runtime::working_memory::llm::config::LLMConfig;
     use std::sync::Arc;
 
-    /// 从环境变量创建 LLM 客户端
     fn try_create_llm_client() -> Option<LlmClient> {
-        let key = std::env::var("API_KEY").ok()?;
-        let base = std::env::var("API_BASE").ok()?;
-        let model = std::env::var("MODEL").ok()?;
-        Some(LlmClient::new(LLMConfig::new(&key, &base, &model)))
+        Some(LlmClient::new(LLMConfig::new(
+            &std::env::var("API_KEY").ok()?,
+            &std::env::var("API_BASE").ok()?,
+            &std::env::var("MODEL").ok()?,
+        )))
     }
 
-    /// 构建一个完整 SemMemory：content 用长句概括 aliases/concept_type/description
     fn build_complete_sem_node(created: DateTime<Utc>) -> MemoryNote {
-        // content 是一句长话，其中嵌入了别名、类型、描述信息
-        let content = "Rust是一门由Mozilla主导研发的注重内存安全和零成本抽象的系统级编程语言也被称为Rust语言或Rust-lang它作为实体概念代表了现代系统编程的重要发展方向"
-            .to_string();
-        let sem = SemMemory::new(
-            content,
-            ConceptType::Entity,
-            "系统级编程语言".to_string(),
-        );
-        // 通过 builder 后追加 aliases（SemMemory::new 不接收 aliases）
-        let mut node = MemoryNoteBuilder::new(MemoryType::Semantic(sem))
-            .create_time(created)
-            .last_accessed_time(created)
-            .build()
-            .unwrap();
-        // 补填 aliases
+        let mut node = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory::new(
+            "Rust是一门由Mozilla主导研发的注重内存安全和零成本抽象的系统级编程语言也被称为Rust语言或Rust-lang它作为实体概念代表了现代系统编程的重要发展方向".to_string(),
+            ConceptType::Entity, "系统级编程语言".to_string(),
+        ))).create_time(created).last_accessed_time(created).build().unwrap();
         if let MemoryType::Semantic(s) = node.mem_type_mut() {
             s.aliases = vec!["Rust语言".to_string(), "Rust-lang".to_string()];
         }
         node
     }
 
+    fn make_llm_closure(c: Arc<LlmClient>) -> impl FnOnce(&str, &str) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<String, Box<dyn std::error::Error + Send + Sync>>> + Send>> {
+        move |sys: &str, user: &str| {
+            let client = c.clone();
+            let s = sys.to_string();
+            let u = user.to_string();
+            Box::pin(async move {
+                use async_openai::types::chat::{ChatCompletionRequestSystemMessage, ChatCompletionRequestUserMessage};
+                let mut resp = client.call_llm(vec![
+                    ChatCompletionRequestSystemMessage::from(s).into(),
+                    ChatCompletionRequestUserMessage::from(u).into(),
+                ]).await.map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { e.into() })?;
+                Ok(resp.remove(0))
+            })
+        }
+    }
+
     #[tokio::test]
     #[ignore]
     async fn test_real_llm_sem_forget_and_align() {
-        // 从 .env 加载环境变量
         dotenvy::dotenv().ok();
-        let client = try_create_llm_client()
-            .expect("请设置 API_KEY, API_BASE, MODEL 环境变量");
-        let client = Arc::new(client);
-
-        // ---- 步骤 1: 创建节点，20 小时前 → 缺失度约 44%，产生部分遮罩 ----
-        let created = Utc::now() - chrono::Duration::hours(20);
-        let mut node = build_complete_sem_node(created);
+        let client = Arc::new(try_create_llm_client().expect("请设置 API_KEY, API_BASE, MODEL"));
         let jieba = Jieba::new();
         let now = Utc::now();
-
-        // 记录遗忘前完整状态
+        let created = now - chrono::Duration::hours(20);
+        let mut node = build_complete_sem_node(created);
         let before_content = get_summary(&node).unwrap();
-        let (before_aliases, before_desc, before_ct) = match node.mem_type() {
-            MemoryType::Semantic(s) => (
-                s.aliases.clone(),
-                s.description.clone(),
-                format!("{:?}", s.concept_type),
-            ),
+        let (ba, bd, bc) = match node.mem_type() {
+            MemoryType::Semantic(s) => (s.aliases.clone(), s.description.clone(), format!("{:?}", s.concept_type)),
             _ => unreachable!(),
         };
 
-        println!();
-        println!("========== 真实 LLM 遗忘 + 字段对齐演示 ==========");
-        println!("节点创建时间:      {:?}", created);
-        println!("遗忘触发时间:      {:?}", now);
-        println!("时间跨度（小时）:   {}", (now - created).num_hours());
-        println!();
-        println!("【遗忘前完整状态】");
-        println!("  content:      {}", before_content);
-        println!("  aliases:      {:?}", before_aliases);
-        println!("  description:  {}", before_desc);
-        println!("  concept_type: {}", before_ct);
+        println!("\n========== 真实 LLM 遗忘 + 字段对齐演示 ==========");
+        println!("原始 content: {}", before_content);
+        println!("原始 aliases: {:?} | description: {} | concept_type: {}", ba, bd, bc);
+        println!("缺失度: ~{:.0}%", compute_missing_degree(created, 0, now,
+            DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR, DEFAULT_MAX_ACTIVATION_CAP) * 100.0);
         println!();
 
-        // ---- 步骤 2: 执行惰性遗忘（遮罩 → LLM 推测内容） ----
-        let client_for_forget = client.clone();
-        let result = lazy_forget(&mut node, now, &jieba, move |sys, user| {
-            let client = client_for_forget.clone();
-            let sys = sys.to_string();
-            let user = user.to_string();
-            async move {
-                use async_openai::types::chat::{
-                    ChatCompletionRequestMessage, ChatCompletionRequestSystemMessage,
-                    ChatCompletionRequestUserMessage,
-                };
-                let messages: Vec<ChatCompletionRequestMessage> = vec![
-                    ChatCompletionRequestSystemMessage::from(sys).into(),
-                    ChatCompletionRequestUserMessage::from(user).into(),
-                ];
-                let mut resp: Vec<String> = client.call_llm(messages).await
-                    .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { e.into() })?;
-                Ok(resp.remove(0))
-            }
-        })
-        .await;
-
-        // 遗忘后的 content
-        let _after_content = get_summary(&node).unwrap();
-
-        println!("【遗忘过程】");
+        let result = lazy_forget(&mut node, now, &jieba, make_llm_closure(client.clone())).await;
         match &result {
-            ForgetAction::NoAction => {
-                println!("  操作:     NoAction（未触发）");
-                println!("  缺失度不足: 需要检查时间设定");
-            }
-            ForgetAction::MaskOnly { missing_degree, masked_count, masked_text } => {
-                println!("  操作:     MaskOnly（仅遮罩，LLM 失败降级）");
-                println!("  缺失度:   {:.2}%", missing_degree * 100.0);
-                println!("  遮罩词数: {}/{}", masked_count, 0);
-                println!("  遮罩文本: {}", masked_text);
-            }
             ForgetAction::Revised { old_summary, new_summary, masked_text } => {
-                println!("  操作:     Revised（遮罩 → LLM 推测）");
-                println!("  缺失度:   ~{:.0}%", compute_missing_degree(
-                    node.creation_time(), 0, now,
-                    DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR,
-                    DEFAULT_MAX_ACTIVATION_CAP,
-                ) * 100.0);
-                println!("  遮罩文本: {}", masked_text);
-                println!();
-                println!("  原始 content: {}", old_summary);
-                println!("  LLM 推测  →   {}", new_summary);
+                println!("【Revised】\n  原始: {}\n  遮罩: {}\n  LLM:  {}", old_summary, masked_text, new_summary);
             }
+            ForgetAction::MaskOnly { masked_text, .. } => {
+                println!("【MaskOnly 降级】\n  原始: {}\n  遮罩: {}", before_content, masked_text);
+            }
+            ForgetAction::NoAction => println!("【NoAction】"),
         }
+        println!();
 
-        // ---- 步骤 3: 遗忘后完整节点状态 ----
-        let (after_aliases, after_desc, after_ct) = match node.mem_type() {
-            MemoryType::Semantic(s) => (
-                s.aliases.clone(),
-                s.description.clone(),
-                format!("{:?}", s.concept_type),
-            ),
+        let _ = align_sem_fields(&mut node, make_llm_closure(client.clone())).await;
+        let (fa, fd, fc) = match node.mem_type() {
+            MemoryType::Semantic(s) => (s.aliases.clone(), s.description.clone(), format!("{:?}", s.concept_type)),
             _ => unreachable!(),
         };
+        println!("【对齐后】content: {} | aliases: {:?} | description: {} | concept_type: {}", get_summary(&node).unwrap(), fa, fd, fc);
 
-        println!();
-        println!("【遗忘后完整节点状态】");
-        println!("  content:      {}", get_summary(&node).unwrap());
-        println!("  aliases:      {:?}", after_aliases);
-        println!("  description:  {}", after_desc);
-        println!("  concept_type: {}", after_ct);
-        println!();
-
-        // ---- 步骤 4: 对齐 aliases/description/concept_type ----
-        println!("----- 开始 align_sem_fields（根据新 content 修正其他字段） -----");
-
-        let client_for_align = client.clone();
-        match align_sem_fields(&mut node, move |sys, user| {
-            let client = client_for_align.clone();
-            let sys = sys.to_string();
-            let user = user.to_string();
-            async move {
-                use async_openai::types::chat::{
-                    ChatCompletionRequestMessage, ChatCompletionRequestSystemMessage,
-                    ChatCompletionRequestUserMessage,
-                };
-                let messages: Vec<ChatCompletionRequestMessage> = vec![
-                    ChatCompletionRequestSystemMessage::from(sys).into(),
-                    ChatCompletionRequestUserMessage::from(user).into(),
-                ];
-                let mut resp: Vec<String> = client.call_llm(messages).await
-                    .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { e.into() })?;
-                Ok(resp.remove(0))
-            }
-        })
-        .await {
-            Ok(()) => {
-                let (new_aliases, new_desc, new_ct) = match node.mem_type() {
-                    MemoryType::Semantic(s) => (
-                        s.aliases.clone(),
-                        s.description.clone(),
-                        format!("{:?}", s.concept_type),
-                    ),
-                    _ => unreachable!(),
-                };
-                println!();
-                println!("【对齐后最终节点状态】");
-                println!("  content:      {}", get_summary(&node).unwrap());
-                println!("  aliases:      {:?}", new_aliases);
-                println!("  description:  {}", new_desc);
-                println!("  concept_type: {}", new_ct);
-                println!();
-
-                if new_aliases != before_aliases {
-                    println!("  → aliases 已更新:");
-                    println!("      旧: {:?}", before_aliases);
-                    println!("      新: {:?}", new_aliases);
-                } else {
-                    println!("  → aliases 保持一致: {:?}", before_aliases);
-                }
-                if new_desc != before_desc {
-                    println!("  → description 已更新:");
-                    println!("      旧: {}", before_desc);
-                    println!("      新: {}", new_desc);
-                } else {
-                    println!("  → description 保持一致: {}", before_desc);
-                }
-                if new_ct != before_ct {
-                    println!("  → concept_type 已更新:");
-                    println!("      旧: {}", before_ct);
-                    println!("      新: {}", new_ct);
-                } else {
-                    println!("  → concept_type 保持一致: {}", before_ct);
-                }
-            }
-            Err(e) => {
-                println!("  align_sem_fields 调用失败: {}", e);
-                println!("  aliases/description/concept_type 未被更新");
-            }
-        }
-
-        // ---- 验证 aliases 长度约束 ----
-        let (final_aliases, _final_desc, _final_ct) = match node.mem_type() {
-            MemoryType::Semantic(s) => (
-                s.aliases.clone(),
-                s.description.clone(),
-                format!("{:?}", s.concept_type),
-            ),
-            _ => unreachable!(),
-        };
-        let current_md = compute_missing_degree(
-            node.creation_time(), 0, Utc::now(),
-            DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR,
-            DEFAULT_MAX_ACTIVATION_CAP,
-        );
-        if current_md < ALIGN_LENGTH_CAP_THRESHOLD {
-            assert!(
-                final_aliases.len() <= before_aliases.len(),
-                "aliases 长度不应增加: 旧={}, 新={}, 缺失度={:.2}",
-                before_aliases.len(),
-                final_aliases.len(),
-                current_md,
-            );
-            println!("  → ✓ aliases 长度约束验证通过（缺失度 {:.2} < 阈值 {}，长度未增长）",
-                current_md, ALIGN_LENGTH_CAP_THRESHOLD);
-        } else {
-            println!("  → 跳过长度约束验证（缺失度 {:.2} >= 阈值 {}，允许增长）",
-                current_md, ALIGN_LENGTH_CAP_THRESHOLD);
-        }
-
-        println!();
-        println!("============================================================");
-        println!();
-
-        assert!(
-            matches!(&result, ForgetAction::Revised { .. } | ForgetAction::MaskOnly { .. }),
-            "遗忘应被触发，当前结果: {:?}",
-            result
-        );
+        let curr_md = compute_missing_degree(node.creation_time(), 0, Utc::now(),
+            DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR, DEFAULT_MAX_ACTIVATION_CAP);
+        if curr_md < 0.6 { assert!(fa.len() <= ba.len()); }
+        println!("=================================================\n");
+        assert!(matches!(result, ForgetAction::Revised { .. } | ForgetAction::MaskOnly { .. }));
     }
 
     #[tokio::test]
     #[ignore]
     async fn test_activation_slows_forgetting() {
-        // 从 .env 加载环境变量
         dotenvy::dotenv().ok();
-        let client = try_create_llm_client()
-            .expect("请设置 API_KEY, API_BASE, MODEL 环境变量");
-        let client = Arc::new(client);
+        let client = Arc::new(try_create_llm_client().expect("请设置 API_KEY, API_BASE, MODEL"));
         let jieba = Jieba::new();
         let now = Utc::now();
 
-        // ---- 第一步：由 LLM（作为咲夜）生成一段虚构的事件记忆 ----
         let gen_client = client.clone();
-        let gen_system = "你是红魔馆的女仆长十六夜咲夜。请以第一人称写一段你在幻想乡日常生活中的具体事件记忆，2~4句话，描述发生了什么、涉及谁、你的感受。只输出记忆文本，不要解释。";
-        let gen_user = "请讲述一件你在红魔馆经历过的难忘事件。";
-        let generated_content: String = {
+        let generated: String = {
             use async_openai::types::chat::{ChatCompletionRequestSystemMessage, ChatCompletionRequestUserMessage};
-            let msgs = vec![
-                ChatCompletionRequestSystemMessage::from(gen_system.to_string()).into(),
-                ChatCompletionRequestUserMessage::from(gen_user.to_string()).into(),
-            ];
-            let mut resp = gen_client.call_llm(msgs).await
-                .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { e.into() })
-                .expect("LLM 生成记忆内容失败");
+            let mut resp = gen_client.call_llm(vec![
+                ChatCompletionRequestSystemMessage::from("你是红魔馆的女仆长十六夜咲夜。请以第一人称写一段你在幻想乡日常生活中的具体事件记忆，2~4句话，描述发生了什么、涉及谁、你的感受。只输出记忆文本，不要解释。".to_string()).into(),
+                ChatCompletionRequestUserMessage::from("请讲述一件你在红魔馆经历过的难忘事件。".to_string()).into(),
+            ]).await.map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { e.into() }).expect("LLM 生成失败");
             resp.remove(0)
         };
-        // 去除标点、空格，保留中文和日文字符便于 jieba 分词遮罩
-        let content: String = generated_content.chars()
-            .filter(|c| !c.is_ascii_punctuation() && !c.is_whitespace())
-            .collect();
-        println!("【LLM 生成の咲夜の記憶】\n  {}\n", generated_content);
-
-        // 用生成内容的前两个自然段作为描述
-        let desc_prefix: String = generated_content.chars().take(30).filter(|c| !c.is_ascii_punctuation()).collect();
-        let aliases = vec!["紅魔館の思い出".to_string(), "咲夜の出来事".to_string()];
-        let description = format!("紅魔館メイド長の回想: {}", desc_prefix);
-
-        // ---- 构建四个节点，相同的创建时间（48 小时前）但激活次数不同 ----
+        let content: String = generated.chars().filter(|c| !c.is_ascii_punctuation() && !c.is_whitespace()).collect();
+        let desc_prefix: String = generated.chars().take(30).filter(|c| !c.is_ascii_punctuation()).collect();
         let created = now - chrono::Duration::hours(48);
 
         let make_node = |rc: usize| -> MemoryNote {
-            let mut node = build_complete_sem_node(created);
-            if let MemoryType::Semantic(s) = node.mem_type_mut() {
+            let mut n = build_complete_sem_node(created);
+            if let MemoryType::Semantic(s) = n.mem_type_mut() {
                 s.content = content.clone();
-                s.aliases = aliases.clone();
-                s.description = description.clone();
+                s.aliases = vec!["紅魔館の思い出".to_string(), "咲夜の出来事".to_string()];
+                s.description = format!("紅魔館メイド長の回想: {}", desc_prefix);
             }
-            for _ in 0..rc {
-                node.retrieval_increment();
-            }
-            node
+            for _ in 0..rc { n.retrieval_increment(); }
+            n
         };
 
-        let mut node_a = make_node(0);   // 0 次激活
-        let mut node_b = make_node(20);  // 20 次激活
-        let mut node_c = make_node(200); // 200 次激活（超 cap）
-        let mut node_d = make_node(DEFAULT_MAX_ACTIVATION_CAP); // 50 次激活（恰为 cap）
+        let mut na = make_node(0); let mut nb = make_node(20);
+        let mut nc = make_node(200); let mut nd = make_node(DEFAULT_MAX_ACTIVATION_CAP);
 
-        // ---- 打印基本信息 ----
-        let md_a = compute_missing_degree(created, 0, now, DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR, DEFAULT_MAX_ACTIVATION_CAP);
-        let md_b = compute_missing_degree(created, 20, now, DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR, DEFAULT_MAX_ACTIVATION_CAP);
-        let md_c = compute_missing_degree(created, 200, now, DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR, DEFAULT_MAX_ACTIVATION_CAP);
-        let md_d = compute_missing_degree(created, DEFAULT_MAX_ACTIVATION_CAP, now, DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR, DEFAULT_MAX_ACTIVATION_CAP);
+        let mda = compute_missing_degree(created,0,now,DEFAULT_BASE_HALF_LIFE_HOURS,DEFAULT_ACTIVE_FACTOR,DEFAULT_MAX_ACTIVATION_CAP);
+        let mdb = compute_missing_degree(created,20,now,DEFAULT_BASE_HALF_LIFE_HOURS,DEFAULT_ACTIVE_FACTOR,DEFAULT_MAX_ACTIVATION_CAP);
+        let mdc = compute_missing_degree(created,200,now,DEFAULT_BASE_HALF_LIFE_HOURS,DEFAULT_ACTIVE_FACTOR,DEFAULT_MAX_ACTIVATION_CAP);
+        let mdd = compute_missing_degree(created,DEFAULT_MAX_ACTIVATION_CAP,now,DEFAULT_BASE_HALF_LIFE_HOURS,DEFAULT_ACTIVE_FACTOR,DEFAULT_MAX_ACTIVATION_CAP);
 
-        println!();
-        println!("========== 激活次数对遗忘的影响 ==========");
-        println!("创建时间:      {:?}", created);
-        println!("遗忘触发时间:  {:?}", now);
-        println!("时间跨度:      {} 小时", (now - created).num_hours());
-        println!("原始 content:  {}", content);
-        println!();
-        println!("缺失度对比:");
-        println!("  节点 A (激活 0 次):   {:.2}%", md_a * 100.0);
-        println!("  节点 B (激活 20 次):  {:.2}%", md_b * 100.0);
-        println!("  节点 D (激活 cap={} 次): {:.2}%", DEFAULT_MAX_ACTIVATION_CAP, md_d * 100.0);
-        println!("  节点 C (激活 200 次): {:.2}%", md_c * 100.0);
-        println!();
+        println!("\n========== 激活次数对遗忘的影响 ==========");
+        println!("LLM 生成: {}\n缺失度: A={:.0}% B={:.0}% D={:.0}% C={:.0}%\n", generated, mda*100.0, mdb*100.0, mdd*100.0, mdc*100.0);
 
-        // ---- 对节点 A, B, C 分别执行 lazy_forget ----
-        // 辅助：为节点创建一个 LLM 调用闭包
-        let make_llm_closure = |c: Arc<LlmClient>| {
-            move |sys: &str, user: &str| {
-                let client = c.clone();
-                let sys = sys.to_string();
-                let user = user.to_string();
-                async move {
-                    use async_openai::types::chat::{
-                        ChatCompletionRequestMessage, ChatCompletionRequestSystemMessage,
-                        ChatCompletionRequestUserMessage,
-                    };
-                    let messages: Vec<ChatCompletionRequestMessage> = vec![
-                        ChatCompletionRequestSystemMessage::from(sys).into(),
-                        ChatCompletionRequestUserMessage::from(user).into(),
-                    ];
-                    let mut resp: Vec<String> = client.call_llm(messages).await
-                        .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { e.into() })?;
-                    Ok(resp.remove(0))
-                }
-            }
-        };
-
-        for (node, label, act_count) in [
-            (&mut node_a, "节点 A（0 次激活）", 0usize),
-            (&mut node_b, "节点 B（20 次激活）", 20),
-            (&mut node_d, "节点 D（50 次激活，恰为 cap）", DEFAULT_MAX_ACTIVATION_CAP),
-            (&mut node_c, "节点 C（200 次激活，超 cap）", 200),
-        ] {
-            let before = get_summary(node).unwrap();
+        for (node, label, md) in [(&mut na,"A(0次)",mda), (&mut nb,"B(20次)",mdb), (&mut nd,"D(cap)",mdd), (&mut nc,"C(200次,超cap)",mdc)] {
+            let before = get_summary(node).unwrap_or_default();
             let result = lazy_forget(node, now, &jieba, make_llm_closure(client.clone())).await;
-            let after = get_summary(node).unwrap();
-            let md = compute_missing_degree(created, act_count, now,
-                DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR,
-                DEFAULT_MAX_ACTIVATION_CAP);
-
-            println!("【{}  |  缺失度: {:.1}%】", label, md * 100.0);
-            println!("  遗忘前: {}", before);
+            println!("【{} | 缺失度 {:.0}%】\n  原始: {}", label, md*100.0, before);
             match &result {
-                ForgetAction::Revised { .. } => println!("  操作: Revised"),
-                ForgetAction::MaskOnly { masked_text, .. } => {
-                    println!("  操作: MaskOnly");
-                    println!("  遮罩文本: {}", masked_text);
-                }
-                ForgetAction::NoAction => println!("  操作: NoAction"),
+                ForgetAction::Revised { masked_text, new_summary, .. } => println!("  遮罩: {}\n  LLM:  {}", masked_text, new_summary),
+                ForgetAction::MaskOnly { masked_text, .. } => println!("  遮罩: {} (LLM 失败)", masked_text),
+                ForgetAction::NoAction => println!("  (未触发)"),
             }
-            println!("  遗忘后: {}", after);
             println!();
         }
 
-        // ---- 验证缺失度关系 ----
-        assert!(md_b < md_a,
-            "激活节点 B 的缺失度应低于未激活节点 A: B={:.4}, A={:.4}", md_b, md_a);
-        assert!((md_c - md_d).abs() < 0.001,
-            "超 cap 节点 C 的缺失度应与 cap 节点 D 接近: D={:.4}, C={:.4}", md_d, md_c);
-        assert!(md_a > MASK_THRESHOLD,
-            "节点 A 缺失度应超过遮罩阈值: {:.4}", md_a);
-
-        println!("============================================================");
-        println!();
+        assert!(mdb < mda);
+        assert!((mdc - mdd).abs() < 0.001);
+        assert!(mda > MASK_THRESHOLD);
+        println!("=================================================\n");
     }
 }

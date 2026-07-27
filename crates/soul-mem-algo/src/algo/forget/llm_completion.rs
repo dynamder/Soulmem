@@ -1,0 +1,170 @@
+use chrono::{DateTime, Utc};
+use soul_mem_core::memory_note::sem_mem::ConceptType;
+use soul_mem_core::memory_note::{MemoryNote, MemoryType, situation_mem::SituationType};
+use std::future::Future;
+
+use super::decay_calculator::{compute_missing_degree, DEFAULT_MAX_ACTIVATION_CAP};
+use super::decay_revise::{DEFAULT_ACTIVE_FACTOR, DEFAULT_BASE_HALF_LIFE_HOURS};
+
+/// 遗忘度低于此值时 Vec 类字段（如 aliases）在对齐时不允许增加长度
+pub const ALIGN_LENGTH_CAP_THRESHOLD: f32 = 0.6;
+
+// ========================================================================
+// 记忆重建（遮罩文本 → LLM → 完整文本）
+// ========================================================================
+
+/// 构建记忆重建的 system + user prompt。
+/// system prompt 将 LLM 设定为十六夜咲夜的角色。
+pub fn build_reconstruct_prompt(masked_text: &str) -> (String, String) {
+    let system = "You are Sakuya Izayoi, the perfect and elegant maid of the Scarlet Devil Mansion. \
+        You have the ability to manipulate time. Your character card defines who you are, but certain sections \
+        have been deliberately removed — memories of specific individuals, particularly those connected to \
+        Eientei and the moon, are no longer part of your recorded past. A segment of your memory has been \
+        partially masked. As yourself, recall and reconstruct the complete memory naturally based on the \
+        remaining fragments, relying only on what your current character card contains. Stay in character as \
+        a composed maiden with a touch of elegance and pride. Output only the completed memory text in first \
+        person, no explanation.".to_string();
+    let user = format!("Masked text: {}", masked_text);
+    (system, user)
+}
+
+/// 调用 LLM 重建遮罩的记忆文本。
+/// 输入遮罩文本，输出重建后的完整文本。
+pub async fn reconstruct_summary<F, Fut>(
+    masked_text: &str,
+    llm_call: F,
+) -> Result<String, Box<dyn std::error::Error + Send + Sync>>
+where
+    F: FnOnce(&str, &str) -> Fut,
+    Fut: Future<Output = Result<String, Box<dyn std::error::Error + Send + Sync>>>,
+{
+    let (system, user) = build_reconstruct_prompt(masked_text);
+    llm_call(&system, &user).await
+}
+
+// ========================================================================
+// 字段对齐（SemMemory 的 aliases / description / concept_type 修正）
+// ========================================================================
+
+/// 构建字段对齐的 prompt。
+/// 让 LLM 根据新的 content 检查并修正 aliases、description、concept_type。
+pub fn build_align_prompt(
+    content: &str,
+    aliases: &[String],
+    description: &str,
+    concept_type: &str,
+) -> (String, String) {
+    let system = "You are Sakuya Izayoi, the perfect and elegant maid of the Scarlet Devil Mansion. \
+        Given a memory's content text from your own records, verify and if necessary correct the aliases, \
+        description, and concept type fields so they match the content.\n\
+        Respond ONLY in this exact format, one field per line:\n\
+        Aliases: <comma-separated list>\n\
+        Description: <short phrase>\n\
+        ConceptType: Entity|Abstract\n\
+        If the current values are already consistent with the content, keep them unchanged.\n\
+        Do not add any explanation.".to_string();
+    let user = format!(
+        "Content: {}\nCurrent aliases: {:?}\nCurrent description: {}\nCurrent concept type: {}",
+        content, aliases, description, concept_type,
+    );
+    (system, user)
+}
+
+/// 解析 LLM 返回的结构化字段对齐结果。
+/// 返回 (new_aliases, new_description, new_concept_type)，未被 LLM 提及的字段为 None。
+pub fn parse_align_response(response: &str) -> (Option<Vec<String>>, Option<String>, Option<ConceptType>) {
+    let mut new_aliases: Option<Vec<String>> = None;
+    let mut new_desc: Option<String> = None;
+    let mut new_ct: Option<ConceptType> = None;
+
+    for line in response.lines() {
+        let line = line.trim();
+        if let Some(val) = line.strip_prefix("Aliases:") {
+            let val = val.trim();
+            new_aliases = if val.is_empty() || val.eq_ignore_ascii_case("none") {
+                Some(vec![])
+            } else {
+                Some(
+                    val.split(',')
+                        .map(|s| s.trim().trim_matches('"').to_string())
+                        .filter(|s| !s.is_empty())
+                        .collect(),
+                )
+            };
+        } else if let Some(val) = line.strip_prefix("Description:") {
+            let val = val.trim();
+            if !val.is_empty() && !val.eq_ignore_ascii_case("none") {
+                new_desc = Some(val.to_string());
+            }
+        } else if let Some(val) = line.strip_prefix("ConceptType:") {
+            let val = val.trim().to_lowercase();
+            if val.contains("entity") {
+                new_ct = Some(ConceptType::Entity);
+            } else if val.contains("abstract") {
+                new_ct = Some(ConceptType::Abstract);
+            }
+        }
+    }
+
+    (new_aliases, new_desc, new_ct)
+}
+
+/// 调用 LLM 执行 SemMemory 字段对齐：根据新 content 修正 aliases / description / concept_type。
+///
+/// - 当缺失度 < `ALIGN_LENGTH_CAP_THRESHOLD` 时，aliases 的长度不允许增长
+/// - 当缺失度 ≥ 阈值时，允许自由增长
+pub async fn align_sem_fields<F, Fut>(
+    node: &mut MemoryNote,
+    llm_call: F,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+where
+    F: FnOnce(&str, &str) -> Fut,
+    Fut: Future<Output = Result<String, Box<dyn std::error::Error + Send + Sync>>>,
+{
+    let (content, old_aliases, old_desc, old_ct) = match node.mem_type() {
+        MemoryType::Semantic(s) => (
+            s.content.clone(),
+            s.aliases.clone(),
+            s.description.clone(),
+            format!("{:?}", s.concept_type),
+        ),
+        _ => return Ok(()),
+    };
+
+    let (system, user) = build_align_prompt(&content, &old_aliases, &old_desc, &old_ct);
+    let response = llm_call(&system, &user).await?;
+
+    let (new_aliases, new_desc, new_ct) = parse_align_response(response.trim());
+
+    // 计算当前缺失度，决定是否限制 Vec 长度
+    let missing_degree = compute_missing_degree(
+        node.creation_time(),
+        node.retrieval_count(),
+        Utc::now(),
+        DEFAULT_BASE_HALF_LIFE_HOURS,
+        DEFAULT_ACTIVE_FACTOR,
+        DEFAULT_MAX_ACTIVATION_CAP,
+    );
+    let cap_vec_length = missing_degree < ALIGN_LENGTH_CAP_THRESHOLD;
+
+    // 应用解析结果到节点
+    if let MemoryType::Semantic(s) = node.mem_type_mut() {
+        if let Some(aliases) = new_aliases {
+            if cap_vec_length && aliases.len() > old_aliases.len() {
+                // 遗忘度较低时不允许 aliases 增长
+            } else if !aliases.is_empty() {
+                s.aliases = aliases;
+            }
+        }
+        if let Some(desc) = new_desc {
+            if !desc.is_empty() {
+                s.description = desc;
+            }
+        }
+        if let Some(ct) = new_ct {
+            s.concept_type = ct;
+        }
+    }
+
+    Ok(())
+}
