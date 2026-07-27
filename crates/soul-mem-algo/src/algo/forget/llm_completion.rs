@@ -1,68 +1,79 @@
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use soul_mem_core::memory_note::sem_mem::ConceptType;
-use soul_mem_core::memory_note::{MemoryNote, MemoryType, situation_mem::SituationType};
+use soul_mem_core::memory_note::{MemoryNote, MemoryType};
 use std::future::Future;
 
-use super::decay_calculator::{compute_missing_degree, DEFAULT_MAX_ACTIVATION_CAP};
+use super::decay_calculator::{DEFAULT_MAX_ACTIVATION_CAP, compute_missing_degree};
 use super::decay_revise::{DEFAULT_ACTIVE_FACTOR, DEFAULT_BASE_HALF_LIFE_HOURS};
 
 /// 遗忘度低于此值时 Vec 类字段（如 aliases）在对齐时不允许增加长度
 pub const ALIGN_LENGTH_CAP_THRESHOLD: f32 = 0.6;
+
+/// 默认记忆重建 system prompt（中立通用）
+pub const DEFAULT_RECONSTRUCT_SYSTEM_PROMPT: &str = "You are a memory reconstruction assistant. \
+    A segment of memory text has been partially masked, with [masked] placeholders. \
+    Based on the context and the remaining fragments, infer and complete the missing parts \
+    naturally. Output only the completed text, no explanation.";
 
 // ========================================================================
 // 记忆重建（遮罩文本 → LLM → 完整文本）
 // ========================================================================
 
 /// 构建记忆重建的 system + user prompt。
-/// system prompt 将 LLM 设定为十六夜咲夜的角色。
-pub fn build_reconstruct_prompt(masked_text: &str) -> (String, String) {
-    let system = "You are Sakuya Izayoi, the perfect and elegant maid of the Scarlet Devil Mansion. \
-        You have the ability to manipulate time. Your character card defines who you are, but certain sections \
-        have been deliberately removed — memories of specific individuals, particularly those connected to \
-        Eientei and the moon, are no longer part of your recorded past. A segment of your memory has been \
-        partially masked. As yourself, recall and reconstruct the complete memory naturally based on the \
-        remaining fragments, relying only on what your current character card contains. Stay in character as \
-        a composed maiden with a touch of elegance and pride. Output only the completed memory text in first \
-        person, no explanation.".to_string();
+/// `system_prompt` 控制 LLM 的角色设定与行为，传入 `None` 使用默认值。
+pub fn build_reconstruct_prompt(
+    masked_text: &str,
+    system_prompt: Option<&str>,
+) -> (String, String) {
+    let system = system_prompt
+        .unwrap_or(DEFAULT_RECONSTRUCT_SYSTEM_PROMPT)
+        .to_string();
     let user = format!("Masked text: {}", masked_text);
     (system, user)
 }
 
 /// 调用 LLM 重建遮罩的记忆文本。
-/// 输入遮罩文本，输出重建后的完整文本。
+/// `system_prompt` 控制 LLM 的角色设定与行为，传入 `None` 使用默认值。
 pub async fn reconstruct_summary<F, Fut>(
     masked_text: &str,
+    system_prompt: Option<&str>,
     llm_call: F,
 ) -> Result<String, Box<dyn std::error::Error + Send + Sync>>
 where
     F: FnOnce(&str, &str) -> Fut,
     Fut: Future<Output = Result<String, Box<dyn std::error::Error + Send + Sync>>>,
 {
-    let (system, user) = build_reconstruct_prompt(masked_text);
+    let (system, user) = build_reconstruct_prompt(masked_text, system_prompt);
     llm_call(&system, &user).await
 }
+
+/// 默认字段对齐 system prompt（中立通用）
+pub const DEFAULT_ALIGN_SYSTEM_PROMPT: &str = "You are a memory consistency checker. \
+    Given a memory's content text, verify and if necessary correct the aliases, description, \
+    and concept type fields so they match the content.\n\
+    Respond ONLY in this exact format, one field per line:\n\
+    Aliases: <comma-separated list>\n\
+    Description: <short phrase>\n\
+    ConceptType: Entity|Abstract\n\
+    If the current values are already consistent with the content, keep them unchanged.\n\
+    Do not add any explanation.";
 
 // ========================================================================
 // 字段对齐（SemMemory 的 aliases / description / concept_type 修正）
 // ========================================================================
 
 /// 构建字段对齐的 prompt。
-/// 让 LLM 根据新的 content 检查并修正 aliases、description、concept_type。
+/// `system_prompt` 控制 LLM 的角色设定与行为，传入 `None` 使用默认值。
 pub fn build_align_prompt(
     content: &str,
     aliases: &[String],
     description: &str,
     concept_type: &str,
+    system_prompt: Option<&str>,
 ) -> (String, String) {
-    let system = "You are Sakuya Izayoi, the perfect and elegant maid of the Scarlet Devil Mansion. \
-        Given a memory's content text from your own records, verify and if necessary correct the aliases, \
-        description, and concept type fields so they match the content.\n\
-        Respond ONLY in this exact format, one field per line:\n\
-        Aliases: <comma-separated list>\n\
-        Description: <short phrase>\n\
-        ConceptType: Entity|Abstract\n\
-        If the current values are already consistent with the content, keep them unchanged.\n\
-        Do not add any explanation.".to_string();
+    let system = system_prompt
+        .unwrap_or(DEFAULT_ALIGN_SYSTEM_PROMPT)
+        .to_string();
     let user = format!(
         "Content: {}\nCurrent aliases: {:?}\nCurrent description: {}\nCurrent concept type: {}",
         content, aliases, description, concept_type,
@@ -72,7 +83,9 @@ pub fn build_align_prompt(
 
 /// 解析 LLM 返回的结构化字段对齐结果。
 /// 返回 (new_aliases, new_description, new_concept_type)，未被 LLM 提及的字段为 None。
-pub fn parse_align_response(response: &str) -> (Option<Vec<String>>, Option<String>, Option<ConceptType>) {
+pub fn parse_align_response(
+    response: &str,
+) -> (Option<Vec<String>>, Option<String>, Option<ConceptType>) {
     let mut new_aliases: Option<Vec<String>> = None;
     let mut new_desc: Option<String> = None;
     let mut new_ct: Option<ConceptType> = None;
@@ -111,10 +124,12 @@ pub fn parse_align_response(response: &str) -> (Option<Vec<String>>, Option<Stri
 
 /// 调用 LLM 执行 SemMemory 字段对齐：根据新 content 修正 aliases / description / concept_type。
 ///
+/// - `system_prompt` 控制 LLM 的角色设定与行为，传入 `None` 使用默认值
 /// - 当缺失度 < `ALIGN_LENGTH_CAP_THRESHOLD` 时，aliases 的长度不允许增长
 /// - 当缺失度 ≥ 阈值时，允许自由增长
 pub async fn align_sem_fields<F, Fut>(
     node: &mut MemoryNote,
+    system_prompt: Option<&str>,
     llm_call: F,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
 where
@@ -131,7 +146,8 @@ where
         _ => return Ok(()),
     };
 
-    let (system, user) = build_align_prompt(&content, &old_aliases, &old_desc, &old_ct);
+    let (system, user) =
+        build_align_prompt(&content, &old_aliases, &old_desc, &old_ct, system_prompt);
     let response = llm_call(&system, &user).await?;
 
     let (new_aliases, new_desc, new_ct) = parse_align_response(response.trim());
