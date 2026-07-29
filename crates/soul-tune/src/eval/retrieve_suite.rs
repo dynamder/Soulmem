@@ -510,27 +510,43 @@ impl TestSuite for RetrieveSuite {
                 (ids, full_metrics, must_hit)
             }
             RetrieveMode::Association | RetrieveMode::FullPipeline => {
-                let mut all_associated: Vec<(MemoryId, f64, u32)> = Vec::new();
+                const EMBED_PPR_BLEND: f32 = 0.5;
+
+                let mut all_blended: Vec<(MemoryId, f32, u32)> = Vec::new();
+
                 for (sq_idx, results) in all_similarity.into_iter().enumerate() {
                     let priority = test_case.sub_queries[sq_idx].priority;
                     if results.is_empty() {
                         continue;
                     }
+
+                    let embed_map: HashMap<MemoryId, f32> =
+                        results.iter().copied().collect();
+
                     let source: Vec<(MemoryId, f32)> = results;
                     let req = AssociationRequest::new(Arc::clone(&self.wm), source)
                         .with_top_k(self.meta.max_results);
                     let ppr_result = RetrAssociation {}.retrieve(req);
-                    for (id, score) in ppr_result {
-                        all_associated.push((id, score, priority));
+
+                    let ppr_map: HashMap<MemoryId, f64> =
+                        ppr_result.iter().map(|(id, s)| (*id, *s)).collect();
+
+                    let all_ids: std::collections::HashSet<MemoryId> = embed_map
+                        .keys()
+                        .chain(ppr_map.keys())
+                        .copied()
+                        .collect();
+
+                    for id in all_ids {
+                        let embed_s = embed_map.get(&id).copied().unwrap_or(0.0);
+                        let ppr_s = ppr_map.get(&id).copied().unwrap_or(0.0) as f32;
+                        let blended = EMBED_PPR_BLEND * embed_s
+                            + (1.0 - EMBED_PPR_BLEND) * ppr_s;
+                        all_blended.push((id, blended, priority));
                     }
                 }
-                let merged = merge_by_priority(
-                    all_associated
-                        .into_iter()
-                        .map(|(id, score, prio)| (id, score as f32, prio))
-                        .collect(),
-                    self.meta.max_results,
-                );
+
+                let merged = merge_by_priority(all_blended, self.meta.max_results);
                 let ids: Vec<MemoryId> = merged.iter().map(|(id, _)| *id).collect();
                 let (full_metrics, must_hit) = compute_split_metrics(
                     &ids,
