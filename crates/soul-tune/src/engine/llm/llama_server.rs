@@ -13,21 +13,11 @@ pub struct LlamaServer {
 
 impl LlmBackend for LlamaServer {
     fn generate_queries(&mut self, system: &str, user_message: &str) -> Result<String> {
-        let user_content = format!(
-            "用户说: \"{}\"\n\n\
-            从角色记忆中检索回应这句话所需的信息。输出一个 JSON 数组，格式如下:\n\
-            [\n  {{\"tag\": [\"概念\", \"规则\"], \"variant\": {{\"Semantic\": [{{\"concept_identifier\": \"弹幕规则\"}}]}}, \"priority\": 7}},\n  {{\"tag\": [\"价值观\"], \"variant\": {{\"Semantic\": [{{\"concept_identifier\": \"欢愉至上\"}}]}}, \"priority\": 5}}\n]\n\n\
-            concept_identifier 必须是具体的名词短语（如 \"弹幕规则\"、\"欢愉至上\"、\"Rust\"），\
-            不能是模糊类别（如 \"爱好\"、\"技能\"）——这类词无法命中记忆中的具体概念。\
-            \n\n只输出 JSON 数组，不要其他内容。",
-            user_message
-        );
-
+        let user_content = format!("用户说: \"{}\"", user_message);
         let messages = vec![
             serde_json::json!({"role": "system", "content": system}),
             serde_json::json!({"role": "user", "content": user_content}),
         ];
-
         self.chat_completion(&messages, 2048)
     }
 

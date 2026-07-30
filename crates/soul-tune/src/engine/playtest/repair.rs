@@ -219,6 +219,7 @@ pub struct RawQuery {
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum RawVariant {
+    Situation(Vec<RawSitUnit>),
     Semantic(Vec<RawSemUnit>),
     SemanticSingle(RawSemUnit),
     BareArray(Vec<RawSemUnit>),
@@ -231,6 +232,44 @@ pub struct RawSemUnit {
     pub concept_identifier: Option<String>,
     #[serde(default)]
     pub description: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RawSitUnit {
+    #[serde(default)]
+    pub narrative: Option<String>,
+    #[serde(default)]
+    pub participants: Option<Vec<RawParticipant>>,
+    #[serde(default)]
+    pub environment: Option<RawEnvironment>,
+    #[serde(default)]
+    pub event: Option<Vec<RawEvent>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RawParticipant {
+    #[serde(default)]
+    pub name: Option<String>,
+    #[serde(default)]
+    pub role: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RawEnvironment {
+    #[serde(default)]
+    pub atmosphere: Option<String>,
+    #[serde(default)]
+    pub tone: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RawEvent {
+    #[serde(default)]
+    pub action: Option<String>,
+    #[serde(default)]
+    pub initiator: Option<String>,
+    #[serde(default)]
+    pub target: Option<String>,
 }
 
 const JSON_REPAIR_SLUG: &str = "soul-tune-json-repair-v1";

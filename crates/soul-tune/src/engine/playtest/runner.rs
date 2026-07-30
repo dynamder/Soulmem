@@ -25,8 +25,9 @@ use crate::engine::llm::LlmBackend;
 use crate::engine::loader::{cached_load_graph, get_bge_model};
 use crate::engine::retrieve::data::NodeSummary;
 
+use super::paw_query;
 use super::repair::{
-    extract_think_content, robust_json_extract, strip_think_block, RawQuery, RawVariant,
+    extract_think_content, robust_json_extract, strip_think_block, RawQuery, RawSitUnit, RawVariant,
 };
 use super::trace::{HitStage, QueryTrace, RetrievalTrace, TracedNode};
 
@@ -46,6 +47,52 @@ const CHAT_INSTRUCTION: &str = "注意：这是短信聊天场景，回复必须
 严禁使用括号描述动作、神态或心理活动，如（笑）、（叹气）、*摇头*等。\
 只输出对话内容，不加任何表演注释。\
 回复必须简短，一句话即可，不要重复用户的话，不要解释你的回复。";
+
+/// Query generation system prompt with few-shot examples.
+pub const QUERY_PROMPT: &str = "你是一个角色扮演记忆系统的查询生成器。根据用户输入的对话内容，生成用于检索角色记忆的JSON格式查询。\n\
+输出格式必须是一个JSON对象，包含\"sub_queries\"数组。每个sub_query包含：\n\
+- priority: 重要性，1-10的整数，越高越重要\n\
+- tag: 标签数组，用于筛选记忆类型\n\
+- variant: 查询变体，有两种类型：\n\
+  1. Semantic: 用于查询实体、概念、属性。包含concept_identifier和description字段\n\
+  2. Situation: 用于查询事件、情境。包含narrative、participants、environment、event等字段\n\
+\n\
+如果用户只是打招呼或闲聊，且没有任何特殊实体概念或经历指向，输出空的sub_queries数组。\n\
+\n\
+输出ONLY JSON，不要有其他文字。\n\
+\n\
+用户说: \"你叫什么名字？你是谁？\"\n\
+输出: {\"sub_queries\": [{\"priority\": 8, \"tag\": [\"角色\", \"自身\"], \"variant\": {\"Semantic\": [{\"concept_identifier\": \"剑灵的名字\", \"description\": \"活了数百年的神刀剑灵\"}]}}]}\n\
+\n\
+用户说: \"将臣是个怎样的人？\"\n\
+输出: {\"sub_queries\": [{\"priority\": 8, \"tag\": [\"人物\"], \"variant\": {\"Semantic\": [{\"concept_identifier\": \"有地将臣\", \"description\": \"将丛雨丸从岩石上拔出的人，后来成为她的丈夫\"}]}}]}\n\
+\n\
+用户说: \"你还记得我们表白那晚吗？\"\n\
+输出: {\"sub_queries\": [{\"priority\": 9, \"tag\": [\"事件\", \"表白\"], \"variant\": {\"Situation\": [{\"narrative\": \"丛雨在芳乃和茉子的怂恿下于夜晚向将臣表白\", \"participants\": [{\"name\": \"有地将臣\", \"role\": \"表白对象\"}, {\"name\": \"丛雨\", \"role\": \"表白者\"}, {\"name\": \"朝武芳乃\", \"role\": \"怂恿者\"}, {\"name\": \"常陆茉子\", \"role\": \"怂恿者\"}], \"environment\": {\"atmosphere\": \"暧昧\", \"tone\": \"浪漫\"}, \"event\": [{\"action\": \"表白\", \"initiator\": \"丛雨\", \"target\": \"有地将臣\"}]}}]}}]}\n\
+\n\
+用户说: \"她最怕什么？\"\n\
+输出: {\"sub_queries\": [{\"priority\": 7, \"tag\": [\"弱点\", \"性格\"], \"variant\": {\"Semantic\": [{\"concept_identifier\": \"丛雨最害怕的东西\", \"description\": \"虽然是灵体但非常害怕幽灵和黑暗\"}]}}]}\n\
+\n\
+用户说: \"你好\"\n\
+输出: {\"sub_queries\": []}\n\
+\n\
+用户说: \"今天天气真好啊\"\n\
+输出: {\"sub_queries\": []}\n\
+\n\
+用户说: \"你们住在哪里？\"\n\
+输出: {\"sub_queries\": [{\"priority\": 6, \"tag\": [\"地点\"], \"variant\": {\"Semantic\": [{\"concept_identifier\": \"她守护的小镇\", \"description\": \"有温泉和神社的宁静小镇穗织\"}]}}]}\n\
+\n\
+用户说: \"你和芳乃是什么关系？\"\n\
+输出: {\"sub_queries\": [{\"priority\": 7, \"tag\": [\"人物\", \"朋友\"], \"variant\": {\"Semantic\": [{\"concept_identifier\": \"朝武芳乃\", \"description\": \"朝武家的巫女，能看到丛雨，后来成为姐妹\"}]}}]}\n\
+\n\
+用户说: \"祟神是什么东西？\"\n\
+输出: {\"sub_queries\": [{\"priority\": 7, \"tag\": [\"存在\", \"敌人\"], \"variant\": {\"Semantic\": [{\"concept_identifier\": \"祟神\", \"description\": \"一直威胁穗织的邪恶存在，通过碎片污染接触者\"}]}}]}\n\
+\n\
+用户说: \"你喜欢吃什么？\"\n\
+输出: {\"sub_queries\": [{\"priority\": 5, \"tag\": [\"日常\", \"习惯\"], \"variant\": {\"Semantic\": [{\"concept_identifier\": \"丛雨喜欢的食物\", \"description\": \"现代的甜品特别是帕菲让她感动得想哭\"}]}}]}\n\
+\n\
+用户说: \"那晚你是怎么向将臣表白的？\"\n\
+输出: {\"sub_queries\": [{\"priority\": 9, \"tag\": [\"事件\", \"表白\"], \"variant\": {\"Situation\": [{\"narrative\": \"丛雨在夜晚主动向将臣表白的过程\", \"participants\": [{\"name\": \"有地将臣\", \"role\": \"表白对象\"}, {\"name\": \"丛雨\", \"role\": \"表白者\"}], \"environment\": {\"atmosphere\": \"暧昧\", \"tone\": \"浪漫\"}, \"event\": [{\"action\": \"表白\", \"initiator\": \"丛雨\", \"target\": \"有地将臣\"}]}}]}}]}\n";
 
 /// Strip 思维链 content from response and trim to a uniform max length for fair comparison.
 const RESPONSE_MAX_CHARS: usize = 200;
@@ -132,6 +179,7 @@ pub struct PlayTestRunner {
     pub id_names: Arc<HashMap<MemoryId, NodeSummary>>,
     pub config: PlayConfig,
     pub human_role: Option<String>,
+    pub graph_dir: PathBuf,
 }
 
 impl PlayTestRunner {
@@ -191,6 +239,7 @@ impl PlayTestRunner {
             id_names,
             config,
             human_role: None,
+            graph_dir: graph_dir.to_path_buf(),
         })
     }
 
@@ -341,8 +390,18 @@ impl PlayTestRunner {
         entry: &ConversationEntry,
         llm: &mut dyn LlmBackend,
     ) -> Result<(Vec<PrioritizedMemoryRetrieveQuery>, String, Option<String>), String> {
+        let system = format!("{}\n\n{}", self.system_prompt, QUERY_PROMPT);
+
+        // Tier 1: PAW compiled from character-specific question.json
+        let paw_result =
+            paw_query::paw_generate_queries(&self.graph_dir, &system, &entry.user_message);
+        if let Some((queries, json_text)) = paw_result {
+            return Ok((queries, json_text, None));
+        }
+
+        // Tier 2: LLM fallback
         let text = llm
-            .generate_queries(&self.system_prompt, &entry.user_message)
+            .generate_queries(&system, &entry.user_message)
             .map_err(|e| format!("LLM query gen failed: {}", e))?;
 
         let debug_path = std::env::temp_dir().join("soul_tune_llm_output.txt");
@@ -414,6 +473,13 @@ impl PlayTestRunner {
                         vec![SemanticQueryUnit::new()
                             .with_concept_identifier(unit.concept_identifier.unwrap_or_default())]
                     }
+                    RawVariant::Situation(units) => units
+                        .into_iter()
+                        .map(|u| {
+                            SemanticQueryUnit::new()
+                                .with_concept_identifier(u.narrative.unwrap_or_default())
+                        })
+                        .collect(),
                 };
                 let variant = MemoryRetrieveQueryVariant::Semantic(units);
                 MemoryRetrieveQuery::new(r.tag, variant).with_priority(r.priority)
