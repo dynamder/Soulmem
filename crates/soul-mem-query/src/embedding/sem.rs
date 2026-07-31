@@ -13,7 +13,7 @@ use soul_mem_core::memory_note::sem_mem::SemMemory;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SemanticEmbedding {
     content: EmbeddingVec,
-    fused_aliases: EmbeddingVec,
+    aliases: EmbeddingVec,
     description: EmbeddingVec,
 }
 impl SemanticEmbedding {
@@ -24,32 +24,24 @@ impl SemanticEmbedding {
     ) -> EmbeddingCalcResult<SemanticEmbedding> {
         Ok(SemanticEmbedding {
             content: raw_linear_blend(&self.content, &other.content, blend_factor)?,
-            fused_aliases: raw_linear_blend(
-                &self.fused_aliases,
-                &other.fused_aliases,
-                blend_factor,
-            )?,
+            aliases: raw_linear_blend(&self.aliases, &other.aliases, blend_factor)?,
             description: raw_linear_blend(&self.description, &other.description, blend_factor)?,
         })
     }
     pub fn content(&self) -> &EmbeddingVec {
         &self.content
     }
-    pub fn fused_aliases(&self) -> &EmbeddingVec {
-        &self.fused_aliases
+    pub fn aliases(&self) -> &EmbeddingVec {
+        &self.aliases
     }
     pub fn description(&self) -> &EmbeddingVec {
         &self.description
     }
 
-    pub fn new(
-        content: EmbeddingVec,
-        fused_aliases: EmbeddingVec,
-        description: EmbeddingVec,
-    ) -> Self {
+    pub fn new(content: EmbeddingVec, aliases: EmbeddingVec, description: EmbeddingVec) -> Self {
         Self {
             content,
-            fused_aliases,
+            aliases,
             description,
         }
     }
@@ -67,7 +59,7 @@ impl Embeddable for SemMemory {
         if self.aliases.is_empty() {
             return Ok(SemanticEmbedding {
                 content: content_vec.clone(),
-                fused_aliases: content_vec,
+                aliases: content_vec,
                 description: description_vec,
             });
         }
@@ -79,11 +71,10 @@ impl Embeddable for SemMemory {
                 .map(|alias| alias.as_str())
                 .collect::<Vec<&str>>(),
         )?;
-        let fused_aliases_vec = raw_linear_blend(&content_vec, &aliases_vec, 0.6).unwrap(); //SAFEUNWRAP: 由同一个嵌入模型生成的嵌入向量，维度相同
 
         Ok(SemanticEmbedding {
             content: content_vec,
-            fused_aliases: fused_aliases_vec,
+            aliases: aliases_vec,
             description: description_vec,
         })
     }
@@ -130,7 +121,7 @@ mod tests {
         let dimension = sem_embedding.content.shape();
         assert_eq!(dimension, 512);
         assert_eq!(sem_embedding.description.shape(), dimension);
-        assert_eq!(sem_embedding.fused_aliases.shape(), dimension);
+        assert_eq!(sem_embedding.aliases.shape(), dimension);
     }
 
     #[test]
@@ -157,7 +148,7 @@ mod tests {
         let blended = embedding1.linear_blend(&embedding2, 0.5).unwrap();
 
         assert_eq!(blended.content.shape(), 512);
-        assert_eq!(blended.fused_aliases.shape(), 512);
+        assert_eq!(blended.aliases.shape(), 512);
         assert_eq!(blended.description.shape(), 512);
     }
 
@@ -175,6 +166,6 @@ mod tests {
         let sem_embedding = memory.embed(&model).unwrap();
 
         assert_eq!(sem_embedding.content.shape(), 512);
-        assert_eq!(sem_embedding.fused_aliases.shape(), 512);
+        assert_eq!(sem_embedding.aliases.shape(), 512);
     }
 }

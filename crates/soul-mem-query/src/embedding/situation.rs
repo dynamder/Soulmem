@@ -8,11 +8,12 @@ pub mod sensory_data;
 use serde::{Deserialize, Serialize};
 
 use crate::embedding::{
+    mean_pooling,
     situation::{
         context::ContextEmbedding, environment::EnvironmentEmbedding, event::EventEmbedding,
         participant::ParticipantEmbedding,
     },
-    Embeddable, EmbeddingVec,
+    Embeddable, EmbeddingCalcResult, EmbeddingVec,
 };
 use location::LocationEmbedding;
 use soul_mem_core::memory_note::situation_mem::{
@@ -117,6 +118,23 @@ impl AbstractSituationEmbedding {
         match self {
             AbstractSituationEmbedding::Event(event) => Some(event),
             _ => None,
+        }
+    }
+
+    /// 由该抽象情境的各结构化字段融合出一个"自我"向量，
+    /// 用于与query.narrative做语义匹配，缓解抽象情境对叙事型查询检出率低的问题。
+    pub fn fused_self(&self) -> EmbeddingCalcResult<EmbeddingVec> {
+        match self {
+            AbstractSituationEmbedding::Location(loc) => {
+                mean_pooling(&[loc.name(), loc.coordinates()])
+            }
+            AbstractSituationEmbedding::Participant(participant) => Ok(participant.fused().clone()),
+            AbstractSituationEmbedding::Environment(env) => {
+                mean_pooling(&[env.atmosphere(), env.tone()])
+            }
+            AbstractSituationEmbedding::Event(event) => {
+                mean_pooling(&[event.action(), event.initiator(), event.target()])
+            }
         }
     }
 }
