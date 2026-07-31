@@ -205,24 +205,42 @@ impl AnonymousQueryCompute for SpecificSituationEmbedding {
 impl AnonymousQueryCompute for AbstractSituationEmbedding {
     type Query = SituationQueryUnitEmbedding;
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
-        match self {
+        //结构化匹配：只有当query提供了与抽象情境同类型的字段时才计分，否则为None
+        let structured_score = match self {
             AbstractSituationEmbedding::Location(loc) => query
                 .location()
                 .map(|q_loc| loc.anonymous_compute(q_loc))
-                .unwrap_or(Ok(0.0)),
+                .transpose()?,
             AbstractSituationEmbedding::Environment(env) => query
                 .environment()
                 .map(|q_env| env.anonymous_compute(q_env))
-                .unwrap_or(Ok(0.0)),
+                .transpose()?,
             AbstractSituationEmbedding::Event(event) => query
                 .event()
                 .map(|q_event| event.anonymous_compute(q_event))
-                .unwrap_or(Ok(0.0)),
+                .transpose()?,
             AbstractSituationEmbedding::Participant(participant) => query
                 .participants()
                 .map(|q_participant| participant.anonymous_compute(q_participant))
-                .unwrap_or(Ok(0.0)),
+                .transpose()?,
+        };
+
+        //叙事匹配：抽象情境的"自我"向量与query.narrative的相似度
+        let narrative_score = query
+            .narrative()
+            .map(|narrative| narrative.cosine_similarity(&self.fused_self()?))
+            .transpose()?;
+
+        let score_vec = structured_score
+            .into_iter()
+            .chain(narrative_score.into_iter())
+            .collect::<Vec<_>>();
+
+        let len = score_vec.len();
+        if len == 0 {
+            return Ok(0.0);
         }
+        Ok(score_vec.into_iter().map(|i| i / len as f32).sum::<f32>())
     }
 }
 
@@ -246,7 +264,7 @@ impl AnonymousQueryCompute for SemanticEmbedding {
             .transpose()?;
         let concept_aliases_score = query
             .concept_identifier()
-            .map(|con| con.cosine_similarity(self.fused_aliases()))
+            .map(|con| con.cosine_similarity(self.aliases()))
             .transpose()?;
 
         let description_score = query
@@ -255,10 +273,9 @@ impl AnonymousQueryCompute for SemanticEmbedding {
             .transpose()?;
 
         let bw = &query.blend_weights;
+        //max_pooling: 命中的无论是content还是aliases，取更高者作为概念分数
         let concept_score = match (concept_main_score, concept_aliases_score) {
-            (Some(main_score), Some(aliases_score)) => {
-                bw.sem_concept_main * main_score + bw.sem_concept_aliases * aliases_score
-            }
+            (Some(main_score), Some(aliases_score)) => main_score.max(aliases_score),
             (None, None) => 0.0,
             _ => unreachable!(
                 "main_score and aliases_score all compute from query.concept_identifier(), so they must be Some or None simultaneously"
@@ -444,5 +461,84 @@ mod tests {
 
         let score = event_emb.anonymous_compute(&event_query_emb).unwrap();
         assert!(score > 0.0);
+    }
+
+    #[test]
+    fn test_semantic_alias_max_pooling_hits_alias() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let memory = SemMemory {
+            content: "Rust编程语言".to_string(),
+            aliases: vec!["Rust".to_string()],
+            concept_type: ConceptType::Entity,
+            description: "一种注重安全性的系统编程语言".to_string(),
+        };
+
+        let sem_embedding = memory.embed(&model).unwrap();
+
+        //别名命中查询：query.concept_identifier 与 alias 完全一致
+        let alias_query = SemanticQueryUnit::new().with_concept_identifier("Rust".to_string());
+        let alias_query_emb = alias_query.embed(&model).unwrap();
+
+        //content命中查询：query.concept_identifier 与 content 完全一致
+        let content_query =
+            SemanticQueryUnit::new().with_concept_identifier("Rust编程语言".to_string());
+        let content_query_emb = content_query.embed(&model).unwrap();
+
+        let alias_score = sem_embedding.anonymous_compute(&alias_query_emb).unwrap();
+        let content_score = sem_embedding.anonymous_compute(&content_query_emb).unwrap();
+
+        //别名与content命中的分数都应显著高于0，且max_pooling保证别名命中不被content稀释
+        assert!(alias_score > 0.5, "alias score too low: {alias_score}");
+        assert!(
+            content_score > 0.5,
+            "content score too low: {content_score}"
+        );
+        assert!(
+            (alias_score - content_score).abs() < 0.2,
+            "alias ({alias_score}) and content ({content_score}) scores should be comparable"
+        );
+    }
+
+    #[test]
+    fn test_abstract_situation_narrative_fallback() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        use crate::query::retrieve::SituationQueryUnit;
+        use soul_mem_core::memory_note::situation_mem::{AbstractSituation, SituationType};
+
+        //抽象情境：事件节点，无narrative字段
+        let abstract_event = AbstractSituation::Event(Event {
+            action: "战斗".to_string(),
+            action_intensity: 0.9,
+            initiator: "我".to_string(),
+            target: "对手".to_string(),
+        });
+        let situation_type: SituationType = abstract_event.into();
+        let embedding = situation_type.embed(&model).unwrap();
+        let abstract_emb = embedding.to_abstract().unwrap();
+
+        //纯叙事查询：没有event结构化字段，只能靠narrative fallback
+        let narrative_query = SituationQueryUnit::new()
+            .with_narrative("享受战斗时的愉快氛围而不是单纯厮杀".to_string());
+        let narrative_query_emb = narrative_query.embed(&model).unwrap();
+
+        let score = abstract_emb
+            .anonymous_compute(&narrative_query_emb)
+            .unwrap();
+        assert!(
+            score > 0.3,
+            "abstract situation should be matched by narrative, got {score}"
+        );
+
+        //结构化命中：提供event字段时分数应更高（结构化+叙事双重信号）
+        let structured_query = SituationQueryUnit::new()
+            .with_narrative("享受战斗时的愉快氛围".to_string())
+            .with_event(vec![EventQueryUnit::new("战斗".to_string())]);
+        let structured_query_emb = structured_query.embed(&model).unwrap();
+        let structured_score = abstract_emb
+            .anonymous_compute(&structured_query_emb)
+            .unwrap();
+        assert!(structured_score >= score);
     }
 }

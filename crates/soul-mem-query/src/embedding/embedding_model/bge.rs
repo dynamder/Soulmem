@@ -1,20 +1,45 @@
+use std::sync::{Arc, OnceLock};
+
 use anyhow::Result;
 
 use embed_anything::embeddings::local::bert::{BertEmbed, BertEmbedder};
+use embed_anything::embeddings::local::pooling::Pooling;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use text_splitter::{Characters, TextSplitter};
 
 use crate::embedding::{EmbeddingGenError, EmbeddingGenResult, EmbeddingModel, EmbeddingVec};
 
 pub struct BgeSmallZh {
-    model: BertEmbedder,
-    splitter: TextSplitter<Characters>,
+    model: Arc<BertEmbedder>,
+    splitter: Arc<TextSplitter<Characters>>,
+}
+impl Clone for BgeSmallZh {
+    fn clone(&self) -> Self {
+        Self {
+            model: Arc::clone(&self.model),
+            splitter: Arc::clone(&self.splitter),
+        }
+    }
 }
 impl BgeSmallZh {
+    /// 全局共享的BGE模型实例。embed_anything依赖的candle在Windows上对同一safetensors
+    /// 文件进行并发mmap会产生文件锁冲突，因此整个进程只构造一次底层模型。
     pub fn default_cpu() -> Result<Self> {
+        static MODEL: OnceLock<Arc<BertEmbedder>> = OnceLock::new();
+        let model = MODEL.get_or_init(|| {
+            Arc::new(
+                BertEmbedder::new(
+                    "BAAI/bge-small-zh-v1.5".to_string(),
+                    None,
+                    None,
+                    Some(Pooling::Mean),
+                )
+                .expect("BGE model init failed"),
+            )
+        });
         Ok(Self {
-            splitter: TextSplitter::new(200), //should be 6000
-            model: BertEmbedder::new("BAAI/bge-small-zh-v1.5".to_string(), None, None)?,
+            model: Arc::clone(model),
+            splitter: Arc::new(TextSplitter::new(200)), //should be 6000
         })
     }
 }
