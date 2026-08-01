@@ -174,6 +174,8 @@ impl CandleLlm {
             .encode(prompt, true)
             .map_err(|e| anyhow::anyhow!("Tokenize error: {}", e))?;
         let mut tokens: Vec<u32> = encoding.get_ids().to_vec();
+        //记录prompt token数，仅解码新增的生成token，避免输出包含完整提示词
+        let prompt_len = tokens.len();
 
         let mut rng = rand::rng();
 
@@ -206,7 +208,7 @@ impl CandleLlm {
 
         let output = self
             .tokenizer
-            .decode(&tokens, true)
+            .decode(&tokens[prompt_len..], true)
             .map_err(|e| anyhow::anyhow!("Decode error: {}", e))?;
 
         Ok(strip_think_tags(&output))

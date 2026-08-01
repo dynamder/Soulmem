@@ -47,6 +47,12 @@ const CHAT_INSTRUCTION: &str = "注意：这是短信聊天场景，回复必须
 只输出对话内容，不加任何表演注释。\
 回复必须简短，一句话即可，不要重复用户的话，不要解释你的回复。";
 
+/// 按id去重，保留每个id首次出现（调用方需先按score降序排列，从而保留最高分）
+fn dedup_nodes(nodes: &mut Vec<TracedNode>) {
+    let mut seen = HashSet::with_capacity(nodes.len());
+    nodes.retain(|n| seen.insert(n.id));
+}
+
 /// Strip 思维链 content from response and trim to a uniform max length for fair comparison.
 const RESPONSE_MAX_CHARS: usize = 200;
 
@@ -493,7 +499,7 @@ impl PlayTestRunner {
                 .partial_cmp(&a.score)
                 .unwrap_or(std::cmp::Ordering::Equal)
         });
-        all_nodes.dedup_by(|a, b| a.id == b.id);
+        dedup_nodes(&mut all_nodes);
 
         Some(RetrievalTrace {
             mode: RetrieveMode::Embedding,
@@ -666,7 +672,7 @@ impl PlayTestRunner {
                 .partial_cmp(&a.score)
                 .unwrap_or(std::cmp::Ordering::Equal)
         });
-        all_nodes.dedup_by(|a, b| a.id == b.id);
+        dedup_nodes(&mut all_nodes);
 
         Some(RetrievalTrace {
             mode: RetrieveMode::FullPipeline,

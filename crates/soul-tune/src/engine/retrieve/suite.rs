@@ -560,8 +560,9 @@ impl TestSuite for RetrieveSuite {
                 let hit = data.combined_ranking_metrics.hit_rate;
                 let status = if hit > 0.0 { "✓" } else { "✗" };
                 let mrr = data.combined_ranking_metrics.mrr;
-                let name = if data.case_name.len() > 28 {
-                    format!("{}..", &data.case_name[..26])
+                let name = if data.case_name.chars().count() > 28 {
+                    let trimmed: String = data.case_name.chars().take(26).collect();
+                    format!("{}..", trimmed)
                 } else {
                     format!("{:28}", data.case_name)
                 };
@@ -612,8 +613,6 @@ fn apply_overrides(base: &BlendWeights, pair: &BlendPairRaw) -> BlendWeights {
     BlendWeights {
         tag: pair.tag.unwrap_or(base.tag),
         variant: pair.variant.unwrap_or(base.variant),
-        sem_concept_main: pair.sem_concept_main.unwrap_or(base.sem_concept_main),
-        sem_concept_aliases: pair.sem_concept_aliases.unwrap_or(base.sem_concept_aliases),
         sem_concept: pair.sem_concept.unwrap_or(base.sem_concept),
         sem_description: pair.sem_description.unwrap_or(base.sem_description),
         sit_location_name: pair.sit_location_name.unwrap_or(base.sit_location_name),

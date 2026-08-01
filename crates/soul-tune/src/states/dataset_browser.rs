@@ -210,8 +210,9 @@ impl DatasetState {
                                             c.get("user_message").and_then(|m| m.as_str())
                                         })
                                         .map(|m| {
-                                            let s = if m.len() > 40 {
-                                                format!("{}...", &m[..40])
+                                            let s = if m.chars().count() > 40 {
+                                                let trimmed: String = m.chars().take(40).collect();
+                                                format!("{}...", trimmed)
                                             } else {
                                                 m.to_string()
                                             };

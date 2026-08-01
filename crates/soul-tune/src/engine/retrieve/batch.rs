@@ -296,9 +296,30 @@ pub fn run_batch_compare(
                 if i >= datasets.len() {
                     break;
                 }
+                //worker内panic（如模型加载失败）会静默杀死线程导致batch挂起，
+                //这里捕获panic并报告错误结果，保证每个任务都有产出
                 let ds_start = Instant::now();
-                let ds =
-                    process_one_compare_dataset(&datasets[i], None, ds_start, |_, _| {}, |_| {});
+                let ds = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    process_one_compare_dataset(&datasets[i], None, ds_start, |_, _| {}, |_| {})
+                }))
+                .unwrap_or_else(|_| CompareDatasetResult {
+                    name: datasets[i]
+                        .file_name()
+                        .map(|n| n.to_string_lossy().to_string())
+                        .unwrap_or_default(),
+                    path: datasets[i].clone(),
+                    case_count: 0,
+                    emb_passed: 0,
+                    full_passed: 0,
+                    avg_emb_hit: 0.0,
+                    avg_full_hit: 0.0,
+                    hit_delta: 0.0,
+                    avg_emb_mrr: 0.0,
+                    avg_full_mrr: 0.0,
+                    mrr_delta: 0.0,
+                    elapsed: ds_start.elapsed(),
+                    error: Some("worker panic".to_string()),
+                });
                 let _ = tx.send((i, ds));
             })
             .ok();

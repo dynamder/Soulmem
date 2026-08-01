@@ -93,22 +93,10 @@ fn main() -> color_eyre::Result<()> {
 
     if args.len() >= 4 && args[1] == "run" {
         let is_batch = args.iter().any(|a| a == "--batch");
-        let (algo_str, dataset_path) = if is_batch {
-            let algo_idx = args.iter().position(|a| a == "--batch").unwrap_or(2);
-            let dir_idx = algo_idx + 1;
-            let algo = if algo_idx > 2 {
-                &args[2]
-            } else {
-                &args[algo_idx - 1]
-            };
-            let path_str = &args[dir_idx];
-            (algo, path_str)
-        } else {
-            let algo_str = &args[2];
-            let path_str = &args[3];
-            (algo_str, path_str)
-        };
-        let dataset_path = PathBuf::from(dataset_path);
+        //固定位置解析：run <algo> <dataset> [--batch]，--batch只是开关，不影响位置
+        let algo_str = &args[2];
+        let path_str = &args[3];
+        let dataset_path = PathBuf::from(path_str);
 
         let algo = match algo_str.as_str() {
             "retrieve" | "r" | "retrieve/embedding" | "re" => {

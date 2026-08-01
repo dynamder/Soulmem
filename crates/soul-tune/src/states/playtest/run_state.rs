@@ -13,7 +13,9 @@ use ratatui_textarea::TextArea;
 use crate::base::Transition;
 use crate::component::{Component, ComponentEvent};
 use crate::engine::llm::LlamaServer;
-use crate::engine::playtest::{DialogueFile, PlayTestResult, PlayTestRunner, PlayTurnResult};
+use crate::engine::playtest::{
+    DialogueFile, PlayRunSnapshot, PlayTestResult, PlayTestRunner, PlayTurnResult,
+};
 use crate::widgets::status_bar;
 
 enum WorkerMsg {
@@ -149,7 +151,26 @@ impl PlayTestRunState {
 
                     let total = dialogue.conversations.len();
                     for (i, entry) in dialogue.conversations.iter().enumerate() {
-                        let turn = runner.process_turn(entry, i, &mut llm);
+                        //捕获单轮panic，避免worker线程死亡导致UI停在Processing
+                        let turn = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                            runner.process_turn(entry, i, &mut llm)
+                        }))
+                        .unwrap_or_else(|_| PlayTurnResult {
+                            index: i,
+                            user_message: entry.user_message.clone(),
+                            system_prompt: runner.system_prompt.clone(),
+                            generated_queries_json: String::new(),
+                            query_think_content: None,
+                            embedding_trace: None,
+                            fullpipeline_trace: None,
+                            runs: vec![PlayRunSnapshot {
+                                embedding_response: None,
+                                fullpipeline_response: None,
+                                swap: false,
+                                human_pick: None,
+                                error: Some("worker panic during turn".to_string()),
+                            }],
+                        });
                         let _ = tx.send(WorkerMsg::TurnComplete {
                             turn,
                             total_turns: total,
@@ -392,7 +413,22 @@ impl PlayTestRunState {
                     self.spawn_load_thread(role);
                     Transition::None
                 }
-                RunPhase::Done(result, _) => Transition::ToPlayTestJudge(result.clone()),
+                RunPhase::Loading if self.load_error.is_some() => {
+                    //加载失败时按Enter回到角色输入页以重试，避免卡在Loading
+                    self.load_error = None;
+                    self.current_description = "".to_string();
+                    self.phase = RunPhase::RoleInput;
+                    self.worker_rx = None;
+                    Transition::None
+                }
+                RunPhase::Done(result, _) => {
+                    //无有效轮次时避免进入评分页（评分页对turns[0]索引会panic）
+                    if result.turns.is_empty() {
+                        Transition::ToMain
+                    } else {
+                        Transition::ToPlayTestJudge(result.clone())
+                    }
+                }
                 _ => Transition::None,
             },
             _ => {

@@ -239,9 +239,13 @@ impl CommandState {
                         combined.extend(cmd_words[words.len()..].iter());
                         format!("{} ", combined.join(" "))
                     } else {
+                        //用户已输入词数不少于命令词数时，只替换能对应上的词，
+                        //防止last_idx越界cmd_words导致panic
                         let mut combined = words.clone();
                         let last_idx = combined.len().saturating_sub(1);
-                        combined[last_idx] = cmd_words[last_idx];
+                        if last_idx < cmd_words.len() {
+                            combined[last_idx] = cmd_words[last_idx];
+                        }
                         combined.join(" ")
                     };
 
