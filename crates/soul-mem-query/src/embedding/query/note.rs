@@ -110,7 +110,12 @@ impl Embeddable for MemoryRetrieveQuery {
     type EmbeddingFused = EmbeddedMemoryRetrieveQuery;
     fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<Self::EmbeddingGen> {
         let tag_strs: Vec<_> = self.tag().iter().map(|s| s.as_str()).collect();
-        let tag_vec = model.infer_and_fuse(&tag_strs)?;
+        //tag为空时跳过模型调用，用零向量填充，避免空输入导致嵌入失败
+        let tag_vec = if tag_strs.is_empty() {
+            EmbeddingVec::zero(model.dim())
+        } else {
+            model.infer_and_fuse(&tag_strs)?
+        };
 
         let variant_vec = self.variant().embed(model)?;
 

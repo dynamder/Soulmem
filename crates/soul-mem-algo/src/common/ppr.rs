@@ -118,14 +118,21 @@ where
         // 归一化PPR值，确保数值稳定，总和为1
         let sum = ppr_vec_i.iter().map(|(_, ppr)| *ppr).sum::<D>();
 
-        ppr_vec_i.iter().for_each(|&(idx, ppr)| {
-            ppr_ranks[idx] = ppr / sum;
-        });
+        //sum为0时跳过归一化，避免0/0产生NaN
+        if sum != D::zero() {
+            ppr_vec_i.iter().for_each(|&(idx, ppr)| {
+                ppr_ranks[idx] = ppr / sum;
+            });
+        }
         //println!("iteration {i}: PPR values: {:?}", ppr_ranks);
     }
 
     //最终归一化
     let sum = ppr_ranks.iter().map(|ppr| *ppr).sum::<D>();
+    //sum为0时返回全零分布，避免0/0产生NaN
+    if sum == D::zero() {
+        return HashMap::new();
+    }
 
     //返回PPR向量，HashMap形式
     graph
@@ -317,6 +324,13 @@ where
     G::NodeId: Hash + Eq + Debug, //TODO: delete the Debug Trait bound
     G::EdgeId: Hash + Eq + Debug,
 {
+    //检查阻尼系数。damping == 1.0时残差无法转化为reserve，残差会被无限循环传播
+    //（尤其是单节点无出度的情况），必须在进入循环前拒绝，防止DoS。
+    assert!(
+        D::zero() <= damping_factor && damping_factor < D::one(),
+        "Damping factor should be in [0, 1)."
+    );
+
     //归一化个性化向量
     let personalized_sum = personalized_vec.values().copied().sum::<D>();
     assert!(
@@ -357,8 +371,16 @@ where
     > = HashMap::with_capacity(graph.node_count());
 
     //每次取残差最大的节点进行push，加速收敛
+    //迭代上限作为安全网：残差会随damping<1几何衰减，正常在有限次内收敛；
+    //极小的residue_threshold或病态图可能使迭代次数过大，用上限兜底防止无限循环。
+    let max_iterations = graph.node_bound().max(1) * 1024;
+    let mut iteration_count = 0usize;
     while let Some(residue_i) = residue_vec.iter().copied().max() {
         if residue_i.value <= residue_threshold {
+            break;
+        }
+        iteration_count += 1;
+        if iteration_count > max_iterations {
             break;
         }
         //println!("Processing node {}", residue_i.idx);
@@ -425,6 +447,10 @@ where
         }
     }
     let sum = reserve_vec.iter().copied().sum::<D>();
+    //sum为0时（如damping=1或全零边权）返回全零分布，避免0/0产生NaN
+    if sum == D::zero() {
+        return Vec::new();
+    }
 
     graph
         .node_identifiers()

@@ -52,6 +52,8 @@ pub trait EmbeddingModel {
     fn infer_with_chunk(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec>;
     fn infer_and_fuse(&self, input: &[&str]) -> EmbeddingGenResult<EmbeddingVec>;
     fn max_input_token(&self) -> usize;
+    /// 模型输出向量的维度，用于在没有有效输入时构造零向量
+    fn dim(&self) -> usize;
 }
 
 //util function

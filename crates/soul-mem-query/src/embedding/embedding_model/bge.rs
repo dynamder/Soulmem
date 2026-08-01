@@ -107,6 +107,9 @@ impl EmbeddingModel for BgeSmallZh {
     fn max_input_token(&self) -> usize {
         512
     }
+    fn dim(&self) -> usize {
+        512
+    }
 }
 #[cfg(test)]
 mod test {

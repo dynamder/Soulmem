@@ -28,6 +28,10 @@ impl EventEmbedding {
             return Ok(None);
         }
         let intensity_sum = events.iter().map(|e| e.intensity).sum::<f32>();
+        //intensity_sum为0时0/0会产生NaN，直接报错，防止NaN污染后续检索
+        if intensity_sum == 0.0 {
+            return Err(EmbeddingCalcError::InvalidNumValue);
+        }
         let len = events[0].action.shape();
         if !events.iter().all(|vec| vec.action.shape() == len) {
             return Err(EmbeddingCalcError::ShapeMismatch);

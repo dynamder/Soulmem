@@ -96,6 +96,10 @@ impl Record {
         start: DateTime<Utc>,
         end: DateTime<Utc>,
     ) -> Vec<(DateTime<Utc>, UserFeedback)> {
+        //BTreeMap::range在start > end时会panic，这里直接返回空结果
+        if start > end {
+            return Vec::new();
+        }
         self.feedback_history
             .range(start..=end)
             .map(|(time, feedback)| (*time, feedback.clone()))

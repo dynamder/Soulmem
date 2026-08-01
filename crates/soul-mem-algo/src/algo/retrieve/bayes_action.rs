@@ -232,10 +232,17 @@ fn get_possible_actions(
         .iter()
         .filter_map(|&(id, _weight)| {
             let idx = cluster.get_mem_index(id)?;
+            //同时检查邻居节点类型(Procedure)与链接类型(Proc)，
+            //只有经Proc链接可达的动作节点才会指导行为，避免Sem/Situation链接
+            //可达的Procedure节点以0.0分挤占top_k
             let action_neighbors = cluster
                 .graph()
-                .neighbors_directed(idx, Outgoing)
-                .filter_map(|node_idx| {
+                .edges_directed(idx, Outgoing)
+                .filter_map(|edge| {
+                    let node_idx = edge.target();
+                    if !matches!(edge.weight().link_type(), MemoryLinkType::Proc(_)) {
+                        return None;
+                    }
                     let note = cluster.graph().node_weight(node_idx)?;
                     match note.note().mem_type() {
                         MemoryType::Procedure(_) => Some((note.note().id(), 0.0)),
