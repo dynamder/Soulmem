@@ -1,6 +1,5 @@
 pub mod association;
 pub mod bayes_action;
-pub mod cached_path;
 pub mod complex;
 pub mod short_only;
 pub mod similarity;
@@ -23,5 +22,4 @@ pub enum RetrRequestConfig {
     AssociateWithAction(complex::assoc_with_action::AssociateWithActionConfig),
     ShortOnly(short_only::ShortOnlyConfig),
     Similarity(similarity::SimilarityConfig),
-    CachedPath(cached_path::CachedPathConfig),
 }

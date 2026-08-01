@@ -7,10 +7,8 @@ pub struct BlendWeights {
     pub variant: f32,
 
     // — Semantic 子权重 —
-    pub sem_concept_main: f32, // concept vs aliases within concept_id score (0.5)
-    pub sem_concept_aliases: f32, // (0.5)
-    pub sem_concept: f32,      // concept vs description (0.5)
-    pub sem_description: f32,  // (0.5)
+    pub sem_concept: f32,     // concept vs description (0.5)
+    pub sem_description: f32, // (0.5)
 
     // — Situation: Location —
     pub sit_location_name: f32,
@@ -39,8 +37,6 @@ impl Default for BlendWeights {
         Self {
             tag: 0.4,
             variant: 0.6,
-            sem_concept_main: 0.5,
-            sem_concept_aliases: 0.5,
             sem_concept: 0.5,
             sem_description: 0.5,
             sit_location_name: 0.6,

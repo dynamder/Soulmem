@@ -1,7 +1,7 @@
 use parking_lot::RwLock;
-use petgraph::Direction;
 use petgraph::prelude::{EdgeIndex, NodeIndex, StableDiGraph};
 use petgraph::visit::EdgeRef;
+use petgraph::Direction;
 use serde::{Deserialize, Serialize};
 
 use std::collections::{HashMap, HashSet};
@@ -51,8 +51,8 @@ pub struct MemoryCluster {
     graph: StableDiGraph<EmbeddedMemoryNote, GraphMemoryLink>,
     mem_id_to_index: HashMap<MemoryId, NodeIndex>,
     link_id_to_index: HashMap<LinkId, EdgeIndex>,
-    incompletely_linked_note: HashMap<MemoryId, Vec<(NodeIndex, MemoryLink)>>, //目标节点的uuid，Vec<(源节点的index，关系)>，TODO：或许这里可以直接用GraphMemoryLink减少不必要的构造
-                                                                               //embedding_store: HashMap<MemoryId, MemoryEmbedding>, //由于link储存在source节点，source节点不在图中，link则不可知，因此source节点通常总是有效
+    incompletely_linked_note: HashMap<MemoryId, Vec<(MemoryId, MemoryLink)>>, //目标节点的uuid，Vec<(源节点的uuid，关系)>，存uuid而非NodeIndex，避免petgraph索引复用导致连错节点
+                                                                              //embedding_store: HashMap<MemoryId, MemoryEmbedding>, //由于link储存在source节点，source节点不在图中，link则不可知，因此source节点通常总是有效
 }
 impl MemoryCluster {
     pub fn new() -> Self {
@@ -117,7 +117,7 @@ impl MemoryCluster {
             //清理所有pending的边中，源节点是node_id的项
             self.incompletely_linked_note
                 .values_mut()
-                .for_each(|v| v.retain(|(origin_idx, _)| *origin_idx != idx));
+                .for_each(|v| v.retain(|(origin_id, _)| *origin_id != node_id));
 
             //因为删除了node_id节点，原来已经建立的链接，可能会丢失，将Incoming的链接加入pending边
             // 这里似乎性能看起来不是很好，不过先这样了，后续再说,remove操作本身不会非常频繁
@@ -143,7 +143,7 @@ impl MemoryCluster {
                         target_id,
                         edge_ref.weight().to_owned().link_type,
                     );
-                    (edge_ref.source(), mem_link)
+                    (source_id, mem_link)
                 })
                 .collect::<Vec<_>>();
 
@@ -221,8 +221,8 @@ impl MemoryCluster {
             .collect::<Vec<_>>();
         self.merge_batch_edges(to_merged_edge);
     }
-    pub fn merge_cluster(&mut self, _other: MemoryCluster) {
-        todo!()
+    pub fn merge_cluster(&mut self, _other: MemoryCluster) -> Result<(), ClusterError> {
+        Err(ClusterError::NotImplemented("merge_cluster".to_string()))
     }
     pub fn sub_cluster(
         &self,
@@ -240,10 +240,9 @@ impl MemoryCluster {
 
         match self.mem_id_to_index.get(&node_id) {
             Some(&index) if self.graph.contains_node(index) => {
-                // 节点存在且有效
-                if let Some(existing_node) = self.graph.node_weight_mut(index) {
-                    existing_node.note.retrieval_increment();
-                }
+                // 节点存在且有效。注意：节点重加不算检索，检索计数统一由
+                // WorkingMemory::record_retrieval维护Record.retrieval_count，
+                // 这里不再递增note的retrieval_count，避免双计数漂移
                 index
             }
             _ => {
@@ -268,10 +267,23 @@ impl MemoryCluster {
     }
     fn process_pending_edges(&mut self, node_id: &MemoryId) {
         if let Some(pending_edges) = self.incompletely_linked_note.remove(node_id) {
-            for (source_index, edge) in pending_edges {
+            for (source_id, edge) in pending_edges {
+                //重新解析源节点索引，并校验索引上的节点id与预期一致，防止petgraph索引复用导致连错节点
+                let Some(&source_index) = self.mem_id_to_index.get(&source_id) else {
+                    log::warn!("Attempted to add edge from invalid source id {source_id}");
+                    continue;
+                };
                 if !self.graph.contains_node(source_index) {
-                    log::warn!("Attempted to add edge from invalid source node {node_id}");
-                    // 处理源节点丢失的情况
+                    log::warn!("Attempted to add edge from invalid source node {source_id}");
+                    continue;
+                }
+                let valid = self
+                    .graph
+                    .node_weight(source_index)
+                    .map(|n| n.note().id() == source_id)
+                    .unwrap_or(false);
+                if !valid {
+                    log::warn!("Source node index reused for a different id {source_id}");
                     continue;
                 }
                 self.merge_edge(source_index, edge);
@@ -302,10 +314,16 @@ impl MemoryCluster {
 
         let target_id = edge.to();
         let edge_id = edge.id();
+        //pending边存源节点uuid，避免NodeIndex被复用后连错节点
+        let source_id = self
+            .graph
+            .node_weight(source)
+            .map(|n| n.note().id())
+            .unwrap_or(edge.from());
         if let Some(&target_index) = self.mem_id_to_index.get(&target_id) {
             if !self.graph.contains_node(target_index) {
                 self.mem_id_to_index.remove(&target_id);
-                self.add_pending_edge(target_id, (source, edge));
+                self.add_pending_edge(target_id, (source_id, edge));
                 return;
             }
             if !self.has_edge(edge.id()) {
@@ -315,10 +333,10 @@ impl MemoryCluster {
                 self.link_id_to_index.insert(edge_id, edge_index);
             }
         } else {
-            self.add_pending_edge(target_id, (source, edge))
+            self.add_pending_edge(target_id, (source_id, edge))
         }
     }
-    fn add_pending_edge(&mut self, target_id: MemoryId, edge: (NodeIndex, MemoryLink)) {
+    fn add_pending_edge(&mut self, target_id: MemoryId, edge: (MemoryId, MemoryLink)) {
         self.incompletely_linked_note
             .entry(target_id)
             .or_default()
@@ -379,7 +397,8 @@ pub enum ClusterError {
     NodeNotContained(MemoryId),
     #[error("edge {0} not contained in Super.")]
     EdgeNotContained(LinkId),
-    //PlaceHolder for now
+    #[error("operation {0} is not implemented yet.")]
+    NotImplemented(String),
 }
 
 //WARNING: Legacy Code below, maybe useful for later reuse

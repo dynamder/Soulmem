@@ -98,8 +98,14 @@ impl WorkingMemory {
     }
 
     pub fn add_feedback(&mut self, node_id: MemoryId, feedback: UserFeedback) {
-        if let Some(record) = self.records.get_mut(&node_id) {
-            record.add_feedback(feedback);
+        //与record_retrieval一致：节点无record时按需创建，避免反馈被静默丢弃
+        match self.records.get_mut(&node_id) {
+            Some(record) => record.add_feedback(feedback),
+            None => {
+                let mut record = Record::new(node_id);
+                record.add_feedback(feedback);
+                self.records.insert(node_id, record);
+            }
         }
     }
 

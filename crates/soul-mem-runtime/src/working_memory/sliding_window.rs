@@ -34,7 +34,8 @@ impl SlidingWindow {
         Self {
             window: Arc::new(ParkRwLock::new(VecDeque::with_capacity(capacity + 1))),
             capacity: AtomicUsize::from(capacity),
-            tag_count: AtomicUsize::from(capacity),
+            //从0开始计数，与clear()及"每capacity次标记一次"的语义一致
+            tag_count: AtomicUsize::from(0),
             summary: Arc::new(ParkRwLock::new(Summary::new())),
         }
     }
@@ -43,21 +44,23 @@ impl SlidingWindow {
         let mut text = Information::new(value, role);
         text = self.auto_tag(text);
 
-        {
+        let capacity = self.capacity.load(std::sync::atomic::Ordering::Acquire);
+
+        //长度检查与pop在写锁内原子完成，避免并发push时窗口无界增长
+        let evicted = {
             let mut window = self.window.write();
             window.push_back(text);
-        }
-
-        let window_len = {
-            let window = self.window.read();
-            window.len()
+            if window.len() > capacity {
+                window.pop_front()
+            } else {
+                None
+            }
         };
 
-        //TODO: may have problem with the memory ordering, test it.
-        let window_capacity = self.capacity.load(std::sync::atomic::Ordering::Relaxed);
-
-        if window_len == window_capacity + 1 {
-            self.pop(client).await?;
+        if let Some(value) = evicted {
+            if value.is_tagged() {
+                let _ = self.summarize(client, Some(&value)).await?;
+            }
         }
         Ok(())
     }
@@ -69,7 +72,7 @@ impl SlidingWindow {
         };
         if let Some(value) = target {
             if value.is_tagged() {
-                let _ = self.summarize(client).await?;
+                let _ = self.summarize(client, Some(&value)).await?;
             }
         }
         Ok(())
@@ -121,40 +124,54 @@ impl SlidingWindow {
     }
     //标记用
     pub fn tag_information(&self, index: usize) {
-        if index < self.capacity.load(std::sync::atomic::Ordering::Relaxed) {
-            let mut window = self.window.write();
+        //用window实际长度做边界检查，防止pop后索引越界panic
+        let mut window = self.window.write();
+        if index < window.len() {
             window[index].tag_information();
         }
     }
     //取消标记用
     pub fn untag_information(&self, index: usize) {
-        if index < self.capacity.load(std::sync::atomic::Ordering::Relaxed) {
-            let mut window = self.window.write();
+        let mut window = self.window.write();
+        if index < window.len() {
             window[index].untag_information();
         }
     }
     //每滑入capacity次信息时进行一次标记
     fn auto_tag(&self, mut value: Information) -> Information {
-        self.tag_count
-            .fetch_add(1, std::sync::atomic::Ordering::AcqRel);
-        if self.tag_count.load(std::sync::atomic::Ordering::Relaxed)
-            >= self.capacity.load(std::sync::atomic::Ordering::Relaxed)
-        {
+        let capacity = self.capacity.load(std::sync::atomic::Ordering::Acquire);
+        //用fetch_update把"计数+判断+重置"合并为一次原子操作，避免并发下重复标记或漏标记
+        let previous = self
+            .tag_count
+            .fetch_update(
+                std::sync::atomic::Ordering::AcqRel,
+                std::sync::atomic::Ordering::Acquire,
+                |count| {
+                    let next = count + 1;
+                    if next >= capacity {
+                        Some(0) //达到capacity时重置
+                    } else {
+                        Some(next)
+                    }
+                },
+            )
+            .unwrap_or(0);
+        if previous + 1 >= capacity {
             value.tag_information();
-            self.tag_count
-                .store(0, std::sync::atomic::Ordering::Release);
         }
         value
     }
     //整合摘要记忆和窗口信息
-    fn prepare_prompt(&self) -> Vec<ChatCompletionRequestMessage> {
+    fn prepare_prompt(&self, popped: Option<&Information>) -> Vec<ChatCompletionRequestMessage> {
         let system_prompt = std::iter::once(
             ChatCompletionRequestSystemMessage::from(
                 "You are a summary and compact agent. Based on the following conversation (which is happened before), provide a new summary.\n Only Output the summary content, no other text."
             ).into()
         );
 
+        //被弹出的被标记消息也要纳入摘要，否则其内容会丢失
         let snapshot = std::iter::once(self.summary.read().build_raw_prompt())
+            .chain(popped.map(|msg| msg.build_raw_prompt()))
             .chain(self.window.read().iter().map(|msg| msg.build_raw_prompt()))
             .fold(String::new(), |acc, item| {
                 acc + &format!("[{}]: {}\n", item.0, item.1)
@@ -168,8 +185,8 @@ impl SlidingWindow {
     }
 
     //将摘要记忆和当前滑动窗口信息合并提供LLM
-    async fn summarize(&self, client: &LlmClient) -> Result<()> {
-        let prompt_history = self.prepare_prompt();
+    async fn summarize(&self, client: &LlmClient, popped: Option<&Information>) -> Result<()> {
+        let prompt_history = self.prepare_prompt(popped);
         let mut response = client.call_llm(prompt_history).await?;
 
         if response.is_empty() {

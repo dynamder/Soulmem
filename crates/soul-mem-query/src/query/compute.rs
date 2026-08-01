@@ -299,13 +299,19 @@ impl AnonymousQueryCompute for MemoryEmbeddingVariant {
                     .into_iter()
                     .map(|q_sem_unit| sem.anonymous_compute(q_sem_unit))
                     .collect::<Result<Vec<_>, _>>()?;
-                Ok(score_vec.into_iter().sum::<f32>())
+                //按单元数归一化，避免长查询因sum而系统性占优，与Situation分支保持一致
+                if score_vec.is_empty() {
+                    return Ok(0.0);
+                }
+                let len = score_vec.len();
+                Ok(score_vec.into_iter().sum::<f32>() / len as f32)
             }
             (Self::Situation(sit), MemoryRetrieveQueryVariantEmbedding::Situation(q_sit)) => {
                 let score_vec = q_sit
                     .into_iter()
                     .map(|q_sit_unit| sit.anonymous_compute(q_sit_unit))
                     .collect::<Result<Vec<_>, _>>()?;
+                //TODO: 检查该分支是否也需要按单元数归一化
                 Ok(score_vec.into_iter().sum::<f32>())
             }
             (_, _) => Ok(0.0),
