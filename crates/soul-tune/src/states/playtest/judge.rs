@@ -97,7 +97,18 @@ impl PlayTestJudgeState {
     }
 
     fn display_run(&self) -> &PlayRunSnapshot {
-        &self.current_runs()[self.display_run_idx()]
+        //runs为空时兜底（正常路径已保证至少1条，防御外部构造的异常结果）
+        static EMPTY: PlayRunSnapshot = PlayRunSnapshot {
+            embedding_response: None,
+            fullpipeline_response: None,
+            swap: false,
+            human_pick: None,
+            error: None,
+        };
+        match self.current_runs().get(self.display_run_idx()) {
+            Some(run) => run,
+            None => &EMPTY,
+        }
     }
 
     fn flat_display_idx(&self) -> usize {
@@ -626,6 +637,13 @@ impl PlayTestJudgeState {
     }
 
     fn handle_key(&mut self, key: KeyEvent) -> Transition {
+        //runs为空时（防御异常数据）禁用投票等需要索引的操作
+        if self.current_runs().is_empty() {
+            return match key.code {
+                KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('Q') => Transition::ToMain,
+                _ => Transition::None,
+            };
+        }
         match self.phase {
             JudgePhase::Voting => match key.code {
                 KeyCode::Char('1') => {

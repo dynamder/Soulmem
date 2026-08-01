@@ -295,7 +295,9 @@ impl PlayTestRunner {
             ),
             None => format!("\"{}\"", entry.user_message),
         };
-        for _run_idx in 0..self.config.runs_per_turn {
+        //runs_per_turn可能被配置为0，导致runs为空使评分页越界panic，这里保证至少执行一轮
+        let run_count = self.config.runs_per_turn.max(1);
+        for _run_idx in 0..run_count {
             let resp_emb = llm.generate_response(&chat_prompt, &emb_context, &user_text);
             let resp_full = llm.generate_response(&chat_prompt, &full_context, &user_text);
 
