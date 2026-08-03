@@ -50,12 +50,10 @@ pub struct MemoryNote {
     last_accessed_time: DateTime<Utc>, //记忆的最后访问时间
     mem_type: MemoryType,              //记忆的类型，存储类型特定内容
     mem_links: Vec<MemoryLink>,        //记忆的链接，用于关联其他记忆
-    /// 遗忘缺失度（0.0 新鲜 ~ 1.0 完全遗忘），所有节点类型通用
     #[serde(default = "default_missing_degree")]
-    missing_degree: f32,
-    /// 缺失度最近一次计算的时间，用于增量更新
+    missing_degree: f32, // 遗忘缺失度（0.0 新鲜 ~ 1.0 完全遗忘），所有节点类型通用
     #[serde(default = "default_last_forget_time")]
-    last_forget_time: DateTime<Utc>,
+    last_forget_time: DateTime<Utc>, // 缺失度最近一次计算的时间，用于增量更新
 }
 
 /// serde 默认：缺失度初始为 0

@@ -364,6 +364,34 @@ mod tests {
         assert!(node.missing_degree() > MASK_THRESHOLD);
     }
 
+    /// 验证连续两次仅计算缺失度位于同一条遗忘曲线上：
+    /// 未触发巩固时，增量计算结果应与从创建时间直接计算的曲线值一致。
+    #[tokio::test]
+    async fn test_missing_degree_curve_continuity() {
+        let create_time = Utc.with_ymd_and_hms(2024, 6, 1, 0, 0, 0).unwrap();
+        let t1 = Utc.with_ymd_and_hms(2024, 6, 2, 0, 0, 0).unwrap(); // 创建后 24h
+        let t2 = Utc.with_ymd_and_hms(2024, 6, 3, 0, 0, 0).unwrap(); // 创建后 48h
+        let mut node = make_old_semantic("鲁迅原名周树人浙江绍兴人", create_time);
+
+        // 两次都仅计算缺失度（不触发遮罩 / LLM）
+        let md1 = compute_and_update_missing_degree(&mut node, t1);
+        let md2 = compute_and_update_missing_degree(&mut node, t2);
+
+        // 与从创建时间直接计算的曲线值对比
+        let expect1 = compute_missing_degree(
+            create_time, 0, t1,
+            DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR, DEFAULT_MAX_ACTIVATION_CAP,
+        );
+        let expect2 = compute_missing_degree(
+            create_time, 0, t2,
+            DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR, DEFAULT_MAX_ACTIVATION_CAP,
+        );
+        assert!((md1 - expect1).abs() < 0.01, "md1={md1} expect1={expect1}");
+        assert!((md2 - expect2).abs() < 0.01, "md2={md2} expect2={expect2}");
+        // 遗忘随时间单调增加
+        assert!(md2 > md1);
+    }
+
     /// 验证边缺失度衰减
     #[test]
     fn test_edge_decay_stores_missing_degree() {
@@ -852,5 +880,80 @@ mod real_llm_tests {
             .to_string();
 
         run_activation_compare(client, &jieba, now, content, "中英混合").await;
+    }
+
+    /// 两阶段遗忘：第一次仅计算缺失度，第二次计算缺失度并触发遮罩遗忘。
+    /// 输出两次的缺失度与时间差，以及遮罩遗忘过程中的原文本 / 遮罩文本 / 推测文本。
+    /// 同时验证两次缺失度位于同一条遗忘曲线上（无巩固时不偏离曲线）。
+    #[tokio::test]
+    #[ignore]
+    async fn test_two_phase_forget_curve_and_texts() {
+        dotenvy::dotenv().ok();
+        let client = Arc::new(try_create_llm_client().expect("请设置 API_KEY, API_BASE, MODEL"));
+        let jieba = Jieba::new();
+
+        // 节点创建于 72 小时前，两次计算时刻分别为创建后 24h、72h
+        let create_time = Utc::now() - chrono::Duration::hours(72);
+        let t1 = Utc::now() - chrono::Duration::hours(48);
+        let t2 = Utc::now();
+
+        let mut node = build_complete_sem_node(create_time);
+
+        // 第一次：仅计算缺失度（不触发遮罩 / LLM）
+        let md1 = compute_and_update_missing_degree(&mut node, t1);
+        let delta1 = (t1 - create_time).num_hours();
+
+        // 第二次：计算缺失度 + 遮罩遗忘（LLM 推测）
+        let before = get_summary(&node).unwrap();
+        let result = lazy_forget(
+            &mut node,
+            t2,
+            &jieba,
+            SAKUYA_RECONSTRUCT,
+            make_llm_closure(client.clone()),
+        )
+        .await;
+        let md2 = node.missing_degree();
+        let delta2 = (t2 - create_time).num_hours();
+
+        println!("\n========== 两阶段遗忘曲线一致性 ==========");
+        println!("创建时间:          {:?}", create_time);
+        println!("第一次(仅计算):     Δt = {}h   缺失度 = {:.2}%", delta1, md1 * 100.0);
+        println!("第二次(计算+遮罩):  Δt = {}h   缺失度 = {:.2}%", delta2, md2 * 100.0);
+        println!();
+        println!("【遮罩遗忘过程】");
+        println!("  原始文本: {}", before);
+        match &result {
+            ForgetAction::Revised {
+                masked_text,
+                new_summary,
+                ..
+            } => {
+                println!("  遮罩文本: {}", masked_text);
+                println!("  推测文本: {}", new_summary);
+            }
+            ForgetAction::MaskOnly { masked_text, .. } => {
+                println!("  遮罩文本: {} (LLM 失败降级)", masked_text);
+            }
+            ForgetAction::NoAction => println!("  (未触发遗忘)"),
+        }
+        println!("=========================================\n");
+
+        // 曲线一致性：两次缺失度均应与从创建时间直接计算的曲线值一致
+        let expect1 = compute_missing_degree(
+            create_time, 0, t1,
+            DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR, DEFAULT_MAX_ACTIVATION_CAP,
+        );
+        let expect2 = compute_missing_degree(
+            create_time, 0, t2,
+            DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR, DEFAULT_MAX_ACTIVATION_CAP,
+        );
+        assert!((md1 - expect1).abs() < 0.01, "md1={md1} expect1={expect1}");
+        assert!((md2 - expect2).abs() < 0.01, "md2={md2} expect2={expect2}");
+        assert!(md2 > md1, "缺失度应随遗忘单调增加");
+        assert!(matches!(
+            result,
+            ForgetAction::Revised { .. } | ForgetAction::MaskOnly { .. }
+        ));
     }
 }
