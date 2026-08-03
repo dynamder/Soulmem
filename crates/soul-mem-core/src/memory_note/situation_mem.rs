@@ -55,9 +55,6 @@ pub struct SpecificSituation {
     narrative: String,
     time_span: DateTime<Utc>,
     context: Context,
-    /// 遗忘缺失度（0.0 新鲜 ~ 1.0 完全遗忘）
-    #[serde(default)]
-    missing_degree: f32,
 }
 
 impl SpecificSituation {
@@ -66,7 +63,6 @@ impl SpecificSituation {
             narrative,
             time_span,
             context,
-            missing_degree: 0.0,
         }
     }
     pub fn get_narrative(&self) -> &String {
@@ -87,12 +83,6 @@ impl SpecificSituation {
     pub fn get_mut_context(&mut self) -> &mut Context {
         &mut self.context
     }
-    pub fn missing_degree(&self) -> f32 {
-        self.missing_degree
-    }
-    pub fn set_missing_degree(&mut self, missing_degree: f32) {
-        self.missing_degree = missing_degree.clamp(0.0, 1.0);
-    }
 }
 
 impl Default for SpecificSituation {
@@ -101,7 +91,6 @@ impl Default for SpecificSituation {
             narrative: String::new(),
             time_span: Utc::now(),
             context: Context::default(),
-            missing_degree: 0.0,
         }
     }
 }

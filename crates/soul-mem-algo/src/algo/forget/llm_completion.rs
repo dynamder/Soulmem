@@ -1,10 +1,6 @@
-use chrono::Utc;
 use soul_mem_core::memory_note::sem_mem::ConceptType;
 use soul_mem_core::memory_note::{MemoryNote, MemoryType};
 use std::future::Future;
-
-use super::decay_calculator::{DEFAULT_MAX_ACTIVATION_CAP, compute_missing_degree};
-use super::decay_revise::{DEFAULT_ACTIVE_FACTOR, DEFAULT_BASE_HALF_LIFE_HOURS};
 
 /// 遗忘度低于此值时 Vec 类字段（如 aliases）在对齐时不允许增加长度
 pub const ALIGN_LENGTH_CAP_THRESHOLD: f32 = 0.6;
@@ -152,15 +148,8 @@ where
 
     let (new_aliases, new_desc, new_ct) = parse_align_response(response.trim());
 
-    // 计算当前缺失度，决定是否限制 Vec 长度
-    let missing_degree = compute_missing_degree(
-        node.creation_time(),
-        node.retrieval_count(),
-        Utc::now(),
-        DEFAULT_BASE_HALF_LIFE_HOURS,
-        DEFAULT_ACTIVE_FACTOR,
-        DEFAULT_MAX_ACTIVATION_CAP,
-    );
+    // 使用节点当前存储的缺失度，决定是否限制 Vec 长度
+    let missing_degree = node.missing_degree();
     let cap_vec_length = missing_degree < ALIGN_LENGTH_CAP_THRESHOLD;
 
     // 应用解析结果到节点

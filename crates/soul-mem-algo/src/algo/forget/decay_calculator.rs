@@ -77,6 +77,34 @@ pub fn edge_decay_intensity(
         ) as f64
 }
 
+/// 根据旧缺失度与时间差增量计算新的缺失度。
+///
+/// 由 `old_missing_degree`（在 `old_time` 时刻的状态）推算 `current_time` 时刻的缺失度，
+/// 避免每次从创建时间重新计算，支持惰性更新。
+///
+/// 公式：`1 - (1 - old_missing_degree) × e^(-Δt / τ)`
+///   - `Δt` = current_time - old_time 经过的小时数
+///   - `τ` = adjusted_half_life / ln(2)，半衰期随激活次数延长（受 cap 限制）
+pub fn update_missing_degree_incremental(
+    old_missing_degree: f32,
+    old_time: DateTime<Utc>,
+    current_time: DateTime<Utc>,
+    retrieval_count: usize,
+    base_half_life_hours: f32,
+    active_factor: f32,
+    max_activation_cap: usize,
+) -> f32 {
+    let elapsed_hours = (current_time - old_time).num_hours() as f32;
+    if elapsed_hours <= 0.0 {
+        return old_missing_degree;
+    }
+    let capped = retrieval_count.min(max_activation_cap);
+    let adjusted_half_life = base_half_life_hours * (1.0 + active_factor * capped as f32);
+    let tau = adjusted_half_life / std::f32::consts::LN_2;
+    let retention = (-elapsed_hours / tau).exp();
+    1.0 - (1.0 - old_missing_degree) * retention
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

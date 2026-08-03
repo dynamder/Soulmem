@@ -4,7 +4,9 @@ use soul_mem_core::memory_links::MemoryLink;
 use soul_mem_core::memory_note::{MemoryNote, MemoryType, situation_mem::SituationType};
 use std::future::Future;
 
-use super::decay_calculator::{DEFAULT_MAX_ACTIVATION_CAP, compute_missing_degree};
+use super::decay_calculator::{
+    update_missing_degree_incremental, DEFAULT_MAX_ACTIVATION_CAP,
+};
 use super::mask;
 
 // ========================================================================
@@ -49,12 +51,11 @@ pub enum ForgetAction {
 
 /// 对节点执行惰性遗忘。
 ///
-/// 仅在节点被激活时调用，根据时间跨度和激活次数计算缺失度：
+/// 先在 `compute_and_update_missing_degree` 中刷新并存储缺失度（对所有节点生效），
+/// 随后**仅**对 `SpecificSituation` 和 `SemMemory` 触发遮罩 / LLM：
 /// - 缺失度 < MASK_THRESHOLD → `NoAction`（无需操作）
 /// - MASK_THRESHOLD ≤ 缺失度 < REVISE_THRESHOLD → 仅遮罩概要，不调 LLM
 /// - 缺失度 ≥ REVISE_THRESHOLD → 遮罩概要 + 调用 LLM 推测重建
-///
-/// 仅处理 `SpecificSituation.narrative` 和 `SemMemory.content`。
 ///
 /// # 参数
 /// - `node` — 可变的内存节点
@@ -73,24 +74,16 @@ where
     F: FnOnce(&str, &str) -> Fut,
     Fut: Future<Output = Result<String, Box<dyn std::error::Error + Send + Sync>>>,
 {
+    // 步骤〇：对所有节点刷新并存储当前缺失度
+    let md = compute_and_update_missing_degree(node, current_time);
+
+    // 仅 SpecificSituation 和 SemMemory 触发遮罩 / LLM，其余节点仅更新缺失度
     if !matches!(
         node.mem_type(),
         MemoryType::Situation(SituationType::SpecificSituation(_)) | MemoryType::Semantic(_)
     ) {
         return ForgetAction::NoAction;
     }
-
-    let md = compute_missing_degree(
-        node.creation_time(),
-        node.retrieval_count(),
-        current_time,
-        DEFAULT_BASE_HALF_LIFE_HOURS,
-        DEFAULT_ACTIVE_FACTOR,
-        DEFAULT_MAX_ACTIVATION_CAP,
-    );
-
-    // 将缺失度持久化到节点自身的 missing_degree 字段
-    set_missing_degree(node, md);
 
     if md < MASK_THRESHOLD {
         return ForgetAction::NoAction;
@@ -150,21 +143,36 @@ fn set_summary(node: &mut MemoryNote, text: &str) {
     }
 }
 
-/// 将缺失度写入节点自身的 missing_degree 字段（SpecificSituation / SemMemory）
-fn set_missing_degree(node: &mut MemoryNote, missing_degree: f32) {
-    match node.mem_type_mut() {
-        MemoryType::Situation(SituationType::SpecificSituation(s)) => {
-            s.set_missing_degree(missing_degree);
-        }
-        MemoryType::Semantic(s) => s.set_missing_degree(missing_degree),
-        _ => {}
-    }
+/// 计算并更新节点当前的遗忘缺失度，写入 `MemoryNote.missing_degree`。
+///
+/// 使用增量公式：基于上次存储的缺失度与时间差推算当前值，避免重复从头计算。
+/// 适用于**所有**节点类型（SemMemory / SpecificSituation / Procedure 等），
+/// 仅负责记录缺失度，不触发任何遮罩或 LLM 机制。
+///
+/// 返回更新后的缺失度（0.0 ~ 1.0）。
+pub fn compute_and_update_missing_degree(
+    node: &mut MemoryNote,
+    current_time: DateTime<Utc>,
+) -> f32 {
+    let md = update_missing_degree_incremental(
+        node.missing_degree(),
+        node.last_forget_time(),
+        current_time,
+        node.retrieval_count(),
+        DEFAULT_BASE_HALF_LIFE_HOURS,
+        DEFAULT_ACTIVE_FACTOR,
+        DEFAULT_MAX_ACTIVATION_CAP,
+    );
+    node.set_missing_degree(md);
+    node.set_last_forget_time(current_time);
+    md
 }
 
-/// 衰减单条边：根据两端节点的缺失度综合计算边的缺失度并写入字段。
-/// 返回更新后的边强度。
-pub fn decay_edge(link: &mut MemoryLink, missing_degree: f32) -> f64 {
+/// 衰减单条边：增量更新边的缺失度并写入字段，返回衰减后的强度。
+/// `missing_degree` 为节点侧计算的缺失度，作为边的衰减基准。
+pub fn decay_edge(link: &mut MemoryLink, current_time: DateTime<Utc>, missing_degree: f32) -> f64 {
     link.set_missing_degree(missing_degree);
+    link.set_last_forget_time(current_time);
     link.intensity * (1.0 - missing_degree as f64)
 }
 
@@ -192,6 +200,7 @@ pub use super::llm_completion::align_sem_fields;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::decay_calculator::compute_missing_degree;
     use chrono::TimeZone;
     use soul_mem_core::memory_note::proc_mem::{Action, ActionType, ProcMemory};
     use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
@@ -207,6 +216,7 @@ mod tests {
         MemoryNoteBuilder::new(MemoryType::Semantic(sem))
             .create_time(created)
             .last_accessed_time(created)
+            .last_forget_time(created)
             .build()
             .unwrap()
     }
@@ -228,6 +238,7 @@ mod tests {
         )))
         .create_time(created)
         .last_accessed_time(created)
+        .last_forget_time(created)
         .build()
         .unwrap()
     }
@@ -273,6 +284,7 @@ mod tests {
         )))
         .create_time(past)
         .last_accessed_time(past)
+        .last_forget_time(past)
         .build()
         .unwrap();
         let result = lazy_forget(&mut node, Utc::now(), &Jieba::new(), None, |_sys, user| {
@@ -299,7 +311,7 @@ mod tests {
         }
     }
 
-    /// 验证 lazy_forget 后将缺失度持久化到节点 missing_degree 字段
+    /// 验证 lazy_forget 后将缺失度持久化到 MemoryNote.missing_degree 字段
     #[tokio::test]
     async fn test_missing_degree_stored_in_node() {
         let past = Utc.with_ymd_and_hms(2024, 6, 1, 0, 0, 0).unwrap();
@@ -310,29 +322,46 @@ mod tests {
         )))
         .create_time(past)
         .last_accessed_time(past)
+        .last_forget_time(past)
         .build()
         .unwrap();
         // 遗忘前缺失度为 0
-        match node.mem_type() {
-            MemoryType::Semantic(s) => assert_eq!(s.missing_degree(), 0.0),
-            _ => unreachable!(),
-        }
+        assert_eq!(node.missing_degree(), 0.0);
 
         let _ = lazy_forget(&mut node, Utc::now(), &Jieba::new(), None, |_, _| async {
             Ok("重建".to_string())
         })
         .await;
 
-        // 遗忘后缺失度已写入节点字段
-        let stored = match node.mem_type() {
-            MemoryType::Semantic(s) => s.missing_degree(),
-            _ => unreachable!(),
-        };
+        // 遗忘后缺失度已写入 MemoryNote 字段，与增量计算结果一致
+        let stored = node.missing_degree();
         let expected = compute_missing_degree(
             past, 0, Utc::now(),
             DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR, DEFAULT_MAX_ACTIVATION_CAP,
         );
         assert!((stored - expected).abs() < 0.001, "stored={stored}, expected={expected}");
+    }
+
+    /// 验证仅计算缺失度（不触发遮罩/LLM）的接口：Procedure 节点也会更新缺失度
+    #[tokio::test]
+    async fn test_procedure_updates_missing_degree_only() {
+        let past = Utc.with_ymd_and_hms(2024, 6, 1, 0, 0, 0).unwrap();
+        let mut node = MemoryNoteBuilder::new(MemoryType::Procedure(ProcMemory::new(
+            Action::new("test".to_string(), ActionType::Think),
+        )))
+        .create_time(past)
+        .last_accessed_time(past)
+        .last_forget_time(past)
+        .build()
+        .unwrap();
+
+        // lazy_forget 对 Procedure 返回 NoAction，但仍会更新缺失度
+        let result = lazy_forget(&mut node, Utc::now(), &Jieba::new(), None, |_, _| async {
+            Ok("x".to_string())
+        })
+        .await;
+        assert!(matches!(result, ForgetAction::NoAction));
+        assert!(node.missing_degree() > MASK_THRESHOLD);
     }
 
     /// 验证边缺失度衰减
@@ -345,8 +374,10 @@ mod tests {
             MemoryLinkType::Sem(SemMemLink::new("related".to_string(), 1.0)),
         );
         assert_eq!(link.missing_degree(), 0.0);
-        let new_intensity = decay_edge(&mut link, 0.4);
+        let now = Utc::now();
+        let new_intensity = decay_edge(&mut link, now, 0.4);
         assert_eq!(link.missing_degree(), 0.4);
+        assert_eq!(link.last_forget_time(), now);
         assert!((new_intensity - 0.6).abs() < 1e-6);
     }
 
@@ -463,6 +494,7 @@ mod tests {
 #[cfg(test)]
 mod real_llm_tests {
     use super::*;
+    use super::super::decay_calculator::compute_missing_degree;
     use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
     use soul_mem_core::memory_note::{MemoryNoteBuilder, MemoryType};
     use soul_mem_runtime::working_memory::llm::client::LlmClient;
@@ -504,7 +536,7 @@ mod real_llm_tests {
         let mut node = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory::new(
             "Rust是一门由Mozilla主导研发的注重内存安全和零成本抽象的系统级编程语言也被称为Rust语言或Rust-lang它作为实体概念代表了现代系统编程的重要发展方向".to_string(),
             ConceptType::Entity, "系统级编程语言".to_string(),
-        ))).create_time(created).last_accessed_time(created).build().unwrap();
+        ))).create_time(created).last_accessed_time(created).last_forget_time(created).build().unwrap();
         if let MemoryType::Semantic(s) = node.mem_type_mut() {
             s.aliases = vec!["Rust语言".to_string(), "Rust-lang".to_string()];
         }
