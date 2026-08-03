@@ -55,6 +55,9 @@ pub struct SpecificSituation {
     narrative: String,
     time_span: DateTime<Utc>,
     context: Context,
+    /// 遗忘缺失度（0.0 新鲜 ~ 1.0 完全遗忘）
+    #[serde(default)]
+    missing_degree: f32,
 }
 
 impl SpecificSituation {
@@ -63,6 +66,7 @@ impl SpecificSituation {
             narrative,
             time_span,
             context,
+            missing_degree: 0.0,
         }
     }
     pub fn get_narrative(&self) -> &String {
@@ -82,6 +86,23 @@ impl SpecificSituation {
     }
     pub fn get_mut_context(&mut self) -> &mut Context {
         &mut self.context
+    }
+    pub fn missing_degree(&self) -> f32 {
+        self.missing_degree
+    }
+    pub fn set_missing_degree(&mut self, missing_degree: f32) {
+        self.missing_degree = missing_degree.clamp(0.0, 1.0);
+    }
+}
+
+impl Default for SpecificSituation {
+    fn default() -> Self {
+        Self {
+            narrative: String::new(),
+            time_span: Utc::now(),
+            context: Context::default(),
+            missing_degree: 0.0,
+        }
     }
 }
 
@@ -152,6 +173,19 @@ impl Context {
     }
 }
 
+impl Default for Context {
+    fn default() -> Self {
+        Self {
+            location: None,
+            participants: Vec::new(),
+            emotions: Vec::new(),
+            sensory_data: Vec::new(),
+            environment: Environment::default(),
+            event: Vec::new(),
+        }
+    }
+}
+
 //事件（动作，动作强度，单个发起者，单个目标）（抽象）
 #[derive(Debug, PartialEq, PartialOrd, Clone, Serialize, Deserialize)]
 pub struct Event {
@@ -166,6 +200,15 @@ pub struct Event {
 pub struct Environment {
     pub atmosphere: String,
     pub tone: String,
+}
+
+impl Default for Environment {
+    fn default() -> Self {
+        Self {
+            atmosphere: String::new(),
+            tone: String::new(),
+        }
+    }
 }
 
 //智能体情绪（名称，强度）（描述）

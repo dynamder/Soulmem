@@ -14,6 +14,9 @@ pub struct SemMemory {
     pub aliases: Vec<String>,
     pub concept_type: ConceptType,
     pub description: String,
+    /// 遗忘缺失度（0.0 新鲜 ~ 1.0 完全遗忘）
+    #[serde(default)]
+    pub missing_degree: f32,
 }
 
 impl SemMemory {
@@ -23,6 +26,25 @@ impl SemMemory {
             aliases: Vec::new(),
             concept_type,
             description,
+            missing_degree: 0.0,
+        }
+    }
+    pub fn missing_degree(&self) -> f32 {
+        self.missing_degree
+    }
+    pub fn set_missing_degree(&mut self, missing_degree: f32) {
+        self.missing_degree = missing_degree.clamp(0.0, 1.0);
+    }
+}
+
+impl Default for SemMemory {
+    fn default() -> Self {
+        Self {
+            content: String::new(),
+            aliases: Vec::new(),
+            concept_type: ConceptType::Entity,
+            description: String::new(),
+            missing_degree: 0.0,
         }
     }
 }

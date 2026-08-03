@@ -144,6 +144,7 @@ mod tests {
                     aliases: vec![],
                     concept_type: ConceptType::Entity,
                     description: String::new(),
+                    ..Default::default()
                 });
                 let note = MemoryNoteBuilder::new(mem_type).id(ids[i]).build().unwrap();
                 let embedding = MemoryEmbedding::new(
@@ -271,6 +272,7 @@ mod tests {
             aliases: vec!["Rust".to_string()],
             concept_type: ConceptType::Entity,
             description: "一种系统编程语言".to_string(),
+            ..Default::default()
         });
         let note = MemoryNoteBuilder::new(mem_type)
             .tags(vec!["Rust".to_string(), "编程".to_string()])

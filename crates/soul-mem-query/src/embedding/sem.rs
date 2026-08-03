@@ -124,6 +124,7 @@ mod tests {
             aliases: vec!["Ruster".to_string(), "Rust programmer".to_string(), "Rust开发者".to_string(), "Rust程序员".to_string(), "Rust爱好者".to_string()],
             description: "使用Rust编程语言的程序员。它们中的一些热衷于重写各类本来由其他语言编写的代码，以提高性能。他们偶尔会被Rust编译器的严格而搞得脑子疼。部分狂热分子热衷于在社交媒体上宣传Rust，引起了部分开发者对这些狂热分子的不满。".to_string(),
             concept_type: ConceptType::Entity,
+            ..Default::default()
         };
 
         let sem_embedding = memory.embed(&model).unwrap();
@@ -142,6 +143,7 @@ mod tests {
             aliases: vec!["AI".to_string()],
             concept_type: ConceptType::Abstract,
             description: "让机器具有人类智能的技术".to_string(),
+            ..Default::default()
         };
 
         let memory2 = SemMemory {
@@ -149,6 +151,7 @@ mod tests {
             aliases: vec!["ML".to_string()],
             concept_type: ConceptType::Abstract,
             description: "人工智能的一个分支".to_string(),
+            ..Default::default()
         };
 
         let embedding1 = memory1.embed(&model).unwrap();
@@ -170,6 +173,7 @@ mod tests {
             aliases: vec!["alias1".to_string(), "alias2".to_string()],
             concept_type: ConceptType::Entity,
             description: "测试描述".to_string(),
+            ..Default::default()
         };
 
         let sem_embedding = memory.embed(&model).unwrap();

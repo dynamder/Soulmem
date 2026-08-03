@@ -301,6 +301,7 @@ mod tests {
                 aliases: vec![],
                 concept_type: ConceptType::Entity,
                 description: String::new(),
+                ..Default::default()
             }))
             .id(ids[0])
             .mem_links(vec![link1])
@@ -324,6 +325,7 @@ mod tests {
                 aliases: vec![],
                 concept_type: ConceptType::Entity,
                 description: String::new(),
+                ..Default::default()
             }))
             .id(ids[1])
             .mem_links(vec![link2])
@@ -347,6 +349,7 @@ mod tests {
                 aliases: vec![],
                 concept_type: ConceptType::Entity,
                 description: String::new(),
+                ..Default::default()
             }))
             .id(ids[2])
             .build()

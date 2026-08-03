@@ -136,6 +136,7 @@ mod tests {
                 aliases: vec![],
                 concept_type: ConceptType::Entity,
                 description: String::new(),
+                ..Default::default()
             }))
             .id(id1)
             .mem_links(vec![link1])
@@ -159,6 +160,7 @@ mod tests {
                 aliases: vec![],
                 concept_type: ConceptType::Entity,
                 description: String::new(),
+                ..Default::default()
             }))
             .id(id2)
             .mem_links(vec![link2])

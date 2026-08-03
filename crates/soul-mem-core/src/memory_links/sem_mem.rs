@@ -12,3 +12,12 @@ impl SemMemLink {
         Self { verb, confidence }
     }
 }
+
+impl Default for SemMemLink {
+    fn default() -> Self {
+        Self {
+            verb: String::new(),
+            confidence: 1.0,
+        }
+    }
+}

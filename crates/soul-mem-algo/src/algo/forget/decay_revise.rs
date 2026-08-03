@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use jieba_rs::Jieba;
+use soul_mem_core::memory_links::MemoryLink;
 use soul_mem_core::memory_note::{MemoryNote, MemoryType, situation_mem::SituationType};
 use std::future::Future;
 
@@ -88,6 +89,9 @@ where
         DEFAULT_MAX_ACTIVATION_CAP,
     );
 
+    // 将缺失度持久化到节点自身的 missing_degree 字段
+    set_missing_degree(node, md);
+
     if md < MASK_THRESHOLD {
         return ForgetAction::NoAction;
     }
@@ -144,6 +148,24 @@ fn set_summary(node: &mut MemoryNote, text: &str) {
         MemoryType::Semantic(s) => s.content = text.to_string(),
         _ => {}
     }
+}
+
+/// 将缺失度写入节点自身的 missing_degree 字段（SpecificSituation / SemMemory）
+fn set_missing_degree(node: &mut MemoryNote, missing_degree: f32) {
+    match node.mem_type_mut() {
+        MemoryType::Situation(SituationType::SpecificSituation(s)) => {
+            s.set_missing_degree(missing_degree);
+        }
+        MemoryType::Semantic(s) => s.set_missing_degree(missing_degree),
+        _ => {}
+    }
+}
+
+/// 衰减单条边：根据两端节点的缺失度综合计算边的缺失度并写入字段。
+/// 返回更新后的边强度。
+pub fn decay_edge(link: &mut MemoryLink, missing_degree: f32) -> f64 {
+    link.set_missing_degree(missing_degree);
+    link.intensity * (1.0 - missing_degree as f64)
 }
 
 /// 获取节点的概要文本（narrative 或 content）
@@ -275,6 +297,57 @@ mod tests {
             }
             ForgetAction::NoAction => panic!("old node should trigger forget"),
         }
+    }
+
+    /// 验证 lazy_forget 后将缺失度持久化到节点 missing_degree 字段
+    #[tokio::test]
+    async fn test_missing_degree_stored_in_node() {
+        let past = Utc.with_ymd_and_hms(2024, 6, 1, 0, 0, 0).unwrap();
+        let mut node = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory::new(
+            "鲁迅原名周树人浙江绍兴人".to_string(),
+            ConceptType::Entity,
+            "人物".to_string(),
+        )))
+        .create_time(past)
+        .last_accessed_time(past)
+        .build()
+        .unwrap();
+        // 遗忘前缺失度为 0
+        match node.mem_type() {
+            MemoryType::Semantic(s) => assert_eq!(s.missing_degree(), 0.0),
+            _ => unreachable!(),
+        }
+
+        let _ = lazy_forget(&mut node, Utc::now(), &Jieba::new(), None, |_, _| async {
+            Ok("重建".to_string())
+        })
+        .await;
+
+        // 遗忘后缺失度已写入节点字段
+        let stored = match node.mem_type() {
+            MemoryType::Semantic(s) => s.missing_degree(),
+            _ => unreachable!(),
+        };
+        let expected = compute_missing_degree(
+            past, 0, Utc::now(),
+            DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR, DEFAULT_MAX_ACTIVATION_CAP,
+        );
+        assert!((stored - expected).abs() < 0.001, "stored={stored}, expected={expected}");
+    }
+
+    /// 验证边缺失度衰减
+    #[test]
+    fn test_edge_decay_stores_missing_degree() {
+        use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType, sem_mem::SemMemLink};
+        let mut link = MemoryLink::new(
+            Default::default(),
+            Default::default(),
+            MemoryLinkType::Sem(SemMemLink::new("related".to_string(), 1.0)),
+        );
+        assert_eq!(link.missing_degree(), 0.0);
+        let new_intensity = decay_edge(&mut link, 0.4);
+        assert_eq!(link.missing_degree(), 0.4);
+        assert!((new_intensity - 0.6).abs() < 1e-6);
     }
 
     #[tokio::test]
@@ -572,42 +645,23 @@ mod real_llm_tests {
         ));
     }
 
-    #[tokio::test]
-    #[ignore]
-    async fn test_activation_slows_forgetting() {
-        dotenvy::dotenv().ok();
-        let client = Arc::new(try_create_llm_client().expect("请设置 API_KEY, API_BASE, MODEL"));
-        let jieba = Jieba::new();
-        let now = Utc::now();
-
-        let gen_client = client.clone();
-        let generated: String = {
-            use async_openai::types::chat::{
-                ChatCompletionRequestSystemMessage, ChatCompletionRequestUserMessage,
-            };
-            let mut resp = gen_client.call_llm(vec![
-                ChatCompletionRequestSystemMessage::from("你是红魔馆的女仆长十六夜咲夜。请以第一人称写一段你在幻想乡日常生活中的具体事件记忆，2~4句话，描述发生了什么、涉及谁、你的感受。只输出记忆文本，不要解释。".to_string()).into(),
-                ChatCompletionRequestUserMessage::from("请讲述一件你在红魔馆经历过的难忘事件。".to_string()).into(),
-            ]).await.map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { e.into() }).expect("LLM 生成失败");
-            resp.remove(0)
-        };
-        let content: String = generated
-            .chars()
-            .filter(|c| !c.is_ascii_punctuation() && !c.is_whitespace())
-            .collect();
-        let desc_prefix: String = generated
-            .chars()
-            .take(30)
-            .filter(|c| !c.is_ascii_punctuation())
-            .collect();
+    /// 共享辅助：对指定初始内容执行 4 个激活档位的遗忘对比并打印三段文本
+    async fn run_activation_compare(
+        client: Arc<LlmClient>,
+        jieba: &Jieba,
+        now: DateTime<Utc>,
+        content: String,
+        title: &str,
+    ) {
         let created = now - chrono::Duration::hours(48);
+        let desc_prefix: String = content.chars().take(30).collect();
 
         let make_node = |rc: usize| -> MemoryNote {
             let mut n = build_complete_sem_node(created);
             if let MemoryType::Semantic(s) = n.mem_type_mut() {
                 s.content = content.clone();
-                s.aliases = vec!["紅魔館の思い出".to_string(), "咲夜の出来事".to_string()];
-                s.description = format!("紅魔館メイド長の回想: {}", desc_prefix);
+                s.aliases = vec!["红魔馆的记忆".to_string(), "咲夜的日常".to_string()];
+                s.description = format!("{}: {}", title, desc_prefix);
             }
             for _ in 0..rc {
                 n.retrieval_increment();
@@ -653,10 +707,10 @@ mod real_llm_tests {
             DEFAULT_MAX_ACTIVATION_CAP,
         );
 
-        println!("\n========== 激活次数对遗忘的影响 ==========");
+        println!("\n========== 激活次数对遗忘的影响（{}）==========", title);
         println!(
-            "LLM 生成: {}\n缺失度: A={:.0}% B={:.0}% D={:.0}% C={:.0}%\n",
-            generated,
+            "初始内容: {}\n缺失度: A={:.0}% B={:.0}% D={:.0}% C={:.0}%\n",
+            content,
             mda * 100.0,
             mdb * 100.0,
             mdd * 100.0,
@@ -673,7 +727,7 @@ mod real_llm_tests {
             let result = lazy_forget(
                 node,
                 now,
-                &jieba,
+                jieba,
                 SAKUYA_RECONSTRUCT,
                 make_llm_closure(client.clone()),
             )
@@ -702,5 +756,69 @@ mod real_llm_tests {
         assert!((mdc - mdd).abs() < 0.001);
         assert!(mda > MASK_THRESHOLD);
         println!("=================================================\n");
+    }
+
+    /// 激活次数对遗忘的影响 —— 中文初始内容（LLM 生成）
+    #[tokio::test]
+    #[ignore]
+    async fn test_activation_slows_forgetting() {
+        dotenvy::dotenv().ok();
+        let client = Arc::new(try_create_llm_client().expect("请设置 API_KEY, API_BASE, MODEL"));
+        let jieba = Jieba::new();
+        let now = Utc::now();
+
+        let gen_client = client.clone();
+        let generated: String = {
+            use async_openai::types::chat::{
+                ChatCompletionRequestSystemMessage, ChatCompletionRequestUserMessage,
+            };
+            let mut resp = gen_client
+                .call_llm(vec![
+                    ChatCompletionRequestSystemMessage::from("你是红魔馆的女仆长十六夜咲夜。请以第一人称写一段你在幻想乡日常生活中的具体事件记忆，2~4句话，描述发生了什么、涉及谁、你的感受。只输出记忆文本，不要解释。".to_string()).into(),
+                    ChatCompletionRequestUserMessage::from("请讲述一件你在红魔馆经历过的难忘事件。".to_string()).into(),
+                ])
+                .await
+                .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { e.into() })
+                .expect("LLM 生成失败");
+            resp.remove(0)
+        };
+        // 中文无需空格，去除标点与空白便于 jieba 分词
+        let content: String = generated
+            .chars()
+            .filter(|c| !c.is_ascii_punctuation() && !c.is_whitespace())
+            .collect();
+
+        run_activation_compare(client, &jieba, now, content, "中文").await;
+    }
+
+    /// 激活次数对遗忘的影响 —— 纯英文初始内容
+    #[tokio::test]
+    #[ignore]
+    async fn test_activation_slows_forgetting_english() {
+        dotenvy::dotenv().ok();
+        let client = Arc::new(try_create_llm_client().expect("请设置 API_KEY, API_BASE, MODEL"));
+        let jieba = Jieba::new();
+        let now = Utc::now();
+
+        // 保留空格以让 jieba 按单词切分
+        let content = "On a quiet night, I spent hours polishing the silver cutlery of the Scarlet Devil Mansion, when Patchouli suddenly asked me to brew a pot of Darjeeling tea. The library glowed with candlelight and the scent of old books."
+            .to_string();
+
+        run_activation_compare(client, &jieba, now, content, "纯英文").await;
+    }
+
+    /// 激活次数对遗忘的影响 —— 中英混合初始内容（中文为主 + 重要英文名词）
+    #[tokio::test]
+    #[ignore]
+    async fn test_activation_slows_forgetting_mixed() {
+        dotenvy::dotenv().ok();
+        let client = Arc::new(try_create_llm_client().expect("请设置 API_KEY, API_BASE, MODEL"));
+        let jieba = Jieba::new();
+        let now = Utc::now();
+
+        let content = "那天深夜我在红魔馆的大厅擦洗 silver cutlery，Patchouli 小姐突然要我泡一壶 Darjeeling tea。图书馆里 candlelight 摇曳，空气中弥漫着 old books 的味道，我停下脚步享受了片刻的宁静。"
+            .to_string();
+
+        run_activation_compare(client, &jieba, now, content, "中英混合").await;
     }
 }

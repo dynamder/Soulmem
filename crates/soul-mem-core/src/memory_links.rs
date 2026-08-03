@@ -36,6 +36,9 @@ pub struct MemoryLink {
     from: MemoryId,
     to: MemoryId,
     pub intensity: f64,
+    /// 遗忘缺失度（0.0 新鲜 ~ 1.0 完全遗忘）
+    #[serde(default)]
+    pub missing_degree: f32,
     link_type: MemoryLinkType,
 }
 
@@ -54,6 +57,7 @@ impl MemoryLink {
             to,
             link_type,
             intensity: 1.0,
+            missing_degree: 0.0,
         }
     }
     pub fn id(&self) -> LinkId {
@@ -71,6 +75,12 @@ impl MemoryLink {
     pub fn link_type_mut(&mut self) -> &mut MemoryLinkType {
         &mut self.link_type
     }
+    pub fn missing_degree(&self) -> f32 {
+        self.missing_degree
+    }
+    pub fn set_missing_degree(&mut self, missing_degree: f32) {
+        self.missing_degree = missing_degree.clamp(0.0, 1.0);
+    }
     pub fn into_tuple(self) -> (MemoryId, MemoryId, MemoryLinkType, f64) {
         (self.from, self.to, self.link_type, self.intensity)
     }
@@ -86,10 +96,24 @@ impl MemoryLink {
             to,
             link_type,
             intensity,
+            missing_degree: 0.0,
         }
     }
     pub fn into_link_type(self) -> MemoryLinkType {
         self.link_type
+    }
+}
+
+impl Default for MemoryLink {
+    fn default() -> Self {
+        Self {
+            id: LinkId::default(),
+            from: MemoryId::default(),
+            to: MemoryId::default(),
+            intensity: 1.0,
+            missing_degree: 0.0,
+            link_type: MemoryLinkType::Sem(SemMemLink::default()),
+        }
     }
 }
 impl From<(MemoryId, MemoryId, MemoryLinkType, f64)> for MemoryLink {

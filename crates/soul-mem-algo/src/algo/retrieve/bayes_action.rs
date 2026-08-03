@@ -146,6 +146,7 @@ mod tests {
                 aliases: vec![],
                 concept_type: ConceptType::Entity,
                 description: String::new(),
+                ..Default::default()
             });
             let source_note = MemoryNoteBuilder::new(source_mem_type)
                 .id(source_id)
