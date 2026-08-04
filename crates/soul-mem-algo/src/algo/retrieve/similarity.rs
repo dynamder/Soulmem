@@ -22,7 +22,7 @@ fn default_similarity_threshold() -> f32 {
     0.7
 }
 fn default_max_results() -> usize {
-    10
+    4
 }
 
 impl SimilarityConfig {
