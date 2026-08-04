@@ -11,7 +11,9 @@ use soul_mem_algo::algo::retrieve::RetrStrategy;
 use soul_mem_core::memory_note::situation_mem::SituationType;
 use soul_mem_core::memory_note::{MemoryId, MemoryType};
 use soul_mem_query::embedding::blend_weights::BlendWeights;
-use soul_mem_query::embedding::query::note::MemoryRetrieveQueryEmbedding;
+use soul_mem_query::embedding::query::note::{
+    EmbeddedMemoryRetrieveQuery, MemoryRetrieveQueryEmbedding,
+};
 use soul_mem_query::embedding::Embeddable;
 use soul_mem_query::query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant};
 use soul_mem_runtime::working_memory::WorkingMemory;
@@ -325,7 +327,13 @@ impl TestSuite for RetrieveSuite {
                 similarity_threshold: self.meta.similarity_threshold,
                 max_results: self.meta.max_results,
             };
-            let request = config.into_request(Arc::clone(&self.wm), emb.clone());
+            let request = config.into_request(
+                Arc::clone(&self.wm),
+                EmbeddedMemoryRetrieveQuery {
+                    embedding: emb.clone(),
+                    query: MemoryRetrieveQuery::new(sq.tags.clone(), sq.variant.clone()),
+                },
+            );
             let result = RetrSimilarity {}.retrieve(request);
 
             let expected = test_case
@@ -631,6 +639,7 @@ fn apply_overrides(base: &BlendWeights, pair: &BlendPairRaw) -> BlendWeights {
         sit_event_target_only_action: pair
             .sit_event_target_only_action
             .unwrap_or(base.sit_event_target_only_action),
+        string_blend_alpha: base.string_blend_alpha,
     }
 }
 
@@ -678,8 +687,8 @@ mod tests {
           "description": "desc",
           "graph_path": "graph.json",
           "config": {
-            "similarity_threshold": 0.5,
-            "max_results": 10,
+            "similarity_threshold": 0.7,
+            "max_results": 4,
             "test_k_values": [1, 3, 5]
           },
           "test_cases": [

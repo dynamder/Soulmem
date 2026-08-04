@@ -1,7 +1,10 @@
 use crate::embedding::{
     note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant},
     query::{
-        note::{MemoryRetrieveQueryEmbedding, MemoryRetrieveQueryVariantEmbedding},
+        note::{
+            EmbeddedMemoryRetrieveQuery, MemoryRetrieveQueryEmbedding,
+            MemoryRetrieveQueryVariantEmbedding,
+        },
         sem::SemanticQueryUnitEmbedding,
         situation::{
             environment::EnvironmentQueryUnitEmbedding, event::EventQueryUnitEmbedding,
@@ -17,6 +20,8 @@ use crate::embedding::{
     },
     EmbeddingCalcResult,
 };
+
+use crate::query::string_distance::compute_note_string_score;
 
 use soul_mem_core::memory_note::MemoryId;
 
@@ -336,6 +341,25 @@ impl AnonymousQueryCompute for EmbeddedMemoryNote {
     }
 }
 
+impl EmbeddedMemoryNote {
+    /// 融合评分：`embedding 余弦相似度` 与 `Jaro-Winkler 字符串距离` 按 `string_blend_alpha` 混合。
+    ///
+    /// 两个分量均为 [0, 1] 量纲，`string_blend_alpha` 为 embedding 所占权重。
+    /// 字符串分量仅对精确标识符（concept_identifier / AbstractSituation 结构化字段）生效，
+    /// 变体不匹配时字符串分量返回 0.0，此时混合分退化为纯 embedding 分，保持与旧行为一致。
+    pub fn compute_fused(
+        &self,
+        query: &EmbeddedMemoryRetrieveQuery,
+        string_blend_alpha: f32,
+    ) -> EmbeddingCalcResult<QueryComputeResult> {
+        let embedding_score = self.embedding().anonymous_compute(&query.embedding)?;
+        let string_score = compute_note_string_score(self.note(), &query.query);
+        let score =
+            string_blend_alpha * embedding_score + (1.0 - string_blend_alpha) * string_score;
+        Ok(QueryComputeResult::new(self.note().id(), score))
+    }
+}
+
 impl QueryCompute for EmbeddedMemoryNote {
     fn compute(&self, query: &Self::Query) -> EmbeddingCalcResult<QueryComputeResult> {
         Ok(QueryComputeResult {
@@ -349,13 +373,17 @@ impl QueryCompute for EmbeddedMemoryNote {
 mod tests {
     use super::*;
     use crate::embedding::embedding_model::bge::BgeSmallZh;
+    use crate::embedding::query::note::EmbeddedMemoryRetrieveQuery;
     use crate::embedding::Embeddable;
     use crate::query::retrieve::{
-        EnvironmentQueryUnit, EventQueryUnit, LocationQueryUnit, ParticipantQueryUnit,
-        SemanticQueryUnit,
+        EnvironmentQueryUnit, EventQueryUnit, LocationQueryUnit, MemoryRetrieveQuery,
+        MemoryRetrieveQueryVariant, ParticipantQueryUnit, SemanticQueryUnit, SituationQueryUnit,
     };
+    use crate::query::string_distance::compute_note_string_score;
     use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
+    use soul_mem_core::memory_note::situation_mem::AbstractSituation;
     use soul_mem_core::memory_note::situation_mem::{Environment, Event, Location, Participant};
+    use soul_mem_core::memory_note::{MemoryNoteBuilder, MemoryType};
 
     #[test]
     fn test_query_compute_result() {
@@ -546,5 +574,182 @@ mod tests {
             .anonymous_compute(&structured_query_emb)
             .unwrap();
         assert!(structured_score >= score);
+    }
+
+    fn embed_sem_note(model: &BgeSmallZh, content: &str, aliases: &[&str]) -> EmbeddedMemoryNote {
+        let mem_type = MemoryType::Semantic(SemMemory {
+            content: content.to_string(),
+            aliases: aliases.iter().map(|s| s.to_string()).collect(),
+            concept_type: ConceptType::Entity,
+            description: format!("与{content}相关的描述"),
+        });
+        let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+        let embedding = note.embed(model).unwrap();
+        EmbeddedMemoryNote { note, embedding }
+    }
+
+    fn embed_sem_query(
+        model: &BgeSmallZh,
+        concept_identifier: &str,
+    ) -> EmbeddedMemoryRetrieveQuery {
+        let query = MemoryRetrieveQuery::new(
+            vec![],
+            MemoryRetrieveQueryVariant::Semantic(vec![
+                SemanticQueryUnit::new().with_concept_identifier(concept_identifier.to_string())
+            ]),
+        );
+        let embedding = query.embed(model).unwrap();
+        EmbeddedMemoryRetrieveQuery { embedding, query }
+    }
+
+    #[test]
+    fn test_compute_fused_matches_blend_formula() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+        let embedded_note = embed_sem_note(&model, "小酒馆", &[]);
+        let embedded_query = embed_sem_query(&model, "酒馆");
+
+        let pure = embedded_note
+            .anonymous_compute(&embedded_query.embedding)
+            .unwrap();
+        let str_score = compute_note_string_score(&embedded_note.note(), &embedded_query.query);
+        let fused = embedded_note
+            .compute_fused(&embedded_query, 0.6)
+            .unwrap()
+            .score;
+
+        // 混合公式验证：0.6*emb + 0.4*str，两个分量均落在 [0,1]
+        let expected = 0.6 * pure + 0.4 * str_score;
+        assert!(
+            (fused - expected).abs() < 1e-5,
+            "fused {fused} != expected {expected}"
+        );
+        assert!(fused.is_finite());
+        assert!((0.0..=1.0).contains(&fused), "fused out of range: {fused}");
+        // 字符串分提供正的兜底贡献（0.4 * str > 0）
+        assert!(str_score > 0.5, "str_score too low: {str_score}");
+    }
+
+    #[test]
+    fn test_compute_fused_string_boost_ranking() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+        // 字形相近的命中项 vs 字形完全不同的干扰项
+        let hit = embed_sem_note(&model, "小酒馆", &[]);
+        let miss = embed_sem_note(&model, "火车站", &[]);
+        let embedded_query = embed_sem_query(&model, "酒馆");
+
+        let hit_fused = hit.compute_fused(&embedded_query, 0.6).unwrap().score;
+        let miss_fused = miss.compute_fused(&embedded_query, 0.6).unwrap().score;
+
+        // 字符串分对命中项是正贡献，对干扰项（str=0）无贡献
+        let hit_str = compute_note_string_score(&hit.note(), &embedded_query.query);
+        let miss_str = compute_note_string_score(&miss.note(), &embedded_query.query);
+        assert!(hit_str > 0.5);
+        assert_eq!(miss_str, 0.0);
+        assert!(
+            hit_fused > miss_fused,
+            "hit {hit_fused} <= miss {miss_fused}"
+        );
+        assert!((0.0..=1.0).contains(&hit_fused));
+    }
+
+    #[test]
+    fn test_compute_fused_alpha_zero_is_pure_embedding() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+        let embedded_note = embed_sem_note(&model, "小酒馆", &[]);
+        let embedded_query = embed_sem_query(&model, "酒馆");
+
+        // alpha=1.0 时退化为纯 embedding 分
+        let pure = embedded_note
+            .anonymous_compute(&embedded_query.embedding)
+            .unwrap();
+        let fused = embedded_note
+            .compute_fused(&embedded_query, 1.0)
+            .unwrap()
+            .score;
+        assert!((fused - pure).abs() < 1e-6);
+
+        // alpha=0.0 时完全由字符串分决定
+        let str_score = compute_note_string_score(&embedded_note.note(), &embedded_query.query);
+        let fused = embedded_note
+            .compute_fused(&embedded_query, 0.0)
+            .unwrap()
+            .score;
+        assert!((fused - str_score).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_compute_fused_abstract_situation_boost() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let mem_type = MemoryType::Situation(
+            AbstractSituation::Location(Location {
+                name: "酒馆".to_string(),
+                coordinates: String::new(),
+            })
+            .into(),
+        );
+        let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+        let embedding = note.embed(&model).unwrap();
+        let embedded_note = EmbeddedMemoryNote { note, embedding };
+
+        let query = MemoryRetrieveQuery::new(
+            vec![],
+            MemoryRetrieveQueryVariant::Situation(vec![
+                SituationQueryUnit::new().with_location(vec![LocationQueryUnit::new("小酒馆")])
+            ]),
+        );
+        let query_embedding = query.embed(&model).unwrap();
+        let embedded_query = EmbeddedMemoryRetrieveQuery {
+            embedding: query_embedding,
+            query,
+        };
+
+        let pure = embedded_note
+            .anonymous_compute(&embedded_query.embedding)
+            .unwrap();
+        let str_score = compute_note_string_score(&embedded_note.note(), &embedded_query.query);
+        let fused = embedded_note
+            .compute_fused(&embedded_query, 0.6)
+            .unwrap()
+            .score;
+
+        let expected = 0.6 * pure + 0.4 * str_score;
+        assert!(
+            (fused - expected).abs() < 1e-5,
+            "abstract fused {fused} != {expected}"
+        );
+        assert!((0.0..=1.0).contains(&fused));
+        assert!(str_score > 0.5, "location str_score too low: {str_score}");
+    }
+
+    #[test]
+    fn test_compute_fused_variant_mismatch_degrades_to_embedding() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+        // Semantic 记忆 + Situation 查询：字符串分=0，混合分退化为 0.6 * embedding 分
+        let embedded_note = embed_sem_note(&model, "战斗", &[]);
+        let query = MemoryRetrieveQuery::new(
+            vec![],
+            MemoryRetrieveQueryVariant::Situation(vec![
+                SituationQueryUnit::new().with_narrative("战斗场景".to_string())
+            ]),
+        );
+        let query_embedding = query.embed(&model).unwrap();
+        let embedded_query = EmbeddedMemoryRetrieveQuery {
+            embedding: query_embedding,
+            query,
+        };
+
+        let pure = embedded_note
+            .anonymous_compute(&embedded_query.embedding)
+            .unwrap();
+        let fused = embedded_note
+            .compute_fused(&embedded_query, 0.6)
+            .unwrap()
+            .score;
+        assert_eq!(
+            compute_note_string_score(&embedded_note.note(), &embedded_query.query),
+            0.0
+        );
+        assert!((fused - 0.6 * pure).abs() < 1e-6);
     }
 }

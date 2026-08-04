@@ -747,8 +747,8 @@ mod tests {
           "description": "desc",
           "graph_path": "graph.json",
           "config": {
-            "similarity_threshold": 0.5,
-            "max_results": 10,
+            "similarity_threshold": 0.7,
+            "max_results": 4,
             "test_k_values": [1, 3, 5]
           },
           "test_cases": [

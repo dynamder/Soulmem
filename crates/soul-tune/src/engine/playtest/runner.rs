@@ -13,6 +13,7 @@ use soul_mem_algo::algo::retrieve::{
 };
 use soul_mem_core::memory_note::situation_mem::SituationType;
 use soul_mem_core::memory_note::{MemoryId, MemoryType};
+use soul_mem_query::embedding::query::note::EmbeddedMemoryRetrieveQuery;
 use soul_mem_query::embedding::Embeddable;
 use soul_mem_query::query::retrieve::{
     EnvironmentQueryUnit, EventQueryUnit, LocationQueryUnit, MemoryRetrieveQuery,
@@ -236,14 +237,14 @@ fn strip_and_trim(s: &str) -> String {
 impl Default for PlayConfig {
     fn default() -> Self {
         Self {
-            similarity_threshold: 0.3,
-            max_results: 5,
+            similarity_threshold: 0.7,
+            max_results: 4,
             action_top_k: 3,
             ppr_top_k: 8,
-            damping_factor: 0.15,
+            damping_factor: 0.65,
             residue_threshold: 1e-5,
             runs_per_turn: 5,
-            merged_top_k: 7,
+            merged_top_k: 10,
         }
     }
 }
@@ -715,7 +716,13 @@ impl PlayTestRunner {
                 similarity_threshold: self.config.similarity_threshold,
                 max_results: self.config.max_results,
             };
-            let sim_req = sim_config.into_request(self.wm.clone(), embedded);
+            let sim_req = sim_config.into_request(
+                self.wm.clone(),
+                EmbeddedMemoryRetrieveQuery {
+                    embedding: embedded,
+                    query: query.clone(),
+                },
+            );
             let sim_result = RetrSimilarity {}.retrieve(sim_req);
 
             let sim_elapsed = q_start.elapsed();
@@ -795,7 +802,13 @@ impl PlayTestRunner {
                 similarity_threshold: self.config.similarity_threshold,
                 max_results: self.config.max_results,
             };
-            let sim_req = sim_config.into_request(self.wm.clone(), embedded);
+            let sim_req = sim_config.into_request(
+                self.wm.clone(),
+                EmbeddedMemoryRetrieveQuery {
+                    embedding: embedded,
+                    query: query.clone(),
+                },
+            );
             let sim_result = RetrSimilarity {}.retrieve(sim_req);
             let sim_elapsed = Instant::now().duration_since(q_start);
 

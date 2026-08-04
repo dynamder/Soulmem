@@ -39,7 +39,7 @@ impl Default for AssociationConfig {
         AssociationConfig {
             intensity_factor: None,
             confidence_factor: None,
-            damping_factor: 0.15,
+            damping_factor: 0.65,
             residue_threshold: 1e-5,
             preference: TypePreference::Situation,
             top_k: 8,
@@ -48,7 +48,7 @@ impl Default for AssociationConfig {
 }
 
 fn default_damping_factor() -> f64 {
-    0.15
+    0.65
 }
 fn default_residue_threshold() -> f64 {
     1e-5
@@ -94,7 +94,7 @@ impl AssociationRequest {
             source,
             intensity_factor: None,
             confidence_factor: None,
-            damping_factor: 0.15,
+            damping_factor: 0.65,
             residue_threshold: 1e-5,
             preference: TypePreference::default(),
             top_k: 8,
