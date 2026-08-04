@@ -3,14 +3,14 @@ use std::sync::Arc;
 use serde::Deserialize;
 
 use crate::algo::retrieve::{
-    RetrRequest, RetrStrategy,
     complex::{AssociateWithActionConfig, RetrAssociateWithAction},
     short_only::{RetrShortOnly, ShortOnlyConfig},
     similarity::{RetrSimilarity, SimilarityConfig},
+    RetrRequest, RetrStrategy,
 };
 use soul_mem_core::memory_note::MemoryId;
 use soul_mem_query::embedding::query::note::EmbeddedMemoryRetrieveQuery;
-use soul_mem_runtime::working_memory::{WorkingMemory, sliding_window::Information};
+use soul_mem_runtime::working_memory::{sliding_window::Information, WorkingMemory};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct DefaultPipelineConfig {
@@ -66,15 +66,10 @@ impl RetrStrategy for RetrDefaultPipeline {
         let short_mem_res = RetrShortOnly {}.retrieve(short_mem_request);
 
         //向量相似性搜索，提取ppr源节点
-        let EmbeddedMemoryRetrieveQuery {
-            query: _query,
-            embedding: query_embedding,
-        } = request.query;
-
         let similarity_request = request
             .pipeline_config
             .similarity
-            .into_request(Arc::clone(&request.working_mem), query_embedding);
+            .into_request(Arc::clone(&request.working_mem), request.query);
         let similarity_res = RetrSimilarity {}.retrieve(similarity_request);
 
         //PPR联想及动作概率推理
@@ -102,16 +97,16 @@ mod tests {
     use soul_mem_core::memory_links::sem_mem::SemMemLink;
     use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType};
     use soul_mem_core::memory_note::{
-        MemoryNoteBuilder, MemoryType,
         proc_mem::{Action, ActionType, ProcMemory},
         sem_mem::{ConceptType, SemMemory},
+        MemoryNoteBuilder, MemoryType,
     };
-    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::embedding::note::{
         EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
     };
     use soul_mem_query::embedding::query::note::MemoryRetrieveQueryEmbedding;
     use soul_mem_query::embedding::sem::SemanticEmbedding;
+    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant};
     use soul_mem_runtime::working_memory::sliding_window::{AssistantInformation, UserInformation};
 

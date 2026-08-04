@@ -72,6 +72,8 @@ pub struct MemoryRetrieveQueryEmbedding {
     variant: MemoryRetrieveQueryVariantEmbedding,
     pub tag_weight: f32,
     pub variant_weight: f32,
+    /// embedding 在最终混合分中的权重，`1 - string_blend_alpha` 为字符串得分权重
+    pub string_blend_alpha: f32,
 }
 impl MemoryRetrieveQueryEmbedding {
     pub fn tag(&self) -> &EmbeddingVec {
@@ -87,6 +89,7 @@ impl MemoryRetrieveQueryEmbedding {
             variant: MemoryRetrieveQueryVariantEmbedding::Semantic(vec![]),
             tag_weight: 0.4,
             variant_weight: 0.6,
+            string_blend_alpha: 0.6,
         }
     }
 
@@ -94,6 +97,7 @@ impl MemoryRetrieveQueryEmbedding {
     pub fn with_weights(mut self, bw: BlendWeights) -> Self {
         self.tag_weight = bw.tag;
         self.variant_weight = bw.variant;
+        self.string_blend_alpha = bw.string_blend_alpha;
         self.variant.set_blend_weights(&bw);
         self
     }
@@ -124,6 +128,7 @@ impl Embeddable for MemoryRetrieveQuery {
             variant: variant_vec,
             tag_weight: 0.4,
             variant_weight: 0.6,
+            string_blend_alpha: 0.6,
         })
     }
     fn embed_and_fuse(
