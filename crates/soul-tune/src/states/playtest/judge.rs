@@ -49,7 +49,6 @@ pub struct PlayTestJudgeState {
     result: PlayTestResult,
     current_turn: usize,
     current_run: usize,
-    runs_per_turn: usize,
     phase: JudgePhase,
     debug_view: DebugView,
     think_fold_a: ExpandableList,
@@ -62,13 +61,11 @@ pub struct PlayTestJudgeState {
 
 impl PlayTestJudgeState {
     pub fn new(result: PlayTestResult) -> Self {
-        let runs_per_turn = result.config.runs_per_turn.max(1);
-        let total_slots = result.turns.len() * runs_per_turn;
+        let total_slots: usize = result.turns.iter().map(|t| t.runs.len()).sum();
         Self {
             result,
             current_turn: 0,
             current_run: 0,
-            runs_per_turn,
             phase: JudgePhase::Voting,
             debug_view: DebugView::Hidden,
             think_fold_a: ExpandableList::new(total_slots),
@@ -112,7 +109,11 @@ impl PlayTestJudgeState {
     }
 
     fn flat_display_idx(&self) -> usize {
-        self.current_turn * self.runs_per_turn + self.display_run_idx()
+        self.result.turns[..self.current_turn]
+            .iter()
+            .map(|t| t.runs.len())
+            .sum::<usize>()
+            + self.display_run_idx()
     }
 
     fn resp_a(&self) -> (Option<String>, String) {
@@ -324,7 +325,7 @@ impl PlayTestJudgeState {
             " {} 第 {} 次 {}",
             if self.reveal_cursor > 0 { "◄" } else { " " },
             self.reveal_cursor + 1,
-            if self.reveal_cursor + 1 < self.runs_per_turn {
+            if self.reveal_cursor + 1 < self.current_runs().len() {
                 "►"
             } else {
                 " "

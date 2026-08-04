@@ -74,10 +74,6 @@ pub struct BlendPairRaw {
     #[serde(default)]
     pub variant: Option<f32>,
     #[serde(default)]
-    pub sem_concept_main: Option<f32>,
-    #[serde(default)]
-    pub sem_concept_aliases: Option<f32>,
-    #[serde(default)]
     pub sem_concept: Option<f32>,
     #[serde(default)]
     pub sem_description: Option<f32>,
@@ -226,7 +222,7 @@ impl RetrieveSuite {
             .collect();
 
         let mut test_cases: Vec<TestCaseWithWeights> = Vec::new();
-        let model = get_bge_model();
+        let model = get_bge_model()?;
         let mut query_embeddings: Vec<Vec<MemoryRetrieveQueryEmbedding>> = Vec::new();
 
         for base in &base_cases {
@@ -235,9 +231,10 @@ impl RetrieveSuite {
                 .iter()
                 .map(|sq| {
                     let mq = MemoryRetrieveQuery::new(sq.tags.clone(), sq.variant.clone());
-                    mq.embed(model).expect("Query embed failed")
+                    mq.embed(model)
+                        .map_err(|e| format!("Query embed failed: {e}"))
                 })
-                .collect();
+                .collect::<Result<_, _>>()?;
 
             for bw in &sweep_pairs {
                 let label = format!(" [w=tag:{:.1}/var:{:.1}]", bw.tag, bw.variant);

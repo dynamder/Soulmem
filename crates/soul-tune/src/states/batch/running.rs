@@ -361,23 +361,45 @@ impl BatchRunState {
                     }
                 }
                 let n = all_results.len();
-                let avg_e = if n > 0 {
-                    all_results.iter().map(|d| d.avg_emb_hit).sum::<f64>() / n as f64
+                //平均值只统计成功的数据集，避免加载失败的0分结果拉低均值（失败项仍保留在表格中展示）
+                let valid_n = all_results.iter().filter(|d| d.error.is_none()).count();
+                let avg_e = if valid_n > 0 {
+                    all_results
+                        .iter()
+                        .filter(|d| d.error.is_none())
+                        .map(|d| d.avg_emb_hit)
+                        .sum::<f64>()
+                        / valid_n as f64
                 } else {
                     0.0
                 };
-                let avg_f = if n > 0 {
-                    all_results.iter().map(|d| d.avg_full_hit).sum::<f64>() / n as f64
+                let avg_f = if valid_n > 0 {
+                    all_results
+                        .iter()
+                        .filter(|d| d.error.is_none())
+                        .map(|d| d.avg_full_hit)
+                        .sum::<f64>()
+                        / valid_n as f64
                 } else {
                     0.0
                 };
-                let avg_em = if n > 0 {
-                    all_results.iter().map(|d| d.avg_emb_mrr).sum::<f64>() / n as f64
+                let avg_em = if valid_n > 0 {
+                    all_results
+                        .iter()
+                        .filter(|d| d.error.is_none())
+                        .map(|d| d.avg_emb_mrr)
+                        .sum::<f64>()
+                        / valid_n as f64
                 } else {
                     0.0
                 };
-                let avg_fm = if n > 0 {
-                    all_results.iter().map(|d| d.avg_full_mrr).sum::<f64>() / n as f64
+                let avg_fm = if valid_n > 0 {
+                    all_results
+                        .iter()
+                        .filter(|d| d.error.is_none())
+                        .map(|d| d.avg_full_mrr)
+                        .sum::<f64>()
+                        / valid_n as f64
                 } else {
                     0.0
                 };

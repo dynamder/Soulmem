@@ -296,30 +296,11 @@ pub fn run_batch_compare(
                 if i >= datasets.len() {
                     break;
                 }
-                //worker内panic（如模型加载失败）会静默杀死线程导致batch挂起，
-                //这里捕获panic并报告错误结果，保证每个任务都有产出
+                //模型加载/embedding失败已通过Result返回错误结果（见process_one_compare_dataset），
+                //不再依赖catch_unwind（release构建为panic=abort，无法捕获panic）
                 let ds_start = Instant::now();
-                let ds = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                    process_one_compare_dataset(&datasets[i], None, ds_start, |_, _| {}, |_| {})
-                }))
-                .unwrap_or_else(|_| CompareDatasetResult {
-                    name: datasets[i]
-                        .file_name()
-                        .map(|n| n.to_string_lossy().to_string())
-                        .unwrap_or_default(),
-                    path: datasets[i].clone(),
-                    case_count: 0,
-                    emb_passed: 0,
-                    full_passed: 0,
-                    avg_emb_hit: 0.0,
-                    avg_full_hit: 0.0,
-                    hit_delta: 0.0,
-                    avg_emb_mrr: 0.0,
-                    avg_full_mrr: 0.0,
-                    mrr_delta: 0.0,
-                    elapsed: ds_start.elapsed(),
-                    error: Some("worker panic".to_string()),
-                });
+                let ds =
+                    process_one_compare_dataset(&datasets[i], None, ds_start, |_, _| {}, |_| {});
                 let _ = tx.send((i, ds));
             })
             .ok();
@@ -343,23 +324,26 @@ pub fn run_batch_compare(
     let datasets: Vec<CompareDatasetResult> = results.into_iter().map(|(_, ds)| ds).collect();
 
     let total_datasets = datasets.len();
-    let avg_emb_hit = if total_datasets > 0 {
-        datasets.iter().map(|d| d.avg_emb_hit).sum::<f64>() / total_datasets as f64
+    //平均值只统计成功的数据集，避免加载失败的0分结果拉低均值（失败项仍保留在列表中展示）
+    let valid: Vec<&CompareDatasetResult> = datasets.iter().filter(|d| d.error.is_none()).collect();
+    let valid_n = valid.len();
+    let avg_emb_hit = if valid_n > 0 {
+        valid.iter().map(|d| d.avg_emb_hit).sum::<f64>() / valid_n as f64
     } else {
         0.0
     };
-    let avg_full_hit = if total_datasets > 0 {
-        datasets.iter().map(|d| d.avg_full_hit).sum::<f64>() / total_datasets as f64
+    let avg_full_hit = if valid_n > 0 {
+        valid.iter().map(|d| d.avg_full_hit).sum::<f64>() / valid_n as f64
     } else {
         0.0
     };
-    let avg_emb_mrr = if total_datasets > 0 {
-        datasets.iter().map(|d| d.avg_emb_mrr).sum::<f64>() / total_datasets as f64
+    let avg_emb_mrr = if valid_n > 0 {
+        valid.iter().map(|d| d.avg_emb_mrr).sum::<f64>() / valid_n as f64
     } else {
         0.0
     };
-    let avg_full_mrr = if total_datasets > 0 {
-        datasets.iter().map(|d| d.avg_full_mrr).sum::<f64>() / total_datasets as f64
+    let avg_full_mrr = if valid_n > 0 {
+        valid.iter().map(|d| d.avg_full_mrr).sum::<f64>() / valid_n as f64
     } else {
         0.0
     };

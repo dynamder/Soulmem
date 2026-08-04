@@ -60,6 +60,7 @@ impl PlayTestInputState {
         let dialogue = DialogueFile {
             name: Some("手动输入对话".to_string()),
             graph_path: graph_path_abs.to_string_lossy().to_string(),
+            role: None,
             config: None,
             conversations: lines
                 .into_iter()

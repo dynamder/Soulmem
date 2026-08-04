@@ -13,9 +13,7 @@ use ratatui_textarea::TextArea;
 use crate::base::Transition;
 use crate::component::{Component, ComponentEvent};
 use crate::engine::llm::LlamaServer;
-use crate::engine::playtest::{
-    DialogueFile, PlayRunSnapshot, PlayTestResult, PlayTestRunner, PlayTurnResult,
-};
+use crate::engine::playtest::{DialogueFile, PlayTestResult, PlayTestRunner, PlayTurnResult};
 use crate::widgets::status_bar;
 
 enum WorkerMsg {
@@ -151,26 +149,9 @@ impl PlayTestRunState {
 
                     let total = dialogue.conversations.len();
                     for (i, entry) in dialogue.conversations.iter().enumerate() {
-                        //捕获单轮panic，避免worker线程死亡导致UI停在Processing
-                        let turn = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                            runner.process_turn(entry, i, &mut llm)
-                        }))
-                        .unwrap_or_else(|_| PlayTurnResult {
-                            index: i,
-                            user_message: entry.user_message.clone(),
-                            system_prompt: runner.system_prompt.clone(),
-                            generated_queries_json: String::new(),
-                            query_think_content: None,
-                            embedding_trace: None,
-                            fullpipeline_trace: None,
-                            runs: vec![PlayRunSnapshot {
-                                embedding_response: None,
-                                fullpipeline_response: None,
-                                swap: false,
-                                human_pick: None,
-                                error: Some("worker panic during turn".to_string()),
-                            }],
-                        });
+                        //process_turn内部已将所有可恢复失败（模型加载/LLM/检索）转为错误结果或错误run，
+                        //不再依赖catch_unwind（release构建为panic=abort，无法捕获panic）
+                        let turn = runner.process_turn(entry, i, &mut llm);
                         let _ = tx.send(WorkerMsg::TurnComplete {
                             turn,
                             total_turns: total,

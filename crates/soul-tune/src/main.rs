@@ -24,10 +24,13 @@ use std::sync::Arc;
 use base::{AlgoType, RetrieveMode, TestReport};
 use engine::batch::{print_batch_result, run_batch, scan_question_jsons};
 use engine::llm::LlamaServer;
-use engine::playtest::{DialogueFile, PlayTestRunner};
+use engine::playtest::trace::RetrievalTrace;
+use engine::playtest::{DialogueFile, PlayTestRunner, PlayTurnResult};
 use engine::retrieve::batch::process_one_dataset;
+use engine::retrieve::data::RetrieveCaseData;
 use engine::retrieve::RetrieveSuite;
-use engine::suite::{MetricFormat, ReportMetric, TestSuite};
+use engine::suite::{MetricFormat, ReportMetric, TestCaseOutcome, TestSuite};
+use soul_mem_query::query::retrieve::MemoryRetrieveQueryVariant;
 use states::inspect::{InspectFileType, InspectState};
 
 fn main() -> color_eyre::Result<()> {
@@ -92,13 +95,23 @@ fn main() -> color_eyre::Result<()> {
     }
 
     if args.len() >= 4 && args[1] == "run" {
+        //--batch只是开关，位置不固定：同时兼容 run <algo> <dataset> [--batch] 与 run <algo> --batch <dataset>
         let is_batch = args.iter().any(|a| a == "--batch");
-        //固定位置解析：run <algo> <dataset> [--batch]，--batch只是开关，不影响位置
-        let algo_str = &args[2];
-        let path_str = &args[3];
+        let positional: Vec<&str> = args
+            .iter()
+            .skip(1)
+            .filter(|a| a.as_str() != "--batch")
+            .map(|s| s.as_str())
+            .collect();
+        if positional.len() < 3 {
+            eprintln!("用法: soul-tune run <algo> <dataset> [--batch]");
+            std::process::exit(1);
+        }
+        let algo_str = positional[1];
+        let path_str = positional[2];
         let dataset_path = PathBuf::from(path_str);
 
-        let algo = match algo_str.as_str() {
+        let algo = match algo_str {
             "retrieve" | "r" | "retrieve/embedding" | "re" => {
                 AlgoType::Retrieve(RetrieveMode::Embedding)
             }
@@ -175,6 +188,9 @@ fn run_headless_single(algo: AlgoType, dataset_path: PathBuf) -> color_eyre::Res
 
     let elapsed = start.elapsed();
 
+    // 文件日志（观测用，不影响结果）
+    write_retrieve_log(&outcomes);
+
     let report = suite.build_report(outcomes, elapsed, n, passed, failed);
 
     print_report(&TestReport {
@@ -212,6 +228,178 @@ fn run_headless_batch(dir: &Path, mode: RetrieveMode) {
     print_batch_result(&result);
 }
 
+// ===== 文件日志（仅观测用，不改动任何功能逻辑）=====
+
+fn fmt_variant(v: &MemoryRetrieveQueryVariant) -> String {
+    match v {
+        MemoryRetrieveQueryVariant::Semantic(units) => {
+            let parts: Vec<String> = units
+                .iter()
+                .map(|u| {
+                    let mut p = format!("concept={:?}", u.concept_identifier().unwrap_or(""));
+                    if let Some(d) = u.description() {
+                        p.push_str(&format!(" desc={:?}", d));
+                    }
+                    p
+                })
+                .collect();
+            format!("Semantic[{}]", parts.join(" | "))
+        }
+        MemoryRetrieveQueryVariant::Situation(units) => {
+            let parts: Vec<String> = units
+                .iter()
+                .map(|u| {
+                    let mut p: Vec<String> = Vec::new();
+                    if let Some(n) = u.narrative() {
+                        p.push(format!("narrative={:?}", n));
+                    }
+                    if let Some(l) = u.location() {
+                        p.push(format!(
+                            "location={:?}",
+                            l.iter().map(|x| x.name()).collect::<Vec<_>>()
+                        ));
+                    }
+                    if let Some(ps) = u.participants() {
+                        p.push(format!(
+                            "participants={:?}",
+                            ps.iter().map(|x| x.name().unwrap_or("")).collect::<Vec<_>>()
+                        ));
+                    }
+                    if let Some(e) = u.environment() {
+                        p.push(format!("env={e:?}"));
+                    }
+                    if let Some(ev) = u.event() {
+                        p.push(format!(
+                            "event={:?}",
+                            ev.iter().map(|x| x.action()).collect::<Vec<_>>()
+                        ));
+                    }
+                    p.join(", ")
+                })
+                .collect();
+            format!("Situation[{}]", parts.join(" | "))
+        }
+    }
+}
+
+fn fmt_trace(kind: &str, t: &RetrievalTrace) -> String {
+    let mut out = String::new();
+    out.push_str(&format!(
+        "[{}] 合并 {} 节点, 总耗时 {:.2}s\n",
+        kind,
+        t.merged_nodes.len(),
+        t.total_elapsed.as_secs_f64()
+    ));
+    for (qi, qt) in t.per_query.iter().enumerate() {
+        out.push_str(&format!(
+            "  Q{}: {}\n      sim={} ppr={} action={} (查询耗时 {:.2}s)\n",
+            qi,
+            fmt_variant(qt.query.variant()),
+            qt.sim_nodes.len(),
+            qt.ppr_nodes.len(),
+            qt.action_nodes.len(),
+            qt.total_elapsed.as_secs_f64()
+        ));
+    }
+    for n in t.merged_nodes.iter().take(12) {
+        let content: String = n.content.chars().take(40).collect();
+        out.push_str(&format!(
+            "  - [{}] {:?} score={:.4} | {}\n",
+            n.name, n.stage, n.score, content
+        ));
+    }
+    out
+}
+
+fn write_playtest_log(results: &[PlayTurnResult]) {
+    let mut out = String::new();
+    for turn in results {
+        out.push_str(&format!(
+            "########## 第 {} 轮 ##########\n用户: {}\n",
+            turn.index + 1, turn.user_message
+        ));
+        out.push_str(&format!("查询JSON: {}\n", turn.generated_queries_json));
+        match (&turn.embedding_trace, &turn.fullpipeline_trace) {
+            (Some(e), Some(f)) => {
+                out.push_str(&fmt_trace("Embedding", e));
+                out.push_str(&fmt_trace("FullPipeline", f));
+            }
+            (e, f) => {
+                if e.is_none() {
+                    out.push_str("[Embedding] trace=None（无有效查询或全部嵌入失败）\n");
+                }
+                if f.is_none() {
+                    out.push_str("[FullPipeline] trace=None（无有效查询或全部嵌入失败）\n");
+                }
+            }
+        }
+        if let Some(err) = turn.runs.first().and_then(|r| r.error.as_ref()) {
+            out.push_str(&format!("错误: {}\n", err));
+        }
+        out.push('\n');
+    }
+    let path = std::env::temp_dir().join("soul_tune_playtest_log.txt");
+    if std::fs::write(&path, out).is_ok() {
+        println!("Playtest 日志已写入: {}", path.display());
+    }
+}
+
+fn write_retrieve_log(outcomes: &[TestCaseOutcome]) {
+    let mut out = String::new();
+    let mut passed = 0;
+    for (i, o) in outcomes.iter().enumerate() {
+        let ok = o.passed;
+        if ok {
+            passed += 1;
+        }
+        out.push_str(&format!(
+            "===== 用例 {}: {} [{}] =====\n",
+            i,
+            o.case_name,
+            if ok { "通过" } else { "失败" }
+        ));
+        if let Some(data) = o.data.downcast_ref::<RetrieveCaseData>() {
+            let m = &data.combined_ranking_metrics;
+            out.push_str(&format!("  MRR={:.4} Hit={:.2}\n", m.mrr, m.hit_rate));
+            for pm in &data.per_query_metrics {
+                out.push_str(&format!(
+                    "  Q{}: MRR={:.4} Hit={:.2}\n",
+                    pm.query_index, pm.ranking_metrics.mrr, pm.ranking_metrics.hit_rate
+                ));
+            }
+            out.push_str(&format!(
+                "  检索到 {} 节点:\n",
+                data.combined_retrieved_ids.len()
+            ));
+            for (pos, id) in data.combined_retrieved_ids.iter().enumerate() {
+                let name = data
+                    .graph_names
+                    .as_ref()
+                    .and_then(|m| m.get(id))
+                    .cloned()
+                    .unwrap_or_default();
+                out.push_str(&format!("    #{:<3} {}\n", pos + 1, name));
+            }
+            out.push_str("  期望命中(前5):\n");
+            for (pos, id) in data.expected_combined_ranking.iter().take(5).enumerate() {
+                let name = data
+                    .graph_names
+                    .as_ref()
+                    .and_then(|m| m.get(id))
+                    .cloned()
+                    .unwrap_or_default();
+                out.push_str(&format!("    E#{:<3} {}\n", pos + 1, name));
+            }
+        }
+        out.push('\n');
+    }
+    out.push_str(&format!("共 {} 用例, 通过 {}\n", outcomes.len(), passed));
+    let path = std::env::temp_dir().join("soul_tune_retrieve_log.txt");
+    if std::fs::write(&path, out).is_ok() {
+        println!("Retrieve 日志已写入: {}", path.display());
+    }
+}
+
 fn run_headless_playtest(args: &[String]) -> color_eyre::Result<()> {
     if args.len() < 4 {
         eprintln!("用法: soul-tune playtest <graph_dir> <dialogue_file>");
@@ -239,14 +427,30 @@ fn run_headless_playtest(args: &[String]) -> color_eyre::Result<()> {
         }
     };
 
+    let dialogue: DialogueFile = serde_json::from_str(
+        &std::fs::read_to_string(&dialogue_path)
+            .map_err(|e| color_eyre::eyre::eyre!("读取对话文件失败: {}", e))?,
+    )
+    .map_err(|e| color_eyre::eyre::eyre!("解析对话文件失败: {}", e))?;
+
     println!("=== 角色扮演测试 (CLI) ===");
     println!("图目录: {}", graph_dir.display());
     println!("对话: {}", dialogue_path.display());
+    println!(
+        "自身角色: {}",
+        dialogue.role.as_deref().unwrap_or("（未设置）")
+    );
     println!("模型: {}\n", model_path);
 
     println!("[1/3] 加载角色图...");
-    let runner = PlayTestRunner::load(&graph_dir)
+    let mut runner = PlayTestRunner::load(&graph_dir)
         .map_err(|e| color_eyre::eyre::eyre!("加载图失败: {}", e))?;
+    if let Some(ref cfg) = dialogue.config {
+        runner = runner.with_config(cfg.clone());
+    }
+    if let Some(ref role) = dialogue.role {
+        runner = runner.with_human_role(Some(role.clone()));
+    }
     let runner = Arc::new(runner);
     println!("  ✓ 图加载完成");
 
@@ -256,12 +460,6 @@ fn run_headless_playtest(args: &[String]) -> color_eyre::Result<()> {
     println!("  ✓ LLM 服务就绪");
 
     println!("[3/3] 运行对话...\n");
-    let dialogue: DialogueFile = serde_json::from_str(
-        &std::fs::read_to_string(&dialogue_path)
-            .map_err(|e| color_eyre::eyre::eyre!("读取对话文件失败: {}", e))?,
-    )
-    .map_err(|e| color_eyre::eyre::eyre!("解析对话文件失败: {}", e))?;
-
     let n = dialogue.conversations.len();
     let mut results = Vec::with_capacity(n);
 
@@ -312,6 +510,9 @@ fn run_headless_playtest(args: &[String]) -> color_eyre::Result<()> {
             .join("soul_tune_llm_output.txt")
             .display()
     );
+
+    // 文件日志（观测用，不影响结果）
+    write_playtest_log(&results);
 
     Ok(())
 }
