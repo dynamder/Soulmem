@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 use crate::algo::retrieve::RetrRequest;
-use soul_mem_runtime::working_memory::{WorkingMemory, sliding_window::Information};
+use soul_mem_runtime::working_memory::{sliding_window::Information, WorkingMemory};
 use std::sync::Arc;
 
 use super::RetrStrategy;
@@ -59,7 +59,11 @@ impl RetrStrategy for RetrShortOnly {
             }
             window
         };
-        let summary = request.working_mem.sliding_window().get_summary();
+        let summary = if request.include_summary {
+            request.working_mem.sliding_window().get_summary()
+        } else {
+            Arc::from("")
+        };
         (window, summary)
     }
 }

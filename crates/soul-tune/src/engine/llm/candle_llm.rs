@@ -60,27 +60,12 @@ pub struct CandleLlm {
 }
 
 impl LlmBackend for CandleLlm {
-    fn generate_queries(&mut self, system: &str, user_message: &str) -> Result<String> {
-        let prompt = format!("{}\n\n用户说: \"{}\"", system, user_message);
-        self.generate(&prompt, 32768)
-    }
-
-    fn generate_response(
-        &mut self,
-        system: &str,
-        context: &str,
-        user_message: &str,
-    ) -> Result<String> {
-        let system_prompt = if context.is_empty() {
-            system.to_string()
-        } else {
-            format!("{}\n\n相关记忆:\n{}", system, context)
-        };
+    fn chat(&mut self, system: &str, user_msg: &str, max_tokens: u32) -> Result<String> {
         let prompt = format!(
             "<|im_start|>system\n{}<|im_end|>\n<|im_start|>user\n{}<|im_end|>\n<|im_start|>assistant\n",
-            system_prompt, user_message
+            system, user_msg
         );
-        self.generate(&prompt, 1024)
+        self.generate(&prompt, max_tokens as usize)
     }
 }
 
@@ -166,6 +151,8 @@ impl CandleLlm {
             .encode(prompt, true)
             .map_err(|e| anyhow::anyhow!("Tokenize error: {}", e))?;
         let mut tokens: Vec<u32> = encoding.get_ids().to_vec();
+        //记录prompt token数，仅解码新增的生成token，避免输出包含完整提示词
+        let prompt_len = tokens.len();
 
         let mut rng = rand::rng();
 
@@ -198,7 +185,7 @@ impl CandleLlm {
 
         let output = self
             .tokenizer
-            .decode(&tokens, true)
+            .decode(&tokens[prompt_len..], true)
             .map_err(|e| anyhow::anyhow!("Decode error: {}", e))?;
 
         Ok(strip_think_tags(&output))

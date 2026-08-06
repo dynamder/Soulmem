@@ -2,6 +2,11 @@
 resolver = "3"
 members = ["crates/soul-mem-algo","crates/soul-mem-core", "crates/soul-mem-query", "crates/soul-mem-runtime", "benches", "crates/soul-tune"]
 
+# esaxx-rs 硬编码 static_crt(true)(/MT)，与 llama-cpp-sys-2(/MD) 在 MSVC 链接冲突，
+# 本地补丁移除 static_crt 使整个依赖树统一使用 /MD 运行时。
+[patch.crates-io]
+esaxx-rs = { path = "patches/esaxx-rs" }
+
 [workspace.dependencies]
 anyhow = "1.0.98"
 chrono = { version = "0.4.41", features = ["serde"] }

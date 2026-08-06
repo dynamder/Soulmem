@@ -6,22 +6,17 @@ struct MockLlm {
 }
 
 impl LlmBackend for MockLlm {
-    fn generate_queries(&mut self, _system: &str, _user_message: &str) -> anyhow::Result<String> {
-        Ok(self.query_response.clone())
-    }
-
-    fn generate_response(
-        &mut self,
-        _system: &str,
-        _context: &str,
-        _user_message: &str,
-    ) -> anyhow::Result<String> {
-        Ok(self.response_text.clone())
+    fn chat(&mut self, _system: &str, user_msg: &str, _max_tokens: u32) -> anyhow::Result<String> {
+        if user_msg.contains("JSON 数组") {
+            Ok(self.query_response.clone())
+        } else {
+            Ok(self.response_text.clone())
+        }
     }
 }
 
 #[test]
-fn test_mock_llm_generate_queries() {
+fn test_mock_llm_chat_returns_query_json() {
     let json = r#"[
         {"tag": ["角色"], "variant": {"Semantic": [{"concept_identifier": "测试"}]}, "priority": 1}
     ]"#;
@@ -30,20 +25,18 @@ fn test_mock_llm_generate_queries() {
         response_text: "mock response".into(),
     };
 
-    let result = mock.generate_queries("system", "user message").unwrap();
+    let result = mock.chat("system", "请输出一个 JSON 数组", 2048).unwrap();
     assert_eq!(result, json);
 }
 
 #[test]
-fn test_mock_llm_generate_response() {
+fn test_mock_llm_chat_returns_response() {
     let mut mock = MockLlm {
         query_response: String::new(),
         response_text: "你好，我是角色".into(),
     };
 
-    let result = mock
-        .generate_response("system prompt", "context", "hello")
-        .unwrap();
+    let result = mock.chat("system prompt", "hello", 512).unwrap();
     assert_eq!(result, "你好，我是角色");
 }
 

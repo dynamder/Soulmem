@@ -12,33 +12,12 @@ pub struct LlamaServer {
 }
 
 impl LlmBackend for LlamaServer {
-    fn generate_queries(&mut self, system: &str, user_message: &str) -> Result<String> {
-        let user_content = format!("用户说: \"{}\"", user_message);
+    fn chat(&mut self, system: &str, user_msg: &str, max_tokens: u32) -> Result<String> {
         let messages = vec![
             serde_json::json!({"role": "system", "content": system}),
-            serde_json::json!({"role": "user", "content": user_content}),
+            serde_json::json!({"role": "user", "content": user_msg}),
         ];
-        self.chat_completion(&messages, 2048)
-    }
-
-    fn generate_response(
-        &mut self,
-        system: &str,
-        context: &str,
-        user_message: &str,
-    ) -> Result<String> {
-        let system_prompt = if context.is_empty() {
-            system.to_string()
-        } else {
-            format!("{}\n\n相关记忆:\n{}", system, context)
-        };
-
-        let messages = vec![
-            serde_json::json!({"role": "system", "content": system_prompt}),
-            serde_json::json!({"role": "user", "content": user_message}),
-        ];
-
-        self.chat_completion(&messages, 512)
+        self.chat_completion(&messages, max_tokens)
     }
 }
 

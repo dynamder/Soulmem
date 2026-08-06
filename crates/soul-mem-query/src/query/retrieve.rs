@@ -276,6 +276,7 @@ impl EventQueryUnit {
     }
 }
 
+//TODO: time_span查询在MVP中暂未实现评分逻辑，字段保留以供后续使用
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct TimeSpanQueryUnit {
     start: Option<DateTime<Utc>>,

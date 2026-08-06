@@ -11,7 +11,9 @@ use soul_mem_algo::algo::retrieve::RetrStrategy;
 use soul_mem_core::memory_note::situation_mem::SituationType;
 use soul_mem_core::memory_note::{MemoryId, MemoryType};
 use soul_mem_query::embedding::blend_weights::BlendWeights;
-use soul_mem_query::embedding::query::note::MemoryRetrieveQueryEmbedding;
+use soul_mem_query::embedding::query::note::{
+    EmbeddedMemoryRetrieveQuery, MemoryRetrieveQueryEmbedding,
+};
 use soul_mem_query::embedding::Embeddable;
 use soul_mem_query::query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant};
 use soul_mem_runtime::working_memory::WorkingMemory;
@@ -73,10 +75,6 @@ pub struct BlendPairRaw {
     pub tag: Option<f32>,
     #[serde(default)]
     pub variant: Option<f32>,
-    #[serde(default)]
-    pub sem_concept_main: Option<f32>,
-    #[serde(default)]
-    pub sem_concept_aliases: Option<f32>,
     #[serde(default)]
     pub sem_concept: Option<f32>,
     #[serde(default)]
@@ -226,7 +224,7 @@ impl RetrieveSuite {
             .collect();
 
         let mut test_cases: Vec<TestCaseWithWeights> = Vec::new();
-        let model = get_bge_model();
+        let model = get_bge_model()?;
         let mut query_embeddings: Vec<Vec<MemoryRetrieveQueryEmbedding>> = Vec::new();
 
         for base in &base_cases {
@@ -235,9 +233,10 @@ impl RetrieveSuite {
                 .iter()
                 .map(|sq| {
                     let mq = MemoryRetrieveQuery::new(sq.tags.clone(), sq.variant.clone());
-                    mq.embed(model).expect("Query embed failed")
+                    mq.embed(model)
+                        .map_err(|e| format!("Query embed failed: {e}"))
                 })
-                .collect();
+                .collect::<Result<_, _>>()?;
 
             for bw in &sweep_pairs {
                 let label = format!(" [w=tag:{:.1}/var:{:.1}]", bw.tag, bw.variant);
@@ -328,7 +327,13 @@ impl TestSuite for RetrieveSuite {
                 similarity_threshold: self.meta.similarity_threshold,
                 max_results: self.meta.max_results,
             };
-            let request = config.into_request(Arc::clone(&self.wm), emb.clone());
+            let request = config.into_request(
+                Arc::clone(&self.wm),
+                EmbeddedMemoryRetrieveQuery {
+                    embedding: emb.clone(),
+                    query: MemoryRetrieveQuery::new(sq.tags.clone(), sq.variant.clone()),
+                },
+            );
             let result = RetrSimilarity {}.retrieve(request);
 
             let expected = test_case
@@ -576,8 +581,9 @@ impl TestSuite for RetrieveSuite {
                 let hit = data.combined_ranking_metrics.hit_rate;
                 let status = if hit > 0.0 { "✓" } else { "✗" };
                 let mrr = data.combined_ranking_metrics.mrr;
-                let name = if data.case_name.len() > 28 {
-                    format!("{}..", &data.case_name[..26])
+                let name = if data.case_name.chars().count() > 28 {
+                    let trimmed: String = data.case_name.chars().take(26).collect();
+                    format!("{}..", trimmed)
                 } else {
                     format!("{:28}", data.case_name)
                 };
@@ -628,8 +634,6 @@ fn apply_overrides(base: &BlendWeights, pair: &BlendPairRaw) -> BlendWeights {
     BlendWeights {
         tag: pair.tag.unwrap_or(base.tag),
         variant: pair.variant.unwrap_or(base.variant),
-        sem_concept_main: pair.sem_concept_main.unwrap_or(base.sem_concept_main),
-        sem_concept_aliases: pair.sem_concept_aliases.unwrap_or(base.sem_concept_aliases),
         sem_concept: pair.sem_concept.unwrap_or(base.sem_concept),
         sem_description: pair.sem_description.unwrap_or(base.sem_description),
         sit_location_name: pair.sit_location_name.unwrap_or(base.sit_location_name),
@@ -651,6 +655,7 @@ fn apply_overrides(base: &BlendWeights, pair: &BlendPairRaw) -> BlendWeights {
         sit_event_target_only_action: pair
             .sit_event_target_only_action
             .unwrap_or(base.sit_event_target_only_action),
+        string_blend_alpha: base.string_blend_alpha,
     }
 }
 
@@ -698,8 +703,8 @@ mod tests {
           "description": "desc",
           "graph_path": "graph.json",
           "config": {
-            "similarity_threshold": 0.5,
-            "max_results": 10,
+            "similarity_threshold": 0.7,
+            "max_results": 4,
             "test_k_values": [1, 3, 5]
           },
           "test_cases": [

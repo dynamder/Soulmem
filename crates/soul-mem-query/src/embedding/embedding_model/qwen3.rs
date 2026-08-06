@@ -110,6 +110,9 @@ impl EmbeddingModel for Qwen3Embedding600M {
     fn max_input_token(&self) -> usize {
         32768
     }
+    fn dim(&self) -> usize {
+        1024
+    }
 }
 // pub struct Qwen3Embedding600MBuilder {
 //     device: candle_core::Device,

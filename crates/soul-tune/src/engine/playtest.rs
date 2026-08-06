@@ -1,7 +1,6 @@
 pub mod runner;
 pub mod trace;
 pub mod repair;
-pub mod paw_query;
 
 pub use runner::{PlayTestRunner, PlayTestResult, PlayTurnResult, PlayRunSnapshot, PlayConfig,
                   DialogueFile, ConversationEntry};

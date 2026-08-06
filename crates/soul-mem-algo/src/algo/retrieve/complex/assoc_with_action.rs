@@ -71,7 +71,6 @@ impl RetrStrategy for RetrAssociateWithAction {
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
         let working_mem = Arc::clone(&request.association.working_mem);
         let association_res = RetrAssociation {}.retrieve(request.association);
-        println!("aaa");
         if association_res.is_empty() {
             return AssociateWithActionResult {
                 memory: Vec::new(),

@@ -150,7 +150,12 @@ impl Embeddable for MemoryNote {
     type EmbeddingFused = EmbeddedMemoryNote;
     fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<Self::EmbeddingGen> {
         let tag_strs: Vec<_> = self.tags().iter().map(|s| s.as_str()).collect();
-        let tag_vec = model.infer_and_fuse(&tag_strs)?;
+        //tags为空时跳过模型调用，用零向量填充，避免空输入导致嵌入失败
+        let tag_vec = if tag_strs.is_empty() {
+            EmbeddingVec::zero(model.dim())
+        } else {
+            model.infer_and_fuse(&tag_strs)?
+        };
 
         let mem_type_vec = self.mem_type().embed(model)?;
         Ok(MemoryEmbedding {

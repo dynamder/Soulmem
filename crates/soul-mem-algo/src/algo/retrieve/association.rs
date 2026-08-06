@@ -2,8 +2,9 @@ use soul_mem_core::memory_note::{MemoryId, MemoryType};
 use soul_mem_query::embedding::note::EmbeddedMemoryNote;
 use soul_mem_runtime::cluster::memory_cluster::GraphMemoryLink;
 
-use petgraph::{algo::UnitMeasure, visit::EdgeRef};
+use petgraph::{algo::UnitMeasure, stable_graph::NodeIndex, visit::EdgeRef};
 use serde::Deserialize;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use petgraph::{prelude::StableDiGraph, stable_graph::EdgeReference};
@@ -38,8 +39,8 @@ impl Default for AssociationConfig {
         AssociationConfig {
             intensity_factor: None,
             confidence_factor: None,
-            damping_factor: 0.4,
-            residue_threshold: 1e-4,
+            damping_factor: 0.65,
+            residue_threshold: 1e-5,
             preference: TypePreference::Situation,
             top_k: 8,
         }
@@ -47,10 +48,10 @@ impl Default for AssociationConfig {
 }
 
 fn default_damping_factor() -> f64 {
-    0.4
+    0.65
 }
 fn default_residue_threshold() -> f64 {
-    1e-4
+    1e-5
 }
 fn default_top_k() -> usize {
     8
@@ -93,7 +94,7 @@ impl AssociationRequest {
             source,
             intensity_factor: None,
             confidence_factor: None,
-            damping_factor: 0.15,
+            damping_factor: 0.65,
             residue_threshold: 1e-5,
             preference: TypePreference::default(),
             top_k: 8,
@@ -144,17 +145,24 @@ impl RetrStrategy for RetrAssociation {
 
         let mem_cluster = request.working_mem.memory_cluster();
 
-        let personalized_vec = mem_cluster.read_or_compute(|cluster| {
-            request
-                .source
-                .into_iter()
-                .filter_map(|(id, weight)| {
-                    cluster
-                        .get_mem_index(id)
-                        .map(|index| (index, OrdFloat::from_f32(weight)))
-                })
-                .collect()
-        });
+        let personalized_vec: HashMap<NodeIndex, OrdFloat<f64>> =
+            mem_cluster.read_or_compute(|cluster| {
+                request
+                    .source
+                    .into_iter()
+                    .filter_map(|(id, weight)| {
+                        cluster
+                            .get_mem_index(id)
+                            .map(|index| (index, OrdFloat::from_f32(weight)))
+                    })
+                    .collect()
+            });
+
+        //source非空但所有id都无法在cluster中解析时（陈旧或调用方提供的非法id），
+        //personalized_vec为空，直接返回空结果，避免weighted_ppr_fp内部的assert panic。
+        if personalized_vec.is_empty() {
+            return Vec::new();
+        }
 
         let res = mem_cluster.read_or_compute(|cluster| {
             weighted_ppr_fp(
@@ -259,6 +267,11 @@ impl DynWeightFuncBuilder {
                 MemoryLinkType::Sem(mem) => (mem.confidence, self.type_preference[0]),
             };
             let normalize_factor = intensity_factor + confidence_factor + type_boost;
+            //normalize_factor为0时（如intensity_factor=0且confidence_factor=0且type_boost=0），
+            //0/0会产生NaN污染PPR边权，这里退化为0权重
+            if normalize_factor == 0.0 {
+                return OrdFloat::from_f64(0.0);
+            }
             OrdFloat::from_f64(
                 (intensity * intensity_factor
                     + confidence_boost as f64 * confidence_factor

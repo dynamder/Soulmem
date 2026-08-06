@@ -149,6 +149,8 @@ impl PlayTestRunState {
 
                     let total = dialogue.conversations.len();
                     for (i, entry) in dialogue.conversations.iter().enumerate() {
+                        //process_turn内部已将所有可恢复失败（模型加载/LLM/检索）转为错误结果或错误run，
+                        //不再依赖catch_unwind（release构建为panic=abort，无法捕获panic）
                         let turn = runner.process_turn(entry, i, &mut llm);
                         let _ = tx.send(WorkerMsg::TurnComplete {
                             turn,
@@ -392,7 +394,22 @@ impl PlayTestRunState {
                     self.spawn_load_thread(role);
                     Transition::None
                 }
-                RunPhase::Done(result, _) => Transition::ToPlayTestJudge(result.clone()),
+                RunPhase::Loading if self.load_error.is_some() => {
+                    //加载失败时按Enter回到角色输入页以重试，避免卡在Loading
+                    self.load_error = None;
+                    self.current_description = "".to_string();
+                    self.phase = RunPhase::RoleInput;
+                    self.worker_rx = None;
+                    Transition::None
+                }
+                RunPhase::Done(result, _) => {
+                    //无有效轮次时避免进入评分页（评分页对turns[0]索引会panic）
+                    if result.turns.is_empty() {
+                        Transition::ToMain
+                    } else {
+                        Transition::ToPlayTestJudge(result.clone())
+                    }
+                }
                 _ => Transition::None,
             },
             _ => {

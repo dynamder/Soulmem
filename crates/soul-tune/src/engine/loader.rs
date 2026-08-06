@@ -100,21 +100,25 @@ fn prefill_mirror_cache() -> bool {
     ok
 }
 
-pub fn get_bge_model() -> &'static BgeSmallZh {
-    static MODEL: OnceLock<BgeSmallZh> = OnceLock::new();
-    MODEL.get_or_init(|| match BgeSmallZh::default_cpu() {
-        Ok(m) => m,
-        Err(e) => {
-            eprintln!("直连 huggingface.co 失败: {e}");
-            eprintln!("尝试从 HF 镜像站 hf-mirror.com 预下载模型文件...");
-            if prefill_mirror_cache() {
-                eprintln!("预下载完成，重试初始化...");
-                BgeSmallZh::default_cpu().expect("预下载后模型初始化仍然失败")
-            } else {
-                panic!("所有下载方式均失败")
+pub fn get_bge_model() -> Result<&'static BgeSmallZh, String> {
+    static MODEL: OnceLock<Result<BgeSmallZh, String>> = OnceLock::new();
+    MODEL
+        .get_or_init(|| match BgeSmallZh::default_cpu() {
+            Ok(m) => Ok(m),
+            Err(e) => {
+                eprintln!("直连 huggingface.co 失败: {e}");
+                eprintln!("尝试从 HF 镜像站 hf-mirror.com 预下载模型文件...");
+                if prefill_mirror_cache() {
+                    eprintln!("预下载完成，重试初始化...");
+                    BgeSmallZh::default_cpu()
+                        .map_err(|e| format!("预下载后模型初始化仍然失败: {e}"))
+                } else {
+                    Err("所有下载方式均失败".to_string())
+                }
             }
-        }
-    })
+        })
+        .as_ref()
+        .map_err(|e| e.clone())
 }
 
 /// Direct-deserialization types (matches core types exactly).
@@ -258,16 +262,23 @@ pub fn load_graph(
         notes.push((raw.id.clone(), builder));
     }
 
-    let model = get_bge_model();
+    let model = get_bge_model()?;
     let wm = WorkingMemory::new(10);
     let cluster = wm.memory_cluster();
     cluster.write(|c| {
         for (_raw_id, builder) in notes {
-            let note = builder.build().expect("MemoryNoteBuilder failed");
-            let embedding = note.embed(model).expect("Embedding failed");
+            let note = match builder.build() {
+                Ok(n) => n,
+                Err(e) => return Err(format!("MemoryNoteBuilder failed: {e:?}")),
+            };
+            let embedding = match note.embed(model) {
+                Ok(e) => e,
+                Err(e) => return Err(format!("Embedding failed: {e}")),
+            };
             c.add_single_node(EmbeddedMemoryNote { note, embedding });
         }
-    });
+        Ok::<(), String>(())
+    })?;
 
     Ok((wm, id_map))
 }

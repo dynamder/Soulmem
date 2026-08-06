@@ -178,8 +178,9 @@ impl CompareResultsState {
                 break;
             }
             let is_active = i == self.table_scroll.cursor;
-            let name = if case.case_name.len() > 22 {
-                format!("{}..", &case.case_name[..20])
+            let name = if case.case_name.chars().count() > 22 {
+                let trimmed: String = case.case_name.chars().take(20).collect();
+                format!("{}..", trimmed)
             } else {
                 format!("{:24}", case.case_name)
             };

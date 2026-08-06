@@ -6,11 +6,13 @@ pub struct BlendWeights {
     pub tag: f32,
     pub variant: f32,
 
+    /// 检索评分中 embedding 余弦相似度所占权重，`1 - string_blend_alpha` 为 Jaro-Winkler 字符串得分权重。
+    /// 用于 `EmbeddedMemoryNote::compute_fused` 的顶层混合。
+    pub string_blend_alpha: f32,
+
     // — Semantic 子权重 —
-    pub sem_concept_main: f32, // concept vs aliases within concept_id score (0.5)
-    pub sem_concept_aliases: f32, // (0.5)
-    pub sem_concept: f32,      // concept vs description (0.5)
-    pub sem_description: f32,  // (0.5)
+    pub sem_concept: f32,     // concept vs description (0.5)
+    pub sem_description: f32, // (0.5)
 
     // — Situation: Location —
     pub sit_location_name: f32,
@@ -39,8 +41,7 @@ impl Default for BlendWeights {
         Self {
             tag: 0.4,
             variant: 0.6,
-            sem_concept_main: 0.5,
-            sem_concept_aliases: 0.5,
+            string_blend_alpha: 0.6,
             sem_concept: 0.5,
             sem_description: 0.5,
             sit_location_name: 0.6,

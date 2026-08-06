@@ -1,7 +1,10 @@
 use crate::embedding::{
     note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant},
     query::{
-        note::{MemoryRetrieveQueryEmbedding, MemoryRetrieveQueryVariantEmbedding},
+        note::{
+            EmbeddedMemoryRetrieveQuery, MemoryRetrieveQueryEmbedding,
+            MemoryRetrieveQueryVariantEmbedding,
+        },
         sem::SemanticQueryUnitEmbedding,
         situation::{
             environment::EnvironmentQueryUnitEmbedding, event::EventQueryUnitEmbedding,
@@ -17,6 +20,8 @@ use crate::embedding::{
     },
     EmbeddingCalcResult,
 };
+
+use crate::query::string_distance::compute_note_string_score;
 
 use soul_mem_core::memory_note::MemoryId;
 
@@ -205,24 +210,42 @@ impl AnonymousQueryCompute for SpecificSituationEmbedding {
 impl AnonymousQueryCompute for AbstractSituationEmbedding {
     type Query = SituationQueryUnitEmbedding;
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
-        match self {
+        //结构化匹配：只有当query提供了与抽象情境同类型的字段时才计分，否则为None
+        let structured_score = match self {
             AbstractSituationEmbedding::Location(loc) => query
                 .location()
                 .map(|q_loc| loc.anonymous_compute(q_loc))
-                .unwrap_or(Ok(0.0)),
+                .transpose()?,
             AbstractSituationEmbedding::Environment(env) => query
                 .environment()
                 .map(|q_env| env.anonymous_compute(q_env))
-                .unwrap_or(Ok(0.0)),
+                .transpose()?,
             AbstractSituationEmbedding::Event(event) => query
                 .event()
                 .map(|q_event| event.anonymous_compute(q_event))
-                .unwrap_or(Ok(0.0)),
+                .transpose()?,
             AbstractSituationEmbedding::Participant(participant) => query
                 .participants()
                 .map(|q_participant| participant.anonymous_compute(q_participant))
-                .unwrap_or(Ok(0.0)),
+                .transpose()?,
+        };
+
+        //叙事匹配：抽象情境的"自我"向量与query.narrative的相似度
+        let narrative_score = query
+            .narrative()
+            .map(|narrative| narrative.cosine_similarity(&self.fused_self()?))
+            .transpose()?;
+
+        let score_vec = structured_score
+            .into_iter()
+            .chain(narrative_score.into_iter())
+            .collect::<Vec<_>>();
+
+        let len = score_vec.len();
+        if len == 0 {
+            return Ok(0.0);
         }
+        Ok(score_vec.into_iter().map(|i| i / len as f32).sum::<f32>())
     }
 }
 
@@ -246,7 +269,7 @@ impl AnonymousQueryCompute for SemanticEmbedding {
             .transpose()?;
         let concept_aliases_score = query
             .concept_identifier()
-            .map(|con| con.cosine_similarity(self.fused_aliases()))
+            .map(|con| con.cosine_similarity(self.aliases()))
             .transpose()?;
 
         let description_score = query
@@ -255,10 +278,9 @@ impl AnonymousQueryCompute for SemanticEmbedding {
             .transpose()?;
 
         let bw = &query.blend_weights;
+        //max_pooling: 命中的无论是content还是aliases，取更高者作为概念分数
         let concept_score = match (concept_main_score, concept_aliases_score) {
-            (Some(main_score), Some(aliases_score)) => {
-                bw.sem_concept_main * main_score + bw.sem_concept_aliases * aliases_score
-            }
+            (Some(main_score), Some(aliases_score)) => main_score.max(aliases_score),
             (None, None) => 0.0,
             _ => unreachable!(
                 "main_score and aliases_score all compute from query.concept_identifier(), so they must be Some or None simultaneously"
@@ -282,13 +304,19 @@ impl AnonymousQueryCompute for MemoryEmbeddingVariant {
                     .into_iter()
                     .map(|q_sem_unit| sem.anonymous_compute(q_sem_unit))
                     .collect::<Result<Vec<_>, _>>()?;
-                Ok(score_vec.into_iter().sum::<f32>())
+                //按单元数归一化，避免长查询因sum而系统性占优，与Situation分支保持一致
+                if score_vec.is_empty() {
+                    return Ok(0.0);
+                }
+                let len = score_vec.len();
+                Ok(score_vec.into_iter().sum::<f32>() / len as f32)
             }
             (Self::Situation(sit), MemoryRetrieveQueryVariantEmbedding::Situation(q_sit)) => {
                 let score_vec = q_sit
                     .into_iter()
                     .map(|q_sit_unit| sit.anonymous_compute(q_sit_unit))
                     .collect::<Result<Vec<_>, _>>()?;
+                //TODO: 检查该分支是否也需要按单元数归一化
                 Ok(score_vec.into_iter().sum::<f32>())
             }
             (_, _) => Ok(0.0),
@@ -313,6 +341,25 @@ impl AnonymousQueryCompute for EmbeddedMemoryNote {
     }
 }
 
+impl EmbeddedMemoryNote {
+    /// 融合评分：`embedding 余弦相似度` 与 `Jaro-Winkler 字符串距离` 按 `string_blend_alpha` 混合。
+    ///
+    /// 两个分量均为 [0, 1] 量纲，`string_blend_alpha` 为 embedding 所占权重。
+    /// 字符串分量仅对精确标识符（concept_identifier / AbstractSituation 结构化字段）生效，
+    /// 变体不匹配时字符串分量返回 0.0，此时混合分退化为纯 embedding 分，保持与旧行为一致。
+    pub fn compute_fused(
+        &self,
+        query: &EmbeddedMemoryRetrieveQuery,
+        string_blend_alpha: f32,
+    ) -> EmbeddingCalcResult<QueryComputeResult> {
+        let embedding_score = self.embedding().anonymous_compute(&query.embedding)?;
+        let string_score = compute_note_string_score(self.note(), &query.query);
+        let score =
+            string_blend_alpha * embedding_score + (1.0 - string_blend_alpha) * string_score;
+        Ok(QueryComputeResult::new(self.note().id(), score))
+    }
+}
+
 impl QueryCompute for EmbeddedMemoryNote {
     fn compute(&self, query: &Self::Query) -> EmbeddingCalcResult<QueryComputeResult> {
         Ok(QueryComputeResult {
@@ -326,13 +373,17 @@ impl QueryCompute for EmbeddedMemoryNote {
 mod tests {
     use super::*;
     use crate::embedding::embedding_model::bge::BgeSmallZh;
+    use crate::embedding::query::note::EmbeddedMemoryRetrieveQuery;
     use crate::embedding::Embeddable;
     use crate::query::retrieve::{
-        EnvironmentQueryUnit, EventQueryUnit, LocationQueryUnit, ParticipantQueryUnit,
-        SemanticQueryUnit,
+        EnvironmentQueryUnit, EventQueryUnit, LocationQueryUnit, MemoryRetrieveQuery,
+        MemoryRetrieveQueryVariant, ParticipantQueryUnit, SemanticQueryUnit, SituationQueryUnit,
     };
+    use crate::query::string_distance::compute_note_string_score;
     use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
+    use soul_mem_core::memory_note::situation_mem::AbstractSituation;
     use soul_mem_core::memory_note::situation_mem::{Environment, Event, Location, Participant};
+    use soul_mem_core::memory_note::{MemoryNoteBuilder, MemoryType};
 
     #[test]
     fn test_query_compute_result() {
@@ -444,5 +495,261 @@ mod tests {
 
         let score = event_emb.anonymous_compute(&event_query_emb).unwrap();
         assert!(score > 0.0);
+    }
+
+    #[test]
+    fn test_semantic_alias_max_pooling_hits_alias() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let memory = SemMemory {
+            content: "Rust编程语言".to_string(),
+            aliases: vec!["Rust".to_string()],
+            concept_type: ConceptType::Entity,
+            description: "一种注重安全性的系统编程语言".to_string(),
+        };
+
+        let sem_embedding = memory.embed(&model).unwrap();
+
+        //别名命中查询：query.concept_identifier 与 alias 完全一致
+        let alias_query = SemanticQueryUnit::new().with_concept_identifier("Rust".to_string());
+        let alias_query_emb = alias_query.embed(&model).unwrap();
+
+        //content命中查询：query.concept_identifier 与 content 完全一致
+        let content_query =
+            SemanticQueryUnit::new().with_concept_identifier("Rust编程语言".to_string());
+        let content_query_emb = content_query.embed(&model).unwrap();
+
+        let alias_score = sem_embedding.anonymous_compute(&alias_query_emb).unwrap();
+        let content_score = sem_embedding.anonymous_compute(&content_query_emb).unwrap();
+
+        //别名与content命中的分数都应显著高于0，且max_pooling保证别名命中不被content稀释
+        assert!(alias_score > 0.5, "alias score too low: {alias_score}");
+        assert!(
+            content_score > 0.5,
+            "content score too low: {content_score}"
+        );
+        assert!(
+            (alias_score - content_score).abs() < 0.2,
+            "alias ({alias_score}) and content ({content_score}) scores should be comparable"
+        );
+    }
+
+    #[test]
+    fn test_abstract_situation_narrative_fallback() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        use crate::query::retrieve::SituationQueryUnit;
+        use soul_mem_core::memory_note::situation_mem::{AbstractSituation, SituationType};
+
+        //抽象情境：事件节点，无narrative字段
+        let abstract_event = AbstractSituation::Event(Event {
+            action: "战斗".to_string(),
+            action_intensity: 0.9,
+            initiator: "我".to_string(),
+            target: "对手".to_string(),
+        });
+        let situation_type: SituationType = abstract_event.into();
+        let embedding = situation_type.embed(&model).unwrap();
+        let abstract_emb = embedding.to_abstract().unwrap();
+
+        //纯叙事查询：没有event结构化字段，只能靠narrative fallback
+        let narrative_query = SituationQueryUnit::new()
+            .with_narrative("享受战斗时的愉快氛围而不是单纯厮杀".to_string());
+        let narrative_query_emb = narrative_query.embed(&model).unwrap();
+
+        let score = abstract_emb
+            .anonymous_compute(&narrative_query_emb)
+            .unwrap();
+        assert!(
+            score > 0.3,
+            "abstract situation should be matched by narrative, got {score}"
+        );
+
+        //结构化命中：提供event字段时分数应更高（结构化+叙事双重信号）
+        let structured_query = SituationQueryUnit::new()
+            .with_narrative("享受战斗时的愉快氛围".to_string())
+            .with_event(vec![EventQueryUnit::new("战斗".to_string())]);
+        let structured_query_emb = structured_query.embed(&model).unwrap();
+        let structured_score = abstract_emb
+            .anonymous_compute(&structured_query_emb)
+            .unwrap();
+        assert!(structured_score >= score);
+    }
+
+    fn embed_sem_note(model: &BgeSmallZh, content: &str, aliases: &[&str]) -> EmbeddedMemoryNote {
+        let mem_type = MemoryType::Semantic(SemMemory {
+            content: content.to_string(),
+            aliases: aliases.iter().map(|s| s.to_string()).collect(),
+            concept_type: ConceptType::Entity,
+            description: format!("与{content}相关的描述"),
+        });
+        let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+        let embedding = note.embed(model).unwrap();
+        EmbeddedMemoryNote { note, embedding }
+    }
+
+    fn embed_sem_query(
+        model: &BgeSmallZh,
+        concept_identifier: &str,
+    ) -> EmbeddedMemoryRetrieveQuery {
+        let query = MemoryRetrieveQuery::new(
+            vec![],
+            MemoryRetrieveQueryVariant::Semantic(vec![
+                SemanticQueryUnit::new().with_concept_identifier(concept_identifier.to_string())
+            ]),
+        );
+        let embedding = query.embed(model).unwrap();
+        EmbeddedMemoryRetrieveQuery { embedding, query }
+    }
+
+    #[test]
+    fn test_compute_fused_matches_blend_formula() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+        let embedded_note = embed_sem_note(&model, "小酒馆", &[]);
+        let embedded_query = embed_sem_query(&model, "酒馆");
+
+        let pure = embedded_note
+            .anonymous_compute(&embedded_query.embedding)
+            .unwrap();
+        let str_score = compute_note_string_score(&embedded_note.note(), &embedded_query.query);
+        let fused = embedded_note
+            .compute_fused(&embedded_query, 0.6)
+            .unwrap()
+            .score;
+
+        // 混合公式验证：0.6*emb + 0.4*str，两个分量均落在 [0,1]
+        let expected = 0.6 * pure + 0.4 * str_score;
+        assert!(
+            (fused - expected).abs() < 1e-5,
+            "fused {fused} != expected {expected}"
+        );
+        assert!(fused.is_finite());
+        assert!((0.0..=1.0).contains(&fused), "fused out of range: {fused}");
+        // 字符串分提供正的兜底贡献（0.4 * str > 0）
+        assert!(str_score > 0.5, "str_score too low: {str_score}");
+    }
+
+    #[test]
+    fn test_compute_fused_string_boost_ranking() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+        // 字形相近的命中项 vs 字形完全不同的干扰项
+        let hit = embed_sem_note(&model, "小酒馆", &[]);
+        let miss = embed_sem_note(&model, "火车站", &[]);
+        let embedded_query = embed_sem_query(&model, "酒馆");
+
+        let hit_fused = hit.compute_fused(&embedded_query, 0.6).unwrap().score;
+        let miss_fused = miss.compute_fused(&embedded_query, 0.6).unwrap().score;
+
+        // 字符串分对命中项是正贡献，对干扰项（str=0）无贡献
+        let hit_str = compute_note_string_score(&hit.note(), &embedded_query.query);
+        let miss_str = compute_note_string_score(&miss.note(), &embedded_query.query);
+        assert!(hit_str > 0.5);
+        assert_eq!(miss_str, 0.0);
+        assert!(
+            hit_fused > miss_fused,
+            "hit {hit_fused} <= miss {miss_fused}"
+        );
+        assert!((0.0..=1.0).contains(&hit_fused));
+    }
+
+    #[test]
+    fn test_compute_fused_alpha_zero_is_pure_embedding() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+        let embedded_note = embed_sem_note(&model, "小酒馆", &[]);
+        let embedded_query = embed_sem_query(&model, "酒馆");
+
+        // alpha=1.0 时退化为纯 embedding 分
+        let pure = embedded_note
+            .anonymous_compute(&embedded_query.embedding)
+            .unwrap();
+        let fused = embedded_note
+            .compute_fused(&embedded_query, 1.0)
+            .unwrap()
+            .score;
+        assert!((fused - pure).abs() < 1e-6);
+
+        // alpha=0.0 时完全由字符串分决定
+        let str_score = compute_note_string_score(&embedded_note.note(), &embedded_query.query);
+        let fused = embedded_note
+            .compute_fused(&embedded_query, 0.0)
+            .unwrap()
+            .score;
+        assert!((fused - str_score).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_compute_fused_abstract_situation_boost() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+
+        let mem_type = MemoryType::Situation(
+            AbstractSituation::Location(Location {
+                name: "酒馆".to_string(),
+                coordinates: String::new(),
+            })
+            .into(),
+        );
+        let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+        let embedding = note.embed(&model).unwrap();
+        let embedded_note = EmbeddedMemoryNote { note, embedding };
+
+        let query = MemoryRetrieveQuery::new(
+            vec![],
+            MemoryRetrieveQueryVariant::Situation(vec![
+                SituationQueryUnit::new().with_location(vec![LocationQueryUnit::new("小酒馆")])
+            ]),
+        );
+        let query_embedding = query.embed(&model).unwrap();
+        let embedded_query = EmbeddedMemoryRetrieveQuery {
+            embedding: query_embedding,
+            query,
+        };
+
+        let pure = embedded_note
+            .anonymous_compute(&embedded_query.embedding)
+            .unwrap();
+        let str_score = compute_note_string_score(&embedded_note.note(), &embedded_query.query);
+        let fused = embedded_note
+            .compute_fused(&embedded_query, 0.6)
+            .unwrap()
+            .score;
+
+        let expected = 0.6 * pure + 0.4 * str_score;
+        assert!(
+            (fused - expected).abs() < 1e-5,
+            "abstract fused {fused} != {expected}"
+        );
+        assert!((0.0..=1.0).contains(&fused));
+        assert!(str_score > 0.5, "location str_score too low: {str_score}");
+    }
+
+    #[test]
+    fn test_compute_fused_variant_mismatch_degrades_to_embedding() {
+        let model = BgeSmallZh::default_cpu().unwrap();
+        // Semantic 记忆 + Situation 查询：字符串分=0，混合分退化为 0.6 * embedding 分
+        let embedded_note = embed_sem_note(&model, "战斗", &[]);
+        let query = MemoryRetrieveQuery::new(
+            vec![],
+            MemoryRetrieveQueryVariant::Situation(vec![
+                SituationQueryUnit::new().with_narrative("战斗场景".to_string())
+            ]),
+        );
+        let query_embedding = query.embed(&model).unwrap();
+        let embedded_query = EmbeddedMemoryRetrieveQuery {
+            embedding: query_embedding,
+            query,
+        };
+
+        let pure = embedded_note
+            .anonymous_compute(&embedded_query.embedding)
+            .unwrap();
+        let fused = embedded_note
+            .compute_fused(&embedded_query, 0.6)
+            .unwrap()
+            .score;
+        assert_eq!(
+            compute_note_string_score(&embedded_note.note(), &embedded_query.query),
+            0.0
+        );
+        assert!((fused - 0.6 * pure).abs() < 1e-6);
     }
 }

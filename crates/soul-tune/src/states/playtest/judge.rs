@@ -49,7 +49,6 @@ pub struct PlayTestJudgeState {
     result: PlayTestResult,
     current_turn: usize,
     current_run: usize,
-    runs_per_turn: usize,
     phase: JudgePhase,
     debug_view: DebugView,
     think_fold_a: ExpandableList,
@@ -62,13 +61,11 @@ pub struct PlayTestJudgeState {
 
 impl PlayTestJudgeState {
     pub fn new(result: PlayTestResult) -> Self {
-        let runs_per_turn = result.config.runs_per_turn.max(1);
-        let total_slots = result.turns.len() * runs_per_turn;
+        let total_slots: usize = result.turns.iter().map(|t| t.runs.len()).sum();
         Self {
             result,
             current_turn: 0,
             current_run: 0,
-            runs_per_turn,
             phase: JudgePhase::Voting,
             debug_view: DebugView::Hidden,
             think_fold_a: ExpandableList::new(total_slots),
@@ -84,19 +81,39 @@ impl PlayTestJudgeState {
         &self.result.turns[self.current_turn]
     }
 
+    fn current_runs(&self) -> &[PlayRunSnapshot] {
+        &self.current_turn().runs
+    }
+
     fn display_run_idx(&self) -> usize {
+        let max_idx = self.current_runs().len().saturating_sub(1);
         match self.phase {
-            JudgePhase::Voting => self.current_run,
-            JudgePhase::AllRevealed => self.reveal_cursor,
+            JudgePhase::Voting => self.current_run.min(max_idx),
+            JudgePhase::AllRevealed => self.reveal_cursor.min(max_idx),
         }
     }
 
     fn display_run(&self) -> &PlayRunSnapshot {
-        &self.current_turn().runs[self.display_run_idx()]
+        //runs为空时兜底（正常路径已保证至少1条，防御外部构造的异常结果）
+        static EMPTY: PlayRunSnapshot = PlayRunSnapshot {
+            embedding_response: None,
+            fullpipeline_response: None,
+            swap: false,
+            human_pick: None,
+            error: None,
+        };
+        match self.current_runs().get(self.display_run_idx()) {
+            Some(run) => run,
+            None => &EMPTY,
+        }
     }
 
     fn flat_display_idx(&self) -> usize {
-        self.current_turn * self.runs_per_turn + self.display_run_idx()
+        self.result.turns[..self.current_turn]
+            .iter()
+            .map(|t| t.runs.len())
+            .sum::<usize>()
+            + self.display_run_idx()
     }
 
     fn resp_a(&self) -> (Option<String>, String) {
@@ -125,7 +142,7 @@ impl PlayTestJudgeState {
         }
     }
 
-    fn label_a(&self) -> &str {
+    fn label_a(&self) -> String {
         if self.phase == JudgePhase::AllRevealed {
             let run = self.display_run();
             let real = if run.swap {
@@ -138,12 +155,13 @@ impl PlayTestJudgeState {
             } else {
                 ""
             };
-            return Box::leak(format!("{} {}", real, picked).into_boxed_str());
+            format!("{} {}", real, picked)
+        } else {
+            "响应 A".to_string()
         }
-        "响应 A"
     }
 
-    fn label_b(&self) -> &str {
+    fn label_b(&self) -> String {
         if self.phase == JudgePhase::AllRevealed {
             let run = self.display_run();
             let real = if run.swap {
@@ -156,9 +174,10 @@ impl PlayTestJudgeState {
             } else {
                 ""
             };
-            return Box::leak(format!("{} {}", real, picked).into_boxed_str());
+            format!("{} {}", real, picked)
+        } else {
+            "响应 B".to_string()
         }
-        "响应 B"
     }
 
     fn think_a_expanded(&self) -> bool {
@@ -198,7 +217,9 @@ impl PlayTestJudgeState {
     }
 
     fn advance_vote(&mut self) {
-        if self.current_run + 1 < self.runs_per_turn {
+        //按当前回合实际runs数量推进，避免查询生成失败时runs不足导致越界
+        let run_count = self.current_runs().len().max(1);
+        if self.current_run + 1 < run_count {
             self.current_run += 1;
             self.scroll_a.reset();
             self.scroll_b.reset();
@@ -304,7 +325,7 @@ impl PlayTestJudgeState {
             " {} 第 {} 次 {}",
             if self.reveal_cursor > 0 { "◄" } else { " " },
             self.reveal_cursor + 1,
-            if self.reveal_cursor + 1 < self.runs_per_turn {
+            if self.reveal_cursor + 1 < self.current_runs().len() {
                 "►"
             } else {
                 " "
@@ -454,7 +475,7 @@ impl PlayTestJudgeState {
         self.render_panel(
             frame,
             area,
-            self.label_a(),
+            &self.label_a(),
             color,
             &self.scroll_a,
             self.think_a_expanded(),
@@ -473,7 +494,7 @@ impl PlayTestJudgeState {
         self.render_panel(
             frame,
             area,
-            self.label_b(),
+            &self.label_b(),
             color,
             &self.scroll_b,
             self.think_b_expanded(),
@@ -488,7 +509,7 @@ impl PlayTestJudgeState {
             area.x,
             area.y + area.height / 2,
             area.width,
-            area.height / 2 - 4,
+            area.height.saturating_div(2).saturating_sub(4),
         );
         let block = Block::bordered().title(" 检索轨迹 ").fg(Color::Yellow);
         let inner = block.inner(bottom_area);
@@ -581,7 +602,7 @@ impl PlayTestJudgeState {
             area.x,
             area.y + area.height / 2,
             area.width,
-            area.height / 2 - 4,
+            area.height.saturating_div(2).saturating_sub(4),
         );
         let block = Block::bordered().title(" 生成查询 ").fg(Color::Cyan);
         let inner = block.inner(bottom_area);
@@ -617,22 +638,30 @@ impl PlayTestJudgeState {
     }
 
     fn handle_key(&mut self, key: KeyEvent) -> Transition {
+        //runs为空时（防御异常数据）禁用投票等需要索引的操作
+        if self.current_runs().is_empty() {
+            return match key.code {
+                KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('Q') => Transition::ToMain,
+                _ => Transition::None,
+            };
+        }
         match self.phase {
             JudgePhase::Voting => match key.code {
                 KeyCode::Char('1') => {
-                    self.result.turns[self.current_turn].runs[self.current_run].human_pick =
-                        Some(0);
+                    let idx = self.display_run_idx();
+                    self.result.turns[self.current_turn].runs[idx].human_pick = Some(0);
                     self.advance_vote();
                     Transition::None
                 }
                 KeyCode::Char('2') => {
-                    self.result.turns[self.current_turn].runs[self.current_run].human_pick =
-                        Some(1);
+                    let idx = self.display_run_idx();
+                    self.result.turns[self.current_turn].runs[idx].human_pick = Some(1);
                     self.advance_vote();
                     Transition::None
                 }
                 KeyCode::Char('s') | KeyCode::Char('S') => {
-                    self.result.turns[self.current_turn].runs[self.current_run].human_pick = None;
+                    let idx = self.display_run_idx();
+                    self.result.turns[self.current_turn].runs[idx].human_pick = None;
                     self.advance_vote();
                     Transition::None
                 }
@@ -702,7 +731,7 @@ impl PlayTestJudgeState {
                     Transition::None
                 }
                 KeyCode::Right => {
-                    if self.reveal_cursor + 1 < self.runs_per_turn {
+                    if self.reveal_cursor + 1 < self.current_runs().len() {
                         self.reveal_cursor += 1;
                         self.scroll_a.reset();
                         self.scroll_b.reset();
