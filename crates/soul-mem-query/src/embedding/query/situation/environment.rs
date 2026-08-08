@@ -19,6 +19,20 @@ impl EnvironmentQueryUnitEmbedding {
         self.blend_weights = bw.clone();
     }
 }
+#[cfg(test)]
+impl EnvironmentQueryUnitEmbedding {
+    pub(crate) fn test_new(
+        atmosphere: Option<EmbeddingVec>,
+        tone: Option<EmbeddingVec>,
+        blend_weights: BlendWeights,
+    ) -> Self {
+        Self {
+            atmosphere,
+            tone,
+            blend_weights,
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct EmbedEnvironmentQueryUnit {
@@ -63,5 +77,33 @@ impl Embeddable for EnvironmentQueryUnit {
             embedding: self.embed(model)?,
             query: self,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_environment_query_unit_embedding_accessors() {
+        let mut embedding = EnvironmentQueryUnitEmbedding::test_new(
+            Some(EmbeddingVec::new(vec![1.0])),
+            Some(EmbeddingVec::new(vec![2.0])),
+            BlendWeights::default(),
+        );
+        assert_eq!(embedding.atmosphere().unwrap().shape(), 1);
+        assert_eq!(embedding.tone().unwrap().shape(), 1);
+
+        let mut bw = BlendWeights::default();
+        bw.tag = 0.8;
+        embedding.set_blend_weights(&bw);
+        assert_eq!(embedding.blend_weights.tag, 0.8);
+    }
+
+    #[test]
+    fn test_environment_query_unit_embedding_none() {
+        let embedding = EnvironmentQueryUnitEmbedding::test_new(None, None, BlendWeights::default());
+        assert!(embedding.atmosphere().is_none());
+        assert!(embedding.tone().is_none());
     }
 }

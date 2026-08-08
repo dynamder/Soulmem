@@ -637,4 +637,245 @@ mod slidingwindow_test {
         assert_eq!(capacity, 15);
         assert_eq!(window_for_check.get_capacity(), 15);
     }
+
+    // —— 纯逻辑测试：Information / Summary / 标记逻辑，无需 LLM 客户端 ——
+
+    #[test]
+    fn test_information_new_and_get_str() {
+        let user = Information::new("hello", "user");
+        assert!(matches!(user, Information::User(_)));
+        assert_eq!(user.get_str(), "hello");
+
+        let assistant = Information::new("world", "assistant");
+        assert!(matches!(assistant, Information::Assistant(_)));
+        assert_eq!(assistant.get_str(), "world");
+
+        let unknown_role = Information::new("fallback", "system");
+        assert!(matches!(unknown_role, Information::User(_)));
+        assert_eq!(unknown_role.get_str(), "fallback");
+    }
+
+    #[test]
+    fn test_information_is_tagged() {
+        let mut info = Information::new("x", "user");
+        assert!(!info.is_tagged());
+        info.tag_information();
+        assert!(info.is_tagged());
+        info.untag_information();
+        assert!(!info.is_tagged());
+    }
+
+    #[test]
+    fn test_information_tag_roundtrip_both_variants() {
+        for role in ["user", "assistant"] {
+            let mut info = Information::new("text", role);
+            assert!(!info.is_tagged(), "{role} should start untagged");
+            info.tag_information();
+            assert!(info.is_tagged(), "{role} should be tagged");
+            info.untag_information();
+            assert!(!info.is_tagged(), "{role} should be untagged");
+        }
+    }
+
+    #[test]
+    fn test_information_to_message_and_prompt() {
+        let user = Information::new("hi", "user");
+        let msg = user.to_message();
+        let prompt = user.build_prompt();
+        assert_eq!(msg, prompt);
+
+        let (text, role) = user.build_raw_prompt();
+        assert_eq!(text, "hi");
+        assert_eq!(role, Role::User);
+
+        let assistant = Information::new("yo", "assistant");
+        let (text, role) = assistant.build_raw_prompt();
+        assert_eq!(text, "yo");
+        assert_eq!(role, Role::Assistant);
+    }
+
+    #[test]
+    fn test_user_and_assistant_information_get_str() {
+        let user = UserInformation::new("user text");
+        assert_eq!(user.get_str(), "user text");
+        assert!(!user.tag);
+
+        let assistant = AssistantInformation::new("assistant text");
+        assert_eq!(assistant.get_str(), "assistant text");
+        assert!(!assistant.tag);
+    }
+
+    #[test]
+    fn test_summary_update_and_get() {
+        let mut summary = Summary::new();
+        assert_eq!(summary.get(), "");
+        summary.update("first summary");
+        assert_eq!(summary.get(), "first summary");
+        summary.update("second summary");
+        assert_eq!(summary.get(), "second summary");
+    }
+
+    #[test]
+    fn test_summary_build_prompt() {
+        let mut summary = Summary::new();
+        summary.update("sum");
+        let prompt = summary.build_prompt();
+        let _ = prompt; // 构造成功即可
+        let (text, role) = summary.build_raw_prompt();
+        assert_eq!(text, "sum");
+        assert_eq!(role, Role::Assistant);
+    }
+
+    #[test]
+    fn test_window_empty_and_len_and_get() {
+        let window = SlidingWindow::new(10);
+        assert!(window.is_empty());
+        assert_eq!(window.len(), 0);
+        assert!(window.get(0).is_none());
+    }
+
+    #[test]
+    fn test_window_capacity_and_clear() {
+        let window = SlidingWindow::new(10);
+        assert_eq!(window.get_capacity(), 10);
+        assert!(window.is_empty());
+
+        // 直接通过 window 内部结构注入信息（无需 LLM）
+        {
+            let mut w = window.window.write();
+            w.push_back(Information::new("a", "user"));
+            w.push_back(Information::new("b", "user"));
+        }
+        assert_eq!(window.len(), 2);
+        assert!(!window.is_empty());
+        assert_eq!(window.get(1).unwrap().get_str(), "b");
+
+        window.clear();
+        assert!(window.is_empty());
+        assert_eq!(window.len(), 0);
+    }
+
+    #[test]
+    fn test_window_tag_information_in_range() {
+        let window = SlidingWindow::new(10);
+        {
+            let mut w = window.window.write();
+            w.push_back(Information::new("a", "user"));
+            w.push_back(Information::new("b", "user"));
+        }
+        window.tag_information(0);
+        assert!(window.get(0).unwrap().is_tagged());
+        assert!(!window.get(1).unwrap().is_tagged());
+    }
+
+    #[test]
+    fn test_window_tag_information_out_of_range() {
+        let window = SlidingWindow::new(10);
+        {
+            let mut w = window.window.write();
+            w.push_back(Information::new("a", "user"));
+        }
+        // 越界索引不应 panic
+        window.tag_information(5);
+        window.untag_information(5);
+        assert!(!window.get(0).unwrap().is_tagged());
+    }
+
+    #[test]
+    fn test_window_tag_information_at_len_boundary() {
+        let window = SlidingWindow::new(10);
+        {
+            let mut w = window.window.write();
+            w.push_back(Information::new("a", "user"));
+            w.push_back(Information::new("b", "user"));
+        }
+        // index == len 时是越界（0-based），tag 应无效果
+        window.tag_information(2);
+        window.untag_information(2);
+        assert!(!window.get(1).unwrap().is_tagged());
+        assert_eq!(window.len(), 2);
+    }
+
+    #[test]
+    fn test_window_untag_information_at_len_boundary() {
+        let window = SlidingWindow::new(10);
+        {
+            let mut w = window.window.write();
+            let mut info = Information::new("a", "user");
+            info.tag_information();
+            w.push_back(info);
+        }
+        window.untag_information(1); // index == len
+        assert!(window.get(0).unwrap().is_tagged());
+    }
+
+    #[test]
+    fn test_window_untag_information_in_range() {
+        let window = SlidingWindow::new(10);
+        {
+            let mut w = window.window.write();
+            let mut info = Information::new("a", "user");
+            info.tag_information();
+            w.push_back(info);
+        }
+        assert!(window.get(0).unwrap().is_tagged());
+        window.untag_information(0);
+        assert!(!window.get(0).unwrap().is_tagged());
+    }
+
+    #[test]
+    fn test_window_auto_tag_every_capacity() {
+        let window = SlidingWindow::new(3);
+        // 第 capacity 条消息被标记（auto_tag 内部计数从 0 开始，previous+1 >= capacity 时标记）
+        let first = window.auto_tag(Information::new("1", "user"));
+        assert!(!first.is_tagged());
+        let second = window.auto_tag(Information::new("2", "user"));
+        assert!(!second.is_tagged());
+        let third = window.auto_tag(Information::new("3", "user"));
+        assert!(third.is_tagged());
+        // 计数重置后下一个周期第一条不再标记
+        let fourth = window.auto_tag(Information::new("4", "user"));
+        assert!(!fourth.is_tagged());
+    }
+
+    #[test]
+    fn test_window_auto_tag_capacity_one() {
+        let window = SlidingWindow::new(1);
+        let first = window.auto_tag(Information::new("1", "user"));
+        assert!(first.is_tagged());
+    }
+
+    #[test]
+    fn test_window_build_history() {
+        let window = SlidingWindow::new(10);
+        {
+            let mut w = window.window.write();
+            w.push_back(Information::new("u1", "user"));
+            w.push_back(Information::new("a1", "assistant"));
+        }
+        {
+            let mut s = window.summary.write();
+            s.update("summary text");
+        }
+        let history = window.build_history();
+        // summary + 2 messages
+        assert_eq!(history.len(), 3);
+    }
+
+    #[test]
+    fn test_window_prepare_prompt() {
+        let window = SlidingWindow::new(10);
+        {
+            let mut w = window.window.write();
+            w.push_back(Information::new("u1", "user"));
+        }
+        {
+            let mut s = window.summary.write();
+            s.update("sum");
+        }
+        let popped = Information::new("popped", "assistant");
+        let prompt = window.prepare_prompt(Some(&popped));
+        // system + user snapshot
+        assert_eq!(prompt.len(), 2);
+    }
 }

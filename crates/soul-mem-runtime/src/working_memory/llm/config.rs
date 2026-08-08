@@ -90,3 +90,58 @@ impl Config for LLMConfig {
         &self.ai_config.api_key()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use secrecy::ExposeSecret;
+
+    #[test]
+    fn test_llm_config_defaults() {
+        let config = LLMConfig::new("key123", "https://api.example.com", "model-x");
+        assert_eq!(config.get_model(), "model-x");
+        assert_eq!(config.get_temperature(), 0.7);
+        assert_eq!(config.get_n(), 1);
+        assert_eq!(config.get_max_tokens(), 512);
+        assert_eq!(config.api_base(), "https://api.example.com");
+        assert_eq!(config.api_key().expose_secret(), "key123");
+    }
+
+    #[test]
+    fn test_llm_config_builders() {
+        let config = LLMConfig::new("k", "https://b.example.com", "m")
+            .with_temperature(0.3)
+            .with_n(3)
+            .with_max_tokens(1024);
+        assert_eq!(config.get_temperature(), 0.3);
+        assert_eq!(config.get_n(), 3);
+        assert_eq!(config.get_max_tokens(), 1024);
+        assert_eq!(config.get_model(), "m");
+    }
+
+    #[test]
+    fn test_llm_config_get_config_and_url() {
+        let config = LLMConfig::new("k", "https://b.example.com/v1", "m");
+        let ai_config = config.get_config();
+        assert_eq!(ai_config.api_base(), "https://b.example.com/v1");
+        let url = config.url("/chat/completions");
+        assert!(url.contains("chat/completions"), "url was {url}");
+    }
+
+    #[test]
+    fn test_llm_config_headers_with_api_key() {
+        let config = LLMConfig::new("secret-key", "https://b.example.com/v1", "m");
+        let headers = config.headers();
+        // 带 API key 时 headers 应包含 Authorization，而非空
+        assert!(
+            headers.contains_key("authorization"),
+            "headers should contain authorization, got: {headers:?}"
+        );
+    }
+
+    #[test]
+    fn test_llm_config_query_is_empty() {
+        let config = LLMConfig::new("k", "https://b.example.com/v1", "m");
+        assert!(config.query().is_empty());
+    }
+}

@@ -20,8 +20,7 @@ impl ParticipantEmbedding {
     }
     pub fn fused(&self) -> &EmbeddingVec {
         &self.fused
-    }
-    pub fn mean_pooling(vecs: &[Self]) -> EmbeddingCalcResult<Option<Self>> {
+    }    pub fn mean_pooling(vecs: &[Self]) -> EmbeddingCalcResult<Option<Self>> {
         if vecs.is_empty() {
             return Ok(None);
         }
@@ -38,6 +37,12 @@ impl ParticipantEmbedding {
             role: role_vec,
             fused: fused_vec,
         }))
+    }
+}
+#[cfg(test)]
+impl ParticipantEmbedding {
+    pub(crate) fn test_new(name: EmbeddingVec, role: EmbeddingVec, fused: EmbeddingVec) -> Self {
+        Self { name, role, fused }
     }
 }
 impl Embeddable for Participant {

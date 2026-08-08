@@ -518,4 +518,49 @@ mod tests {
         fix_mem_type(&mut val);
         assert_eq!(val["Semantic"]["content"], serde_json::json!("Rust"));
     }
+
+    #[test]
+    fn test_cache_path_extension() {
+        let p = Path::new("data/graph.json");
+        let cp = cache_path(p);
+        assert_eq!(cp.file_name().unwrap().to_str().unwrap(), "graph.json.embcache");
+    }
+
+    #[test]
+    fn test_cache_path_no_extension() {
+        let p = Path::new("data/graph");
+        let cp = cache_path(p);
+        assert_eq!(cp.file_name().unwrap().to_str().unwrap(), "graph.embcache");
+    }
+
+    #[test]
+    fn test_clear_embedding_cache_finds_nested() {
+        let dir = tempfile::tempdir().unwrap();
+        // 嵌套目录结构 + embcache 文件
+        let sub = dir.path().join("sub");
+        std::fs::create_dir_all(&sub).unwrap();
+        std::fs::write(dir.path().join("a.json.embcache"), "x").unwrap();
+        std::fs::write(sub.join("b.json.embcache"), "y").unwrap();
+        std::fs::write(sub.join("c.txt"), "z").unwrap(); // 非 embcache 不应删除
+
+        let count = clear_embedding_cache(dir.path());
+        assert_eq!(count, 2);
+        assert!(!dir.path().join("a.json.embcache").exists());
+        assert!(!sub.join("b.json.embcache").exists());
+        assert!(sub.join("c.txt").exists());
+    }
+
+    #[test]
+    fn test_clear_embedding_cache_non_dir() {
+        let file = tempfile::NamedTempFile::new().unwrap();
+        let count = clear_embedding_cache(file.path());
+        assert_eq!(count, 0);
+    }
+
+    #[test]
+    fn test_clear_embedding_cache_empty_dir() {
+        let dir = tempfile::tempdir().unwrap();
+        let count = clear_embedding_cache(dir.path());
+        assert_eq!(count, 0);
+    }
 }

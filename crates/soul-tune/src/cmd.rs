@@ -202,4 +202,47 @@ mod tests {
         let all = reg.get_all();
         assert_eq!(all.len(), 2);
     }
+
+    #[test]
+    fn test_args_completer_none_and_some() {
+        let cmd = UserCmdBuilder::new("no_completer").build();
+        assert!(cmd.args_completer().is_none());
+
+        let cmd = UserCmdBuilder::new("with_completer")
+            .args_completer(|input: &str| vec![format!("{input}_suggestion")])
+            .build();
+        let completer = cmd.args_completer().expect("completer present");
+        assert_eq!(completer("abc"), vec!["abc_suggestion".to_string()]);
+    }
+
+    #[test]
+    fn test_fuzzy_cmd_find_exact_and_partial() {
+        let mut reg = CmdRegistry::new();
+        reg.register(UserCmdBuilder::new("retrieve").build());
+        reg.register(UserCmdBuilder::new("consolidate").build());
+        reg.register(UserCmdBuilder::new("forget").build());
+
+        // 精确匹配
+        let exact = reg.fuzzy_cmd_find("retrieve");
+        assert!(!exact.is_empty());
+        assert!(exact.iter().any(|c| c.name() == "retrieve"));
+
+        // 部分匹配仍应返回结果
+        let partial = reg.fuzzy_cmd_find("retr");
+        assert!(!partial.is_empty(), "partial match should return results");
+    }
+
+    #[test]
+    fn test_fuzzy_cmd_find_empty_registry() {
+        let reg = CmdRegistry::new();
+        assert!(reg.fuzzy_cmd_find("anything").is_empty());
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_fuzzy_cmd_completions_unimplemented() {
+        // fuzzy_cmd_completions 目前是 todo!()，任何调用都应 panic
+        let reg = CmdRegistry::new();
+        reg.fuzzy_cmd_completions("x");
+    }
 }

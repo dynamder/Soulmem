@@ -170,3 +170,111 @@ where
         self.0.cmp(&other.0)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn f64f(val: f64) -> OrdFloat<f64> {
+        OrdFloat::from_f64(val)
+    }
+
+    #[test]
+    fn test_ord_float_comparisons() {
+        let a = f64f(1.0);
+        let b = f64f(2.0);
+        assert!(a < b);
+        assert!(!(b < a));
+        assert!(a <= b);
+        assert!(!(b <= a));
+        assert!(b > a);
+        assert!(!(a > b));
+        assert!(b >= a);
+        assert!(!(a >= b));
+        assert!(a != b);
+        assert!(a == a);
+        // 直接调用各算符方法
+        assert!(a.ge(&b) == false);
+        assert!(b.ge(&a));
+        assert!(a.gt(&b) == false);
+        assert!(b.gt(&a));
+        assert!(a.le(&b));
+        assert!(b.le(&a) == false);
+        assert!(a.lt(&b));
+        assert!(b.lt(&a) == false);
+        assert_eq!(a.partial_cmp(&b), Some(std::cmp::Ordering::Less));
+        assert_eq!(b.partial_cmp(&a), Some(std::cmp::Ordering::Greater));
+        assert_eq!(a.partial_cmp(&a), Some(std::cmp::Ordering::Equal));
+        assert!(a == a);
+        assert!(a.cmp(&b) == std::cmp::Ordering::Less);
+    }
+
+    #[test]
+    fn test_ord_float_equal_values() {
+        let a = f64f(0.5);
+        let b = f64f(0.5);
+        assert!(a == b);
+        assert!(!(a < b));
+        assert!(!(a > b));
+        assert!(a <= b);
+        assert!(a >= b);
+        assert!(a.ge(&b));
+        assert!(a.le(&b));
+        assert_eq!(a.partial_cmp(&b), Some(std::cmp::Ordering::Equal));
+    }
+
+    #[test]
+    fn test_ord_float_negative_and_zero() {
+        let neg = f64f(-1.0);
+        let zero = f64f(0.0);
+        let pos = f64f(1.0);
+        assert!(neg < zero);
+        assert!(zero < pos);
+        assert!(neg < pos);
+        assert!(pos > neg);
+    }
+
+    #[test]
+    fn test_ord_float_from_f64() {
+        let v = f64f(3.14);
+        assert_eq!(v.into_inner(), 3.14);
+    }
+
+    #[test]
+    fn test_ord_float_arithmetic() {
+        let a = f64f(10.0);
+        let b = f64f(4.0);
+        assert_eq!((a + b).into_inner(), 14.0);
+        assert_eq!((a - b).into_inner(), 6.0);
+        assert_eq!((a * b).into_inner(), 40.0);
+        assert_eq!((a / b).into_inner(), 2.5);
+        assert_eq!((-a).into_inner(), -10.0);
+    }
+
+    #[test]
+    fn test_ord_float_assign_ops() {
+        let mut a = f64f(10.0);
+        let b = f64f(4.0);
+        a += b;
+        assert_eq!(a.into_inner(), 14.0);
+        a -= b;
+        assert_eq!(a.into_inner(), 10.0);
+        a *= b;
+        assert_eq!(a.into_inner(), 40.0);
+        a /= b;
+        assert_eq!(a.into_inner(), 10.0);
+    }
+
+    #[test]
+    fn test_ord_float_unit_measure() {
+        assert_eq!(OrdFloat::<f64>::zero().into_inner(), 0.0);
+        assert_eq!(OrdFloat::<f64>::one().into_inner(), 1.0);
+        assert_eq!(OrdFloat::<f64>::from_usize(7).into_inner(), 7.0);
+        assert_eq!(OrdFloat::<f64>::from_f32(0.5).into_inner(), 0.5);
+        // from_f64 遇到 NaN 输入应保持 NaN 而非 panic
+        assert!(OrdFloat::<f64>::from_f64(f64::NAN).into_inner().is_nan());
+        // default_tol 应为正值（epsilon），zero 应为 0
+        assert!(OrdFloat::<f64>::default_tol().into_inner() > 0.0);
+        assert_eq!(OrdFloat::<f64>::default_tol().into_inner(), f64::EPSILON);
+    }
+}

@@ -63,6 +63,22 @@ impl EventEmbedding {
         }))
     }
 }
+#[cfg(test)]
+impl EventEmbedding {
+    pub(crate) fn test_new(
+        action: EmbeddingVec,
+        initiator: EmbeddingVec,
+        target: EmbeddingVec,
+        intensity: f32,
+    ) -> Self {
+        Self {
+            action,
+            initiator,
+            target,
+            intensity,
+        }
+    }
+}
 impl Embeddable for Event {
     type EmbeddingGen = EventEmbedding;
     type EmbeddingFused = EmbeddedEvent;
@@ -171,5 +187,85 @@ mod tests {
     fn test_event_weight_pooling_empty() {
         let result = EventEmbedding::weight_pooling(&[]);
         assert!(result.unwrap().is_none());
+    }
+
+    fn embed_event(action: Vec<f32>, initiator: Vec<f32>, target: Vec<f32>, intensity: f32) -> EventEmbedding {
+        EventEmbedding {
+            action: EmbeddingVec::new(action),
+            initiator: EmbeddingVec::new(initiator),
+            target: EmbeddingVec::new(target),
+            intensity,
+        }
+    }
+
+    #[test]
+    fn test_event_weight_pooling_values() {
+        // 两事件：intensity 0.5 + 0.5 = 1.0，权重各为 0.5
+        let e1 = embed_event(vec![1.0, 10.0], vec![1.0, 10.0], vec![1.0, 10.0], 0.5);
+        let e2 = embed_event(vec![3.0, 20.0], vec![3.0, 20.0], vec![3.0, 20.0], 0.5);
+        let pooled = EventEmbedding::weight_pooling(&[e1, e2])
+            .unwrap()
+            .unwrap();
+        assert_close(pooled.action.iter().copied().collect::<Vec<_>>()[0], 2.0);
+        assert_close(pooled.action.iter().copied().collect::<Vec<_>>()[1], 15.0);
+        assert_close(pooled.initiator.iter().copied().collect::<Vec<_>>()[0], 2.0);
+        assert_close(pooled.target.iter().copied().collect::<Vec<_>>()[0], 2.0);
+        assert_close(pooled.intensity(), 1.0);
+    }
+
+    #[test]
+    fn test_event_weight_pooling_weighted() {
+        // 权重不对称：0.75 / 0.25
+        let e1 = embed_event(vec![4.0], vec![0.0], vec![2.0], 3.0);
+        let e2 = embed_event(vec![0.0], vec![0.0], vec![0.0], 1.0);
+        let pooled = EventEmbedding::weight_pooling(&[e1, e2])
+            .unwrap()
+            .unwrap();
+        // action: 4*0.75 + 0*0.25 = 3.0; target: 2*0.75 + 0*0.25 = 1.5
+        assert_close(pooled.action.iter().copied().next().unwrap(), 3.0);
+        assert_close(pooled.target.iter().copied().next().unwrap(), 1.5);
+        assert_close(pooled.intensity(), 4.0);
+    }
+
+    #[test]
+    fn test_event_weight_pooling_three_components() {
+        // 三个字段都带非零值，验证每个字段的加权融合
+        let e1 = embed_event(vec![1.0, 2.0], vec![3.0, 4.0], vec![5.0, 6.0], 1.0);
+        let e2 = embed_event(vec![7.0, 8.0], vec![9.0, 10.0], vec![11.0, 12.0], 1.0);
+        let pooled = EventEmbedding::weight_pooling(&[e1, e2])
+            .unwrap()
+            .unwrap();
+        let action_vals = pooled.action.iter().copied().collect::<Vec<_>>();
+        let initiator_vals = pooled.initiator.iter().copied().collect::<Vec<_>>();
+        let target_vals = pooled.target.iter().copied().collect::<Vec<_>>();
+        assert_close(action_vals[0], 4.0);
+        assert_close(action_vals[1], 5.0);
+        assert_close(initiator_vals[0], 6.0);
+        assert_close(target_vals[0], 8.0);
+        assert_close(target_vals[1], 9.0);
+    }
+
+    #[test]
+    fn test_event_weight_pooling_zero_intensity() {
+        let e1 = embed_event(vec![1.0], vec![1.0], vec![1.0], 0.0);
+        let e2 = embed_event(vec![1.0], vec![1.0], vec![1.0], 0.0);
+        assert!(matches!(
+            EventEmbedding::weight_pooling(&[e1, e2]),
+            Err(EmbeddingCalcError::InvalidNumValue)
+        ));
+    }
+
+    #[test]
+    fn test_event_weight_pooling_shape_mismatch() {
+        let e1 = embed_event(vec![1.0], vec![1.0], vec![1.0], 1.0);
+        let e2 = embed_event(vec![1.0, 2.0], vec![1.0], vec![1.0], 1.0);
+        assert!(matches!(
+            EventEmbedding::weight_pooling(&[e1, e2]),
+            Err(EmbeddingCalcError::ShapeMismatch)
+        ));
+    }
+
+    fn assert_close(actual: f32, expected: f32) {
+        assert!((actual - expected).abs() < 1e-5, "expected {actual} close to {expected}");
     }
 }

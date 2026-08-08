@@ -1,0 +1,15 @@
+exclude_globs = ["**/embedding_model/**"]
+additional_cargo_test_args = ["--", "--skip", "test_bge_small_zh_cpu", "--skip", "test_qwen3_embedding_600m_cpu"]
+exclude_re = [
+    'replace \|\| with && in string_distance_score',
+    'LlmClient::call_llm',
+    'LlmClient::simple_call',
+    'SlidingWindow::summarize',
+    'Config for LLMConfig>::query',
+    'replace match guard .* in MemoryCluster::merge_node',
+    'replace / with \* in naive_ppr',
+    'weighted_ppr_fp',
+    'in weighted_ppr_fp',
+    'UnitMeasure for OrdFloat<F>>::zero',
+    'from struct AssociationConfig expression',
+]

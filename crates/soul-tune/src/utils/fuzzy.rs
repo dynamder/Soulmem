@@ -109,4 +109,45 @@ mod tests {
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].0, "query");
     }
+
+    #[test]
+    fn test_pattern_builder_custom_case_matters() {
+        // Respect：大小写不同不应匹配
+        let atom = FuzzyPatternBuilder::default()
+            .case(CaseMatching::Respect)
+            .build("QUERY");
+        let items = vec!["query", "QUERY"];
+        let results = fuzzy_match(atom, items, false);
+        assert!(
+            results.iter().any(|(item, _)| *item == "QUERY"),
+            "case-sensitive should match only exact case"
+        );
+        assert!(
+            !results.iter().any(|(item, _)| *item == "query"),
+            "case-sensitive should not match lowercase"
+        );
+    }
+
+    #[test]
+    fn test_pattern_builder_escape_whitespace() {
+        let atom = FuzzyPatternBuilder::default()
+            .escape_whitespace(true)
+            .build("two words");
+        let items = vec!["two words", "other"];
+        let results = fuzzy_match(atom, items, false);
+        assert!(!results.is_empty());
+    }
+
+    #[test]
+    fn test_pattern_builder_kind_exact() {
+        let atom = FuzzyPatternBuilder::default()
+            .kind(AtomKind::Exact)
+            .build("exact");
+        let items = vec!["exact", "exact_plus_more"];
+        let results = fuzzy_match(atom, items, false);
+        assert!(
+            results.iter().any(|(item, _)| *item == "exact"),
+            "Exact kind should match the exact string"
+        );
+    }
 }

@@ -152,3 +152,139 @@ pub fn build_compare_report(
         },
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::engine::retrieve::data::{ActionMetrics, RankingMetrics};
+
+    fn metrics(hit: f64, mrr: f64) -> RankingMetrics {
+        RankingMetrics {
+            recall_at: vec![(5, hit)],
+            precision_at: vec![(5, hit)],
+            mrr,
+            ndcg_at: vec![],
+            hit_rate: hit,
+        }
+    }
+
+    fn case_data(
+        name: &str,
+        tag_weight: f32,
+        variant_weight: f32,
+        hit: f64,
+        mrr: f64,
+    ) -> RetrieveCaseData {
+        RetrieveCaseData {
+            case_name: name.to_string(),
+            description: format!("desc {name}"),
+            combined_retrieved_ids: vec![],
+            combined_ranking_metrics: metrics(hit, mrr),
+            per_query_metrics: vec![],
+            action_metrics: ActionMetrics {
+                action_hit_rate: 0.0,
+                action_recall_at: vec![],
+            },
+            tag_weight,
+            variant_weight,
+            id_names: None,
+            expected_combined_ranking: vec![],
+            bonus_combined_ranking: vec![],
+            graph_names: None,
+            sub_queries: vec![],
+        }
+    }
+
+    fn outcome(case: RetrieveCaseData) -> TestCaseOutcome {
+        let name = case.case_name.clone();
+        TestCaseOutcome {
+            case_name: name,
+            description: String::new(),
+            passed: true,
+            data: Box::new(case),
+        }
+    }
+
+    #[test]
+    fn test_build_compare_report_basic() {
+        let emb = vec![
+            outcome(case_data("a", 0.5, 0.5, 0.8, 0.6)),
+            outcome(case_data("b", 0.4, 0.6, 0.5, 0.3)),
+        ];
+        let full = vec![
+            outcome(case_data("a", 0.5, 0.5, 0.9, 0.8)),
+            outcome(case_data("b", 0.4, 0.6, 0.4, 0.2)),
+        ];
+        let report = build_compare_report(&emb, &full);
+        assert_eq!(report.cases.len(), 2);
+        // avg embedding hit = (0.8 + 0.5)/2 = 0.65
+        assert!((report.aggregate.avg_embedding_hit - 0.65).abs() < 1e-6);
+        // avg fullpipeline hit = (0.9 + 0.4)/2 = 0.65
+        assert!((report.aggregate.avg_fullpipeline_hit - 0.65).abs() < 1e-6);
+        // avg embedding mrr = (0.6 + 0.3)/2 = 0.45
+        assert!((report.aggregate.avg_embedding_mrr - 0.45).abs() < 1e-6);
+        // avg fullpipeline mrr = (0.8 + 0.2)/2 = 0.5
+        assert!((report.aggregate.avg_fullpipeline_mrr - 0.5).abs() < 1e-6);
+        // hit improvement: a (0.9>0.8) yes, b (0.4>0.5) no → 1
+        assert_eq!(report.aggregate.hit_improvement_count, 1);
+        // mrr improvement: a (0.8>0.6) yes, b (0.2>0.3) no → 1
+        assert_eq!(report.aggregate.mrr_improvement_count, 1);
+    }
+
+    #[test]
+    fn test_build_compare_report_empty() {
+        let report = build_compare_report(&[], &[]);
+        assert!(report.cases.is_empty());
+        assert_eq!(report.aggregate.case_count, 0);
+    }
+
+    #[test]
+    fn test_build_compare_report_missing_full_entry() {
+        // full 缺少某个 case → 对应分数为 0
+        let emb = vec![outcome(case_data("a", 0.5, 0.5, 0.8, 0.6))];
+        let full = vec![];
+        let report = build_compare_report(&emb, &full);
+        assert_eq!(report.cases.len(), 1);
+        assert_eq!(report.cases[0].fullpipeline_hit, 0.0);
+        assert_eq!(report.cases[0].fullpipeline_mrr, 0.0);
+        assert!((report.aggregate.avg_fullpipeline_hit - 0.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_build_compare_report_weight_rounding_key() {
+        // tag_weight/variant_weight 相同但 case 名不同 → 独立条目
+        let emb = vec![
+            outcome(case_data("x", 0.5, 0.5, 0.1, 0.1)),
+            outcome(case_data("y", 0.5, 0.5, 0.2, 0.2)),
+        ];
+        let full = vec![];
+        let report = build_compare_report(&emb, &full);
+        assert_eq!(report.cases.len(), 2);
+    }
+
+    #[test]
+    fn test_build_compare_report_weight_scaled() {
+        // 权重乘以 100 取整作为 key 的一部分：0.55 与 0.55 应归并
+        let emb = vec![outcome(case_data("k", 0.55, 0.45, 0.7, 0.5))];
+        let full = vec![outcome(case_data("k", 0.55, 0.45, 0.8, 0.6))];
+        let report = build_compare_report(&emb, &full);
+        assert_eq!(report.cases.len(), 1);
+        assert!((report.cases[0].fullpipeline_hit - 0.8).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_build_compare_report_equal_values_not_counted_as_improvement() {
+        // fullpipeline == embedding 时不计入 improvement（区分 > 与 >=）
+        let emb = vec![
+            outcome(case_data("a", 0.5, 0.5, 0.8, 0.6)),
+            outcome(case_data("b", 0.4, 0.6, 0.5, 0.3)),
+        ];
+        let full = vec![
+            outcome(case_data("a", 0.5, 0.5, 0.8, 0.6)), // 相等
+            outcome(case_data("b", 0.4, 0.6, 0.6, 0.4)), // 提升
+        ];
+        let report = build_compare_report(&emb, &full);
+        assert_eq!(report.aggregate.hit_improvement_count, 1);
+        assert_eq!(report.aggregate.mrr_improvement_count, 1);
+    }
+}

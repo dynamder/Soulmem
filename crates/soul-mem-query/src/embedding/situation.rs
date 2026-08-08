@@ -57,6 +57,12 @@ impl SpecificSituationEmbedding {
         &self.context
     }
 }
+#[cfg(test)]
+impl SpecificSituationEmbedding {
+    pub(crate) fn test_new(narrative: EmbeddingVec, context: ContextEmbedding) -> Self {
+        Self { narrative, context }
+    }
+}
 impl Embeddable for SpecificSituation {
     type EmbeddingGen = SpecificSituationEmbedding;
     type EmbeddingFused = EmbeddedSpecificSituation;
@@ -319,5 +325,84 @@ mod test {
         let embedding = situation_type.embed(&model).unwrap();
 
         assert!(embedding.to_abstract().is_some());
+    }
+
+    #[test]
+    fn test_situation_embedding_accessors() {
+        let specific_emb = SpecificSituationEmbedding {
+            narrative: EmbeddingVec::new(vec![1.0, 2.0]),
+            context: ContextEmbedding::test_new(
+                None,
+                None,
+                None,
+                None,
+                EnvironmentEmbedding::test_new(
+                    EmbeddingVec::new(vec![0.0, 0.0]),
+                    EmbeddingVec::new(vec![0.0, 0.0]),
+                ),
+                None,
+            ),
+        };
+        let specific = SituationEmbedding::Specific(specific_emb.clone());
+        assert!(specific.to_specific().is_some());
+        assert!(specific.to_abstract().is_none());
+
+        let abstract_emb = AbstractSituationEmbedding::Location(LocationEmbedding::test_new(
+            EmbeddingVec::new(vec![1.0]),
+            EmbeddingVec::new(vec![2.0]),
+        ));
+        let abstract_variant = SituationEmbedding::Abstract(abstract_emb.clone());
+        assert!(abstract_variant.to_specific().is_none());
+        assert!(abstract_variant.to_abstract().is_some());
+
+        // From<AbstractSituationEmbedding>
+        let from: SituationEmbedding = abstract_emb.clone().into();
+        assert!(matches!(from, SituationEmbedding::Abstract(_)));
+    }
+
+    #[test]
+    fn test_abstract_situation_embedding_accessors() {
+        let loc = AbstractSituationEmbedding::Location(LocationEmbedding::test_new(
+            EmbeddingVec::new(vec![1.0]),
+            EmbeddingVec::new(vec![2.0]),
+        ));
+        assert!(loc.to_location().is_some());
+        assert!(loc.to_participant().is_none());
+        assert!(loc.to_environment().is_none());
+        assert!(loc.to_event().is_none());
+
+        let participant = AbstractSituationEmbedding::Participant(ParticipantEmbedding::test_new(
+            EmbeddingVec::new(vec![1.0]),
+            EmbeddingVec::new(vec![2.0]),
+            EmbeddingVec::new(vec![1.5]),
+        ));
+        assert!(participant.to_location().is_none());
+        assert!(participant.to_participant().is_some());
+
+        let environment = AbstractSituationEmbedding::Environment(EnvironmentEmbedding::test_new(
+            EmbeddingVec::new(vec![1.0]),
+            EmbeddingVec::new(vec![2.0]),
+        ));
+        assert!(environment.to_environment().is_some());
+        assert!(environment.to_participant().is_none());
+
+        let event = AbstractSituationEmbedding::Event(EventEmbedding::test_new(
+            EmbeddingVec::new(vec![1.0]),
+            EmbeddingVec::new(vec![2.0]),
+            EmbeddingVec::new(vec![3.0]),
+            0.5,
+        ));
+        assert!(event.to_event().is_some());
+        assert!(event.to_location().is_none());
+    }
+
+    #[test]
+    fn test_abstract_situation_fused_self() {
+        let loc = AbstractSituationEmbedding::Location(LocationEmbedding::test_new(
+            EmbeddingVec::new(vec![1.0, 2.0]),
+            EmbeddingVec::new(vec![3.0, 4.0]),
+        ));
+        let fused = loc.fused_self().unwrap();
+        assert_eq!(fused.iter().copied().collect::<Vec<_>>(), vec![2.0, 3.0]);
     }
 }

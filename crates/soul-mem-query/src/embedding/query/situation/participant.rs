@@ -43,6 +43,20 @@ impl ParticipantQueryUnitEmbedding {
         }))
     }
 }
+#[cfg(test)]
+impl ParticipantQueryUnitEmbedding {
+    pub(crate) fn test_new(
+        name: Option<EmbeddingVec>,
+        role: Option<EmbeddingVec>,
+        blend_weights: BlendWeights,
+    ) -> Self {
+        Self {
+            name,
+            role,
+            blend_weights,
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct EmbedParticipantQueryUnit {
@@ -85,5 +99,57 @@ impl Embeddable for ParticipantQueryUnit {
             embedding: self.embed(model)?,
             query: self,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_participant_query_unit_embedding_accessors() {
+        let mut embedding = ParticipantQueryUnitEmbedding::test_new(
+            Some(EmbeddingVec::new(vec![1.0])),
+            Some(EmbeddingVec::new(vec![2.0])),
+            BlendWeights::default(),
+        );
+        assert_eq!(embedding.name().unwrap().shape(), 1);
+        assert_eq!(embedding.role().unwrap().shape(), 1);
+
+        let mut bw = BlendWeights::default();
+        bw.tag = 0.8;
+        embedding.set_blend_weights(&bw);
+        assert_eq!(embedding.blend_weights.tag, 0.8);
+    }
+
+    #[test]
+    fn test_participant_query_unit_embedding_none() {
+        let embedding = ParticipantQueryUnitEmbedding::test_new(None, None, BlendWeights::default());
+        assert!(embedding.name().is_none());
+        assert!(embedding.role().is_none());
+    }
+
+    #[test]
+    fn test_participant_query_unit_mean_pooling() {
+        let p1 = ParticipantQueryUnitEmbedding::test_new(
+            Some(EmbeddingVec::new(vec![1.0, 2.0])),
+            Some(EmbeddingVec::new(vec![1.0, 2.0])),
+            BlendWeights::default(),
+        );
+        let p2 = ParticipantQueryUnitEmbedding::test_new(
+            Some(EmbeddingVec::new(vec![3.0, 4.0])),
+            None,
+            BlendWeights::default(),
+        );
+        let pooled = ParticipantQueryUnitEmbedding::mean_pooling(&[p1, p2])
+            .unwrap()
+            .unwrap();
+        assert_eq!(pooled.name().unwrap().shape(), 2);
+        assert!(pooled.role().is_some());
+    }
+
+    #[test]
+    fn test_participant_query_unit_mean_pooling_empty() {
+        assert!(ParticipantQueryUnitEmbedding::mean_pooling(&[]).unwrap().is_none());
     }
 }

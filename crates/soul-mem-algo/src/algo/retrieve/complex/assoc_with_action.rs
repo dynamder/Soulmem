@@ -125,6 +125,20 @@ mod tests {
     use soul_mem_query::embedding::note::EmbeddedMemoryNote;
     use soul_mem_query::embedding::note::MemoryEmbedding;
     use soul_mem_query::embedding::note::MemoryEmbeddingVariant;
+
+    #[test]
+    fn test_default_action_top_k() {
+        assert_eq!(default_action_top_k(), 3);
+    }
+
+    #[test]
+    fn test_associate_with_action_config_defaults() {
+        let config = AssociateWithActionConfig {
+            association: AssociationConfig::default(),
+            action_top_k: default_action_top_k(),
+        };
+        assert_eq!(config.action_top_k, 3);
+    }
     use soul_mem_query::embedding::sem::SemanticEmbedding;
     use soul_mem_query::embedding::EmbeddingVec;
 

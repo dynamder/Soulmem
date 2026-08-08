@@ -17,6 +17,13 @@ impl LocationEmbedding {
     }
 }
 
+#[cfg(test)]
+impl LocationEmbedding {
+    pub(crate) fn test_new(name: EmbeddingVec, coordinates: EmbeddingVec) -> Self {
+        Self { name, coordinates }
+    }
+}
+
 impl Embeddable for Location {
     type EmbeddingGen = LocationEmbedding;
     type EmbeddingFused = EmbeddedLocation;

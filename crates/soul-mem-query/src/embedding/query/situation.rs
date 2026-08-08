@@ -55,6 +55,26 @@ impl SituationQueryUnitEmbedding {
         }
     }
 }
+#[cfg(test)]
+impl SituationQueryUnitEmbedding {
+    pub(crate) fn test_new(
+        narrative: Option<EmbeddingVec>,
+        location: Option<LocationQueryUnitEmbedding>,
+        participants: Option<ParticipantQueryUnitEmbedding>,
+        environment: Option<EnvironmentQueryUnitEmbedding>,
+        event: Option<EventQueryUnitEmbedding>,
+        blend_weights: BlendWeights,
+    ) -> Self {
+        Self {
+            narrative,
+            location,
+            participants,
+            environment,
+            event,
+            blend_weights,
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct EmbbdedSituationQueryUnit {
@@ -191,5 +211,78 @@ mod tests {
         let model = BgeSmallZh::default_cpu().unwrap();
 
         situation.embed_and_fuse(&model).unwrap();
+    }
+
+    #[test]
+    fn test_set_blend_weights_propagates() {
+        let mut bw = BlendWeights::default();
+        bw.tag = 0.9;
+
+        let mut embedding = SituationQueryUnitEmbedding {
+            narrative: Some(EmbeddingVec::new(vec![1.0])),
+            location: Some(LocationQueryUnitEmbedding::test_new(
+                EmbeddingVec::new(vec![1.0]),
+                None,
+                BlendWeights::default(),
+            )),
+            participants: Some(ParticipantQueryUnitEmbedding::test_new(
+                Some(EmbeddingVec::new(vec![1.0])),
+                None,
+                BlendWeights::default(),
+            )),
+            environment: Some(EnvironmentQueryUnitEmbedding::test_new(
+                Some(EmbeddingVec::new(vec![1.0])),
+                None,
+                BlendWeights::default(),
+            )),
+            event: Some(EventQueryUnitEmbedding::test_new(
+                EmbeddingVec::new(vec![1.0]),
+                None,
+                None,
+                BlendWeights::default(),
+            )),
+            blend_weights: BlendWeights::default(),
+        };
+
+        embedding.set_blend_weights(&bw);
+        assert_eq!(embedding.blend_weights.tag, 0.9);
+        assert_eq!(embedding.location.as_ref().unwrap().blend_weights.tag, 0.9);
+        assert_eq!(embedding.participants.as_ref().unwrap().blend_weights.tag, 0.9);
+        assert_eq!(embedding.environment.as_ref().unwrap().blend_weights.tag, 0.9);
+        assert_eq!(embedding.event.as_ref().unwrap().blend_weights.tag, 0.9);
+    }
+
+    #[test]
+    fn test_situation_query_unit_accessors() {
+        let embedding = SituationQueryUnitEmbedding {
+            narrative: Some(EmbeddingVec::new(vec![1.0])),
+            location: Some(LocationQueryUnitEmbedding::test_new(
+                EmbeddingVec::new(vec![1.0]),
+                None,
+                BlendWeights::default(),
+            )),
+            participants: Some(ParticipantQueryUnitEmbedding::test_new(
+                Some(EmbeddingVec::new(vec![1.0])),
+                None,
+                BlendWeights::default(),
+            )),
+            environment: Some(EnvironmentQueryUnitEmbedding::test_new(
+                Some(EmbeddingVec::new(vec![1.0])),
+                None,
+                BlendWeights::default(),
+            )),
+            event: Some(EventQueryUnitEmbedding::test_new(
+                EmbeddingVec::new(vec![1.0]),
+                None,
+                None,
+                BlendWeights::default(),
+            )),
+            blend_weights: BlendWeights::default(),
+        };
+        assert!(embedding.narrative().is_some());
+        assert!(embedding.location().is_some());
+        assert!(embedding.participants().is_some());
+        assert!(embedding.environment().is_some());
+        assert!(embedding.event().is_some());
     }
 }

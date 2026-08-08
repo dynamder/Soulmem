@@ -201,4 +201,69 @@ mod tests {
             panic!("Expected Semantic variant");
         }
     }
+
+    #[test]
+    fn test_set_blend_weights_propagates_to_semantic_units() {
+        let mut embedding = MemoryRetrieveQueryVariantEmbedding::Semantic(vec![
+            SemanticQueryUnitEmbedding::test_new(
+                Some(EmbeddingVec::new(vec![1.0])),
+                None,
+                BlendWeights::default(),
+            ),
+            SemanticQueryUnitEmbedding::test_new(None, None, BlendWeights::default()),
+        ]);
+        let mut bw = BlendWeights::default();
+        bw.tag = 0.7;
+        embedding.set_blend_weights(&bw);
+        match embedding {
+            MemoryRetrieveQueryVariantEmbedding::Semantic(units) => {
+                for u in units.iter() {
+                    assert_eq!(u.blend_weights.tag, 0.7);
+                }
+            }
+            _ => panic!("expected semantic"),
+        }
+    }
+
+    #[test]
+    fn test_set_blend_weights_propagates_to_situation_units() {
+        let mut embedding = MemoryRetrieveQueryVariantEmbedding::Situation(vec![
+            SituationQueryUnitEmbedding::test_new(
+                Some(EmbeddingVec::new(vec![1.0])),
+                None,
+                None,
+                None,
+                None,
+                BlendWeights::default(),
+            ),
+        ]);
+        let mut bw = BlendWeights::default();
+        bw.tag = 0.7;
+        embedding.set_blend_weights(&bw);
+        match embedding {
+            MemoryRetrieveQueryVariantEmbedding::Situation(units) => {
+                for u in units.iter() {
+                    assert_eq!(u.blend_weights.tag, 0.7);
+                }
+            }
+            _ => panic!("expected situation"),
+        }
+    }
+
+    #[test]
+    fn test_memory_retrieve_query_embedding_weights() {
+        let query = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::new(vec![1.0]));
+        assert_eq!(query.tag_weight, 0.4);
+        assert_eq!(query.variant_weight, 0.6);
+        assert_eq!(query.string_blend_alpha, 0.6);
+
+        let mut bw = BlendWeights::default();
+        bw.tag = 0.3;
+        bw.variant = 0.7;
+        bw.string_blend_alpha = 0.5;
+        let query = query.with_weights(bw);
+        assert_eq!(query.tag_weight, 0.3);
+        assert_eq!(query.variant_weight, 0.7);
+        assert_eq!(query.string_blend_alpha, 0.5);
+    }
 }

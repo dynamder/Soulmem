@@ -42,6 +42,20 @@ impl LocationQueryUnitEmbedding {
         }))
     }
 }
+#[cfg(test)]
+impl LocationQueryUnitEmbedding {
+    pub(crate) fn test_new(
+        name: EmbeddingVec,
+        coordinates: Option<EmbeddingVec>,
+        blend_weights: BlendWeights,
+    ) -> Self {
+        Self {
+            name,
+            coordinates,
+            blend_weights,
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct EmbedLocationQueryUnit {
@@ -81,5 +95,61 @@ impl Embeddable for LocationQueryUnit {
             embedding: self.embed(model)?,
             query: self,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_location_query_unit_embedding_accessors() {
+        let mut embedding = LocationQueryUnitEmbedding::test_new(
+            EmbeddingVec::new(vec![1.0]),
+            Some(EmbeddingVec::new(vec![2.0])),
+            BlendWeights::default(),
+        );
+        assert_eq!(embedding.name().shape(), 1);
+        assert_eq!(embedding.coordinates().unwrap().shape(), 1);
+
+        let mut bw = BlendWeights::default();
+        bw.tag = 0.8;
+        embedding.set_blend_weights(&bw);
+        assert_eq!(embedding.blend_weights.tag, 0.8);
+    }
+
+    #[test]
+    fn test_location_query_unit_embedding_without_coordinates() {
+        let embedding = LocationQueryUnitEmbedding::test_new(
+            EmbeddingVec::new(vec![1.0]),
+            None,
+            BlendWeights::default(),
+        );
+        assert_eq!(embedding.name().shape(), 1);
+        assert!(embedding.coordinates().is_none());
+    }
+
+    #[test]
+    fn test_location_query_unit_mean_pooling() {
+        let l1 = LocationQueryUnitEmbedding::test_new(
+            EmbeddingVec::new(vec![1.0, 2.0]),
+            Some(EmbeddingVec::new(vec![1.0, 2.0])),
+            BlendWeights::default(),
+        );
+        let l2 = LocationQueryUnitEmbedding::test_new(
+            EmbeddingVec::new(vec![3.0, 4.0]),
+            None,
+            BlendWeights::default(),
+        );
+        let pooled = LocationQueryUnitEmbedding::mean_pooling(&[l1, l2])
+            .unwrap()
+            .unwrap();
+        assert_eq!(pooled.name().shape(), 2);
+        assert!(pooled.coordinates().is_some());
+    }
+
+    #[test]
+    fn test_location_query_unit_mean_pooling_empty() {
+        assert!(LocationQueryUnitEmbedding::mean_pooling(&[]).unwrap().is_none());
     }
 }

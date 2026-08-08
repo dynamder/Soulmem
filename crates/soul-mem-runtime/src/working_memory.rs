@@ -117,3 +117,128 @@ impl WorkingMemory {
         &mut self.records
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::working_memory::sliding_window::Information;
+    use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
+    use soul_mem_core::memory_note::{MemoryNoteBuilder, MemoryType};
+    use soul_mem_query::embedding::note::{MemoryEmbedding, MemoryEmbeddingVariant};
+    use soul_mem_query::embedding::sem::SemanticEmbedding;
+    use soul_mem_query::embedding::EmbeddingVec;
+
+    fn sem_note(content: &str) -> EmbeddedMemoryNote {
+        let mem_type = MemoryType::Semantic(SemMemory {
+            content: content.to_string(),
+            aliases: vec![],
+            concept_type: ConceptType::Entity,
+            description: String::new(),
+        });
+        let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+        let embedding = MemoryEmbedding::new(
+            EmbeddingVec::zero(4),
+            MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                EmbeddingVec::zero(4),
+                EmbeddingVec::zero(4),
+                EmbeddingVec::zero(4),
+            )),
+        );
+        EmbeddedMemoryNote { note, embedding }
+    }
+
+    #[test]
+    fn test_working_state_transitions() {
+        let mut wm = WorkingMemory::new(10);
+        assert!(!wm.is_working());
+        assert_eq!(wm.state(), &WorkingState::Idle);
+        wm.transition_to_working();
+        assert!(wm.is_working());
+        assert_eq!(wm.state(), &WorkingState::Working);
+        wm.transition_to_idle();
+        assert!(!wm.is_working());
+        assert_eq!(wm.state(), &WorkingState::Idle);
+    }
+
+    #[test]
+    fn test_sliding_window_accessors() {
+        let mut wm = WorkingMemory::new(10);
+        assert!(wm.sliding_window().is_empty());
+        {
+            let sw = wm.sliding_window_mut();
+            let mut w = sw.window().write();
+            w.push_back(Information::new("hello", "user"));
+        }
+        assert_eq!(wm.sliding_window().len(), 1);
+        assert_eq!(wm.sliding_window().get_windows()[0].get_str(), "hello");
+    }
+
+    #[test]
+    fn test_add_node_creates_record() {
+        let mut wm = WorkingMemory::new(10);
+        let node = sem_note("A");
+        let id = node.note().id();
+        wm.add_node(node);
+        assert!(wm.records().contains_key(&id));
+        // 重复添加不覆盖记录
+        let node2 = sem_note("B");
+        let id2 = node2.note().id();
+        wm.add_node(node2);
+        assert!(wm.records().contains_key(&id));
+        assert!(wm.records().contains_key(&id2));
+    }
+
+    #[test]
+    fn test_remove_node_removes_record() {
+        let mut wm = WorkingMemory::new(10);
+        let node = sem_note("A");
+        let id = node.note().id();
+        wm.add_node(node);
+        assert!(wm.records().contains_key(&id));
+        let removed = wm.remove_node(id);
+        assert!(removed.is_some());
+        assert!(!wm.records().contains_key(&id));
+        assert!(wm.remove_node(id).is_none());
+    }
+
+    #[test]
+    fn test_record_retrieval_and_feedback() {
+        let mut wm = WorkingMemory::new(10);
+        let node = sem_note("A");
+        let id = node.note().id();
+        wm.record_retrieval(id);
+        assert_eq!(wm.records()[&id].retrieval_count(), 1);
+        wm.record_retrieval(id);
+        assert_eq!(wm.records()[&id].retrieval_count(), 2);
+
+        wm.add_feedback(id, UserFeedback::Positive);
+        assert_eq!(wm.records()[&id].feedback_score(), 1);
+
+        // 无 record 时按需创建
+        let new_id = MemoryId::new();
+        wm.add_feedback(new_id, UserFeedback::Negative);
+        assert_eq!(wm.records()[&new_id].feedback_score(), -1);
+    }
+
+    #[test]
+    fn test_memory_cluster_handle() {
+        let mut wm = WorkingMemory::new(10);
+        let node = sem_note("A");
+        let id = node.note().id();
+        wm.add_node(node);
+        let cluster = wm.memory_cluster();
+        let contains = cluster.read_or_compute(|c| c.contains_node(id));
+        assert!(contains);
+    }
+
+    #[test]
+    fn test_records_mut() {
+        let mut wm = WorkingMemory::new(10);
+        assert!(wm.records_mut().is_empty());
+        let node = sem_note("A");
+        let id = node.note().id();
+        wm.add_node(node);
+        wm.records_mut().get_mut(&id).expect("record").record_retrieval();
+        assert_eq!(wm.records()[&id].retrieval_count(), 1);
+    }
+}

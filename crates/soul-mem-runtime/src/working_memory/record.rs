@@ -313,6 +313,53 @@ mod tests {
         assert_eq!(empty_feedback.len(), 0);
     }
 
+    #[test]
+    fn test_feedback_history_in_range_inverted_bounds() {
+        // start > end 时应返回空而非 panic（BTreeMap::range 对逆序会 panic）
+        let memory_id = create_test_memory_id();
+        let mut record = Record::new(memory_id);
+        record.add_feedback(UserFeedback::Positive);
+        let now = Utc::now();
+        let result = record.feedback_history_in_range(now, now - Duration::seconds(1));
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_feedback_history_in_range_equal_bounds() {
+        // start == end 时，包含恰好在该时刻的反馈（start > end 守卫不得吞掉该情形）
+        let memory_id = create_test_memory_id();
+        let mut record = Record::new(memory_id);
+        let t = Utc::now() - Duration::seconds(5);
+        {
+            let history = &mut record.feedback_history;
+            history.insert(t, UserFeedback::Positive);
+        }
+        let result = record.feedback_history_in_range(t, t);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].1, UserFeedback::Positive);
+    }
+
+    #[test]
+    fn test_feedback_history_in_range_exact_bounds() {
+        // 边界内点包含，边界外点排除
+        let memory_id = create_test_memory_id();
+        let mut record = Record::new(memory_id);
+        let t0 = Utc::now() - Duration::seconds(10);
+        let t1 = Utc::now() - Duration::seconds(9);
+        let t2 = Utc::now() - Duration::seconds(8);
+        // 直接向 feedback_history 注入三个不同时间点的反馈
+        {
+            let history = &mut record.feedback_history;
+            history.insert(t0, UserFeedback::Positive);
+            history.insert(t1, UserFeedback::Negative);
+            history.insert(t2, UserFeedback::Neutral);
+        }
+        let result = record.feedback_history_in_range(t1, t2);
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0].1, UserFeedback::Negative);
+        assert_eq!(result[1].1, UserFeedback::Neutral);
+    }
+
     // 测试 7: feedback_history_after() - 测试指定时间之后的反馈记录查询
     #[test]
     fn test_feedback_history_after() {

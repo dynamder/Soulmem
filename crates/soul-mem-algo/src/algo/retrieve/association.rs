@@ -696,4 +696,60 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn test_default_constants() {
+        assert_eq!(default_damping_factor(), 0.65);
+        assert_eq!(default_residue_threshold(), 1e-5);
+        assert_eq!(default_top_k(), 8);
+    }
+
+    #[test]
+    fn test_association_config_defaults() {
+        let config = AssociationConfig::default();
+        assert_eq!(config.damping_factor, 0.65);
+        assert_eq!(config.residue_threshold, 1e-5);
+        assert_eq!(config.top_k, 8);
+        assert!(matches!(config.preference, TypePreference::Situation));
+        assert!(config.intensity_factor.is_none());
+        assert!(config.confidence_factor.is_none());
+    }
+
+    #[test]
+    fn test_dyn_weight_func_zero_factors() {
+        // 因子为 0 时权重仍应有限（不产生 NaN）
+        let (wm, src_id) = create_graph_with_type_preference();
+        wm.memory_cluster().read_or_compute(|mem_cluster| {
+            let graph = mem_cluster.graph();
+            let edge = graph
+                .edges(mem_cluster.get_mem_index(src_id).unwrap())
+                .next()
+                .unwrap();
+
+            let weight_fn = DynWeightFuncBuilder::new(TypePreference::Semantic)
+                .intensity_factor(0.0)
+                .confidence_factor(0.0)
+                .build();
+            let w: f64 = weight_fn(graph, &edge, None).into_inner();
+            assert!(w.is_finite(), "weight must be finite, got {w}");
+            assert!(w >= 0.0);
+        });
+    }
+
+    #[test]
+    fn test_dyn_weight_func_defaults() {
+        // 默认 intensity_factor=1.0, confidence_factor=0.8
+        let (wm, src_id) = create_graph_with_type_preference();
+        wm.memory_cluster().read_or_compute(|mem_cluster| {
+            let graph = mem_cluster.graph();
+            let edge = graph
+                .edges(mem_cluster.get_mem_index(src_id).unwrap())
+                .next()
+                .unwrap();
+
+            let weight_fn = DynWeightFuncBuilder::new(TypePreference::Situation).build();
+            let w: f64 = weight_fn(graph, &edge, None).into_inner();
+            assert!(w.is_finite() && w > 0.0, "weight should be positive, got {w}");
+        });
+    }
 }

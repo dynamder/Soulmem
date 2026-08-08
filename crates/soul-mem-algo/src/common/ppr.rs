@@ -828,4 +828,106 @@ mod test {
         let ans_sum = ppr_ans.values().copied().sum::<f64>();
         assert!(ans_sum - 1.0 < 1e-5, "the sum is: {ans_sum}");
     }
+
+    // —— ResidueUnit / EdgeWeightUnit 比较算子 ——
+
+    #[test]
+    fn test_residue_unit_comparisons() {
+        let small = ResidueUnit { idx: 1usize, value: 1.0f64 };
+        let large = ResidueUnit { idx: 2usize, value: 3.0f64 };
+        assert!(small < large);
+        assert!(!(large < small));
+        assert!(small <= large);
+        assert!(!(large <= small));
+        assert!(large > small);
+        assert!(!(small > large));
+        assert!(large >= small);
+        assert!(!(small >= large));
+        assert!(small != large);
+        assert!(small == small);
+        // 直接调用 eq / ne，确保算符实现被验证
+        assert!(!small.eq(&large));
+        assert!(small.eq(&small));
+        assert!(small.ne(&large));
+        assert!(!small.ne(&small));
+        assert_eq!(small.partial_cmp(&large), Some(std::cmp::Ordering::Less));
+        assert_eq!(large.partial_cmp(&small), Some(std::cmp::Ordering::Greater));
+        assert_eq!(small.partial_cmp(&small), Some(std::cmp::Ordering::Equal));
+    }
+
+    #[test]
+    fn test_residue_unit_equal_values() {
+        let a = ResidueUnit { idx: 1usize, value: 2.0f64 };
+        let b = ResidueUnit { idx: 9usize, value: 2.0f64 };
+        // 比较只看 value，idx 不影响
+        assert!(a == b);
+        assert!(!(a < b));
+        assert!(!(a > b));
+        assert!(a >= b);
+        assert!(a <= b);
+        assert!(!a.ne(&b));
+        assert!(a.eq(&b));
+    }
+
+    #[test]
+    fn test_residue_unit_ord_max_min_clamp() {
+        let a = ResidueUnit {
+            idx: 1usize,
+            value: OrdFloat::<f64>::from_f64(1.0),
+        };
+        let b = ResidueUnit {
+            idx: 2usize,
+            value: OrdFloat::<f64>::from_f64(3.0),
+        };
+        assert_eq!(a.max(b).value.into_inner(), 3.0);
+        assert_eq!(a.min(b).value.into_inner(), 1.0);
+        let clamped = a.clamp(
+            ResidueUnit {
+                idx: 0,
+                value: OrdFloat::<f64>::from_f64(2.0),
+            },
+            ResidueUnit {
+                idx: 0,
+                value: OrdFloat::<f64>::from_f64(4.0),
+            },
+        );
+        assert_eq!(clamped.value.into_inner(), 2.0);
+    }
+
+    #[test]
+    fn test_edge_weight_unit_comparisons() {
+        let small = EdgeWeightUnit { target_node: 1usize, idx: 1usize, value: 1.0f64 };
+        let large = EdgeWeightUnit { target_node: 2usize, idx: 2usize, value: 3.0f64 };
+        assert!(small < large);
+        assert!(!(large < small));
+        assert!(small <= large);
+        assert!(!(large <= small));
+        assert!(large > small);
+        assert!(!(small > large));
+        assert!(large >= small);
+        assert!(!(small >= large));
+        assert!(small != large);
+        assert!(small == small);
+        // 直接调用 eq / ne
+        assert!(!small.eq(&large));
+        assert!(small.eq(&small));
+        assert!(small.ne(&large));
+        assert!(!small.ne(&small));
+        assert_eq!(small.partial_cmp(&large), Some(std::cmp::Ordering::Less));
+        assert_eq!(large.partial_cmp(&small), Some(std::cmp::Ordering::Greater));
+        assert_eq!(small.partial_cmp(&small), Some(std::cmp::Ordering::Equal));
+    }
+
+    #[test]
+    fn test_edge_weight_unit_equal_values() {
+        let a = EdgeWeightUnit { target_node: 1usize, idx: 1usize, value: 2.0f64 };
+        let b = EdgeWeightUnit { target_node: 2usize, idx: 2usize, value: 2.0f64 };
+        assert!(a == b);
+        assert!(!(a < b));
+        assert!(!(a > b));
+        assert!(a >= b);
+        assert!(a <= b);
+        assert!(a.eq(&b));
+        assert!(!a.ne(&b));
+    }
 }

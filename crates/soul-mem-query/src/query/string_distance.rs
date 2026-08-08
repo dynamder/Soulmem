@@ -439,4 +439,78 @@ mod tests {
         // 字符串得分严格在 embedding 量纲 [0,1] 内
         assert!((0.0..=1.0).contains(&str_score));
     }
+
+    #[test]
+    fn test_abstract_event_weights_are_exact() {
+        // 事件加权公式的精确值验证：
+        //   双方都存在: 0.3*initiator + 0.3*target + 0.4*action
+        //   仅 initiator: 0.4*initiator + 0.6*action
+        //   仅 target:    0.4*target + 0.6*action
+        // 使用字形部分重叠的字符串使各分量落在 (0,1) 区间，从而区分 * 与 /、+ 与 -。
+        let note = situation_note(AbstractSituation::Event(Event {
+            action: "跑步".to_string(),
+            action_intensity: 0.5,
+            initiator: "张三".to_string(),
+            target: "操场".to_string(),
+        }));
+
+        // initiator+target 命中，action 不相关
+        let q_both = MemoryRetrieveQuery::new(
+            vec![],
+            MemoryRetrieveQueryVariant::Situation(vec![SituationQueryUnit::new().with_event(
+                vec![EventQueryUnit::new("无关")
+                    .with_initiator("张三丰".to_string())
+                    .with_target("操场".to_string())],
+            )]),
+        );
+        let expected_both = 0.3 * string_distance_score("张三丰", "张三")
+            + 0.3 * string_distance_score("操场", "操场")
+            + 0.4 * string_distance_score("无关", "跑步");
+        assert_eq!(compute_note_string_score(&note, &q_both), expected_both);
+
+        // 仅 initiator 命中，action 不相关
+        let q_initiator = MemoryRetrieveQuery::new(
+            vec![],
+            MemoryRetrieveQueryVariant::Situation(vec![SituationQueryUnit::new().with_event(
+                vec![EventQueryUnit::new("无关").with_initiator("张三丰".to_string())],
+            )]),
+        );
+        let expected_initiator = 0.4 * string_distance_score("张三丰", "张三")
+            + 0.6 * string_distance_score("无关", "跑步");
+        assert_eq!(
+            compute_note_string_score(&note, &q_initiator),
+            expected_initiator
+        );
+
+        // 仅 target 命中（部分匹配），action 也部分匹配 → 公式重构验证
+        let q_target = MemoryRetrieveQuery::new(
+            vec![],
+            MemoryRetrieveQueryVariant::Situation(vec![SituationQueryUnit::new().with_event(
+                vec![EventQueryUnit::new("跑").with_target("操".to_string())],
+            )]),
+        );
+        let expected_target = 0.4 * string_distance_score("操", "操场")
+            + 0.6 * string_distance_score("跑", "跑步");
+        assert_eq!(compute_note_string_score(&note, &q_target), expected_target);
+
+        // 无 initiator/target，action 命中
+        let q_action = MemoryRetrieveQuery::new(
+            vec![],
+            MemoryRetrieveQueryVariant::Situation(vec![
+                SituationQueryUnit::new().with_event(vec![EventQueryUnit::new("跑步".to_string())]),
+            ]),
+        );
+        assert_eq!(compute_note_string_score(&note, &q_action), 1.0);
+
+        // 全部命中
+        let q_full = MemoryRetrieveQuery::new(
+            vec![],
+            MemoryRetrieveQueryVariant::Situation(vec![SituationQueryUnit::new().with_event(
+                vec![EventQueryUnit::new("跑步")
+                    .with_initiator("张三".to_string())
+                    .with_target("操场".to_string())],
+            )]),
+        );
+        assert_eq!(compute_note_string_score(&note, &q_full), 1.0);
+    }
 }

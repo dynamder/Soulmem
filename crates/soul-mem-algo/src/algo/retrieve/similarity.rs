@@ -117,6 +117,22 @@ mod tests {
     };
     use soul_mem_runtime::working_memory::WorkingMemory;
 
+    #[test]
+    fn test_default_constants() {
+        assert_eq!(default_similarity_threshold(), 0.7);
+        assert_eq!(default_max_results(), 4);
+    }
+
+    #[test]
+    fn test_similarity_config_defaults() {
+        let config = SimilarityConfig {
+            similarity_threshold: default_similarity_threshold(),
+            max_results: default_max_results(),
+        };
+        assert_eq!(config.similarity_threshold, 0.7);
+        assert_eq!(config.max_results, 4);
+    }
+
     fn empty_embedded_query(tag: EmbeddingVec) -> EmbeddedMemoryRetrieveQuery {
         EmbeddedMemoryRetrieveQuery {
             embedding: MemoryRetrieveQueryEmbedding::new(tag),

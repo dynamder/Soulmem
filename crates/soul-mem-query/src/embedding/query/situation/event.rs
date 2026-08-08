@@ -59,6 +59,22 @@ impl EventQueryUnitEmbedding {
         }))
     }
 }
+#[cfg(test)]
+impl EventQueryUnitEmbedding {
+    pub(crate) fn test_new(
+        action: EmbeddingVec,
+        initiator: Option<EmbeddingVec>,
+        target: Option<EmbeddingVec>,
+        blend_weights: BlendWeights,
+    ) -> Self {
+        Self {
+            action,
+            initiator,
+            target,
+            blend_weights,
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct EmbedEventQueryUnit {
@@ -106,5 +122,69 @@ impl Embeddable for EventQueryUnit {
             embedding: self.embed(model)?,
             query: self,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_event_query_unit_embedding_accessors() {
+        let mut embedding = EventQueryUnitEmbedding::test_new(
+            EmbeddingVec::new(vec![1.0]),
+            Some(EmbeddingVec::new(vec![2.0])),
+            Some(EmbeddingVec::new(vec![3.0])),
+            BlendWeights::default(),
+        );
+        assert_eq!(embedding.action().shape(), 1);
+        assert_eq!(embedding.initiator().unwrap().shape(), 1);
+        assert_eq!(embedding.target().unwrap().shape(), 1);
+
+        let mut bw = BlendWeights::default();
+        bw.tag = 0.8;
+        embedding.set_blend_weights(&bw);
+        assert_eq!(embedding.blend_weights.tag, 0.8);
+    }
+
+    #[test]
+    fn test_event_query_unit_embedding_optional_fields_none() {
+        let embedding = EventQueryUnitEmbedding::test_new(
+            EmbeddingVec::new(vec![1.0]),
+            None,
+            None,
+            BlendWeights::default(),
+        );
+        assert!(embedding.initiator().is_none());
+        assert!(embedding.target().is_none());
+        assert_eq!(embedding.action().shape(), 1);
+    }
+
+    #[test]
+    fn test_event_query_unit_mean_pooling() {
+        let e1 = EventQueryUnitEmbedding::test_new(
+            EmbeddingVec::new(vec![1.0, 2.0]),
+            Some(EmbeddingVec::new(vec![1.0, 2.0])),
+            Some(EmbeddingVec::new(vec![1.0, 2.0])),
+            BlendWeights::default(),
+        );
+        let e2 = EventQueryUnitEmbedding::test_new(
+            EmbeddingVec::new(vec![3.0, 4.0]),
+            None,
+            None,
+            BlendWeights::default(),
+        );
+        let pooled = EventQueryUnitEmbedding::mean_pooling(&[e1, e2])
+            .unwrap()
+            .unwrap();
+        assert_eq!(pooled.action().shape(), 2);
+        // initiator/target 只出现在一个元素里 → 仍保留
+        assert!(pooled.initiator().is_some());
+        assert!(pooled.target().is_some());
+    }
+
+    #[test]
+    fn test_event_query_unit_mean_pooling_empty() {
+        assert!(EventQueryUnitEmbedding::mean_pooling(&[]).unwrap().is_none());
     }
 }

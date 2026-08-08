@@ -1,4 +1,4 @@
-use parking_lot::RwLock;
+﻿use parking_lot::RwLock;
 use petgraph::prelude::{EdgeIndex, NodeIndex, StableDiGraph};
 use petgraph::visit::EdgeRef;
 use petgraph::Direction;
@@ -51,8 +51,8 @@ pub struct MemoryCluster {
     graph: StableDiGraph<EmbeddedMemoryNote, GraphMemoryLink>,
     mem_id_to_index: HashMap<MemoryId, NodeIndex>,
     link_id_to_index: HashMap<LinkId, EdgeIndex>,
-    incompletely_linked_note: HashMap<MemoryId, Vec<(MemoryId, MemoryLink)>>, //目标节点的uuid，Vec<(源节点的uuid，关系)>，存uuid而非NodeIndex，避免petgraph索引复用导致连错节点
-                                                                              //embedding_store: HashMap<MemoryId, MemoryEmbedding>, //由于link储存在source节点，source节点不在图中，link则不可知，因此source节点通常总是有效
+    incompletely_linked_note: HashMap<MemoryId, Vec<(MemoryId, MemoryLink)>>, //鐩爣鑺傜偣鐨剈uid锛孷ec<(婧愯妭鐐圭殑uuid锛屽叧绯?>锛屽瓨uuid鑰岄潪NodeIndex锛岄伩鍏峱etgraph绱㈠紩澶嶇敤瀵艰嚧杩為敊鑺傜偣
+                                                                              //embedding_store: HashMap<MemoryId, MemoryEmbedding>, //鐢变簬link鍌ㄥ瓨鍦╯ource鑺傜偣锛宻ource鑺傜偣涓嶅湪鍥句腑锛宭ink鍒欎笉鍙煡锛屽洜姝ource鑺傜偣閫氬父鎬绘槸鏈夋晥
 }
 impl MemoryCluster {
     pub fn new() -> Self {
@@ -64,12 +64,12 @@ impl MemoryCluster {
             //embedding_store: HashMap::new(),
         }
     }
-    // 获取内部图的不可变引用
+    // 鑾峰彇鍐呴儴鍥剧殑涓嶅彲鍙樺紩鐢?
     pub fn graph(&self) -> &StableDiGraph<EmbeddedMemoryNote, GraphMemoryLink> {
         &self.graph
     }
 
-    // 获取内部图的可变引用
+    // 鑾峰彇鍐呴儴鍥剧殑鍙彉寮曠敤
     pub fn graph_mut(&mut self) -> &mut StableDiGraph<EmbeddedMemoryNote, GraphMemoryLink> {
         //Be careful when using this
         &mut self.graph
@@ -101,7 +101,7 @@ impl MemoryCluster {
             self.merge_edges(node_index, links)
         }
     }
-    /// 在直接修改节点的连接后，必须调用此方法
+    /// 鍦ㄧ洿鎺ヤ慨鏀硅妭鐐圭殑杩炴帴鍚庯紝蹇呴』璋冪敤姝ゆ柟娉?
     pub fn refresh_node(&mut self, node: &MemoryId) {
         if let Some(node_index) = self.mem_id_to_index.get(node) {
             if let Some(node) = self.graph.node_weight(*node_index) {
@@ -109,23 +109,23 @@ impl MemoryCluster {
             }
         }
     }
-    /// 删除单个节点，返回被删除的节点，并清理冗余项目，添加pending边
+    /// 鍒犻櫎鍗曚釜鑺傜偣锛岃繑鍥炶鍒犻櫎鐨勮妭鐐癸紝骞舵竻鐞嗗啑浣欓」鐩紝娣诲姞pending杈?
     pub fn remove_single_node(&mut self, node_id: MemoryId) -> Option<EmbeddedMemoryNote> {
         //TODO: test it
         if let Some(idx) = self.mem_id_to_index.remove(&node_id) {
             //self.embedding_store.remove(&node_id);
-            //清理所有pending的边中，源节点是node_id的项
+            //娓呯悊鎵€鏈塸ending鐨勮竟涓紝婧愯妭鐐规槸node_id鐨勯」
             self.incompletely_linked_note
                 .values_mut()
                 .for_each(|v| v.retain(|(origin_id, _)| *origin_id != node_id));
 
-            //因为删除了node_id节点，原来已经建立的链接，可能会丢失，将Incoming的链接加入pending边
-            // 这里似乎性能看起来不是很好，不过先这样了，后续再说,remove操作本身不会非常频繁
+            //鍥犱负鍒犻櫎浜唍ode_id鑺傜偣锛屽師鏉ュ凡缁忓缓绔嬬殑閾炬帴锛屽彲鑳戒細涓㈠け锛屽皢Incoming鐨勯摼鎺ュ姞鍏ending杈?
+            // 杩欓噷浼间箮鎬ц兘鐪嬭捣鏉ヤ笉鏄緢濂斤紝涓嶈繃鍏堣繖鏍蜂簡锛屽悗缁啀璇?remove鎿嶄綔鏈韩涓嶄細闈炲父棰戠箒
             let incoming_neighbors = self
                 .graph
                 .edges_directed(idx, Direction::Incoming)
                 .map(|edge_ref| {
-                    //SAFEUNWRAP: 以下的unwrap是安全的，因为edge_ref中的source和target在这个时间点总存在
+                    //SAFEUNWRAP: 浠ヤ笅鐨剈nwrap鏄畨鍏ㄧ殑锛屽洜涓篹dge_ref涓殑source鍜宼arget鍦ㄨ繖涓椂闂寸偣鎬诲瓨鍦?
                     let source_id = self
                         .graph
                         .node_weight(edge_ref.source())
@@ -240,13 +240,13 @@ impl MemoryCluster {
 
         match self.mem_id_to_index.get(&node_id) {
             Some(&index) if self.graph.contains_node(index) => {
-                // 节点存在且有效。注意：节点重加不算检索，检索计数统一由
-                // WorkingMemory::record_retrieval维护Record.retrieval_count，
-                // 这里不再递增note的retrieval_count，避免双计数漂移
+                // 鑺傜偣瀛樺湪涓旀湁鏁堛€傛敞鎰忥細鑺傜偣閲嶅姞涓嶇畻妫€绱紝妫€绱㈣鏁扮粺涓€鐢?
+                // WorkingMemory::record_retrieval缁存姢Record.retrieval_count锛?
+                // 杩欓噷涓嶅啀閫掑note鐨剅etrieval_count锛岄伩鍏嶅弻璁℃暟婕傜Щ
                 index
             }
             _ => {
-                // 节点不存在或索引无效
+                // 鑺傜偣涓嶅瓨鍦ㄦ垨绱㈠紩鏃犳晥
                 self.add_new_node(embed_node)
             }
         }
@@ -256,11 +256,11 @@ impl MemoryCluster {
 
         let index = self.graph.add_node(embed_node);
 
-        // 清理可能存在的无效索引
+        // 娓呯悊鍙兘瀛樺湪鐨勬棤鏁堢储寮?
         //self.id_to_index.remove(&node_id);
         self.mem_id_to_index.insert(node_id.clone(), index);
 
-        // 处理悬挂边
+        // 澶勭悊鎮寕杈?
         self.process_pending_edges(&node_id);
 
         index
@@ -268,7 +268,7 @@ impl MemoryCluster {
     fn process_pending_edges(&mut self, node_id: &MemoryId) {
         if let Some(pending_edges) = self.incompletely_linked_note.remove(node_id) {
             for (source_id, edge) in pending_edges {
-                //重新解析源节点索引，并校验索引上的节点id与预期一致，防止petgraph索引复用导致连错节点
+                //閲嶆柊瑙ｆ瀽婧愯妭鐐圭储寮曪紝骞舵牎楠岀储寮曚笂鐨勮妭鐐筰d涓庨鏈熶竴鑷达紝闃叉petgraph绱㈠紩澶嶇敤瀵艰嚧杩為敊鑺傜偣
                 let Some(&source_index) = self.mem_id_to_index.get(&source_id) else {
                     log::warn!("Attempted to add edge from invalid source id {source_id}");
                     continue;
@@ -314,7 +314,7 @@ impl MemoryCluster {
 
         let target_id = edge.to();
         let edge_id = edge.id();
-        //pending边存源节点uuid，避免NodeIndex被复用后连错节点
+        //pending杈瑰瓨婧愯妭鐐箄uid锛岄伩鍏峃odeIndex琚鐢ㄥ悗杩為敊鑺傜偣
         let source_id = self
             .graph
             .node_weight(source)
@@ -407,7 +407,7 @@ pub enum ClusterError {
 //     pub query_type: LTQueryType,
 //     pub depth: Option<usize>,
 //     pub filter: Option<qdrant_client::qdrant::Filter>,
-//     pub relation: Option<Vec<String>>, //TODO: 未实现
+//     pub relation: Option<Vec<String>>, //TODO: 鏈疄鐜?
 //     pub vs_k: Option<usize>,           //vector_search_k
 // }
 // impl LTMemoryQuery {
@@ -475,151 +475,401 @@ pub enum ClusterError {
 // }
 
 #[cfg(test)]
-mod test {
-    // #[allow(unused_imports)]
-    // use super::*;
-    // use fastembed::InitOptions;
-    // fn prepare_vec_graph() -> Vec<MemoryNote> {
-    //     vec![
-    //         MemoryNoteBuilder::new("test1")
-    //             .id("test1")
-    //             .links(vec![
-    //                 MemoryLink::new("test2", None::<String>, "test".to_string(), 100.0),
-    //                 MemoryLink::new("test3", None::<String>, "test".to_string(), 100.0),
-    //             ])
-    //             .build(),
-    //         MemoryNoteBuilder::new("test2")
-    //             .id("test2")
-    //             .links(vec![
-    //                 MemoryLink::new("test1", None::<String>, "test".to_string(), 100.0),
-    //                 MemoryLink::new("test3", None::<String>, "test".to_string(), 100.0),
-    //             ])
-    //             .build(),
-    //         MemoryNoteBuilder::new("test3")
-    //             .id("test3")
-    //             .links(vec![
-    //                 MemoryLink::new("test1", None::<String>, "test".to_string(), 100.0),
-    //                 MemoryLink::new("test2", None::<String>, "test".to_string(), 100.0),
-    //             ])
-    //             .build(),
-    //     ]
-    // }
-    // fn prepare_merge_graph() -> Vec<MemoryNote> {
-    //     vec![
-    //         MemoryNoteBuilder::new("test4")
-    //             .id("test4")
-    //             .links(vec![
-    //                 MemoryLink::new("test8", None::<String>, "test".to_string(), 100.0),
-    //                 MemoryLink::new("test9", None::<String>, "test".to_string(), 100.0),
-    //             ])
-    //             .build(),
-    //         MemoryNoteBuilder::new("test5")
-    //             .id("test5")
-    //             .links(vec![
-    //                 MemoryLink::new("test4", None::<String>, "test".to_string(), 100.0),
-    //                 MemoryLink::new("test6", None::<String>, "test".to_string(), 100.0),
-    //             ])
-    //             .build(),
-    //         MemoryNoteBuilder::new("test6")
-    //             .id("test6")
-    //             .links(vec![
-    //                 MemoryLink::new("test10", None::<String>, "test".to_string(), 100.0),
-    //                 MemoryLink::new("test11", None::<String>, "test".to_string(), 100.0),
-    //             ])
-    //             .build(),
-    //     ]
-    // }
-    // fn prepare_merge_graph_2() -> Vec<MemoryNote> {
-    //     vec![
-    //         MemoryNoteBuilder::new("test8").id("test8").build(),
-    //         MemoryNoteBuilder::new("test9").id("test9").build(),
-    //         MemoryNoteBuilder::new("test10").id("test10").build(),
-    //         MemoryNoteBuilder::new("test11").id("test11").build(),
-    //     ]
-    // }
-    // #[test]
-    // fn test_memory_note_create_simple() {
-    //     let memory_note = MemoryNote::new("test");
-    //     assert_eq!(memory_note.content, "test");
-    // }
-    // #[test]
-    // fn test_memory_note_create_builder() {
-    //     let memory_note = MemoryNoteBuilder::new("test")
-    //         .id("test_id")
-    //         .keywords(vec!["test".to_string()])
-    //         .links(vec![MemoryLink::new(
-    //             "test",
-    //             None::<String>,
-    //             "test".to_string(),
-    //             100.0,
-    //         )])
-    //         .retrieval_count(6u32)
-    //         .timestamp(2025u64)
-    //         .last_accessed(2025u64)
-    //         .context("test")
-    //         .evolution_history(vec!["test".to_string()])
-    //         .category("test")
-    //         .tags(vec!["test".to_string()])
-    //         .build();
+mod tests {
+    use super::*;
+    use soul_mem_core::memory_links::sem_mem::SemMemLink;
+    use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
+    use soul_mem_core::memory_note::{MemoryNoteBuilder, MemoryType};
+    use soul_mem_query::embedding::note::MemoryEmbeddingVariant;
+    use soul_mem_query::embedding::sem::SemanticEmbedding;
+    use soul_mem_query::embedding::EmbeddingVec;
 
-    //     assert_eq!(memory_note.content, "test");
-    //     assert_eq!(memory_note.mem_id.as_str(), "test_id");
-    //     assert_eq!(memory_note.keywords, vec!["test".to_string()]);
-    //     assert_eq!(
-    //         memory_note.links,
-    //         vec![MemoryLink::new(
-    //             "test",
-    //             None::<String>,
-    //             "test".to_string(),
-    //             100.0
-    //         )]
-    //     );
-    //     assert_eq!(memory_note.retrieval_count, 6u32);
-    //     assert_eq!(memory_note.timestamp, 2025u64);
-    //     assert_eq!(memory_note.last_accessed, 2025u64);
-    //     assert_eq!(memory_note.context, "test");
-    //     assert_eq!(memory_note.evolution_history, vec!["test".to_string()]);
-    //     assert_eq!(memory_note.category, "test");
-    //     assert_eq!(memory_note.tags, vec!["test".to_string()]);
-    // }
-    // #[test]
-    // fn test_memory_cluster_create() {
-    //     let mem_vec = prepare_vec_graph();
-    //     let mut cluster = MemoryCluster::new(
-    //         TextEmbedding::try_new(
-    //             InitOptions::new(EmbeddingModel::AllMiniLML6V2).with_show_download_progress(true),
-    //         )
-    //         .unwrap(),
-    //     );
-    //     cluster.merge(mem_vec);
-    //     assert_eq!(cluster.graph.node_count(), 3);
-    //     assert_eq!(cluster.graph.edge_count(), 6);
-    //     println!("{:?}", cluster);
-    // }
-    // #[test]
-    // fn test_memory_merge() {
-    //     let mem_vec = prepare_vec_graph();
-    //     let mem_merge = prepare_merge_graph();
-    //     let mut cluster = MemoryCluster::new(
-    //         TextEmbedding::try_new(
-    //             InitOptions::new(EmbeddingModel::AllMiniLML6V2).with_show_download_progress(true),
-    //         )
-    //         .unwrap(),
-    //     );
-    //     cluster.merge(mem_vec);
-    //     cluster.merge(mem_merge);
-    //     assert_eq!(cluster.graph.node_count(), 6);
-    //     assert_eq!(cluster.graph.edge_count(), 8);
-    //     assert_eq!(cluster.incompletely_linked_note.len(), 4);
-    //     assert_eq!(cluster.id_to_index.len(), 6);
-    //     assert_eq!(cluster.relation_map.len(), 8);
-    //     let mem_merge_2 = prepare_merge_graph_2();
-    //     cluster.merge(mem_merge_2);
-    //     assert_eq!(cluster.graph.node_count(), 10);
-    //     assert_eq!(cluster.graph.edge_count(), 12);
-    //     assert_eq!(cluster.incompletely_linked_note.len(), 0);
-    //     assert_eq!(cluster.id_to_index.len(), 10);
-    //     assert_eq!(cluster.relation_map.len(), 12);
-    //     println!("{:?}", cluster);
-    // }
+    fn sem_note(content: &str) -> EmbeddedMemoryNote {
+        let mem_type = MemoryType::Semantic(SemMemory {
+            content: content.to_string(),
+            aliases: vec![],
+            concept_type: ConceptType::Entity,
+            description: String::new(),
+        });
+        let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+        let embedding = MemoryEmbedding::new(
+            EmbeddingVec::zero(4),
+            MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                EmbeddingVec::zero(4),
+                EmbeddingVec::zero(4),
+                EmbeddingVec::zero(4),
+            )),
+        );
+        EmbeddedMemoryNote { note, embedding }
+    }
+
+    fn sem_link(from: MemoryId, to: MemoryId) -> MemoryLink {
+        MemoryLink::from_tuple(
+            from,
+            to,
+            MemoryLinkType::Sem(SemMemLink::new("related".to_string(), 0.9)),
+            0.9,
+        )
+    }
+
+    fn note_with_links(id: MemoryId, content: &str, links: Vec<MemoryLink>) -> EmbeddedMemoryNote {
+        let mem_type = MemoryType::Semantic(SemMemory {
+            content: content.to_string(),
+            aliases: vec![],
+            concept_type: ConceptType::Entity,
+            description: String::new(),
+        });
+        let note = MemoryNoteBuilder::new(mem_type)
+            .id(id)
+            .mem_links(links)
+            .build()
+            .unwrap();
+        let embedding = MemoryEmbedding::new(
+            EmbeddingVec::zero(4),
+            MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                EmbeddingVec::zero(4),
+                EmbeddingVec::zero(4),
+                EmbeddingVec::zero(4),
+            )),
+        );
+        EmbeddedMemoryNote { note, embedding }
+    }
+
+    #[test]
+    fn test_add_single_node_and_lookup() {
+        let mut cluster = MemoryCluster::new();
+        let node = sem_note("A");
+        let id = node.note().id();
+        cluster.add_single_node(node);
+        assert!(cluster.contains_node(id));
+        assert!(cluster.get_node(id).is_some());
+        assert!(cluster.get_embedding(id).is_some());
+        assert_eq!(cluster.graph().node_count(), 1);
+    }
+
+    #[test]
+    fn test_add_single_node_deduplicates() {
+        let mut cluster = MemoryCluster::new();
+        let node1 = sem_note("A");
+        let id = node1.note().id();
+        cluster.add_single_node(node1);
+        let duplicate = note_with_links(id, "A", vec![]);
+        cluster.add_single_node(duplicate);
+        assert_eq!(cluster.graph().node_count(), 1);
+        assert!(cluster.contains_node(id));
+    }
+
+    #[test]
+    fn test_merge_creates_edges() {
+        let mut cluster = MemoryCluster::new();
+        let node_a = sem_note("A");
+        let id_a = node_a.note().id();
+        let node_b = sem_note("B");
+        let id_b = node_b.note().id();
+        let node_a_with_link = note_with_links(id_a, "A", vec![sem_link(id_a, id_b)]);
+        cluster.add_single_node(node_a_with_link);
+        cluster.add_single_node(node_b);
+        assert_eq!(cluster.graph().node_count(), 2);
+        // A->B 一条边
+        assert_eq!(cluster.graph().edge_count(), 1);
+        let linked_edges = cluster
+            .get_all_linked_edges(id_a)
+            .expect("linked edges")
+            .collect::<Vec<_>>();
+        assert_eq!(linked_edges.len(), 1);
+        // 返回的必须是真实存在的 link id
+        assert!(cluster.has_edge(linked_edges[0]));
+    }
+
+    #[test]
+    fn test_merge_handles_pending_edges() {
+        // B 尚未加入时，A->B 的边进入 pending；随后加入 B 应补建边
+        let mut cluster = MemoryCluster::new();
+        let node_a = sem_note("A");
+        let id_a = node_a.note().id();
+        let node_b = sem_note("B");
+        let id_b = node_b.note().id();
+
+        let node_a_with_link = note_with_links(id_a, "A", vec![sem_link(id_a, id_b)]);
+        cluster.add_single_node(node_a_with_link);
+        // B 未加入 → 边进入 incompletely_linked_note
+        assert_eq!(cluster.graph().edge_count(), 0);
+
+        cluster.add_single_node(node_b);
+        assert_eq!(cluster.graph().edge_count(), 1);
+    }
+
+    #[test]
+    fn test_merge_does_not_duplicate_edges() {
+        let mut cluster = MemoryCluster::new();
+        let node_a = sem_note("A");
+        let id_a = node_a.note().id();
+        let node_b = sem_note("B");
+        let id_b = node_b.note().id();
+        let link = sem_link(id_a, id_b);
+        let link_id = link.id();
+
+        let a1 = note_with_links(id_a, "A", vec![link.clone()]);
+        cluster.add_single_node(a1);
+        // 同一 link_id 再次 merge 不应产生第二条边
+        cluster.add_single_node(node_b);
+        assert_eq!(cluster.graph().edge_count(), 1);
+        cluster.merge_edge(cluster.get_mem_index(id_a).unwrap(), link.clone());
+        assert_eq!(cluster.graph().edge_count(), 1);
+        assert!(cluster.has_edge(link_id));
+    }
+
+    #[test]
+    fn test_merge_batch() {
+        let mut cluster = MemoryCluster::new();
+        let node_a = sem_note("A");
+        let id_a = node_a.note().id();
+        let node_b = sem_note("B");
+        let id_b = node_b.note().id();
+        let node_c = sem_note("C");
+        let id_c = node_c.note().id();
+
+        let a = note_with_links(
+            id_a,
+            "A",
+            vec![sem_link(id_a, id_b), sem_link(id_a, id_c)],
+        );
+        let b = note_with_links(id_b, "B", vec![sem_link(id_b, id_c)]);
+        cluster.merge(vec![a, b, node_c]);
+        assert_eq!(cluster.graph().node_count(), 3);
+        assert_eq!(cluster.graph().edge_count(), 3);
+    }
+
+    #[test]
+    fn test_remove_single_node() {
+        let mut cluster = MemoryCluster::new();
+        let node_a = sem_note("A");
+        let id_a = node_a.note().id();
+        let node_b = sem_note("B");
+        let id_b = node_b.note().id();
+        cluster.add_single_node(note_with_links(id_a, "A", vec![sem_link(id_a, id_b)]));
+        cluster.add_single_node(node_b);
+
+        let removed = cluster.remove_single_node(id_b);
+        assert!(removed.is_some());
+        assert!(!cluster.contains_node(id_b));
+        assert_eq!(cluster.graph().node_count(), 1);
+        // 删除后入边应转为 pending，不再存在于图中
+        assert_eq!(cluster.graph().edge_count(), 0);
+        assert!(cluster.incompletely_linked_note.contains_key(&id_b));
+    }
+
+    #[test]
+    fn test_remove_nonexistent_node() {
+        let mut cluster = MemoryCluster::new();
+        let result = cluster.remove_single_node(MemoryId::new());
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_has_edge_and_link_index() {
+        let mut cluster = MemoryCluster::new();
+        let node_a = sem_note("A");
+        let id_a = node_a.note().id();
+        let node_b = sem_note("B");
+        let id_b = node_b.note().id();
+        let link = sem_link(id_a, id_b);
+        let link_id = link.id();
+        cluster.add_single_node(note_with_links(id_a, "A", vec![link]));
+        cluster.add_single_node(node_b);
+        assert!(cluster.has_edge(link_id));
+        assert!(cluster.get_link_index(link_id).is_some());
+    }
+
+    #[test]
+    fn test_sub_cluster_add_node() {
+        let mut cluster = MemoryCluster::new();
+        let node_a = sem_note("A");
+        let id_a = node_a.note().id();
+        let node_b = sem_note("B");
+        let id_b = node_b.note().id();
+        cluster.add_single_node(note_with_links(id_a, "A", vec![sem_link(id_a, id_b)]));
+        cluster.add_single_node(node_b);
+
+        let mut sub = cluster.sub_cluster(
+            HashSet::from([id_a]),
+            HashSet::new(),
+        );
+        assert!(sub.add_node(id_a).is_ok());
+        assert!(sub.add_node(MemoryId::new()).is_err());
+    }
+
+    #[test]
+    fn test_sub_cluster_add_nodes() {
+        let mut cluster = MemoryCluster::new();
+        let node_a = sem_note("A");
+        let id_a = node_a.note().id();
+        cluster.add_single_node(node_a);
+
+        let mut sub = cluster.sub_cluster(
+            HashSet::new(),
+            HashSet::new(),
+        );
+        assert!(sub.add_nodes(&[id_a]).is_ok());
+        let missing = MemoryId::new();
+        assert!(sub.add_nodes(&[id_a, missing]).is_err());
+        assert_eq!(sub.super_cluster().graph().node_count(), 1);
+    }
+
+    #[test]
+    fn test_refresh_node() {
+        let mut cluster = MemoryCluster::new();
+        let node_a = sem_note("A");
+        let id_a = node_a.note().id();
+        let node_b = sem_note("B");
+        let id_b = node_b.note().id();
+        cluster.add_single_node(note_with_links(id_a, "A", vec![sem_link(id_a, id_b)]));
+        cluster.add_single_node(node_b);
+        cluster.refresh_node(&id_a);
+        assert_eq!(cluster.graph().edge_count(), 1);
+    }
+
+    #[test]
+    fn test_refresh_node_adds_missing_edges() {
+        // 直接修改图节点上的 links，再调用 refresh_node 应补建缺失的边
+        let mut cluster = MemoryCluster::new();
+        let node_a = sem_note("A");
+        let id_a = node_a.note().id();
+        let node_b = sem_note("B");
+        let id_b = node_b.note().id();
+        let node_c = sem_note("C");
+        let id_c = node_c.note().id();
+        // A 初始无 links
+        cluster.add_single_node(note_with_links(id_a, "A", vec![]));
+        cluster.add_single_node(node_b);
+        cluster.add_single_node(node_c);
+        assert_eq!(cluster.graph().edge_count(), 0);
+
+        // 直接通过 get_node_mut 在图中给 A 增加一条 link（绕过 add 接口）
+        let link_b = sem_link(id_a, id_b);
+        let link_c = sem_link(id_a, id_c);
+        if let Some(node) = cluster.get_node_mut(id_a) {
+            // 构造新的 MemoryNote（含 links）替换节点
+            *node = note_with_links(id_a, "A", vec![link_b, link_c]);
+        }
+
+        cluster.refresh_node(&id_a);
+        assert_eq!(cluster.graph().edge_count(), 2);
+    }
+
+    #[test]
+    fn test_get_node_mut() {
+        let mut cluster = MemoryCluster::new();
+        let node = sem_note("A");
+        let id = node.note().id();
+        cluster.add_single_node(node);
+        let node_mut = cluster.get_node_mut(id).expect("node exists");
+        assert_eq!(node_mut.note().id(), id);
+        assert!(cluster.get_node_mut(MemoryId::new()).is_none());
+    }
+
+    #[test]
+    fn test_remove_single_node_cleans_pending_edges_from_source() {
+        // A 指向 B，但 B 尚未加入 → (A→B) 进入 pending（origin=A）
+        // 删除 A 后，该 pending 边应被清除
+        let mut cluster = MemoryCluster::new();
+        let node_a = sem_note("A");
+        let id_a = node_a.note().id();
+        let node_b = sem_note("B");
+        let id_b = node_b.note().id();
+        cluster.add_single_node(note_with_links(id_a, "A", vec![sem_link(id_a, id_b)]));
+        assert!(cluster.incompletely_linked_note.contains_key(&id_b));
+
+        cluster.remove_single_node(id_a);
+        // pending 列表中 origin 为 A 的边已被 retain 清除
+        let pending = cluster
+            .incompletely_linked_note
+            .get(&id_b)
+            .map(|v| v.clone())
+            .unwrap_or_default();
+        assert!(
+            pending.iter().all(|(origin, _)| *origin != id_a),
+            "pending edges from removed source should be cleaned: {pending:?}"
+        );
+    }
+
+    #[test]
+    fn test_get_directed_linked_edges() {
+        let mut cluster = MemoryCluster::new();
+        let node_a = sem_note("A");
+        let id_a = node_a.note().id();
+        let node_b = sem_note("B");
+        let id_b = node_b.note().id();
+        cluster.add_single_node(note_with_links(id_a, "A", vec![sem_link(id_a, id_b)]));
+        cluster.add_single_node(node_b);
+
+        let outgoing = cluster.get_directed_linked_edges(id_a, petgraph::Direction::Outgoing);
+        assert!(outgoing.is_some());
+        assert_eq!(outgoing.unwrap().count(), 1);
+        assert!(cluster.get_directed_linked_edges(MemoryId::new(), petgraph::Direction::Outgoing).is_none());
+    }
+
+    #[test]
+    fn test_graph_mut_roundtrip() {
+        let mut cluster = MemoryCluster::new();
+        let node = sem_note("A");
+        let id = node.note().id();
+        cluster.add_single_node(node);
+        {
+            let graph = cluster.graph_mut();
+            assert_eq!(graph.node_count(), 1);
+        }
+        assert_eq!(cluster.graph().node_count(), 1);
+        assert!(cluster.get_mem_index(id).is_some());
+    }
+
+    #[test]
+    fn test_graph_memory_link_intensity_roundtrip() {
+        let mut cluster = MemoryCluster::new();
+        let node_a = sem_note("A");
+        let id_a = node_a.note().id();
+        let node_b = sem_note("B");
+        let id_b = node_b.note().id();
+        let link = sem_link(id_a, id_b);
+        let link_id = link.id();
+        cluster.add_single_node(note_with_links(id_a, "A", vec![link]));
+        cluster.add_single_node(node_b);
+
+        let edge_index = cluster.get_link_index(link_id).expect("edge index exists");
+        let graph_link = cluster.graph().edge_weight(edge_index).expect("edge weight");
+        assert_eq!(graph_link.intensity(), 0.9);
+        assert_eq!(graph_link.id(), link_id);
+        assert!(matches!(graph_link.link_type(), MemoryLinkType::Sem(_)));
+    }
+
+    #[test]
+    fn test_get_indexes_none_for_missing() {
+        let cluster = MemoryCluster::new();
+        assert!(cluster.get_mem_index(MemoryId::new()).is_none());
+        assert!(cluster.get_link_index(LinkId::new()).is_none());
+        assert!(!cluster.has_edge(LinkId::new()));
+    }
+
+    #[test]
+    fn test_cluster_error_not_implemented() {
+        let mut cluster = MemoryCluster::new();
+        let other = MemoryCluster::new();
+        let result = cluster.merge_cluster(other);
+        assert!(matches!(
+            result,
+            Err(ClusterError::NotImplemented(_))
+        ));
+    }
+
+    #[test]
+    fn test_cluster_debug_format() {
+        let mut cluster = MemoryCluster::new();
+        let node = sem_note("A");
+        let id = node.note().id();
+        cluster.add_single_node(node);
+        let debug = format!("{:?}", cluster);
+        assert!(debug.contains("MemoryCluster"), "debug was: {debug}");
+        assert!(!debug.is_empty());
+    }
 }
+

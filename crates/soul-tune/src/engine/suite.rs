@@ -152,6 +152,8 @@ mod tests {
             points: vec![(0.0, 1.0)],
         }];
         let m = chart_metric("Curve", "Perf", "time", "count", datasets);
+        assert_eq!(m.label(), "Curve");
+        assert_eq!(m.group(), "Perf");
         match m.format() {
             MetricFormat::Chart {
                 x_label,

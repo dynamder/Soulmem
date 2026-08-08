@@ -130,6 +130,19 @@ mod tests {
     };
     use soul_mem_query::embedding::sem::SemanticEmbedding;
 
+    #[test]
+    fn test_default_action_top_k() {
+        assert_eq!(default_action_top_k(), 5);
+    }
+
+    #[test]
+    fn test_bayes_action_config_defaults() {
+        let config = BayesActionConfig {
+            top_k: default_action_top_k(),
+        };
+        assert_eq!(config.top_k, 5);
+    }
+
     fn create_mock_working_memory_with_actions() -> (WorkingMemory, MemoryId, MemoryId) {
         let wm = WorkingMemory::new(10);
         let cluster = wm.memory_cluster();

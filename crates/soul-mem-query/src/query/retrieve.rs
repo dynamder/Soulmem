@@ -304,3 +304,145 @@ impl TimeSpanQueryUnit {
         self.end.as_ref()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_prioritized_query_roundtrip() {
+        let variant = MemoryRetrieveQueryVariant::make_semantic(vec![SemanticQueryUnit::new()]);
+        let query = MemoryRetrieveQuery::new(vec!["tag".to_string()], variant);
+        let prioritized = query.clone().with_priority(7);
+        assert_eq!(prioritized.priority(), 7);
+        assert_eq!(prioritized.query(), &query);
+        assert_eq!(prioritized.downgrade(), query);
+    }
+
+    #[test]
+    fn test_retrieve_query_tag() {
+        let query = MemoryRetrieveQuery::new(
+            vec!["a".to_string(), "b".to_string()],
+            MemoryRetrieveQueryVariant::make_semantic(vec![]),
+        );
+        assert_eq!(query.tag(), &["a".to_string(), "b".to_string()]);
+        let empty = MemoryRetrieveQuery::new(vec![], MemoryRetrieveQueryVariant::make_semantic(vec![]));
+        assert!(empty.tag().is_empty());
+    }
+
+    #[test]
+    fn test_variant_as_semantic() {
+        let variant = MemoryRetrieveQueryVariant::make_semantic(vec![
+            SemanticQueryUnit::new().with_concept_identifier("c".to_string()),
+        ]);
+        let units = variant.as_semantic().expect("semantic units");
+        assert_eq!(units.len(), 1);
+        assert_eq!(units[0].concept_identifier(), Some("c"));
+
+        let situation = MemoryRetrieveQueryVariant::make_situation(vec![SituationQueryUnit::new()]);
+        assert!(situation.as_semantic().is_none());
+    }
+
+    #[test]
+    fn test_variant_as_situation() {
+        let variant = MemoryRetrieveQueryVariant::make_situation(vec![
+            SituationQueryUnit::new().with_narrative("n".to_string()),
+        ]);
+        let units = variant.as_situation().expect("situation units");
+        assert_eq!(units.len(), 1);
+        assert_eq!(units[0].narrative().map(|s| s.as_str()), Some("n"));
+
+        let semantic = MemoryRetrieveQueryVariant::make_semantic(vec![]);
+        assert!(semantic.as_situation().is_none());
+    }
+
+    #[test]
+    fn test_semantic_query_unit_getters() {
+        let unit = SemanticQueryUnit::new();
+        assert_eq!(unit.concept_identifier(), None);
+        assert_eq!(unit.description(), None);
+
+        let unit = unit
+            .with_concept_identifier("concept".to_string())
+            .with_description("desc".to_string());
+        assert_eq!(unit.concept_identifier(), Some("concept"));
+        assert_eq!(unit.description(), Some("desc"));
+    }
+
+    #[test]
+    fn test_situation_query_unit_getters() {
+        let unit = SituationQueryUnit::new();
+        assert!(unit.narrative().is_none());
+        assert!(unit.location().is_none());
+        assert!(unit.participants().is_none());
+        assert!(unit.time_span().is_none());
+        assert!(unit.environment().is_none());
+        assert!(unit.event().is_none());
+
+        let unit = unit
+            .with_narrative("nar".to_string())
+            .with_location(vec![LocationQueryUnit::new("loc")])
+            .with_participants(vec![ParticipantQueryUnit::new().with_name("p".to_string())])
+            .with_time_span(vec![TimeSpanQueryUnit::new()])
+            .with_environment(EnvironmentQueryUnit::new().with_atmosphere("a".to_string()))
+            .with_event(vec![EventQueryUnit::new("e")]);
+        assert_eq!(unit.narrative().map(|s| s.as_str()), Some("nar"));
+        assert_eq!(unit.location().map(|v| v.len()), Some(1));
+        assert_eq!(unit.participants().map(|v| v.len()), Some(1));
+        assert_eq!(unit.time_span().map(|v| v.len()), Some(1));
+        assert!(unit.environment().is_some());
+        assert_eq!(unit.event().map(|v| v.len()), Some(1));
+    }
+
+    #[test]
+    fn test_location_query_unit() {
+        let unit = LocationQueryUnit::new("北京");
+        assert_eq!(unit.name(), "北京");
+        assert_eq!(unit.coordinates(), None);
+        let unit = unit.with_coordinates("中国");
+        assert_eq!(unit.coordinates(), Some("中国"));
+    }
+
+    #[test]
+    fn test_participant_query_unit() {
+        let unit = ParticipantQueryUnit::new();
+        assert_eq!(unit.name(), None);
+        assert_eq!(unit.role(), None);
+        let unit = unit.with_name("张三".to_string()).with_role("学生".to_string());
+        assert_eq!(unit.name(), Some("张三"));
+        assert_eq!(unit.role(), Some("学生"));
+    }
+
+    #[test]
+    fn test_environment_query_unit() {
+        let unit = EnvironmentQueryUnit::new();
+        assert_eq!(unit.atmosphere(), None);
+        assert_eq!(unit.tone(), None);
+        let unit = unit.with_atmosphere("安静".to_string()).with_tone("温暖".to_string());
+        assert_eq!(unit.atmosphere(), Some("安静"));
+        assert_eq!(unit.tone(), Some("温暖"));
+    }
+
+    #[test]
+    fn test_event_query_unit() {
+        let unit = EventQueryUnit::new("跑步");
+        assert_eq!(unit.action(), "跑步");
+        assert_eq!(unit.initiator(), None);
+        assert_eq!(unit.target(), None);
+        let unit = unit.with_initiator("张三".to_string()).with_target("操场".to_string());
+        assert_eq!(unit.initiator(), Some("张三"));
+        assert_eq!(unit.target(), Some("操场"));
+    }
+
+    #[test]
+    fn test_time_span_query_unit() {
+        let unit = TimeSpanQueryUnit::new();
+        assert!(unit.start().is_none());
+        assert!(unit.end().is_none());
+        let start = Utc::now();
+        let end = start + chrono::Duration::hours(1);
+        let unit = unit.with_start(start).with_end(end);
+        assert_eq!(unit.start(), Some(&start));
+        assert_eq!(unit.end(), Some(&end));
+    }
+}

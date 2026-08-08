@@ -38,6 +38,12 @@ impl EnvironmentEmbedding {
         }))
     }
 }
+#[cfg(test)]
+impl EnvironmentEmbedding {
+    pub(crate) fn test_new(atmosphere: EmbeddingVec, tone: EmbeddingVec) -> Self {
+        Self { atmosphere, tone }
+    }
+}
 impl Embeddable for Environment {
     type EmbeddingGen = EnvironmentEmbedding;
     type EmbeddingFused = EmbeddedEnvironment;

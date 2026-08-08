@@ -90,4 +90,60 @@ mod tests {
         let embedding = emotion.embed(&model).unwrap();
         assert_eq!(embedding.intensity, 1.0);
     }
+
+    fn embed_emotion(vec: Vec<f32>, intensity: f32) -> EmotionEmbedding {
+        EmotionEmbedding {
+            emotion: EmbeddingVec::new(vec),
+            intensity,
+        }
+    }
+
+    #[test]
+    fn test_weight_pooling_values() {
+        let e1 = embed_emotion(vec![1.0, 10.0], 0.5);
+        let e2 = embed_emotion(vec![3.0, 20.0], 0.5);
+        let pooled = EmotionEmbedding::weight_pooling(&[e1, e2])
+            .unwrap()
+            .unwrap();
+        let vals = pooled.emotion().iter().copied().collect::<Vec<_>>();
+        assert!((vals[0] - 2.0).abs() < 1e-5, "got {}", vals[0]);
+        assert!((vals[1] - 15.0).abs() < 1e-5, "got {}", vals[1]);
+        assert!((pooled.intensity() - 1.0).abs() < 1e-5);
+    }
+
+    #[test]
+    fn test_weight_pooling_weighted() {
+        let e1 = embed_emotion(vec![4.0], 3.0);
+        let e2 = embed_emotion(vec![0.0], 1.0);
+        let pooled = EmotionEmbedding::weight_pooling(&[e1, e2])
+            .unwrap()
+            .unwrap();
+        assert!((pooled.emotion().iter().copied().next().unwrap() - 3.0).abs() < 1e-5);
+        assert!((pooled.intensity() - 4.0).abs() < 1e-5);
+    }
+
+    #[test]
+    fn test_weight_pooling_zero_intensity() {
+        let e1 = embed_emotion(vec![1.0], 0.0);
+        let e2 = embed_emotion(vec![1.0], 0.0);
+        assert!(matches!(
+            EmotionEmbedding::weight_pooling(&[e1, e2]),
+            Err(EmbeddingCalcError::InvalidNumValue)
+        ));
+    }
+
+    #[test]
+    fn test_weight_pooling_shape_mismatch() {
+        let e1 = embed_emotion(vec![1.0], 1.0);
+        let e2 = embed_emotion(vec![1.0, 2.0], 1.0);
+        assert!(matches!(
+            EmotionEmbedding::weight_pooling(&[e1, e2]),
+            Err(EmbeddingCalcError::ShapeMismatch)
+        ));
+    }
+
+    #[test]
+    fn test_weight_pooling_empty() {
+        assert!(EmotionEmbedding::weight_pooling(&[]).unwrap().is_none());
+    }
 }

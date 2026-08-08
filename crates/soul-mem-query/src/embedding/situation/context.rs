@@ -40,6 +40,27 @@ impl ContextEmbedding {
     }
 }
 
+#[cfg(test)]
+impl ContextEmbedding {
+    pub(crate) fn test_new(
+        location: Option<LocationEmbedding>,
+        fused_participant: Option<ParticipantEmbedding>,
+        fused_emotion: Option<EmotionEmbedding>,
+        fused_sensory_data: Option<SensoryDataEmbedding>,
+        environment: EnvironmentEmbedding,
+        fused_event: Option<EventEmbedding>,
+    ) -> Self {
+        Self {
+            location,
+            fused_participant,
+            fused_emotion,
+            fused_sensory_data,
+            environment,
+            fused_event,
+        }
+    }
+}
+
 impl Embeddable for Context {
     type EmbeddingFused = EmbeddedContext;
     type EmbeddingGen = ContextEmbedding;
@@ -113,6 +134,7 @@ pub struct EmbeddedContext {
 mod tests {
     use super::*;
     use crate::embedding::embedding_model::bge::BgeSmallZh;
+    use crate::embedding::EmbeddingVec;
     use soul_mem_core::memory_note::situation_mem::{
         Emotion, Environment, Event, Location, Participant, SensoryData,
     };
@@ -181,5 +203,65 @@ mod tests {
         let context = test_context();
         let model = BgeSmallZh::default_cpu().unwrap();
         let _embedding = context.embed(&model).unwrap();
+    }
+
+    fn sample_embedding() -> ContextEmbedding {
+        ContextEmbedding {
+            location: Some(LocationEmbedding::test_new(
+                EmbeddingVec::new(vec![1.0]),
+                EmbeddingVec::new(vec![2.0]),
+            )),
+            fused_participant: Some(ParticipantEmbedding::test_new(
+                EmbeddingVec::new(vec![1.0]),
+                EmbeddingVec::new(vec![2.0]),
+                EmbeddingVec::new(vec![1.5]),
+            )),
+            fused_emotion: Some(EmotionEmbedding {
+                emotion: EmbeddingVec::new(vec![1.0]),
+                intensity: 0.5,
+            }),
+            fused_sensory_data: Some(SensoryDataEmbedding::test_new(
+                EmbeddingVec::new(vec![1.0]),
+                0.5,
+            )),
+            environment: EnvironmentEmbedding::test_new(
+                EmbeddingVec::new(vec![1.0]),
+                EmbeddingVec::new(vec![2.0]),
+            ),
+            fused_event: Some(EventEmbedding::test_new(
+                EmbeddingVec::new(vec![1.0]),
+                EmbeddingVec::new(vec![2.0]),
+                EmbeddingVec::new(vec![3.0]),
+                0.5,
+            )),
+        }
+    }
+
+    #[test]
+    fn test_context_embedding_accessors() {
+        let ctx = sample_embedding();
+        assert!(ctx.location().is_some());
+        assert!(ctx.fused_participant().is_some());
+        assert!(ctx.fused_emotion().is_some());
+        assert!(ctx.fused_sensory_data().is_some());
+        assert!(ctx.fused_event().is_some());
+        assert_eq!(ctx.environment().atmosphere().shape(), 1);
+
+        let empty = ContextEmbedding {
+            location: None,
+            fused_participant: None,
+            fused_emotion: None,
+            fused_sensory_data: None,
+            environment: EnvironmentEmbedding::test_new(
+                EmbeddingVec::new(vec![1.0]),
+                EmbeddingVec::new(vec![2.0]),
+            ),
+            fused_event: None,
+        };
+        assert!(empty.location().is_none());
+        assert!(empty.fused_participant().is_none());
+        assert!(empty.fused_emotion().is_none());
+        assert!(empty.fused_sensory_data().is_none());
+        assert!(empty.fused_event().is_none());
     }
 }

@@ -21,6 +21,20 @@ impl SemanticQueryUnitEmbedding {
         self.blend_weights = bw.clone();
     }
 }
+#[cfg(test)]
+impl SemanticQueryUnitEmbedding {
+    pub(crate) fn test_new(
+        concept_identifier: Option<EmbeddingVec>,
+        description: Option<EmbeddingVec>,
+        blend_weights: BlendWeights,
+    ) -> Self {
+        Self {
+            concept_identifier,
+            description,
+            blend_weights,
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct EmbeddedSemanticQueryUnit {
@@ -67,5 +81,33 @@ impl Embeddable for SemanticQueryUnit {
             embedding: self.embed(model)?,
             query: self,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_semantic_query_unit_embedding_accessors() {
+        let mut embedding = SemanticQueryUnitEmbedding::test_new(
+            Some(EmbeddingVec::new(vec![1.0])),
+            Some(EmbeddingVec::new(vec![2.0])),
+            BlendWeights::default(),
+        );
+        assert_eq!(embedding.concept_identifier().unwrap().shape(), 1);
+        assert_eq!(embedding.description().unwrap().shape(), 1);
+
+        let mut bw = BlendWeights::default();
+        bw.tag = 0.8;
+        embedding.set_blend_weights(&bw);
+        assert_eq!(embedding.blend_weights.tag, 0.8);
+    }
+
+    #[test]
+    fn test_semantic_query_unit_embedding_none() {
+        let embedding = SemanticQueryUnitEmbedding::test_new(None, None, BlendWeights::default());
+        assert!(embedding.concept_identifier().is_none());
+        assert!(embedding.description().is_none());
     }
 }

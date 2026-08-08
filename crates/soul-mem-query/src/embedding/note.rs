@@ -239,4 +239,64 @@ mod tests {
 
         assert!(variant_emb.to_situation().is_some());
     }
+
+    #[test]
+    fn test_memory_embedding_variant_accessors() {
+        // Procedure 变体
+        let proc = MemoryEmbeddingVariant::Procedure();
+        assert!(proc.to_procedure().is_some());
+        let proc = MemoryEmbeddingVariant::Procedure();
+        assert!(proc.to_semantic().is_none());
+        let proc = MemoryEmbeddingVariant::Procedure();
+        assert!(proc.to_situation().is_none());
+
+        // Semantic 变体（通过 MemoryEmbedding::new 直接构造，避免模型依赖）
+        let sem_emb = crate::embedding::sem::SemanticEmbedding::new(
+            EmbeddingVec::new(vec![1.0]),
+            EmbeddingVec::new(vec![2.0]),
+            EmbeddingVec::new(vec![3.0]),
+        );
+        let sem = MemoryEmbeddingVariant::Semantic(sem_emb);
+        assert!(sem.to_semantic().is_some());
+        let sem = MemoryEmbeddingVariant::Semantic(crate::embedding::sem::SemanticEmbedding::new(
+            EmbeddingVec::new(vec![1.0]),
+            EmbeddingVec::new(vec![2.0]),
+            EmbeddingVec::new(vec![3.0]),
+        ));
+        assert!(sem.to_procedure().is_none());
+        let sem = MemoryEmbeddingVariant::Semantic(crate::embedding::sem::SemanticEmbedding::new(
+            EmbeddingVec::new(vec![1.0]),
+            EmbeddingVec::new(vec![2.0]),
+            EmbeddingVec::new(vec![3.0]),
+        ));
+        assert!(sem.to_situation().is_none());
+    }
+
+    #[test]
+    fn test_memory_embedding_new_and_accessors() {
+        let tag = EmbeddingVec::new(vec![1.0, 2.0]);
+        let variant = MemoryEmbeddingVariant::Procedure();
+        let embedding = MemoryEmbedding::new(tag.clone(), variant);
+        assert_eq!(embedding.tag(), &tag);
+        assert!(embedding.variant().clone().to_procedure().is_some());
+    }
+
+    #[test]
+    fn test_embedded_memory_note_tuple() {
+        let mem_type = soul_mem_core::memory_note::MemoryType::Semantic(SemMemory {
+            content: "测试".to_string(),
+            aliases: vec!["test".to_string()],
+            concept_type: ConceptType::Entity,
+            description: "测试描述".to_string(),
+        });
+        let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+        let embedding = MemoryEmbedding {
+            tag: EmbeddingVec::new(vec![1.0]),
+            variant: MemoryEmbeddingVariant::Procedure(),
+        };
+        let embedded = EmbeddedMemoryNote { note, embedding };
+        let (n, e) = embedded.clone().into_tuple();
+        assert_eq!(n.id(), embedded.note().id());
+        assert_eq!(e.tag(), embedded.embedding().tag());
+    }
 }
