@@ -55,17 +55,17 @@ impl Embeddable for ParticipantQueryUnit {
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
         let name_batch_vec = self
             .name()
-            .map(|name| model.infer_batch(&vec![name]))
+            .map(|name| model.infer_batch(&[name]))
             .transpose()?;
 
-        let name_vec = name_batch_vec.map(|vec| vec.into_iter().next()).flatten();
+        let name_vec = name_batch_vec.and_then(|vec| vec.into_iter().next());
 
         let role_batch_vec = self
             .role()
-            .map(|role| model.infer_batch(&vec![role]))
+            .map(|role| model.infer_batch(&[role]))
             .transpose()?;
 
-        let role_vec = role_batch_vec.map(|vec| vec.into_iter().next()).flatten();
+        let role_vec = role_batch_vec.and_then(|vec| vec.into_iter().next());
 
         Ok(ParticipantQueryUnitEmbedding {
             name: name_vec,

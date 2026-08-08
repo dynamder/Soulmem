@@ -176,10 +176,10 @@ impl AnonymousQueryCompute for SpecificSituationEmbedding {
         //fuse score
         let score_vec = narrative_score
             .into_iter()
-            .chain(location_score.into_iter())
-            .chain(participants_score.into_iter())
-            .chain(environment_score.into_iter())
-            .chain(event_score.into_iter())
+            .chain(location_score)
+            .chain(participants_score)
+            .chain(environment_score)
+            .chain(event_score)
             .collect::<Vec<_>>();
 
         let len = score_vec.len();
@@ -261,14 +261,14 @@ impl AnonymousQueryCompute for MemoryEmbeddingVariant {
         match (self, query) {
             (Self::Semantic(sem), MemoryRetrieveQueryVariantEmbedding::Semantic(q_sem)) => {
                 let score_vec = q_sem
-                    .into_iter()
+                    .iter()
                     .map(|q_sem_unit| sem.anonymous_compute(q_sem_unit))
                     .collect::<Result<Vec<_>, _>>()?;
                 Ok(score_vec.into_iter().sum::<f32>())
             }
             (Self::Situation(sit), MemoryRetrieveQueryVariantEmbedding::Situation(q_sit)) => {
                 let score_vec = q_sit
-                    .into_iter()
+                    .iter()
                     .map(|q_sit_unit| sit.anonymous_compute(q_sit_unit))
                     .collect::<Result<Vec<_>, _>>()?;
                 Ok(score_vec.into_iter().sum::<f32>())

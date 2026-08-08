@@ -77,10 +77,10 @@ fn simple_weight_calc(
 
 /// 准备小型测试数据（在benchmark外执行）
 /// 用于基础性能对比测试
-fn prepare_test_data() -> (
-    StableDiGraph<String, OrdFloat<f64>>,
-    HashMap<NodeIndex<u32>, OrdFloat<f64>>,
-) {
+type GraphWithWeights = StableDiGraph<String, OrdFloat<f64>>;
+type SourceBias = HashMap<NodeIndex<u32>, OrdFloat<f64>>;
+
+fn prepare_test_data() -> (GraphWithWeights, SourceBias) {
     let (graph, nodes) = create_test_graph(20);
     let mut source_bias = HashMap::new();
 
@@ -94,12 +94,7 @@ fn prepare_test_data() -> (
 
 /// 准备大规模测试数据（在benchmark外执行）
 /// 专门用于中等和大型规模图的性能测试
-fn prepare_large_test_data(
-    size: usize,
-) -> (
-    StableDiGraph<String, OrdFloat<f64>>,
-    HashMap<NodeIndex<u32>, OrdFloat<f64>>,
-) {
+fn prepare_large_test_data(size: usize) -> (GraphWithWeights, SourceBias) {
     let (graph, nodes) = create_large_test_graph(size);
     let mut source_bias = HashMap::new();
 

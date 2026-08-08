@@ -32,19 +32,17 @@ impl Embeddable for EnvironmentQueryUnit {
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
         let atmosphere_batch_vec = self
             .atmosphere()
-            .map(|atmosphere| model.infer_batch(&vec![atmosphere]))
+            .map(|atmosphere| model.infer_batch(&[atmosphere]))
             .transpose()?;
 
-        let atmosphere_vec = atmosphere_batch_vec
-            .map(|vec| vec.into_iter().next())
-            .flatten();
+        let atmosphere_vec = atmosphere_batch_vec.and_then(|vec| vec.into_iter().next());
 
         let tone_batch_vec = self
             .tone()
-            .map(|tone| model.infer_batch(&vec![tone]))
+            .map(|tone| model.infer_batch(&[tone]))
             .transpose()?;
 
-        let tone_vec = tone_batch_vec.map(|vec| vec.into_iter().next()).flatten();
+        let tone_vec = tone_batch_vec.and_then(|vec| vec.into_iter().next());
 
         Ok(EnvironmentQueryUnitEmbedding {
             atmosphere: atmosphere_vec,

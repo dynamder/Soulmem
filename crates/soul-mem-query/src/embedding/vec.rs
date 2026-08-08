@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::embedding::EmbeddingCalcResult;
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize, Default)]
 pub struct EmbeddingVec(Vec<f32>);
 
 impl EmbeddingVec {
@@ -22,11 +22,6 @@ impl EmbeddingVec {
     }
     pub fn iter(&self) -> impl Iterator<Item = &f32> {
         self.0.iter()
-    }
-}
-impl Default for EmbeddingVec {
-    fn default() -> Self {
-        Self(Vec::new())
     }
 }
 impl IntoIterator for EmbeddingVec {
