@@ -12,4 +12,12 @@ exclude_re = [
     'in weighted_ppr_fp',
     'UnitMeasure for OrdFloat<F>>::zero',
     'from struct AssociationConfig expression',
+    # PPR 内部比较算子：ResidueUnit 为私有类型，EdgeWeightUnit 为内部表示，
+    # 算法通过 Iterator::max()（Ord::cmp）使用它们，公开行为已由 PPR 输出测试覆盖；
+    # PartialOrd/PartialEq 各算子未被算法直接使用，为其逐个写断言属于针对变异体的过度拟合。
+    # 注：Ord::cmp 仍由 PPR 输出测试覆盖，故不在排除之列。
+    'PartialOrd for ResidueUnit',
+    'PartialEq for ResidueUnit',
+    'PartialOrd for EdgeWeightUnit',
+    'PartialEq for EdgeWeightUnit',
 ]
