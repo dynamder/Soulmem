@@ -2,6 +2,24 @@
 [advisories]
 version = 2
 yanked = "deny"
+# unmaintained 只作提示，不阻塞：依赖树里多处传递依赖（backoff/instant/
+# number_prefix/paste/rand_os 等）被 embed_anything 0.6.7 钉死，无安全升级。
+unmaintained = "none"
+# 以下漏洞均来自 embed_anything 0.6.7 的传递依赖，无法在保持该版本的
+# 前提下升级修复；升级 embed_anything（如 feature/test_framework 分支的
+# 0.7.1）后应移除对应条目：
+# - RUSTSEC-2026-0187: lopdf 解析深层 PDF 对象时栈溢出；pdf-extract 0.9.0 钉死
+#   lopdf 0.36，0.42+ 不可达。SoulMem 不解析不可信 PDF。
+# - RUSTSEC-2026-0098/0099: rustls-webpki 0.101 的 name-constraint 校验问题；
+#   仅在被错误签发的证书 + 自定义 name-constraint 场景下可被利用，且 rustls 0.21
+#   钉死 webpki 0.101，需随 aws-sdk/rustls 升级（embed_anything 依赖链）才能修复。
+# - RUSTSEC-2026-0104: rustls-webpki CRL 解析可达 panic；应用不使用 CRL，不受影响。
+ignore = [
+    "RUSTSEC-2026-0187",
+    "RUSTSEC-2026-0098",
+    "RUSTSEC-2026-0099",
+    "RUSTSEC-2026-0104",
+]
 
 [bans]
 multiple-versions = "warn"
@@ -17,7 +35,8 @@ allow = [
     "Unicode-3.0",
     "Zlib",
     "BSL-1.0",
-    "OpenSSL",
+    "NCSA",
+    "CDLA-Permissive-2.0",
     "CC0-1.0",
     "MPL-2.0",
     "Unlicense",
