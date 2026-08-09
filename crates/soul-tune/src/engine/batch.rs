@@ -8,6 +8,7 @@ use std::time::{Duration, Instant};
 use crate::base::RetrieveMode;
 
 use crate::engine::suite::TestCaseOutcome;
+use crate::engine::retrieve::data::RetrieveCaseData;
 
 pub struct BatchResult {
     pub datasets: Vec<DatasetResult>,
@@ -36,6 +37,63 @@ pub fn scan_question_jsons(dir: &Path) -> Vec<PathBuf> {
     }
     scan_recursive(dir, &mut results);
     results
+}
+
+/// 动作命中汇总：只统计带 expected_actions 真值的用例（占位指标不参与）。
+#[derive(Debug, Clone, Copy)]
+pub struct ActionSummary {
+    pub cases: usize,
+    pub hit_cases: usize,
+    pub recall_at3: f64,
+}
+
+impl ActionSummary {
+    pub fn hit_rate(&self) -> f64 {
+        if self.cases == 0 {
+            0.0
+        } else {
+            self.hit_cases as f64 / self.cases as f64
+        }
+    }
+
+    pub fn combine(a: Option<&ActionSummary>, b: Option<&ActionSummary>) -> Option<ActionSummary> {
+        match (a, b) {
+            (None, None) => None,
+            (Some(x), None) | (None, Some(x)) => Some(*x),
+            (Some(x), Some(y)) => Some(ActionSummary {
+                cases: x.cases + y.cases,
+                hit_cases: x.hit_cases + y.hit_cases,
+                recall_at3: (x.recall_at3 * x.cases as f64 + y.recall_at3 * y.cases as f64)
+                    / (x.cases + y.cases) as f64,
+            }),
+        }
+    }
+}
+
+/// 从用例结果中汇总动作命中指标。
+pub fn summarize_action_metrics(outcomes: &[TestCaseOutcome]) -> Option<ActionSummary> {
+    let mut summary: Option<ActionSummary> = None;
+    for o in outcomes {
+        if let Some(data) = o.data.downcast_ref::<RetrieveCaseData>() {
+            if !data.action_metrics.has_expected_actions {
+                continue;
+            }
+            let recall_at3 = data
+                .action_metrics
+                .action_recall_at
+                .iter()
+                .find(|(k, _)| *k == 3)
+                .map(|(_, v)| *v)
+                .unwrap_or(0.0);
+            let s = ActionSummary {
+                cases: 1,
+                hit_cases: if data.action_metrics.action_hit_rate > 0.0 { 1 } else { 0 },
+                recall_at3,
+            };
+            summary = ActionSummary::combine(summary.as_ref(), Some(&s));
+        }
+    }
+    summary
 }
 
 fn scan_recursive(dir: &Path, results: &mut Vec<PathBuf>) {
@@ -142,10 +200,11 @@ pub fn print_batch_result(result: &BatchResult) {
     });
 
     println!(
-        "{:<30} {:>5} {:>5} {:>5} {:>7} {:>8}",
-        "数据集", "用例", "通过", "失败", "通过率", "耗时"
+        "{:<30} {:>5} {:>5} {:>5} {:>7} {:>8} {:>8}",
+        "数据集", "用例", "通过", "失败", "通过率", "动作Hit", "耗时"
     );
     println!("{}", "-".repeat(70));
+    let mut total_summary: Option<ActionSummary> = None;
     for ds in &sorted {
         let ok_mark = if ds.error.is_some() {
             "!"
@@ -154,16 +213,33 @@ pub fn print_batch_result(result: &BatchResult) {
         } else {
             "-"
         };
+        let action_col = match summarize_action_metrics(&ds.outcomes) {
+            Some(s) => {
+                total_summary = ActionSummary::combine(total_summary.as_ref(), Some(&s));
+                format!("{:>7.1}%", s.hit_rate() * 100.0)
+            }
+            None => format!("{:>8}", "-"),
+        };
         println!(
-            "{:<30} {:>5} {:>5} {:>5} {:>6.1}% {:>7.2}s {}",
+            "{:<30} {:>5} {:>5} {:>5} {:>6.1}% {} {:>7.2}s {}",
             ds.name.chars().take(28).collect::<String>(),
             ds.total,
             ds.passed,
             ds.failed,
             ds.pass_rate,
+            action_col,
             ds.elapsed.as_secs_f64(),
             ok_mark,
         );
+    }
+    match total_summary {
+        Some(s) => println!(
+            "动作评测: {} 个带期望动作的用例 | 动作Hit {:.1}% | Recall@3 {:.3}",
+            s.cases,
+            s.hit_rate() * 100.0,
+            s.recall_at3
+        ),
+        None => println!("动作评测: 无带 expected_actions 的用例"),
     }
     println!("{}", "-".repeat(70));
 }
@@ -172,6 +248,7 @@ pub fn print_batch_result(result: &BatchResult) {
 mod tests {
     use super::*;
     use std::path::Path;
+    use crate::engine::retrieve::data::{ActionMetrics, RankingMetrics};
 
     fn fixtures_dir() -> std::path::PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -196,6 +273,78 @@ mod tests {
     fn test_scan_non_existent_dir() {
         let results = scan_question_jsons(Path::new("/nonexistent/dir/_soul_tune_test_"));
         assert!(results.is_empty(), "non-existent dir should return empty");
+    }
+
+    fn outcome_with_action(hit: f64, recall3: f64, has_expected: bool) -> TestCaseOutcome {
+        let data = RetrieveCaseData {
+            case_name: "c".into(),
+            description: String::new(),
+            combined_retrieved_ids: vec![],
+            combined_ranking_metrics: RankingMetrics {
+                recall_at: vec![(1, 0.0)],
+                precision_at: vec![(1, 0.0)],
+                mrr: 0.0,
+                ndcg_at: vec![(1, 0.0)],
+                hit_rate: 0.0,
+            },
+            per_query_metrics: vec![],
+            action_metrics: ActionMetrics {
+                action_hit_rate: hit,
+                action_recall_at: vec![(1, recall3), (3, recall3), (5, recall3)],
+                has_expected_actions: has_expected,
+            },
+            tag_weight: 0.3,
+            variant_weight: 0.7,
+            id_names: None,
+            expected_combined_ranking: vec![],
+            bonus_combined_ranking: vec![],
+            graph_names: None,
+            sub_queries: vec![],
+        };
+        TestCaseOutcome {
+            case_name: "c".into(),
+            description: String::new(),
+            passed: true,
+            data: Box::new(data),
+        }
+    }
+
+    #[test]
+    fn test_summarize_action_metrics_empty() {
+        assert!(summarize_action_metrics(&[]).is_none());
+    }
+
+    #[test]
+    fn test_summarize_action_metrics_ignores_placeholder() {
+        // 只有占位指标（无 expected_actions）→ None
+        let outcomes = vec![outcome_with_action(1.0, 1.0, false)];
+        assert!(summarize_action_metrics(&outcomes).is_none());
+    }
+
+    #[test]
+    fn test_summarize_action_metrics_counts_only_expected_cases() {
+        let outcomes = vec![
+            outcome_with_action(1.0, 0.5, true),
+            outcome_with_action(1.0, 0.5, true),
+            outcome_with_action(0.0, 0.0, true),
+            outcome_with_action(1.0, 1.0, false), // 占位不计入
+        ];
+        let s = summarize_action_metrics(&outcomes).expect("should summarize");
+        assert_eq!(s.cases, 3);
+        assert_eq!(s.hit_cases, 2);
+        assert!((s.hit_rate() - 2.0 / 3.0).abs() < 1e-9);
+        assert!((s.recall_at3 - 1.0 / 3.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_action_summary_combine_weighted_recall() {
+        let a = ActionSummary { cases: 2, hit_cases: 2, recall_at3: 0.5 };
+        let b = ActionSummary { cases: 1, hit_cases: 0, recall_at3: 0.0 };
+        let c = ActionSummary::combine(Some(&a), Some(&b)).unwrap();
+        assert_eq!(c.cases, 3);
+        assert_eq!(c.hit_cases, 2);
+        assert!((c.recall_at3 - 1.0 / 3.0).abs() < 1e-9);
+        assert!(ActionSummary::combine(None, None).is_none());
     }
 
     #[test]

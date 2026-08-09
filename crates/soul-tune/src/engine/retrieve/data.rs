@@ -18,6 +18,8 @@ pub struct RankingMetrics {
 pub struct ActionMetrics {
     pub action_hit_rate: f64,
     pub action_recall_at: Vec<(usize, f64)>,
+    /// 该用例是否带 expected_actions 真值（False 表示占位指标，不应计入统计）
+    pub has_expected_actions: bool,
 }
 
 #[derive(Clone)]
@@ -208,6 +210,7 @@ mod tests {
             action_metrics: ActionMetrics {
                 action_hit_rate: 1.0,
                 action_recall_at: vec![(1, 1.0)],
+                has_expected_actions: false,
             },
             tag_weight: 0.4,
             variant_weight: 0.6,

@@ -515,6 +515,7 @@ impl TestSuite for RetrieveSuite {
             ActionMetrics {
                 action_hit_rate: 1.0,
                 action_recall_at: self.meta.test_k_values.iter().map(|&k| (k, 1.0)).collect(),
+                has_expected_actions: false,
             }
         } else if self.pipeline_mode == RetrieveMode::FullPipeline {
             // 动作评测使用 DefaultPipeline 实际输出的 action 节点
@@ -533,6 +534,7 @@ impl TestSuite for RetrieveSuite {
             ActionMetrics {
                 action_hit_rate: action_res.action_hit_rate,
                 action_recall_at: action_res.action_recall_at,
+                has_expected_actions: true,
             }
         } else {
             // 非 FullPipeline 模式暂不输出动作检索，保持占位
@@ -541,6 +543,7 @@ impl TestSuite for RetrieveSuite {
             ActionMetrics {
                 action_hit_rate: action_res.action_hit_rate,
                 action_recall_at: action_res.action_recall_at,
+                has_expected_actions: true,
             }
         };
 
@@ -596,6 +599,7 @@ impl TestSuite for RetrieveSuite {
                     action_metrics: ActionMetrics {
                         action_hit_rate: data.action_metrics.action_hit_rate,
                         action_recall_at: data.action_metrics.action_recall_at.clone(),
+                        has_expected_actions: data.action_metrics.has_expected_actions,
                     },
                     tag_weight: data.tag_weight,
                     variant_weight: data.variant_weight,

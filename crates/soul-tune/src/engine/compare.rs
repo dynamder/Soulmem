@@ -184,6 +184,7 @@ mod tests {
             action_metrics: ActionMetrics {
                 action_hit_rate: 0.0,
                 action_recall_at: vec![],
+                has_expected_actions: false,
             },
             tag_weight,
             variant_weight,

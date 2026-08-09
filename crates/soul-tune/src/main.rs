@@ -22,7 +22,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use base::{AlgoType, RetrieveMode, TestReport};
-use engine::batch::{print_batch_result, run_batch, scan_question_jsons};
+use engine::batch::{print_batch_result, run_batch, scan_question_jsons, summarize_action_metrics};
 use engine::llm::LlamaServer;
 use engine::playtest::trace::RetrievalTrace;
 use engine::playtest::{DialogueFile, PlayTestRunner, PlayTurnResult};
@@ -191,6 +191,7 @@ fn run_headless_single(algo: AlgoType, dataset_path: PathBuf) -> color_eyre::Res
     // 文件日志（观测用，不影响结果）
     write_retrieve_log(&outcomes);
 
+    let action_summary = summarize_action_metrics(&outcomes);
     let report = suite.build_report(outcomes, elapsed, n, passed, failed);
 
     print_report(&TestReport {
@@ -206,6 +207,17 @@ fn run_headless_single(algo: AlgoType, dataset_path: PathBuf) -> color_eyre::Res
         suite_report: report,
         error: None,
     });
+
+    if let Some(s) = action_summary {
+        println!(
+            "\n动作评测: {} 个带期望动作的用例 | 动作Hit {:.1}% | Recall@3 {:.3}",
+            s.cases,
+            s.hit_rate() * 100.0,
+            s.recall_at3
+        );
+    } else {
+        println!("\n动作评测: 无带 expected_actions 的用例");
+    }
 
     Ok(())
 }
@@ -374,6 +386,21 @@ fn write_retrieve_log(outcomes: &[TestCaseOutcome]) {
                     "  Q{}: MRR={:.4} Hit={:.2}\n",
                     pm.query_index, pm.ranking_metrics.mrr, pm.ranking_metrics.hit_rate
                 ));
+            }
+            if data.action_metrics.has_expected_actions {
+                let r3 = data
+                    .action_metrics
+                    .action_recall_at
+                    .iter()
+                    .find(|(k, _)| *k == 3)
+                    .map(|(_, v)| *v)
+                    .unwrap_or(0.0);
+                out.push_str(&format!(
+                    "  动作: hit={:.2} recall@3={:.3}\n",
+                    data.action_metrics.action_hit_rate, r3
+                ));
+            } else {
+                out.push_str("  动作: N/A（无 expected_actions）\n");
             }
             out.push_str(&format!(
                 "  检索到 {} 节点:\n",

@@ -121,6 +121,7 @@ pub fn compute_action_metrics(
     ActionMetrics {
         action_hit_rate: if hit { 1.0 } else { 0.0 },
         action_recall_at: recall_at,
+        has_expected_actions: !expected_actions.is_empty(),
     }
 }
 

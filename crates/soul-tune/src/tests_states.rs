@@ -62,6 +62,7 @@ fn mock_test_report() -> TestReport {
         action_metrics: crate::engine::retrieve::data::ActionMetrics {
             action_hit_rate: 1.0,
             action_recall_at: vec![(1, 1.0)],
+            has_expected_actions: false,
         },
         tag_weight: 0.5,
         variant_weight: 0.5,

@@ -44,6 +44,7 @@ fn mock_case_data() -> RetrieveCaseData {
         action_metrics: ActionMetrics {
             action_hit_rate: 1.0,
             action_recall_at: vec![(1, 1.0)],
+            has_expected_actions: false,
         },
         tag_weight: 0.4,
         variant_weight: 0.6,
