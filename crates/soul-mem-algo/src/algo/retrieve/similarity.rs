@@ -7,6 +7,7 @@ use soul_mem_core::memory_note::MemoryId;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 use soul_mem_query::embedding::query::note::EmbeddedMemoryRetrieveQuery;
+use soul_mem_query::query::retrieve::MemoryRetrieveQueryVariant;
 use soul_mem_runtime::working_memory::WorkingMemory;
 use std::sync::Arc;
 
@@ -23,6 +24,19 @@ fn default_similarity_threshold() -> f32 {
 }
 fn default_max_results() -> usize {
     4
+}
+
+/// Situation 查询的相似度阈值上限。
+/// Situation 记忆没有字符串通道兜底（SpecificSituation 的 string_score 恒为 0），
+/// 融合分尺度天然低于带 string 通道的 Semantic 查询，因此对 Situation 查询
+/// 使用更宽松的有效阈值：`min(全局阈值, 该上限)`。
+const SITUATION_SIMILARITY_THRESHOLD: f32 = 0.5;
+
+fn effective_similarity_threshold(variant: &MemoryRetrieveQueryVariant, global: f32) -> f32 {
+    match variant {
+        MemoryRetrieveQueryVariant::Situation(_) => global.min(SITUATION_SIMILARITY_THRESHOLD),
+        _ => global,
+    }
 }
 
 impl SimilarityConfig {
@@ -58,6 +72,8 @@ impl RetrStrategy for RetrSimilarity {
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
         //TODO: 添加从数据库的向量相似结果并混合
         let string_blend_alpha = request.query.embedding.string_blend_alpha;
+        let effective_threshold =
+            effective_similarity_threshold(request.query.query.variant(), request.similarity_threshold);
         let cluster = request.working_mem.memory_cluster();
         cluster.read_or_compute(|mem_cluster| {
             let node_weights = mem_cluster.graph().node_weights().collect::<Vec<_>>();
@@ -73,7 +89,7 @@ impl RetrStrategy for RetrSimilarity {
                             if !res.score.is_finite() {
                                 None
                             } else {
-                                if res.score < request.similarity_threshold {
+                                if res.score < effective_threshold {
                                     None
                                 } else {
                                     Some(res)
@@ -112,6 +128,7 @@ mod tests {
     use soul_mem_query::embedding::Embeddable;
     use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::query::compute::QueryCompute;
+    use soul_mem_query::query::string_distance::compute_note_string_score;
     use soul_mem_query::query::retrieve::{
         MemoryRetrieveQuery, MemoryRetrieveQueryVariant, SemanticQueryUnit,
     };
@@ -121,6 +138,17 @@ mod tests {
     fn test_default_constants() {
         assert_eq!(default_similarity_threshold(), 0.7);
         assert_eq!(default_max_results(), 4);
+    }
+
+    #[test]
+    fn test_effective_threshold_situation_caps_at_0_5() {
+        let sit = MemoryRetrieveQueryVariant::Situation(vec![]);
+        let sem = MemoryRetrieveQueryVariant::Semantic(vec![]);
+        assert_eq!(effective_similarity_threshold(&sit, 0.7), 0.5);
+        assert_eq!(effective_similarity_threshold(&sit, 0.3), 0.3);
+        assert_eq!(effective_similarity_threshold(&sem, 0.7), 0.7);
+        assert_eq!(effective_similarity_threshold(&sem, 0.3), 0.3);
+        let _ = MemoryRetrieveQuery::new(vec![], sit);
     }
 
     #[test]
@@ -441,6 +469,7 @@ mod tests {
         let note_id = note.id();
         let embedding = note.embed(&model).unwrap();
         let embedded_note = EmbeddedMemoryNote { note, embedding };
+        let note_for_string = embedded_note.note().clone();
 
         let retrieve_query = MemoryRetrieveQuery::new(
             vec![],
@@ -448,6 +477,7 @@ mod tests {
                 SemanticQueryUnit::new().with_concept_identifier("酒馆".to_string())
             ]),
         );
+        let retrieve_query_for_string = retrieve_query.clone();
         let query_embedding = retrieve_query.embed(&model).unwrap();
 
         // 纯 embedding 得分（字符串分=0 时的基线）
@@ -477,10 +507,16 @@ mod tests {
         assert_eq!(id, note_id);
         assert!(fused.is_finite());
         assert!((0.0..=1.0).contains(&fused), "fused out of range: {fused}");
-        // "酒馆" vs "小酒馆" 的字形接近被字符串分兜底，融合分应高于纯 embedding 分
+        // "酒馆" vs "小酒馆" 的字形接近，字符串分参与混合（str > 0）。
+        // 修复 tag 缺失通道后纯 embedding 分不再被 0.4 压缩，
+        // 混合分 = 0.6*emb + 0.4*str，可能低于纯 embedding 分（当 str < emb 时），
+        // 因此这里验证混合公式本身而非"必高于 pure"。
+        let str_score = compute_note_string_score(&note_for_string, &retrieve_query_for_string);
+        assert!(str_score > 0.0, "string score should be positive: {str_score}");
+        let expected = 0.6 * pure + 0.4 * str_score;
         assert!(
-            fused > pure,
-            "string boost should lift fused ({fused}) above pure embedding ({pure})"
+            (fused - expected).abs() < 1e-5,
+            "fused {fused} != blend {expected}"
         );
     }
 }

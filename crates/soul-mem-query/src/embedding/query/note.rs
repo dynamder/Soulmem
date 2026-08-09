@@ -93,6 +93,12 @@ impl MemoryRetrieveQueryEmbedding {
         }
     }
 
+    /// 设置查询变体（测试与构造用）。
+    pub fn with_variant(mut self, variant: MemoryRetrieveQueryVariantEmbedding) -> Self {
+        self.variant = variant;
+        self
+    }
+
     /// 设置自定义 blend weights 并传播到所有子单元
     pub fn with_weights(mut self, bw: BlendWeights) -> Self {
         self.tag_weight = bw.tag;
@@ -118,7 +124,7 @@ impl Embeddable for MemoryRetrieveQuery {
         let tag_vec = if tag_strs.is_empty() {
             EmbeddingVec::zero(model.dim())
         } else {
-            model.infer_and_fuse(&tag_strs)?
+            model.infer_query_and_fuse(&tag_strs)?
         };
 
         let variant_vec = self.variant().embed(model)?;

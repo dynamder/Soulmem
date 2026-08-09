@@ -92,7 +92,7 @@ impl Embeddable for SituationQueryUnit {
         //narrative
         let narrative_vec = self
             .narrative()
-            .map(|narrative| model.infer_with_chunk(narrative))
+            .map(|narrative| model.infer_query_with_chunk(narrative))
             .transpose()?;
 
         //location

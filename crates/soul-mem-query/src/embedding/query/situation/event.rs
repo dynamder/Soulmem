@@ -89,11 +89,11 @@ impl Embeddable for EventQueryUnit {
         &self,
         model: &dyn crate::embedding::EmbeddingModel,
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
-        let [action_vec] = model.infer_batch(&vec![self.action()])?.try_into().unwrap(); //SAFEUNWRAP: 此处长度必为1
+        let [action_vec] = model.infer_query_batch(&vec![self.action()])?.try_into().unwrap(); //SAFEUNWRAP: 此处长度必为1
 
         let initiator_batch_vec = self
             .initiator()
-            .map(|initiator| model.infer_batch(&vec![initiator]))
+            .map(|initiator| model.infer_query_batch(&vec![initiator]))
             .transpose()?;
 
         let initiator_vec = initiator_batch_vec
@@ -102,7 +102,7 @@ impl Embeddable for EventQueryUnit {
 
         let target_batch_vec = self
             .target()
-            .map(|target| model.infer_batch(&vec![target]))
+            .map(|target| model.infer_query_batch(&vec![target]))
             .transpose()?;
 
         let target_vec = target_batch_vec.map(|vec| vec.into_iter().next()).flatten();

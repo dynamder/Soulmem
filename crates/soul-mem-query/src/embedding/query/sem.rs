@@ -51,7 +51,7 @@ impl Embeddable for SemanticQueryUnit {
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
         let concept_identifier_batch_vec = self
             .concept_identifier()
-            .map(|concept_identifier| model.infer_batch(&vec![concept_identifier]))
+            .map(|concept_identifier| model.infer_query_batch(&vec![concept_identifier]))
             .transpose()?;
 
         let concept_identifier_vec = concept_identifier_batch_vec
@@ -60,7 +60,7 @@ impl Embeddable for SemanticQueryUnit {
 
         let description_batch_vec = self
             .description()
-            .map(|description| model.infer_batch(&vec![description]))
+            .map(|description| model.infer_query_batch(&vec![description]))
             .transpose()?;
 
         let description_vec = description_batch_vec

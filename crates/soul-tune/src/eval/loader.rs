@@ -272,8 +272,19 @@ pub fn load_graph(
     Ok((wm, id_map))
 }
 
+/// 嵌入缓存版本。嵌入实现（pooling 方式 / 查询指令）变化时递增，
+/// 版本不符的旧缓存会自动丢弃并重新嵌入。
+const EMBEDDING_CACHE_VERSION: u32 = 2;
+
+fn legacy_embedding_cache_version() -> u32 {
+    1
+}
+
 #[derive(Serialize, Deserialize)]
 struct EmbeddingCache {
+    /// 缓存格式版本：旧缓存无此字段，按默认值 1（legacy）解析 → 触发重建。
+    #[serde(default = "legacy_embedding_cache_version")]
+    embedding_version: u32,
     id_map: HashMap<String, MemoryId>,
     notes: Vec<EmbeddedMemoryNote>,
 }
@@ -296,14 +307,16 @@ pub fn cached_load_graph(
         let file = std::fs::File::open(&cp)?;
         let reader = std::io::BufReader::new(file);
         if let Ok(cache) = serde_json::from_reader::<_, EmbeddingCache>(reader) {
-            let wm = WorkingMemory::new(10);
-            let cluster = wm.memory_cluster();
-            cluster.write(|c| {
-                for note in cache.notes {
-                    c.add_single_node(note);
-                }
-            });
-            return Ok((wm, cache.id_map));
+            if cache.embedding_version == EMBEDDING_CACHE_VERSION {
+                let wm = WorkingMemory::new(10);
+                let cluster = wm.memory_cluster();
+                cluster.write(|c| {
+                    for note in cache.notes {
+                        c.add_single_node(note);
+                    }
+                });
+                return Ok((wm, cache.id_map));
+            }
         }
     }
 
@@ -319,6 +332,7 @@ pub fn cached_load_graph(
         let _ = serde_json::to_writer(
             writer,
             &EmbeddingCache {
+                embedding_version: EMBEDDING_CACHE_VERSION,
                 id_map: id_map.clone(),
                 notes,
             },
@@ -506,5 +520,46 @@ mod tests {
         });
         fix_mem_type(&mut val);
         assert_eq!(val["Semantic"]["content"], serde_json::json!("Rust"));
+    }
+
+    #[test]
+    fn test_embedding_cache_version_defaults_to_legacy() {
+        // 旧缓存没有 embedding_version 字段 → 按 legacy（1）解析，触发重建
+        let old = r#"{"id_map":{},"notes":[]}"#;
+        let cache: EmbeddingCache = serde_json::from_str(old).unwrap();
+        assert_eq!(cache.embedding_version, 1);
+    }
+
+    #[test]
+    fn test_embedding_cache_version_roundtrip() {
+        let cache = EmbeddingCache {
+            embedding_version: EMBEDDING_CACHE_VERSION,
+            id_map: HashMap::new(),
+            notes: vec![],
+        };
+        let json = serde_json::to_string(&cache).unwrap();
+        let back: EmbeddingCache = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.embedding_version, EMBEDDING_CACHE_VERSION);
+    }
+
+    #[test]
+    fn test_cached_load_graph_stale_version_rebuilds() {
+        let dir = tempfile::tempdir().unwrap();
+        let graph = dir.path().join("graph.json");
+        std::fs::write(&graph, "[]").unwrap();
+        let cp = cache_path(&graph);
+        // 写入 legacy 版本缓存（字段缺失等效）
+        std::fs::write(&cp, r#"{"embedding_version":1,"id_map":{},"notes":[]}"#).unwrap();
+
+        let (wm, id_map) = cached_load_graph(&graph).unwrap();
+        assert!(id_map.is_empty());
+        let node_count = wm
+            .memory_cluster()
+            .read_or_compute(|c| c.graph().node_weights().count());
+        assert_eq!(node_count, 0);
+        // 重建后缓存写入新版本
+        let rebuilt: EmbeddingCache =
+            serde_json::from_str(&std::fs::read_to_string(&cp).unwrap()).unwrap();
+        assert_eq!(rebuilt.embedding_version, EMBEDDING_CACHE_VERSION);
     }
 }

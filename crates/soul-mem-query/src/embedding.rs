@@ -51,6 +51,19 @@ pub trait EmbeddingModel {
     fn infer_batch(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>>;
     fn infer_with_chunk(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec>;
     fn infer_and_fuse(&self, input: &[&str]) -> EmbeddingGenResult<EmbeddingVec>;
+    /// 查询侧批量嵌入。默认与 `infer_batch` 相同；检索类模型（如 BGE v1.5）
+    /// 应覆写为在输入前加查询指令，与 passage 侧的非对称训练用法保持一致。
+    fn infer_query_batch(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>> {
+        self.infer_batch(input)
+    }
+    /// 查询侧多输入融合嵌入。默认与 `infer_and_fuse` 相同。
+    fn infer_query_and_fuse(&self, input: &[&str]) -> EmbeddingGenResult<EmbeddingVec> {
+        self.infer_and_fuse(input)
+    }
+    /// 查询侧长文本分块嵌入。默认与 `infer_with_chunk` 相同。
+    fn infer_query_with_chunk(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec> {
+        self.infer_with_chunk(input)
+    }
     fn max_input_token(&self) -> usize;
     /// 模型输出向量的维度，用于在没有有效输入时构造零向量
     fn dim(&self) -> usize;

@@ -23,6 +23,10 @@ impl EmbeddingVec {
     pub fn iter(&self) -> impl Iterator<Item = &f32> {
         self.0.iter()
     }
+    /// 是否为零向量（无有效嵌入输入时用零向量占位）。
+    pub fn is_zero(&self) -> bool {
+        self.0.iter().all(|&i| i == 0.0)
+    }
 }
 impl Default for EmbeddingVec {
     fn default() -> Self {
