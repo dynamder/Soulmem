@@ -70,58 +70,52 @@ Rules:
 Output format: a JSON array of strings, e.g. ["博丽灵梦", "神社", "弹幕规则"]
 Output ONLY the JSON array. No markdown, no explanations."#;
 
-/// 将某条查询的结果按归一化权重加权并入全局合并表。
-/// 同一节点被多条查询命中时累加 weighted 分（与 suite 的 merge_by_priority 一致），
-/// 展示用的节点保留原始分最高的那条（stage/content 信息更全）。
+/// priority 小偏移上限：分数接近（≤0.05）时保护重要查询的命中不被淹没，
+/// 分数差距较大时仍由分数主导。
+const PRIORITY_BONUS_MAX: f64 = 0.05;
+
+/// priority → 排序偏移：`PRIORITY_BONUS_MAX × (p / p_max)`。
+fn priority_bonus(p: u32, p_max: u32) -> f64 {
+    if p_max == 0 {
+        return 0.0;
+    }
+    PRIORITY_BONUS_MAX * (p as f64 / p_max as f64)
+}
+
+/// 将某条查询的结果按"分数主导 + priority 小偏移"并入全局合并表。
+/// 合并键 = `原始分 + bonus`；同一节点被多条查询命中时保留键最大的那条，
+/// TracedNode.score 始终为原始融合分（展示用，0–1 量纲）。
 fn fold_priority_nodes(
     merged: &mut HashMap<MemoryId, (f64, TracedNode)>,
     nodes: Vec<TracedNode>,
-    weight: f64,
+    bonus: f64,
 ) {
     for node in nodes {
-        let weighted = weight * node.score;
+        let key = node.score + bonus;
         match merged.entry(node.id) {
             std::collections::hash_map::Entry::Occupied(mut e) => {
-                let (w, best) = e.get_mut();
-                *w += weighted;
-                if node.score > best.score {
+                let (best_key, best) = e.get_mut();
+                if key > *best_key {
+                    *best_key = key;
                     *best = node;
                 }
             }
             std::collections::hash_map::Entry::Vacant(v) => {
-                v.insert((weighted, node));
+                v.insert((key, node));
             }
         }
     }
 }
 
-/// 将合并表转换为按加权分降序的节点列表。
+/// 将合并表按排序键（原始分 + priority 偏移）降序转为节点列表，展示分为原始分。
 fn finish_merged(merged: HashMap<MemoryId, (f64, TracedNode)>) -> Vec<TracedNode> {
-    let mut nodes: Vec<TracedNode> = merged
-        .into_values()
-        .map(|(weighted, mut node)| {
-            node.score = weighted;
-            node
-        })
-        .collect();
+    let mut nodes: Vec<(f64, TracedNode)> = merged.into_values().collect();
     nodes.sort_by(|a, b| {
-        b.score
-            .partial_cmp(&a.score)
+        b.0
+            .partial_cmp(&a.0)
             .unwrap_or(std::cmp::Ordering::Equal)
     });
-    nodes
-}
-
-/// 将同一批查询的 priority 归一化为概率分布（softmax）。
-/// priority 是相对值，直接乘会放大绝对数值差异，先转成概率分布再乘。
-fn softmax_normalize(priorities: &[u32]) -> Vec<f64> {
-    if priorities.is_empty() {
-        return Vec::new();
-    }
-    let vals: Vec<f64> = priorities.iter().map(|&p| p as f64).collect();
-    let max = vals.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-    let exp_sum: f64 = vals.iter().map(|v| (v - max).exp()).sum();
-    vals.iter().map(|v| (v - max).exp() / exp_sum).collect()
+    nodes.into_iter().map(|(_, node)| node).collect()
 }
 
 fn raw_sem_to_query(u: RawSemUnit) -> SemanticQueryUnit {
@@ -237,7 +231,7 @@ fn strip_and_trim(s: &str) -> String {
 impl Default for PlayConfig {
     fn default() -> Self {
         Self {
-            similarity_threshold: 0.7,
+            similarity_threshold: 0.35,
             max_results: 4,
             action_top_k: 3,
             ppr_top_k: 8,
@@ -708,13 +702,13 @@ impl PlayTestRunner {
         let mut per_query = Vec::new();
         let mut merged_map: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
 
-        // priority 是相对值，先归一化为概率分布再加权合并
-        let priorities: Vec<u32> = queries.iter().map(|pq| pq.priority()).collect();
-        let weights = softmax_normalize(&priorities);
+        // priority 只作小偏移：分数接近时保护重要查询，分数差距大时由分数主导
+        let p_max = queries.iter().map(|pq| pq.priority()).max().unwrap_or(0);
 
-        for (pq, &weight) in queries.iter().zip(&weights) {
+        for pq in queries {
             let query = pq.query();
             let q_start = Instant::now();
+            let bonus = priority_bonus(pq.priority(), p_max);
 
             let embedded = match query.embed(model) {
                 Ok(e) => e,
@@ -766,7 +760,7 @@ impl PlayTestRunner {
                 total_elapsed: sim_elapsed,
             };
             per_query.push(query_trace);
-            fold_priority_nodes(&mut merged_map, sim_nodes, weight);
+            fold_priority_nodes(&mut merged_map, sim_nodes, bonus);
         }
 
         if per_query.is_empty() {
@@ -794,13 +788,13 @@ impl PlayTestRunner {
         let mut per_query = Vec::new();
         let mut merged_map: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
 
-        // priority 是相对值，先归一化为概率分布再加权合并
-        let priorities: Vec<u32> = queries.iter().map(|pq| pq.priority()).collect();
-        let weights = softmax_normalize(&priorities);
+        // priority 只作小偏移：分数接近时保护重要查询，分数差距大时由分数主导
+        let p_max = queries.iter().map(|pq| pq.priority()).max().unwrap_or(0);
 
-        for (pq, &weight) in queries.iter().zip(&weights) {
+        for pq in queries {
             let query = pq.query();
             let q_start = Instant::now();
+            let bonus = priority_bonus(pq.priority(), p_max);
 
             let embedded = match query.embed(model) {
                 Ok(e) => e,
@@ -945,7 +939,7 @@ impl PlayTestRunner {
                     .partial_cmp(&a.score)
                     .unwrap_or(std::cmp::Ordering::Equal)
             });
-            fold_priority_nodes(&mut merged_map, merged, weight);
+            fold_priority_nodes(&mut merged_map, merged, bonus);
         }
 
         if per_query.is_empty() {
@@ -1061,49 +1055,62 @@ mod tests {
     }
 
     #[test]
-    fn priority_merge_sums_weighted_scores_and_keeps_top() {
-        let mut merged: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
-        let mk = |id: u8, score: f64| TracedNode {
-            id: MemoryId::new(),
-            name: format!("n{id}"),
+    fn priority_bonus_scales_with_priority() {
+        assert_eq!(priority_bonus(10, 10), PRIORITY_BONUS_MAX);
+        assert_eq!(priority_bonus(5, 10), PRIORITY_BONUS_MAX / 2.0);
+        assert_eq!(priority_bonus(0, 10), 0.0);
+        assert_eq!(priority_bonus(7, 0), 0.0);
+    }
+
+    #[test]
+    fn priority_merge_score_primary_with_small_bonus() {
+        let id_high = MemoryId::new();
+        let id_low_boost = MemoryId::new();
+        let id_protected = MemoryId::new();
+        let id_plain = MemoryId::new();
+        let mk = |id: MemoryId, score: f64| TracedNode {
+            id,
+            name: String::new(),
             content: String::new(),
             score,
             stage: HitStage::Similarity,
         };
-        // 同一 id 命中两条不同权重的查询 → 加权分累加
-        let id_a = MemoryId::new();
-        let mut n1 = mk(1, 0.5);
-        n1.id = id_a;
-        fold_priority_nodes(&mut merged, vec![n1], 3.0);
-        let mut n2 = mk(2, 0.4);
-        n2.id = id_a;
-        fold_priority_nodes(&mut merged, vec![n2], 2.0);
 
-        let n3 = mk(3, 0.9);
-        fold_priority_nodes(&mut merged, vec![n3], 1.0);
+        let mut merged: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
+        // 分数差 0.1（>0.05）→ 分数主导：0.9 > 0.8+0.05
+        fold_priority_nodes(&mut merged, vec![mk(id_high, 0.9)], 0.0);
+        fold_priority_nodes(&mut merged, vec![mk(id_low_boost, 0.8)], PRIORITY_BONUS_MAX);
+        // 分数差 0.01（≤0.05）→ priority 保护高重要度查询：0.81+0.05 > 0.82
+        fold_priority_nodes(&mut merged, vec![mk(id_protected, 0.81)], PRIORITY_BONUS_MAX);
+        fold_priority_nodes(&mut merged, vec![mk(id_plain, 0.82)], 0.0);
 
         let out = finish_merged(merged);
-        assert_eq!(out.len(), 2);
-        // id_a: 3.0*0.5 + 2.0*0.4 = 2.3；n3: 1.0*0.9 = 0.9
-        assert_eq!(out[0].id, id_a);
-        assert!((out[0].score - 2.3).abs() < 1e-9);
-        assert!((out[1].score - 0.9).abs() < 1e-9);
+        assert_eq!(out.len(), 4);
+        assert_eq!(out[0].id, id_high);
+        assert_eq!(out[1].id, id_protected);
+        assert_eq!(out[2].id, id_low_boost);
+        assert_eq!(out[3].id, id_plain);
+        // 展示分为原始融合分（0–1 量纲），不含 priority 偏移
+        assert!((out[0].score - 0.9).abs() < 1e-9);
+        assert!((out[1].score - 0.81).abs() < 1e-9);
     }
 
     #[test]
-    fn softmax_normalize_produces_probability_distribution() {
-        let weights = softmax_normalize(&[10, 5, 1]);
-        assert_eq!(weights.len(), 3);
-        // 概率分布：和为 1，保持相对排序
-        assert!((weights.iter().sum::<f64>() - 1.0).abs() < 1e-9);
-        assert!(weights[0] > weights[1]);
-        assert!(weights[1] > weights[2]);
-
-        // 等优先级 → 均匀分布
-        let uniform = softmax_normalize(&[5, 5, 5]);
-        assert!((uniform[0] - 1.0 / 3.0).abs() < 1e-9);
-
-        // 空批次 → 空结果
-        assert!(softmax_normalize(&[]).is_empty());
+    fn priority_merge_same_node_keeps_strongest_evidence() {
+        let id_a = MemoryId::new();
+        let mk = |id: MemoryId, score: f64| TracedNode {
+            id,
+            name: String::new(),
+            content: String::new(),
+            score,
+            stage: HitStage::Similarity,
+        };
+        let mut merged: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
+        fold_priority_nodes(&mut merged, vec![mk(id_a, 0.5)], 0.03);
+        fold_priority_nodes(&mut merged, vec![mk(id_a, 0.4)], 0.02);
+        let out = finish_merged(merged);
+        assert_eq!(out.len(), 1);
+        // 保留键最大的那条（0.5+0.03），展示分为原始分 0.5
+        assert!((out[0].score - 0.5).abs() < 1e-9);
     }
 }

@@ -3,6 +3,8 @@
 #[derive(Debug, Clone, PartialEq)]
 pub struct BlendWeights {
     // — tag/variant 顶层融合 —
+    // tag 通道权重降为 0.3：标签在语义不匹配时会拖累 narrative/概念命中，
+    // 且标签共现（如"人物"）易抬升无关实体，因此降低其主导作用。
     pub tag: f32,
     pub variant: f32,
 
@@ -39,8 +41,8 @@ pub struct BlendWeights {
 impl Default for BlendWeights {
     fn default() -> Self {
         Self {
-            tag: 0.4,
-            variant: 0.6,
+            tag: 0.3,
+            variant: 0.7,
             string_blend_alpha: 0.6,
             sem_concept: 0.5,
             sem_description: 0.5,

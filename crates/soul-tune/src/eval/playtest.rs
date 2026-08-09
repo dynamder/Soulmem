@@ -43,7 +43,7 @@ const CHAT_INSTRUCTION: &str = "注意：这是短信聊天场景，回复必须
 impl Default for PlayConfig {
     fn default() -> Self {
         Self {
-            similarity_threshold: 0.7,
+            similarity_threshold: 0.35,
             max_results: 4,
             action_top_k: 3,
             ppr_top_k: 8,

@@ -84,12 +84,13 @@ impl MemoryRetrieveQueryEmbedding {
     }
 
     pub fn new(tag: EmbeddingVec) -> Self {
+        let bw = BlendWeights::default();
         Self {
             tag,
             variant: MemoryRetrieveQueryVariantEmbedding::Semantic(vec![]),
-            tag_weight: 0.4,
-            variant_weight: 0.6,
-            string_blend_alpha: 0.6,
+            tag_weight: bw.tag,
+            variant_weight: bw.variant,
+            string_blend_alpha: bw.string_blend_alpha,
         }
     }
 
@@ -119,6 +120,7 @@ impl Embeddable for MemoryRetrieveQuery {
     type EmbeddingGen = MemoryRetrieveQueryEmbedding;
     type EmbeddingFused = EmbeddedMemoryRetrieveQuery;
     fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<Self::EmbeddingGen> {
+        let bw = BlendWeights::default();
         let tag_strs: Vec<_> = self.tag().iter().map(|s| s.as_str()).collect();
         //tag为空时跳过模型调用，用零向量填充，避免空输入导致嵌入失败
         let tag_vec = if tag_strs.is_empty() {
@@ -132,9 +134,9 @@ impl Embeddable for MemoryRetrieveQuery {
         Ok(MemoryRetrieveQueryEmbedding {
             tag: tag_vec,
             variant: variant_vec,
-            tag_weight: 0.4,
-            variant_weight: 0.6,
-            string_blend_alpha: 0.6,
+            tag_weight: bw.tag,
+            variant_weight: bw.variant,
+            string_blend_alpha: bw.string_blend_alpha,
         })
     }
     fn embed_and_fuse(
@@ -259,17 +261,17 @@ mod tests {
     #[test]
     fn test_memory_retrieve_query_embedding_weights() {
         let query = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::new(vec![1.0]));
-        assert_eq!(query.tag_weight, 0.4);
-        assert_eq!(query.variant_weight, 0.6);
+        assert_eq!(query.tag_weight, 0.3);
+        assert_eq!(query.variant_weight, 0.7);
         assert_eq!(query.string_blend_alpha, 0.6);
 
         let mut bw = BlendWeights::default();
-        bw.tag = 0.3;
-        bw.variant = 0.7;
+        bw.tag = 0.2;
+        bw.variant = 0.8;
         bw.string_blend_alpha = 0.5;
         let query = query.with_weights(bw);
-        assert_eq!(query.tag_weight, 0.3);
-        assert_eq!(query.variant_weight, 0.7);
+        assert_eq!(query.tag_weight, 0.2);
+        assert_eq!(query.variant_weight, 0.8);
         assert_eq!(query.string_blend_alpha, 0.5);
     }
 }

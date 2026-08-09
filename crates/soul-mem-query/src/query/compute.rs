@@ -193,7 +193,8 @@ impl AnonymousQueryCompute for SpecificSituationEmbedding {
             None
         };
 
-        //fuse score
+        //fuse score：多个信号取 max（任一信号强命中即算命中），
+        //避免均值把最强信号稀释（narrative 与结构化字段尺度不同）。
         let score_vec = narrative_score
             .into_iter()
             .chain(location_score.into_iter())
@@ -202,8 +203,7 @@ impl AnonymousQueryCompute for SpecificSituationEmbedding {
             .chain(event_score.into_iter())
             .collect::<Vec<_>>();
 
-        let len = score_vec.len();
-        Ok(score_vec.into_iter().map(|i| i / len as f32).sum::<f32>())
+        Ok(score_vec.into_iter().fold(0.0f32, f32::max))
     }
 }
 
@@ -241,11 +241,8 @@ impl AnonymousQueryCompute for AbstractSituationEmbedding {
             .chain(narrative_score.into_iter())
             .collect::<Vec<_>>();
 
-        let len = score_vec.len();
-        if len == 0 {
-            return Ok(0.0);
-        }
-        Ok(score_vec.into_iter().map(|i| i / len as f32).sum::<f32>())
+        // 结构化匹配与叙事匹配取 max：任一通道强命中即算命中。
+        Ok(score_vec.into_iter().fold(0.0f32, f32::max))
     }
 }
 
@@ -364,10 +361,14 @@ impl EmbeddedMemoryNote {
         // 会把 embedding 分系统性压缩到 alpha×上限以下（Situation 理论最高仅 0.36），
         // 与"字符串分量缺失时退化为纯 embedding 分"的设计注释不符。
         // 因此无字符串信号时直接返回纯 embedding 分。
+        // 有字符串信号时取 max：字符串通道只加分、不拉低
+        // （当 string < embedding 时混合分会低于纯 embedding 分，取 max 保持"兜底加分"语义）。
         let score = if string_score <= 0.0 {
             embedding_score
         } else {
-            string_blend_alpha * embedding_score + (1.0 - string_blend_alpha) * string_score
+            let blended =
+                string_blend_alpha * embedding_score + (1.0 - string_blend_alpha) * string_score;
+            embedding_score.max(blended)
         };
         Ok(QueryComputeResult::new(self.note().id(), score))
     }
@@ -649,16 +650,17 @@ mod tests {
             .unwrap()
             .score;
 
-        // 混合公式验证：0.6*emb + 0.4*str，两个分量均落在 [0,1]
-        let expected = 0.6 * pure + 0.4 * str_score;
+        // 字符串通道只加分：fused = max(pure, 0.6*pure + 0.4*str)
+        let expected = pure.max(0.6 * pure + 0.4 * str_score);
         assert!(
             (fused - expected).abs() < 1e-5,
             "fused {fused} != expected {expected}"
         );
         assert!(fused.is_finite());
         assert!((0.0..=1.0).contains(&fused), "fused out of range: {fused}");
-        // 字符串分提供正的兜底贡献（0.4 * str > 0）
+        // 字符串分提供正的兜底贡献（0.4 * str > 0，且至少不低于纯 embedding 分）
         assert!(str_score > 0.5, "str_score too low: {str_score}");
+        assert!(fused >= pure, "string channel must not drag fused below pure");
     }
 
     #[test]
@@ -700,13 +702,13 @@ mod tests {
             .score;
         assert!((fused - pure).abs() < 1e-6);
 
-        // alpha=0.0 时完全由字符串分决定
+        // alpha=0.0 时混合分 = str，字符串通道只加分 → fused = max(emb, str)
         let str_score = compute_note_string_score(&embedded_note.note(), &embedded_query.query);
         let fused = embedded_note
             .compute_fused(&embedded_query, 0.0)
             .unwrap()
             .score;
-        assert!((fused - str_score).abs() < 1e-6);
+        assert!((fused - pure.max(str_score)).abs() < 1e-6);
     }
 
     #[test]
@@ -745,7 +747,8 @@ mod tests {
             .unwrap()
             .score;
 
-        let expected = 0.6 * pure + 0.4 * str_score;
+        // 字符串通道只加分：fused = max(pure, 0.6*pure + 0.4*str)
+        let expected = pure.max(0.6 * pure + 0.4 * str_score);
         assert!(
             (fused - expected).abs() < 1e-5,
             "abstract fused {fused} != {expected}"
@@ -1005,8 +1008,8 @@ mod tests {
     }
 
     #[test]
-    fn test_specific_situation_anonymous_compute_average_two_signals() {
-        // narrative + location 两个信号 → 除法归一化 len=2
+    fn test_specific_situation_anonymous_compute_max_two_signals() {
+        // narrative + location 两个信号 → 取 max（任一强命中即算命中）
         let specific = SpecificSituationEmbedding::test_new(
             unit(),
             ContextEmbedding::test_new(
@@ -1031,12 +1034,12 @@ mod tests {
             BlendWeights::default(),
         );
         let score = specific.anonymous_compute(&query).unwrap();
-        // narrative=0.8, location(name)=0.5 → (0.8 + 0.5)/2 = 0.65
-        assert_close(score, 0.65);
+        // narrative=0.8, location(name)=0.5 → max = 0.8
+        assert_close(score, 0.8);
     }
 
     #[test]
-    fn test_abstract_situation_anonymous_compute_average_two_signals() {
+    fn test_abstract_situation_anonymous_compute_max_two_signals() {
         // Location 抽象情境 + narrative 和结构化 location 两个信号
         let abstract_emb = AbstractSituationEmbedding::Location(LocationEmbedding::test_new(unit(), unit()));
         let query = SituationQueryUnitEmbedding::test_new(
@@ -1052,8 +1055,8 @@ mod tests {
             BlendWeights::default(),
         );
         let score = abstract_emb.anonymous_compute(&query).unwrap();
-        // structured=0.5, narrative=0.8 → (0.5 + 0.8)/2 = 0.65
-        assert_close(score, 0.65);
+        // structured=0.5, narrative=0.8 → max = 0.8
+        assert_close(score, 0.8);
     }
 
     #[test]
@@ -1136,10 +1139,10 @@ mod tests {
         let score = note_emb.anonymous_compute(&query_no_tag).unwrap();
         assert_close(score, 0.5);
 
-        // 两侧都有 tag → 保持 0.4/0.6 加权：0.4*1.0 + 0.6*0.5 = 0.7
+        // 两侧都有 tag → 保持 0.3/0.7 加权：0.3*1.0 + 0.7*0.5 = 0.65
         let query_tag = MemoryRetrieveQueryEmbedding::new(unit()).with_variant(q_variant.clone());
         let score = note_emb.anonymous_compute(&query_tag).unwrap();
-        assert_close(score, 0.7);
+        assert_close(score, 0.65);
 
         // note 无 tag、query 有 tag → 同样纯 variant 分
         let note_no_tag = MemoryEmbedding::new(

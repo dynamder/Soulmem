@@ -722,15 +722,42 @@ fn resolve_ids(ids: &[String], id_map: &HashMap<String, MemoryId>) -> Vec<Memory
     ids.iter().filter_map(|s| id_map.get(s).copied()).collect()
 }
 
-fn merge_by_priority(results: Vec<(MemoryId, f32, u32)>, top_k: usize) -> Vec<(MemoryId, f32)> {
-    let mut merged: HashMap<MemoryId, f32> = HashMap::new();
-    for (id, score, priority) in results {
-        *merged.entry(id).or_insert(0.0) += priority as f32 * score;
+/// priority 小偏移上限：分数接近（≤0.05）时保护重要查询的命中不被淹没，
+/// 分数差距较大时仍由分数主导（与 playtest runner 的合并语义一致）。
+const PRIORITY_BONUS_MAX: f64 = 0.05;
+
+fn priority_bonus(p: u32, p_max: u32) -> f64 {
+    if p_max == 0 {
+        return 0.0;
     }
-    let mut sorted: Vec<(MemoryId, f32)> = merged.into_iter().collect();
+    PRIORITY_BONUS_MAX * (p as f64 / p_max as f64)
+}
+
+/// 跨查询合并："分数主导 + priority 小偏移"。
+/// 合并键 = `原始分 + priority_bonus`，同一节点跨查询命中时保留键最大的那条，
+/// 返回值为原始融合分（0–1 量纲，用于排序与指标）。
+fn merge_by_priority(results: Vec<(MemoryId, f32, u32)>, top_k: usize) -> Vec<(MemoryId, f32)> {
+    let p_max = results.iter().map(|(_, _, p)| *p).max().unwrap_or(0);
+    let mut merged: HashMap<MemoryId, (f32, f32)> = HashMap::new(); // id -> (key, raw)
+    for (id, score, priority) in results {
+        let key = score + priority_bonus(priority, p_max) as f32;
+        match merged.entry(id) {
+            std::collections::hash_map::Entry::Occupied(mut e) => {
+                let (best_key, best_raw) = e.get_mut();
+                if key > *best_key {
+                    *best_key = key;
+                    *best_raw = score;
+                }
+            }
+            std::collections::hash_map::Entry::Vacant(v) => {
+                v.insert((key, score));
+            }
+        }
+    }
+    let mut sorted: Vec<(MemoryId, f32, f32)> =
+        merged.into_iter().map(|(id, (key, raw))| (id, key, raw)).collect();
     sorted.sort_by(|a, b| b.1.total_cmp(&a.1));
-    sorted.truncate(top_k);
-    sorted
+    sorted.into_iter().take(top_k).map(|(id, _, raw)| (id, raw)).collect()
 }
 
 /// 分拆评估：must_include 决定 pass/fail，must+bonus 合起来算完整指标
@@ -813,7 +840,8 @@ mod tests {
     fn test_expand_sweep_none() {
         let pairs = expand_sweep_pairs(None);
         assert_eq!(pairs.len(), 1);
-        assert!((pairs[0].tag - 0.4).abs() < 1e-6);
+        // 默认权重：tag 0.3 / variant 0.7（BlendWeights::default）
+        assert!((pairs[0].tag - 0.3).abs() < 1e-6);
     }
 
     #[test]
@@ -946,5 +974,21 @@ mod tests {
         let merged = merge_by_priority(results, 10);
         assert_eq!(merged.len(), 2);
         assert_eq!(merged[0].0, id_a);
+        // 返回原始融合分（0–1 量纲）：id_a = 0.8，而非累加/加权值
+        assert!((merged[0].1 - 0.8).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_merge_by_priority_tie_uses_priority_offset() {
+        let id_low = MemoryId::new();
+        let id_high = MemoryId::new();
+        // 分数差 0.02（≤0.05）：高 priority 命中靠偏移胜出
+        let results = vec![(id_low, 0.82, 2), (id_high, 0.80, 10)];
+        let merged = merge_by_priority(results, 10);
+        assert_eq!(merged[0].0, id_high);
+        // 分数差 0.1（>0.05）：分数主导，低 priority 高分节点胜出
+        let results2 = vec![(id_high, 0.70, 10), (id_low, 0.80, 2)];
+        let merged2 = merge_by_priority(results2, 10);
+        assert_eq!(merged2[0].0, id_low);
     }
 }
