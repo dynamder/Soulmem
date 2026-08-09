@@ -28,7 +28,7 @@ use crate::engine::loader::{cached_load_graph, get_bge_model};
 use crate::engine::retrieve::data::NodeSummary;
 
 use super::repair::{
-    extract_balanced_array, extract_think_content, robust_json_extract, strip_think_block,
+    extract_balanced_array, extract_think_content, robust_json_extract, run_paw, strip_think_block,
     RawQuery, RawSemUnit, RawSitUnit, RawVariant,
 };
 use super::trace::{HitStage, QueryTrace, RetrievalTrace, TracedNode};
@@ -51,6 +51,7 @@ const CHAT_INSTRUCTION: &str = "注意：这是短信聊天场景，回复必须
 只输出对话内容，不加任何表演注释。\
 回复必须简短，一句话即可，不要重复用户的话，不要解释你的回复。";
 
+const ENTITY_EXTRACT_SLUG: &str = "soul-tune-entity-extract-v1";
 const ENTITY_EXTRACT_SPEC: &str = r#"You are an entity extraction tool for a character memory retrieval system.
 Extract all key entities from the user's message that the character needs to recall in order to respond naturally.
 
@@ -508,22 +509,31 @@ impl PlayTestRunner {
         }
     }
 
-    /// 通过主对话 LLM 提取消息中的关键实体，用于增强查询生成提示词，防止检索漏掉关键实体。
-    /// LLM 不可用或解析失败时返回空列表（不阻断流程）。
+    /// 通过 PAW 提取消息中的关键实体，用于增强查询生成提示词，防止检索漏掉关键实体。
+    /// PAW 不可用或提取为空时，暂时用主对话 LLM 顶上；均失败则返回空列表（不阻断流程）。
     fn extract_entities(&self, user_message: &str, llm: &mut dyn LlmBackend) -> Vec<String> {
         let prompt = format!("消息内容：\n{}\n\n请提取关键实体：", user_message);
-        // 实体列表很短，限制 token 数
+        let parse = |raw: &str| {
+            serde_json::from_str::<Vec<String>>(raw)
+                .ok()
+                .or_else(|| {
+                    extract_balanced_array(raw)
+                        .and_then(|j| serde_json::from_str::<Vec<String>>(&j).ok())
+                })
+                .unwrap_or_default()
+        };
+        // 实体列表很短，限制 token 数避免小模型填满上下文导致数分钟等待
+        if let Some(raw) = run_paw(ENTITY_EXTRACT_SLUG, ENTITY_EXTRACT_SPEC, &prompt, Some(128)) {
+            let entities = parse(&raw);
+            if !entities.is_empty() {
+                return entities;
+            }
+        }
         let raw = match llm.chat(ENTITY_EXTRACT_SPEC, &prompt, 128) {
             Ok(r) => r,
             Err(_) => return Vec::new(),
         };
-        serde_json::from_str::<Vec<String>>(&raw)
-            .ok()
-            .or_else(|| {
-                extract_balanced_array(&raw)
-                    .and_then(|j| serde_json::from_str::<Vec<String>>(&j).ok())
-            })
-            .unwrap_or_default()
+        parse(&raw)
     }
 
     /// 构建查询生成提示词：包含字段说明、当前场景说明，并以角色自身的视角引导回忆。
