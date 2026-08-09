@@ -31,6 +31,9 @@ pub struct QueryTrace {
     pub action_nodes: Vec<TracedNode>,
     pub action_elapsed: Duration,
     pub total_elapsed: Duration,
+    /// 生成后校验中被丢弃（低于兜底分或嵌入失败）的查询标记；
+    /// 被丢弃的查询不参与检索，仅在 trace 中保留以便观察。
+    pub dropped: bool,
 }
 
 #[derive(Debug, Clone)]

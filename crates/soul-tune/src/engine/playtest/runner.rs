@@ -13,8 +13,10 @@ use soul_mem_algo::algo::retrieve::{
 };
 use soul_mem_core::memory_note::situation_mem::SituationType;
 use soul_mem_core::memory_note::{MemoryId, MemoryType};
-use soul_mem_query::embedding::query::note::EmbeddedMemoryRetrieveQuery;
-use soul_mem_query::embedding::Embeddable;
+use soul_mem_query::embedding::query::note::{
+    EmbeddedMemoryRetrieveQuery, MemoryRetrieveQueryEmbedding,
+};
+use soul_mem_query::embedding::{Embeddable, EmbeddingModel};
 use soul_mem_query::query::retrieve::{
     EnvironmentQueryUnit, EventQueryUnit, LocationQueryUnit, MemoryRetrieveQuery,
     MemoryRetrieveQueryVariant, ParticipantQueryUnit, PrioritizedMemoryRetrieveQuery,
@@ -70,6 +72,35 @@ Rules:
 Output format: a JSON array of strings, e.g. ["博丽灵梦", "神社", "弹幕规则"]
 Output ONLY the JSON array. No markdown, no explanations."#;
 
+/// 生成后校验的兜底分常量（默认与 SimilarityConfig / PlayConfig 兜底分一致）：
+/// top-1 命中分低于该值的查询视为无对应记忆，直接丢弃。
+pub const QUERY_VALIDATION_FLOOR: f32 = 0.35;
+
+/// 记忆线索固定条数（k 固定为 5，提示词开销不随图规模增长）。
+pub const HINT_TOP_K: usize = 5;
+
+/// 记忆线索多样性替换的考察范围：top-k 内无 Situation 时，在 top-lookahead
+/// 内寻找分数达标的 Situation 节点替换第 k 个 hint。
+pub const HINT_LOOKAHEAD_K: usize = 10;
+
+/// hint 检索耗时护栏（release）：实测超过该阈值时自动把 k 降为 3。
+pub const HINT_MAX_ELAPSED: Duration = Duration::from_millis(100);
+
+/// 耗时超限时的降级 k。
+pub const HINT_FALLBACK_K: usize = 3;
+
+/// 单条记忆线索内容摘要的最大字符数（超出截断，控制提示词长度）。
+pub const HINT_CONTENT_MAX_CHARS: usize = 50;
+
+/// 查询数量上限（4-8 的上界；下界由提示词引导，不强制）。
+pub const QUERY_MAX_COUNT: usize = 8;
+
+/// 空回退：主查询全部被丢弃或为空时，用提取实体构造 Semantic 兜底查询的条数。
+pub const FALLBACK_ENTITY_TOP: usize = 3;
+
+/// 空回退查询的 priority（低于正常重要度，避免淹没主检索）。
+pub const FALLBACK_QUERY_PRIORITY: u32 = 2;
+
 /// priority 小偏移上限：分数接近（≤0.05）时保护重要查询的命中不被淹没，
 /// 分数差距较大时仍由分数主导。
 const PRIORITY_BONUS_MAX: f64 = 0.05;
@@ -116,6 +147,99 @@ fn finish_merged(merged: HashMap<MemoryId, (f64, TracedNode)>) -> Vec<TracedNode
             .unwrap_or(std::cmp::Ordering::Equal)
     });
     nodes.into_iter().map(|(_, node)| node).collect()
+}
+
+/// 一条已完成生成后校验的查询：嵌入结果随查询缓存，检索阶段直接复用，避免二次嵌入。
+/// `dropped = true` 表示校验未通过（top-1 低于兜底分或嵌入失败），仅保留用于 trace 标记。
+#[derive(Debug, Clone)]
+struct PreparedQuery {
+    query: PrioritizedMemoryRetrieveQuery,
+    embedding: Option<MemoryRetrieveQueryEmbedding>,
+    dropped: bool,
+}
+
+/// 生成一个仅用于 trace 的 dropped 标记查询轨迹（不参与检索）。
+fn dropped_trace(query: &MemoryRetrieveQuery) -> QueryTrace {
+    QueryTrace {
+        query: query.clone(),
+        sim_nodes: vec![],
+        sim_elapsed: Duration::ZERO,
+        ppr_nodes: vec![],
+        ppr_elapsed: Duration::ZERO,
+        action_nodes: vec![],
+        action_elapsed: Duration::ZERO,
+        total_elapsed: Duration::ZERO,
+        dropped: true,
+    }
+}
+
+/// 记忆线索候选：来自相似度检索的命中节点（已按分数降序）。
+#[derive(Debug, Clone)]
+struct HintHit {
+    id: MemoryId,
+    score: f32,
+    is_situation: bool,
+    summary: String,
+}
+
+/// 从相似度结果中选择记忆线索：
+/// - 仅当 top-1 分数 ≥ 兜底分时才注入（寒暄等无关轮次不注入，防止用无关记忆诱导幻觉）；
+/// - 默认取 top-k；若 top-k 中没有 Situation 节点，且 top-lookahead 内存在分数 ≥ 兜底分
+///   的 Situation 节点，则用最佳 Situation 替换第 k 个 hint（多样性规则）。
+fn select_hints(
+    hits: Vec<HintHit>,
+    k: usize,
+    lookahead: usize,
+    floor: f32,
+) -> Vec<HintHit> {
+    if hits.first().map(|h| h.score) < Some(floor) {
+        return Vec::new();
+    }
+    let mut out: Vec<HintHit> = hits.iter().take(k).cloned().collect();
+    if out.is_empty() {
+        return out;
+    }
+    if !out.iter().any(|h| h.is_situation) {
+        let best_situation = hits
+            .iter()
+            .take(lookahead)
+            .filter(|h| h.is_situation && h.score >= floor)
+            .max_by(|a, b| a.score.total_cmp(&b.score))
+            .cloned();
+        if let Some(best) = best_situation {
+            if out.len() >= k {
+                out[k - 1] = best;
+            } else {
+                out.push(best);
+            }
+        }
+    }
+    out
+}
+
+/// 将解析后的查询数组截断到数量上限（4-8 中的上界 8）。
+fn cap_raw_queries(mut raw: Vec<RawQuery>) -> Vec<RawQuery> {
+    raw.truncate(QUERY_MAX_COUNT);
+    raw
+}
+
+/// 空回退：用提取的实体构造 Semantic 兜底查询（priority=2，取前 top 个实体）。
+/// 实体为空时返回空数组，检索阶段自然表现为"无检索"。
+fn build_fallback_queries(entities: &[String], top: usize) -> Vec<PrioritizedMemoryRetrieveQuery> {
+    entities
+        .iter()
+        .filter(|e| !e.trim().is_empty())
+        .take(top)
+        .map(|e| {
+            MemoryRetrieveQuery::new(
+                vec!["实体".to_string()],
+                MemoryRetrieveQueryVariant::Semantic(vec![
+                    SemanticQueryUnit::new().with_concept_identifier(e.clone()),
+                ]),
+            )
+            .with_priority(FALLBACK_QUERY_PRIORITY)
+        })
+        .collect()
 }
 
 fn raw_sem_to_query(u: RawSemUnit) -> SemanticQueryUnit {
@@ -231,7 +355,7 @@ fn strip_and_trim(s: &str) -> String {
 impl Default for PlayConfig {
     fn default() -> Self {
         Self {
-            similarity_threshold: 0.35,
+            similarity_threshold: QUERY_VALIDATION_FLOOR,
             max_results: 4,
             action_top_k: 3,
             ppr_top_k: 8,
@@ -530,14 +654,98 @@ impl PlayTestRunner {
         parse(&raw)
     }
 
-    /// 构建查询生成提示词：包含字段说明、当前场景说明，并以角色自身的视角引导回忆。
+    /// 记忆锚点检索：用用户消息全文构造一条 Semantic 查询，经相似度检索取 top-5
+    /// 命中节点作为 hint（真实记忆片段，注入提示词防止无中生有）。
+    /// - 仅当 top-1 命中分 ≥ 兜底分时才注入（寒暄等无关轮次不注入）；
+    /// - Situation 多样性替换：top-5 无 Situation 且 top-10 有达标 Situation 时替换；
+    /// - 运行时护栏：实测检索耗时超过阈值时自动降 k 至 3。
+    fn retrieve_hints(&self, user_message: &str) -> Vec<String> {
+        let start = Instant::now();
+        let model = match get_bge_model() {
+            Ok(m) => m,
+            Err(_) => return Vec::new(),
+        };
+
+        let query = MemoryRetrieveQuery::new(
+            Vec::new(),
+            MemoryRetrieveQueryVariant::Semantic(vec![
+                SemanticQueryUnit::new().with_concept_identifier(user_message.to_string()),
+            ]),
+        );
+        let embedded = match query.embed(model) {
+            Ok(e) => e,
+            Err(_) => return Vec::new(),
+        };
+
+        let sim_config = SimilarityConfig {
+            similarity_threshold: self.config.similarity_threshold,
+            max_results: HINT_LOOKAHEAD_K,
+        };
+        let sim_req = sim_config.into_request(
+            self.wm.clone(),
+            EmbeddedMemoryRetrieveQuery {
+                embedding: embedded,
+                query: query.clone(),
+            },
+        );
+        let hits: Vec<HintHit> = RetrSimilarity {}
+            .retrieve(sim_req)
+            .into_iter()
+            .map(|(id, score)| HintHit {
+                id,
+                score,
+                is_situation: self
+                    .id_names
+                    .get(&id)
+                    .map(|s| s.type_label == "情境")
+                    .unwrap_or(false),
+                summary: self.hint_summary(id),
+            })
+            .collect();
+
+        // 运行时护栏：实测 hint 检索耗时（含嵌入）超过阈值时降 k 至 3
+        let k = if start.elapsed() > HINT_MAX_ELAPSED {
+            HINT_FALLBACK_K
+        } else {
+            HINT_TOP_K
+        };
+
+        select_hints(hits, k, HINT_LOOKAHEAD_K, self.config.similarity_threshold)
+            .into_iter()
+            .map(|h| {
+                let mut content: String = h.summary.chars().take(HINT_CONTENT_MAX_CHARS).collect();
+                if content.trim().is_empty() {
+                    content = self
+                        .graph_names
+                        .get(&h.id)
+                        .cloned()
+                        .unwrap_or_default();
+                }
+                format!("- {}", content)
+            })
+            .collect()
+    }
+
+    /// 节点内容摘要（hint 文本）：Semantic 取 content、Situation 取 narrative，
+    /// 为空时回退到节点名。
+    fn hint_summary(&self, id: MemoryId) -> String {
+        self.id_names
+            .get(&id)
+            .map(|s| s.primary.clone())
+            .filter(|p| !p.trim().is_empty())
+            .unwrap_or_else(|| self.graph_names.get(&id).cloned().unwrap_or_default())
+    }
+
+    /// 构建查询生成提示词：包含字段说明、当前场景说明、记忆线索（真实记忆锚点），
+    /// 并以角色自身的视角引导回忆，同时加入防幻觉条款。
     /// 设计依据：question.json 的理想查询中，Semantic 的 concept_identifier 是 graph 节点
     /// aliases 的特征性别名（如 "金发的魔法使" 命中 sem_marisa），Situation 的 narrative
     /// 是 graph 节点 narrative 的 1-2 句压缩转述。因此提示词引导 LLM：
     /// - Semantic 用"身边人怎么称呼"的别名式短语，而非照搬正式名称
     /// - Situation 只用 narrative 讲完整小故事，不填冗余子字段
     /// - 同一概念用多个不同描述覆盖不同角度，提升召回
-    fn build_query_prompt(&self, user_message: &str, entities: &[String]) -> String {
+    /// - 只基于记忆线索与对话内容回想，不编造记忆片段中不存在的事实要素
+    fn build_query_prompt(&self, user_message: &str, entities: &[String], hints: &[String]) -> String {
         let scene = self
             .human_role
             .as_ref()
@@ -550,10 +758,21 @@ impl PlayTestRunner {
             format!("消息中的关键实体: {}", entities.join("、"))
         };
 
+        // 记忆线索小节：有真实记忆锚点才注入，无关轮次（无 hint）时整节省略
+        let clues_section = if hints.is_empty() {
+            String::new()
+        } else {
+            format!(
+                "【记忆线索】\n\
+                 以下片段来自你的记忆（只作回想线索，不要直接引用原文）：\n{}\n\n",
+                hints.join("\n")
+            )
+        };
+
         format!(
             "当前场景：{}\n\
              对方说: \"{}\"{}\n\n\
-             请以角色自身的视角，回想回应这句话所需的相关记忆，输出一个 JSON 数组，5-8 条，每条代表一个回忆方向。\n\n\
+             {}请以角色自身的视角，回想回应这句话所需的相关记忆，输出一个 JSON 数组，4-8 条，每条代表一个回忆方向。\n\n\
              【每条查询的字段】\n\
              - tag: 类型+子类，如 [\"人物\", \"挚友\"]、[\"事件\", \"异变\"]、[\"概念\", \"规则\"]、[\"物品\", \"秘宝\"]、[\"地点\", \"神社\"]、[\"日常\", \"习惯\"]\n\
              - variant: 二选一：\n\
@@ -572,8 +791,11 @@ impl PlayTestRunner {
              【要点】\n\
              - 同一概念可以用多个不同描述的查询覆盖不同角度，提升召回\n\
              - Situation 只填 narrative，不要填其他子字段\n\
+             - 只基于记忆线索与对话内容回想，不要编造线索中不存在的人物、事件、细节或关系\n\
+             - Situation 的 narrative 必须是真实记忆的转述：可以换措辞，但事实要素必须来自记忆线索\n\
+             - 如果当前对话没有任何对应记忆，只输出 1-3 条实体/概念查询，或输出空数组 []\n\
              只输出 JSON 数组，不要其他内容。",
-            scene, user_message, entities_text
+            scene, user_message, entities_text, clues_section
         )
     }
 
@@ -581,12 +803,15 @@ impl PlayTestRunner {
         &self,
         entry: &ConversationEntry,
         llm: &mut dyn LlmBackend,
-    ) -> Result<(Vec<PrioritizedMemoryRetrieveQuery>, String, Option<String>), String> {
+    ) -> Result<(Vec<PreparedQuery>, String, Option<String>), String> {
         // 第一步：PAW 提取关键实体，补充到提示词中防止漏掉关键实体
         let entities = self.extract_entities(&entry.user_message, llm);
 
-        // 第二步：构建含字段说明、场景与角色视角的查询提示词
-        let query_prompt = self.build_query_prompt(&entry.user_message, &entities);
+        // 第二步：记忆锚点 hint 检索（真实记忆片段，防止无中生有）
+        let hints = self.retrieve_hints(&entry.user_message);
+
+        // 第三步：构建含记忆线索与防幻觉条款的查询提示词
+        let query_prompt = self.build_query_prompt(&entry.user_message, &entities, &hints);
 
         let text = llm
             .chat(&self.system_prompt, &query_prompt, 2048)
@@ -662,6 +887,9 @@ impl PlayTestRunner {
             }
         };
 
+        // 查询数量上限：4-8 中的上界 8（减少无效生成）
+        let raw = cap_raw_queries(raw);
+
         let queries: Vec<PrioritizedMemoryRetrieveQuery> = raw
             .into_iter()
             .map(|r| {
@@ -690,30 +918,152 @@ impl PlayTestRunner {
             })
             .collect();
 
-        Ok((queries, json_str, think_content))
+        // 第四步：生成后校验 + 空回退——逐条嵌入并检查 top-1 兜底分，低于兜底分
+        // 丢弃并在 trace/日志标记 dropped；嵌入结果缓存进查询对象，检索阶段直接
+        // 复用不二次嵌入。主查询全部被丢弃（或 LLM 返回空数组）时用提取实体兜底。
+        let prepared = self.prepare_queries(queries, &entities);
+
+        let dropped_count = prepared.iter().filter(|p| p.dropped).count();
+        if let Ok(mut f) = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&debug_path)
+        {
+            use std::io::Write;
+            let _ = writeln!(
+                f,
+                "校验丢弃: {} 条 / 共 {} 条（含空回退）\n",
+                dropped_count,
+                prepared.len()
+            );
+        }
+
+        Ok((prepared, json_str, think_content))
+    }
+
+    /// 生成后校验 + 空回退：
+    /// - 对主查询逐条嵌入并检查 top-1 兜底分，达标保留，否则丢弃并标记 dropped；
+    /// - 若主查询全部被丢弃（或为空数组），用提取实体构造 Semantic 兜底查询
+    ///   （priority=2，top-3 实体）并同样校验；仍全空才真正无检索。
+    /// 嵌入模型不可用时跳过校验（保持旧行为，检索阶段自行嵌入）。
+    fn prepare_queries(
+        &self,
+        main_queries: Vec<PrioritizedMemoryRetrieveQuery>,
+        entities: &[String],
+    ) -> Vec<PreparedQuery> {
+        let model: Option<&dyn EmbeddingModel> = get_bge_model().ok().map(|m| m as &dyn EmbeddingModel);
+        let mut prepared: Vec<PreparedQuery> = Vec::new();
+
+        for q in main_queries {
+            match model {
+                Some(m) => match self.validate_query(q.clone(), m) {
+                    Some(p) => prepared.push(p),
+                    None => prepared.push(PreparedQuery {
+                        query: q,
+                        embedding: None,
+                        dropped: true,
+                    }),
+                },
+                None => prepared.push(PreparedQuery {
+                    query: q,
+                    embedding: None,
+                    dropped: false,
+                }),
+            }
+        }
+
+        // 空回退：主查询全部被丢弃或为空时，用提取实体兜底
+        if !prepared.iter().any(|p| !p.dropped) {
+            for q in build_fallback_queries(entities, FALLBACK_ENTITY_TOP) {
+                match model {
+                    Some(m) => match self.validate_query(q.clone(), m) {
+                        Some(p) => prepared.push(p),
+                        None => prepared.push(PreparedQuery {
+                            query: q,
+                            embedding: None,
+                            dropped: true,
+                        }),
+                    },
+                    None => prepared.push(PreparedQuery {
+                        query: q,
+                        embedding: None,
+                        dropped: false,
+                    }),
+                }
+            }
+        }
+
+        prepared
+    }
+
+    /// 生成后校验：嵌入查询并用相似度检索取 top-1 原始分，低于兜底分视为
+    /// 无对应记忆（幻觉候选）直接丢弃；校验时已嵌入的结果随 PreparedQuery 返回，
+    /// 检索阶段直接复用。
+    fn validate_query(
+        &self,
+        query: PrioritizedMemoryRetrieveQuery,
+        model: &dyn EmbeddingModel,
+    ) -> Option<PreparedQuery> {
+        let embedded = query.query().embed(model).ok()?;
+        let sim_config = SimilarityConfig {
+            // 校验需要拿到原始 top-1 分（含低于兜底分的情况），不用兜底分过滤
+            similarity_threshold: 0.0,
+            max_results: 1,
+        };
+        let sim_req = sim_config.into_request(
+            self.wm.clone(),
+            EmbeddedMemoryRetrieveQuery {
+                embedding: embedded.clone(),
+                query: query.query().clone(),
+            },
+        );
+        let top1 = RetrSimilarity {}.retrieve(sim_req).into_iter().next();
+        if matches!(top1, Some((_, score)) if score >= self.config.similarity_threshold) {
+            Some(PreparedQuery {
+                query,
+                embedding: Some(embedded),
+                dropped: false,
+            })
+        } else {
+            None
+        }
     }
 
     fn run_embedding_retrieval(
         &self,
-        queries: &[PrioritizedMemoryRetrieveQuery],
+        prepared: &[PreparedQuery],
     ) -> Option<RetrievalTrace> {
-        let model = get_bge_model().ok()?;
+        if prepared.is_empty() {
+            return None;
+        }
         let total_start = Instant::now();
         let mut per_query = Vec::new();
         let mut merged_map: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
 
         // priority 只作小偏移：分数接近时保护重要查询，分数差距大时由分数主导
-        let p_max = queries.iter().map(|pq| pq.priority()).max().unwrap_or(0);
+        let p_max = prepared
+            .iter()
+            .filter(|p| !p.dropped)
+            .map(|p| p.query.priority())
+            .max()
+            .unwrap_or(0);
 
-        for pq in queries {
-            let query = pq.query();
+        for pq in prepared {
             let q_start = Instant::now();
-            let bonus = priority_bonus(pq.priority(), p_max);
+            let bonus = priority_bonus(pq.query.priority(), p_max);
 
-            let embedded = match query.embed(model) {
-                Ok(e) => e,
-                Err(_) => continue,
+            if pq.dropped {
+                per_query.push(dropped_trace(pq.query.query()));
+                continue;
+            }
+            let embedded = match pq.embedding.as_ref() {
+                Some(e) => e.clone(),
+                None => {
+                    per_query.push(dropped_trace(pq.query.query()));
+                    continue;
+                }
             };
+            let query = pq.query.query();
 
             let sim_config = SimilarityConfig {
                 similarity_threshold: self.config.similarity_threshold,
@@ -758,6 +1108,7 @@ impl PlayTestRunner {
                 action_nodes: vec![],
                 action_elapsed: Duration::ZERO,
                 total_elapsed: sim_elapsed,
+                dropped: false,
             };
             per_query.push(query_trace);
             fold_priority_nodes(&mut merged_map, sim_nodes, bonus);
@@ -780,26 +1131,40 @@ impl PlayTestRunner {
 
     fn run_fullpipeline_retrieval(
         &self,
-        queries: &[PrioritizedMemoryRetrieveQuery],
+        prepared: &[PreparedQuery],
     ) -> Option<RetrievalTrace> {
-        let model = get_bge_model().ok()?;
+        if prepared.is_empty() {
+            return None;
+        }
         let total_start = Instant::now();
 
         let mut per_query = Vec::new();
         let mut merged_map: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
 
         // priority 只作小偏移：分数接近时保护重要查询，分数差距大时由分数主导
-        let p_max = queries.iter().map(|pq| pq.priority()).max().unwrap_or(0);
+        let p_max = prepared
+            .iter()
+            .filter(|p| !p.dropped)
+            .map(|p| p.query.priority())
+            .max()
+            .unwrap_or(0);
 
-        for pq in queries {
-            let query = pq.query();
+        for pq in prepared {
             let q_start = Instant::now();
-            let bonus = priority_bonus(pq.priority(), p_max);
+            let bonus = priority_bonus(pq.query.priority(), p_max);
 
-            let embedded = match query.embed(model) {
-                Ok(e) => e,
-                Err(_) => continue,
+            if pq.dropped {
+                per_query.push(dropped_trace(pq.query.query()));
+                continue;
+            }
+            let embedded = match pq.embedding.as_ref() {
+                Some(e) => e.clone(),
+                None => {
+                    per_query.push(dropped_trace(pq.query.query()));
+                    continue;
+                }
             };
+            let query = pq.query.query();
 
             let sim_config = SimilarityConfig {
                 similarity_threshold: self.config.similarity_threshold,
@@ -921,6 +1286,7 @@ impl PlayTestRunner {
                 action_nodes: action_nodes.clone(),
                 action_elapsed: Duration::ZERO,
                 total_elapsed: q_start.elapsed(),
+                dropped: false,
             };
             per_query.push(qt);
 
@@ -1113,4 +1479,278 @@ mod tests {
         // 保留键最大的那条（0.5+0.03），展示分为原始分 0.5
         assert!((out[0].score - 0.5).abs() < 1e-9);
     }
+
+    fn empty_runner() -> PlayTestRunner {
+        PlayTestRunner {
+            wm: Arc::new(WorkingMemory::new(10)),
+            system_prompt: String::new(),
+            graph_names: Arc::new(HashMap::new()),
+            id_names: Arc::new(HashMap::new()),
+            config: PlayConfig::default(),
+            human_role: None,
+        }
+    }
+
+    fn load_geluoxiu_runner() -> PlayTestRunner {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("fixtures/example_data/格蕾修_https_zh_moegirl_org_cn_E6_A0_BC_E8_95_BE_E4_BF_AE");
+        PlayTestRunner::load(&dir).expect("格蕾修 graph should load")
+    }
+
+    fn hint(score: f32, is_situation: bool) -> HintHit {
+        HintHit {
+            id: MemoryId::new(),
+            score,
+            is_situation,
+            summary: format!("m{:.2}", score),
+        }
+    }
+
+    fn sem_query(concept: &str, priority: u32) -> PrioritizedMemoryRetrieveQuery {
+        MemoryRetrieveQuery::new(
+            vec!["测试".to_string()],
+            MemoryRetrieveQueryVariant::Semantic(vec![
+                SemanticQueryUnit::new().with_concept_identifier(concept.to_string()),
+            ]),
+        )
+        .with_priority(priority)
+    }
+
+    #[test]
+    fn test_select_hints_takes_top_k() {
+        let hits: Vec<HintHit> = (0..8).map(|i| hint(0.90 - i as f32 * 0.05, false)).collect();
+        let out = select_hints(hits, HINT_TOP_K, HINT_LOOKAHEAD_K, 0.35);
+        assert_eq!(out.len(), HINT_TOP_K);
+        assert!(out[0].score >= out[4].score);
+    }
+
+    #[test]
+    fn test_select_hints_skips_when_below_floor() {
+        let hits = vec![hint(0.30, false), hint(0.29, true)];
+        let out = select_hints(hits, HINT_TOP_K, HINT_LOOKAHEAD_K, 0.35);
+        assert!(out.is_empty(), "top-1 低于兜底分不应注入 hint");
+    }
+
+    #[test]
+    fn test_select_hints_situation_diversity_replaces_fifth() {
+        let mut hits: Vec<HintHit> = (0..10).map(|i| hint(0.95 - i as f32 * 0.02, false)).collect();
+        hits[7] = HintHit {
+            id: MemoryId::new(),
+            score: 0.80,
+            is_situation: true,
+            summary: "情境记忆".into(),
+        };
+        let out = select_hints(hits, HINT_TOP_K, HINT_LOOKAHEAD_K, 0.35);
+        assert_eq!(out.len(), HINT_TOP_K);
+        assert!(out[4].is_situation, "第 5 个 hint 应被最佳 Situation 替换");
+        assert_eq!(out[4].summary, "情境记忆");
+    }
+
+    #[test]
+    fn test_select_hints_keeps_order_when_situation_in_top_k() {
+        let mut hits: Vec<HintHit> = (0..6).map(|i| hint(0.90 - i as f32 * 0.05, false)).collect();
+        hits[1] = HintHit {
+            id: MemoryId::new(),
+            score: 0.85,
+            is_situation: true,
+            summary: "情境1".into(),
+        };
+        let out = select_hints(hits, HINT_TOP_K, HINT_LOOKAHEAD_K, 0.35);
+        assert_eq!(out.len(), HINT_TOP_K);
+        assert!(out[1].is_situation);
+        assert!(!out[4].is_situation, "top-k 已有 Situation 时不替换");
+    }
+
+    #[test]
+    fn test_select_hints_no_replacement_when_situation_below_floor() {
+        let mut hits: Vec<HintHit> = (0..8).map(|i| hint(0.80 - i as f32 * 0.02, false)).collect();
+        hits[6] = HintHit {
+            id: MemoryId::new(),
+            score: 0.20,
+            is_situation: true,
+            summary: "低分情境".into(),
+        };
+        let out = select_hints(hits, HINT_TOP_K, HINT_LOOKAHEAD_K, 0.35);
+        assert_eq!(out.len(), HINT_TOP_K);
+        assert!(!out.iter().any(|h| h.is_situation), "低于兜底分的 Situation 不应被替换进来");
+    }
+
+    #[test]
+    fn test_cap_raw_queries_limits_to_eight() {
+        let raw: Vec<RawQuery> = (0..12)
+            .map(|i| RawQuery {
+                tag: vec![format!("t{}", i)],
+                variant: RawVariant::Semantic {
+                    Semantic: vec![RawSemUnit {
+                        concept_identifier: Some(format!("c{}", i)),
+                        description: None,
+                    }],
+                },
+                priority: 1,
+            })
+            .collect();
+        let capped = cap_raw_queries(raw);
+        assert_eq!(capped.len(), QUERY_MAX_COUNT);
+        assert_eq!(capped[7].tag[0], "t7");
+    }
+
+    #[test]
+    fn test_build_fallback_queries_top3_priority2() {
+        let entities: Vec<String> = (0..5).map(|i| format!("实体{}", i)).collect();
+        let queries = build_fallback_queries(&entities, FALLBACK_ENTITY_TOP);
+        assert_eq!(queries.len(), FALLBACK_ENTITY_TOP);
+        for (i, q) in queries.iter().enumerate() {
+            assert_eq!(q.priority(), FALLBACK_QUERY_PRIORITY);
+            let expected = format!("实体{}", i);
+            if let MemoryRetrieveQueryVariant::Semantic(units) = q.query().variant() {
+                assert_eq!(
+                    units[0].concept_identifier(),
+                    Some(expected.as_str())
+                );
+            } else {
+                panic!("兜底查询应为 Semantic variant");
+            }
+        }
+    }
+
+    #[test]
+    fn test_build_query_prompt_with_hints_includes_clues_and_anti_hallucination() {
+        let runner = empty_runner();
+        let prompt = runner.build_query_prompt(
+            "早上好",
+            &["博丽灵梦".to_string()],
+            &["- 格蕾修在画画".to_string()],
+        );
+        assert!(prompt.contains("【记忆线索】"));
+        assert!(prompt.contains("- 格蕾修在画画"));
+        assert!(prompt.contains("4-8 条"));
+        assert!(prompt.contains("不要编造线索中不存在的人物、事件、细节或关系"));
+        assert!(prompt.contains("Situation 的 narrative 必须是真实记忆的转述"));
+        assert!(prompt.contains("如果当前对话没有任何对应记忆"));
+        assert!(prompt.contains("消息中的关键实体: 博丽灵梦"));
+    }
+
+    #[test]
+    fn test_build_query_prompt_without_hints_omits_clues_section() {
+        let runner = empty_runner();
+        let prompt = runner.build_query_prompt("早上好", &[], &[]);
+        assert!(!prompt.contains("【记忆线索】"), "无 hint 时应省略记忆线索小节");
+        // 防幻觉条款与 4-8 上限不随 hint 有无而变化
+        assert!(prompt.contains("不要编造线索中不存在的人物、事件、细节或关系"));
+        assert!(prompt.contains("4-8 条"));
+    }
+
+    #[test]
+    fn test_retrieval_trace_marks_dropped_queries() {
+        let runner = empty_runner();
+        let prepared = vec![PreparedQuery {
+            query: sem_query("不存在", 3),
+            embedding: None,
+            dropped: true,
+        }];
+        let emb = runner
+            .run_embedding_retrieval(&prepared)
+            .expect("dropped-only 也应产生 trace 以便观察丢弃");
+        assert_eq!(emb.per_query.len(), 1);
+        assert!(emb.per_query[0].dropped);
+        assert!(emb.merged_nodes.is_empty());
+
+        let full = runner
+            .run_fullpipeline_retrieval(&prepared)
+            .expect("dropped-only 也应产生 full pipeline trace");
+        assert_eq!(full.per_query.len(), 1);
+        assert!(full.per_query[0].dropped);
+        assert!(full.merged_nodes.is_empty());
+    }
+
+    #[test]
+    fn test_retrieve_hints_injects_when_relevant() {
+        let runner = load_geluoxiu_runner();
+        let hints = runner.retrieve_hints("格蕾修喜欢画画吗");
+        assert!(!hints.is_empty(), "相关消息应注入记忆线索");
+        for line in &hints {
+            assert!(line.starts_with("- "));
+            assert!(
+                line.chars().count() <= HINT_CONTENT_MAX_CHARS + 2,
+                "hint 内容应限制在 50 字以内: {line}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_validate_query_keeps_relevant_drops_irrelevant() {
+        let runner = load_geluoxiu_runner();
+        let model = get_bge_model().expect("BGE 模型应可用");
+
+        let kept = runner
+            .validate_query(sem_query("格蕾修", 5), model)
+            .expect("命中角色自身的查询应通过校验");
+        assert!(!kept.dropped);
+        assert!(kept.embedding.is_some(), "校验嵌入结果应缓存供检索复用");
+
+        assert!(
+            runner
+                .validate_query(sem_query("量子力学", 5), model)
+                .is_none(),
+            "无对应记忆的查询应被丢弃"
+        );
+    }
+
+    #[test]
+    fn test_prepare_queries_drops_below_floor_with_trace_marker() {
+        let runner = load_geluoxiu_runner();
+        let prepared = runner.prepare_queries(vec![sem_query("量子力学", 5)], &[]);
+        assert_eq!(prepared.len(), 1);
+        assert!(prepared[0].dropped);
+
+        let trace = runner
+            .run_embedding_retrieval(&prepared)
+            .expect("全丢弃也应有 trace");
+        assert!(trace.per_query[0].dropped);
+        assert!(trace.merged_nodes.is_empty());
+    }
+
+    #[test]
+    fn test_prepare_queries_fallback_uses_entities_when_empty() {
+        let runner = load_geluoxiu_runner();
+        // 等价于 LLM 返回空数组：主查询为空 → 用实体兜底
+        let prepared = runner.prepare_queries(Vec::new(), &["格蕾修".to_string()]);
+        assert_eq!(prepared.len(), 1);
+        assert!(!prepared[0].dropped, "实体兜底查询应通过校验");
+        assert_eq!(prepared[0].query.priority(), FALLBACK_QUERY_PRIORITY);
+        if let MemoryRetrieveQueryVariant::Semantic(units) = prepared[0].query.query().variant() {
+            assert_eq!(units[0].concept_identifier(), Some("格蕾修"));
+        } else {
+            panic!("兜底查询应为 Semantic variant");
+        }
+    }
+
+    #[test]
+    fn test_prepare_queries_fallback_when_all_main_dropped() {
+        let runner = load_geluoxiu_runner();
+        let prepared = runner.prepare_queries(
+            vec![sem_query("量子力学", 5)],
+            &["格蕾修".to_string()],
+        );
+        assert_eq!(prepared.len(), 2);
+        assert!(prepared[0].dropped, "主查询低于兜底分应被丢弃");
+        assert!(!prepared[1].dropped, "实体兜底查询应通过校验");
+        assert_eq!(prepared[1].query.priority(), FALLBACK_QUERY_PRIORITY);
+    }
+
+    #[test]
+    fn test_prepare_queries_skips_fallback_when_kept_exists() {
+        let runner = load_geluoxiu_runner();
+        let prepared = runner.prepare_queries(
+            vec![sem_query("格蕾修", 5)],
+            &["格蕾修".to_string()],
+        );
+        assert_eq!(prepared.len(), 1, "有保留查询时不应追加兜底");
+        assert!(!prepared[0].dropped);
+    }
+
 }

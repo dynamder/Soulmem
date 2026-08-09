@@ -291,6 +291,14 @@ fn fmt_trace(kind: &str, t: &RetrievalTrace) -> String {
         t.total_elapsed.as_secs_f64()
     ));
     for (qi, qt) in t.per_query.iter().enumerate() {
+        if qt.dropped {
+            out.push_str(&format!(
+                "  Q{}: (dropped) {}\n",
+                qi,
+                fmt_variant(qt.query.variant())
+            ));
+            continue;
+        }
         out.push_str(&format!(
             "  Q{}: {}\n      sim={} ppr={} action={} (查询耗时 {:.2}s)\n",
             qi,
