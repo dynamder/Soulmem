@@ -159,8 +159,8 @@ mod tests {
     /// Expected score for a node whose tag matches query tag ([1,0,0,0] vs [1,0,0,0]):
     ///   embedding score = 0.4 × tag_cosim(1.0) + 0.6 × variant(0.0) = 0.4
     ///   query has no concept_identifier → string_score = 0.0
-    ///   fused = string_blend_alpha(0.6) × 0.4 + (1-0.6) × 0.0 = 0.24
-    const MATCH_SCORE: f32 = 0.24;
+    ///   string 分量缺失时 fused 退化为纯 embedding 分 = 0.4
+    const MATCH_SCORE: f32 = 0.4;
 
     fn build_cluster(tags: &[EmbeddingVec]) -> (WorkingMemory, Vec<MemoryId>) {
         let wm = WorkingMemory::new(10);

@@ -28,7 +28,7 @@ use crate::engine::loader::{cached_load_graph, get_bge_model};
 use crate::engine::retrieve::data::NodeSummary;
 
 use super::repair::{
-    extract_balanced_array, extract_think_content, robust_json_extract, run_paw, strip_think_block,
+    extract_balanced_array, extract_think_content, robust_json_extract, strip_think_block,
     RawQuery, RawSemUnit, RawSitUnit, RawVariant,
 };
 use super::trace::{HitStage, QueryTrace, RetrievalTrace, TracedNode};
@@ -51,7 +51,6 @@ const CHAT_INSTRUCTION: &str = "注意：这是短信聊天场景，回复必须
 只输出对话内容，不加任何表演注释。\
 回复必须简短，一句话即可，不要重复用户的话，不要解释你的回复。";
 
-const ENTITY_EXTRACT_SLUG: &str = "soul-tune-entity-extract-v1";
 const ENTITY_EXTRACT_SPEC: &str = r#"You are an entity extraction tool for a character memory retrieval system.
 Extract all key entities from the user's message that the character needs to recall in order to respond naturally.
 
@@ -509,14 +508,14 @@ impl PlayTestRunner {
         }
     }
 
-    /// 通过 PAW 提取消息中的关键实体，用于增强查询生成提示词，防止检索漏掉关键实体。
-    /// PAW 不可用或解析失败时返回空列表（不阻断流程）。
-    fn extract_entities(&self, user_message: &str) -> Vec<String> {
+    /// 通过主对话 LLM 提取消息中的关键实体，用于增强查询生成提示词，防止检索漏掉关键实体。
+    /// LLM 不可用或解析失败时返回空列表（不阻断流程）。
+    fn extract_entities(&self, user_message: &str, llm: &mut dyn LlmBackend) -> Vec<String> {
         let prompt = format!("消息内容：\n{}\n\n请提取关键实体：", user_message);
-        // 实体列表很短，限制 token 数避免 PAW 小模型填满上下文导致数分钟等待
-        let raw = match run_paw(ENTITY_EXTRACT_SLUG, ENTITY_EXTRACT_SPEC, &prompt, Some(128)) {
-            Some(r) => r,
-            None => return Vec::new(),
+        // 实体列表很短，限制 token 数
+        let raw = match llm.chat(ENTITY_EXTRACT_SPEC, &prompt, 128) {
+            Ok(r) => r,
+            Err(_) => return Vec::new(),
         };
         serde_json::from_str::<Vec<String>>(&raw)
             .ok()
@@ -580,7 +579,7 @@ impl PlayTestRunner {
         llm: &mut dyn LlmBackend,
     ) -> Result<(Vec<PrioritizedMemoryRetrieveQuery>, String, Option<String>), String> {
         // 第一步：PAW 提取关键实体，补充到提示词中防止漏掉关键实体
-        let entities = self.extract_entities(&entry.user_message);
+        let entities = self.extract_entities(&entry.user_message, llm);
 
         // 第二步：构建含字段说明、场景与角色视角的查询提示词
         let query_prompt = self.build_query_prompt(&entry.user_message, &entities);
@@ -611,7 +610,7 @@ impl PlayTestRunner {
         let think_content = extract_think_content(&text);
         let clean = strip_think_block(&text);
 
-        let json_str = robust_json_extract(&clean).ok_or_else(|| {
+        let json_str = robust_json_extract(&clean, llm).ok_or_else(|| {
             format!(
                 "No JSON array found in LLM output (think stripped): {}\n---完整原始输出---\n{}",
                 clean, text
@@ -641,7 +640,7 @@ impl PlayTestRunner {
                     };
                 if !salvaged.is_empty() {
                     salvaged
-                } else if let Some(repaired) = super::repair::repair_json(&json_str) {
+                } else if let Some(repaired) = super::repair::repair_json(&json_str, llm) {
                     if let Ok(v) = serde_json::from_str(&repaired) {
                         v
                     } else {

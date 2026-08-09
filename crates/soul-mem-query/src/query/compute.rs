@@ -354,8 +354,16 @@ impl EmbeddedMemoryNote {
     ) -> EmbeddingCalcResult<QueryComputeResult> {
         let embedding_score = self.embedding().anonymous_compute(&query.embedding)?;
         let string_score = compute_note_string_score(self.note(), &query.query);
-        let score =
-            string_blend_alpha * embedding_score + (1.0 - string_blend_alpha) * string_score;
+        // 字符串分量仅对精确标识符（Semantic content/aliases、AbstractSituation 结构化字段）生效；
+        // 对 SpecificSituation 等类型恒为 0。此时若仍按 (1-alpha)×0 混合，
+        // 会把 embedding 分系统性压缩到 alpha×上限以下（Situation 理论最高仅 0.36），
+        // 与"字符串分量缺失时退化为纯 embedding 分"的设计注释不符。
+        // 因此无字符串信号时直接返回纯 embedding 分。
+        let score = if string_score <= 0.0 {
+            embedding_score
+        } else {
+            string_blend_alpha * embedding_score + (1.0 - string_blend_alpha) * string_score
+        };
         Ok(QueryComputeResult::new(self.note().id(), score))
     }
 }
@@ -767,7 +775,8 @@ mod tests {
             compute_note_string_score(&embedded_note.note(), &embedded_query.query),
             0.0
         );
-        assert!((fused - 0.6 * pure).abs() < 1e-6);
+        // 字符串分量缺失（变体不匹配）时退化为纯 embedding 分
+        assert!((fused - pure).abs() < 1e-6);
     }
 
     // —— 以下测试通过直接构造 EmbeddingVec 验证评分公式，不依赖真实模型 ——
