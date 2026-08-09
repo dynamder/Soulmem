@@ -15,9 +15,9 @@ use soul_mem_runtime::working_memory::{sliding_window::Information, WorkingMemor
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct DefaultPipelineConfig {
-    short_mem_with_history: ShortOnlyConfig,
-    similarity: SimilarityConfig,
-    assoc_with_action: AssociateWithActionConfig,
+    pub short_mem_with_history: ShortOnlyConfig,
+    pub similarity: SimilarityConfig,
+    pub assoc_with_action: AssociateWithActionConfig,
 }
 
 impl DefaultPipelineConfig {

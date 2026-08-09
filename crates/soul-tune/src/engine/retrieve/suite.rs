@@ -6,6 +6,8 @@ use std::time::Duration;
 use serde::Deserialize;
 
 use soul_mem_algo::algo::retrieve::association::{AssociationRequest, RetrAssociation};
+use soul_mem_algo::algo::retrieve::complex::{AssociateWithActionConfig, DefaultPipelineConfig, RetrDefaultPipeline};
+use soul_mem_algo::algo::retrieve::short_only::ShortOnlyConfig;
 use soul_mem_algo::algo::retrieve::similarity::{RetrSimilarity, SimilarityConfig};
 use soul_mem_algo::algo::retrieve::RetrStrategy;
 use soul_mem_core::memory_note::situation_mem::SituationType;
@@ -320,21 +322,13 @@ impl TestSuite for RetrieveSuite {
 
         let mut per_query_metrics = Vec::new();
         let mut all_similarity: Vec<Vec<(MemoryId, f32)>> = Vec::new();
+        // FullPipeline 模式：每个子查询执行真正的 DefaultPipeline，收集其合并记忆与动作输出
+        let mut all_full_memory: Vec<(MemoryId, f64, u32)> = Vec::new();
+        let mut all_full_action: Vec<(MemoryId, f64, u32)> = Vec::new();
 
         for (sq_idx, sq) in test_case.sub_queries.iter().enumerate() {
             let emb = &query_embs[sq_idx];
-            let config = SimilarityConfig {
-                similarity_threshold: self.meta.similarity_threshold,
-                max_results: self.meta.max_results,
-            };
-            let request = config.into_request(
-                Arc::clone(&self.wm),
-                EmbeddedMemoryRetrieveQuery {
-                    embedding: emb.clone(),
-                    query: MemoryRetrieveQuery::new(sq.tags.clone(), sq.variant.clone()),
-                },
-            );
-            let result = RetrSimilarity {}.retrieve(request);
+            let priority = sq.priority;
 
             let expected = test_case
                 .expected_per_query
@@ -342,8 +336,68 @@ impl TestSuite for RetrieveSuite {
                 .find(|e| e.query_index == sq_idx)
                 .map(|e| &e.ranking);
 
-            let per_metrics = if let Some(expected_ranking) = expected {
+            let ids: Vec<MemoryId> = if self.pipeline_mode == RetrieveMode::FullPipeline {
+                // full 即 DefaultPipeline：ShortOnly(窗口/摘要) + Similarity + AssociateWithAction
+                let pipeline_config = DefaultPipelineConfig {
+                    short_mem_with_history: ShortOnlyConfig {
+                        clipping_length: None,
+                        include_summary: true,
+                    },
+                    similarity: SimilarityConfig {
+                        similarity_threshold: self.meta.similarity_threshold,
+                        max_results: self.meta.max_results,
+                    },
+                    assoc_with_action: AssociateWithActionConfig {
+                        association: Default::default(),
+                        action_top_k: 3,
+                    },
+                };
+                let pipeline_request = pipeline_config.into_request(
+                    Arc::clone(&self.wm),
+                    EmbeddedMemoryRetrieveQuery {
+                        embedding: emb.clone(),
+                        query: MemoryRetrieveQuery::new(sq.tags.clone(), sq.variant.clone()),
+                    },
+                    priority,
+                );
+                let pipeline_res = RetrDefaultPipeline {}.retrieve(pipeline_request);
+                all_full_action.extend(
+                    pipeline_res
+                        .action
+                        .into_iter()
+                        .map(|(id, score)| (id, score, priority)),
+                );
+                let ids: Vec<MemoryId> = pipeline_res
+                    .association
+                    .iter()
+                    .map(|(id, _)| *id)
+                    .collect();
+                all_full_memory.extend(
+                    pipeline_res
+                        .association
+                        .into_iter()
+                        .map(|(id, score)| (id, score, priority)),
+                );
+                ids
+            } else {
+                let config = SimilarityConfig {
+                    similarity_threshold: self.meta.similarity_threshold,
+                    max_results: self.meta.max_results,
+                };
+                let request = config.into_request(
+                    Arc::clone(&self.wm),
+                    EmbeddedMemoryRetrieveQuery {
+                        embedding: emb.clone(),
+                        query: MemoryRetrieveQuery::new(sq.tags.clone(), sq.variant.clone()),
+                    },
+                );
+                let result = RetrSimilarity {}.retrieve(request);
                 let ids: Vec<MemoryId> = result.iter().map(|(id, _)| *id).collect();
+                all_similarity.push(result);
+                ids
+            };
+
+            let per_metrics = if let Some(expected_ranking) = expected {
                 let ranking_metrics =
                     compute_ranking_metrics(&ids, expected_ranking, &self.meta.test_k_values);
                 PerQueryMetrics {
@@ -369,7 +423,6 @@ impl TestSuite for RetrieveSuite {
                 }
             };
             per_query_metrics.push(per_metrics);
-            all_similarity.push(result);
         }
 
         let (combined_ids, combined_ranking, passed) = match self.pipeline_mode {
@@ -394,7 +447,7 @@ impl TestSuite for RetrieveSuite {
                 );
                 (ids, full_metrics, must_hit)
             }
-            RetrieveMode::Association | RetrieveMode::FullPipeline => {
+            RetrieveMode::Association => {
                 const EMBED_PPR_BLEND: f32 = 0.5;
 
                 let mut all_blended: Vec<(MemoryId, f32, u32)> = Vec::new();
@@ -441,6 +494,21 @@ impl TestSuite for RetrieveSuite {
                 );
                 (ids, full_metrics, must_hit)
             }
+            RetrieveMode::FullPipeline => {
+                let all_retrieved: Vec<(MemoryId, f32, u32)> = all_full_memory
+                    .into_iter()
+                    .map(|(id, score, priority)| (id, score as f32, priority))
+                    .collect();
+                let merged = merge_by_priority(all_retrieved, self.meta.max_results);
+                let ids: Vec<MemoryId> = merged.iter().map(|(id, _)| *id).collect();
+                let (full_metrics, must_hit) = compute_split_metrics(
+                    &ids,
+                    &test_case.expected_combined_ranking,
+                    &test_case.bonus_combined_ranking,
+                    &self.meta.test_k_values,
+                );
+                (ids, full_metrics, must_hit)
+            }
         };
 
         let action_metrics = if test_case.expected_actions.is_empty() {
@@ -448,7 +516,26 @@ impl TestSuite for RetrieveSuite {
                 action_hit_rate: 1.0,
                 action_recall_at: self.meta.test_k_values.iter().map(|&k| (k, 1.0)).collect(),
             }
+        } else if self.pipeline_mode == RetrieveMode::FullPipeline {
+            // 动作评测使用 DefaultPipeline 实际输出的 action 节点
+            let all_actions: Vec<(MemoryId, f32, u32)> = all_full_action
+                .into_iter()
+                .map(|(id, score, priority)| (id, score as f32, priority))
+                .collect();
+            let merged_actions = merge_by_priority(all_actions, self.meta.max_results);
+            let actual_action_ids: Vec<MemoryId> =
+                merged_actions.iter().map(|(id, _)| *id).collect();
+            let action_res = compute_action_metrics(
+                &actual_action_ids,
+                &test_case.expected_actions,
+                &self.meta.test_k_values,
+            );
+            ActionMetrics {
+                action_hit_rate: action_res.action_hit_rate,
+                action_recall_at: action_res.action_recall_at,
+            }
         } else {
+            // 非 FullPipeline 模式暂不输出动作检索，保持占位
             let action_res =
                 compute_action_metrics(&[], &test_case.expected_actions, &self.meta.test_k_values);
             ActionMetrics {
