@@ -1,25 +1,25 @@
 {
   "node_count": 33,
-  "edge_count": 61,
+  "edge_count": 66,
   "node_types": {
     "semantic": 17,
     "situation": 11,
     "procedure": 5
   },
   "link_types": {
-    "sem": 41,
-    "proc": 14,
-    "situation": 6
+    "sem": 60,
+    "proc": 4,
+    "situation": 2
   },
-  "connected_components": 1,
-  "largest_component": 33,
-  "isolated_nodes": 0,
-  "mst_forest_edges": 32,
-  "global_redundancy": 0.90625,
-  "avg_clustering": 0.38772812372812365,
-  "community_modularity": 0.319201827465735,
+  "connected_components": 3,
+  "largest_component": 31,
+  "isolated_nodes": 2,
+  "mst_forest_edges": 30,
+  "global_redundancy": 1.2000000000000002,
+  "avg_clustering": 0.7661375661375661,
+  "community_modularity": 0.25797750229568406,
   "intra_community_ratio": 1.0,
-  "gini_coefficient": 0.41877794336810736,
+  "gini_coefficient": 0.43001443001442996,
   "has_self_node": true,
   "self_description_ok": true,
   "illegal_edges": [],
@@ -30,5 +30,9 @@
   "has_proc_none": true,
   "abstract_sit_type_count": 4,
   "proc_without_incoming_proc": [],
-  "abs_sit_without_proc": []
+  "abs_sit_without_proc": [
+    "sit_basement_environment",
+    "sit_bullet_event",
+    "sit_misunderstood_environment"
+  ]
 }

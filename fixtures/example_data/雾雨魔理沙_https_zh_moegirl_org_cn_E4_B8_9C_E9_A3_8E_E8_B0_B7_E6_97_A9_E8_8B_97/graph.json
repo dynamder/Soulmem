@@ -23,33 +23,33 @@
       {
         "from": "sem_self",
         "to": "sem_reimu",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "是友人",
-            "confidence": 0.9
+            "verb": "与...是挚友",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_alice",
-        "intensity": 0.8,
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "是好友",
-            "confidence": 0.8
+            "verb": "与...是好友",
+            "confidence": 0.85
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_patchouli",
-        "intensity": 0.7,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "是朋友",
-            "confidence": 0.7
+            "verb": "与...是朋友",
+            "confidence": 0.8
           }
         }
       },
@@ -59,63 +59,63 @@
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "是亲友",
-            "confidence": 0.9
+            "verb": "视...为亲友",
+            "confidence": 0.85
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_mima",
-        "intensity": 0.6,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "是旧识",
-            "confidence": 0.6
+            "verb": "与...有旧交",
+            "confidence": 0.7
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_sanae",
-        "intensity": 0.6,
+        "intensity": 0.65,
         "link_type": {
           "Sem": {
-            "verb": "是同行",
-            "confidence": 0.6
+            "verb": "与...相识",
+            "confidence": 0.65
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_father",
-        "intensity": 0.5,
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "是父亲",
-            "confidence": 0.5
+            "verb": "与...关系疏远",
+            "confidence": 0.6
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_gensokyo",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "生活在",
-            "confidence": 0.9
+            "verb": "居住在",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_magic_forest",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "居住在",
-            "confidence": 0.9
+            "verb": "居住于",
+            "confidence": 0.95
           }
         }
       },
@@ -125,7 +125,7 @@
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "拥有",
+            "verb": "视...为宝物",
             "confidence": 0.9
           }
         }
@@ -144,21 +144,10 @@
       {
         "from": "sem_self",
         "to": "sem_ordinary_magician",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "是",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_danmaku_rules",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "遵守",
+            "verb": "拥有称号",
             "confidence": 0.8
           }
         }
@@ -166,11 +155,11 @@
       {
         "from": "sem_self",
         "to": "sem_magic_ability",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
             "verb": "拥有",
-            "confidence": 0.9
+            "confidence": 0.95
           }
         }
       },
@@ -191,19 +180,118 @@
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "常去",
+            "verb": "光顾",
             "confidence": 0.7
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_love_color_day",
-        "intensity": 0.7,
+        "to": "sem_danmaku_rules",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "纪念",
-            "confidence": 0.7
+            "verb": "遵守",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sit_visit_shrine",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "常去",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sit_mushroom_gathering",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "进行",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sit_with_reimu",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "沉浸于",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sit_receive_hakkero",
+        "intensity": 0.95,
+        "link_type": {
+          "Sem": {
+            "verb": "珍视这段经历",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sit_learn_master_spark",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "掌握了",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sit_leave_home",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "经历了",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sit_beat_sanae",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "参与了",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sit_eientei_team",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "参与了",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sit_chireiden",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "解决了",
+            "confidence": 0.8
           }
         }
       }
@@ -231,33 +319,11 @@
       {
         "from": "sem_reimu",
         "to": "sem_gensokyo",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "守护",
+            "verb": "守护着",
             "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_reimu",
-        "to": "sem_danmaku_rules",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "维护",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_reimu",
-        "to": "sem_sanae",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "相识",
-            "confidence": 0.6
           }
         }
       }
@@ -280,30 +346,7 @@
         "description": "她也住在魔法森林，是我的邻居。表面上我们水火不容，实际上经常互相串门，偶尔还一起睡觉。在永夜抄我们组了队，她给了我几本魔导书作为报酬。她总是一副冷冰冰的样子，其实是个傲娇，心里很关心我。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_alice",
-        "to": "sem_patchouli",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "是朋友",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_alice",
-        "to": "sem_magic_ability",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "擅长",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_patchouli",
@@ -323,30 +366,7 @@
         "description": "她是红魔馆大图书馆的魔女，我经常去她那里借书。她总说我是「不吉利的黑白」，但我知道她其实并不讨厌我。我用从她那里学来的非定向光线技巧改良了自己的魔法。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_patchouli",
-        "to": "sem_water_attribute",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "使用",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_patchouli",
-        "to": "sem_magic_ability",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "精通",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_rinno",
@@ -376,17 +396,6 @@
             "confidence": 0.9
           }
         }
-      },
-      {
-        "from": "sem_rinno",
-        "to": "sem_mini_hakkero",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "制作",
-            "confidence": 0.9
-          }
-        }
       }
     ]
   },
@@ -407,19 +416,7 @@
         "description": "她在旧作品中曾是我的师傅/上司，我的星形弹幕很大程度上是从她那里学习来的。虽然Windows平台的作品和旧作设定不是完全相通，但那段经历确实影响了我。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_mima",
-        "to": "sem_gensokyo",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "生活在",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_sanae",
@@ -438,30 +435,7 @@
         "description": "她是从外界进入幻想乡的风祝，守矢神社的现人神。初次见面时她挺嚣张的，被我和灵梦狠狠教训了一顿。后来她适应了幻想乡，甚至在妖怪退治方面开始和我抢生意了。不过比起灵梦，她还算好对付。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_sanae",
-        "to": "sem_gensokyo",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "进入",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_sanae",
-        "to": "sem_danmaku_rules",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "学习",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_father",
@@ -480,19 +454,7 @@
         "description": "他已与我断绝关系，我不想提太多关于他的事情。雾雨家的人似乎都有魔法使的血统，但都没有从事魔法使的行业。我舍弃了本家，即使有事时路过村落也不愿去雾雨家一趟。唯一关系最亲密的是霖之助。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_father",
-        "to": "sem_magic_shop",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "经营",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_gensokyo",
@@ -511,19 +473,7 @@
         "description": "这是一个人类与妖怪共存的世界，充满了外面世界已经失去或变成幻想的东西。我是土生土长的幻想乡人类，和灵梦一样，不是从外界进来的。虽然出身于人类村落的雾雨家，但我现在独自住在魔法森林。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_gensokyo",
-        "to": "sem_magic_forest",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "包含",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_magic_forest",
@@ -545,12 +495,12 @@
     "mem_links": [
       {
         "from": "sem_magic_forest",
-        "to": "sem_ordinary_magician",
-        "intensity": 0.6,
+        "to": "sem_gensokyo",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "居住",
-            "confidence": 0.7
+            "verb": "地处",
+            "confidence": 0.9
           }
         }
       }
@@ -578,11 +528,11 @@
       {
         "from": "sem_mini_hakkero",
         "to": "sem_master_spark",
-        "intensity": 0.9,
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "发射",
-            "confidence": 0.9
+            "verb": "可释放",
+            "confidence": 0.85
           }
         }
       }
@@ -605,19 +555,7 @@
         "description": "这是我的代表性必杀技，通过迷你八卦炉释放的巨大魔力光柱。这招是在与风见幽香（旧作）的战斗中学习来的。与高町奈叶并称「两大魔炮娘」，虽然我不知道那是谁。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_master_spark",
-        "to": "sem_magic_ability",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "释放",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_ordinary_magician",
@@ -636,19 +574,7 @@
         "description": "这是我最常用的称号。在幻想乡中，「普通的」一般就用作「人的基准的」这类意思。虽然被称为普通的魔法使，但我的实力可一点都不普通。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_ordinary_magician",
-        "to": "sem_magic_ability",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "证明",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_danmaku_rules",
@@ -667,19 +593,7 @@
         "description": "这是幻想乡解决争端的方式，使用符卡对决而不是真正的杀戮。在这个规则之下，我那华丽的魔法被发挥得淋漓尽致。只要不真的杀死对方，怎么打都行。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_danmaku_rules",
-        "to": "sem_gensokyo",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "统治",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_water_attribute",
@@ -697,19 +611,7 @@
         "description": "以五行来看，我其实是水属性。布都那家伙说过「你明明是水属性的还真是在做着麻烦的事情」——说的就是我跟自己的属性过不去，偏偏选择了高火力的战斗方式。不过这种事情怎么样都好，只要有效就行。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_water_attribute",
-        "to": "sem_patchouli",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "关联",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_magic_ability",
@@ -729,19 +631,7 @@
         "description": "我作为一个人类魔法使，擅长光与热的魔法。虽然主要是破坏性的魔法，但弱点很少，无论对人还是妖怪都很有效。单纯的破坏力在人类中是非常强大的。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_magic_ability",
-        "to": "sem_ordinary_magician",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "赋予",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_magic_shop",
@@ -764,11 +654,11 @@
       {
         "from": "sem_magic_shop",
         "to": "sem_magic_forest",
-        "intensity": 0.6,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
             "verb": "位于",
-            "confidence": 0.7
+            "confidence": 0.9
           }
         }
       }
@@ -791,19 +681,7 @@
         "description": "这是霖之助经营的杂货店。我小时候和灵梦经常去那里玩，现在也会去那里——用我的说法是「看看有什么有趣的东西」，用霖之助的说法就是「又来白嫖了」。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_kourindou",
-        "to": "sem_gensokyo",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "坐落",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_love_color_day",
@@ -822,19 +700,7 @@
         "description": "5月16日是恋色之日的谐音，被大家当作是我的日子。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_love_color_day",
-        "to": "sem_reimu",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "关联",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sit_visit_shrine",
@@ -855,54 +721,42 @@
     "mem_links": [
       {
         "from": "sit_visit_shrine",
-        "to": "proc_none",
+        "to": "sem_reimu",
+        "intensity": 0.95,
+        "link_type": {
+          "Sem": {
+            "verb": "主要在",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_visit_shrine",
+        "to": "proc_ride_broom",
+        "intensity": 0.8,
+        "link_type": {
+          "Proc": {
+            "prob": 0.6
+          }
+        }
+      },
+      {
+        "from": "sit_visit_shrine",
+        "to": "proc_adjust_clothes",
         "intensity": 0.5,
         "link_type": {
           "Proc": {
-            "prob": 0.5
+            "prob": 0.2
           }
         }
       },
       {
         "from": "sit_visit_shrine",
         "to": "proc_speak_daze",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 0.5
-          }
-        }
-      },
-      {
-        "from": "sit_visit_shrine",
-        "to": "sem_reimu",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "拜访",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_visit_shrine",
-        "to": "sem_gensokyo",
         "intensity": 0.6,
         "link_type": {
-          "Sem": {
-            "verb": "地点",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_visit_shrine",
-        "to": "sem_self",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "前往",
-            "confidence": 0.9
+          "Proc": {
+            "prob": 0.2
           }
         }
       }
@@ -929,74 +783,52 @@
     "mem_links": [
       {
         "from": "sit_mushroom_gathering",
-        "to": "proc_collect",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3404005746001483
-          }
-        }
-      },
-      {
-        "from": "sit_mushroom_gathering",
-        "to": "proc_never_organize",
-        "intensity": 0.2,
-        "link_type": {
-          "Proc": {
-            "prob": 0.31919885079970345
-          }
-        }
-      },
-      {
-        "from": "sit_mushroom_gathering",
-        "to": "proc_none",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3404005746001483
-          }
-        }
-      },
-      {
-        "from": "sit_mushroom_gathering",
         "to": "sem_magic_forest",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "在",
+            "verb": "发生于",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_mushroom_gathering",
-        "to": "sem_self",
-        "intensity": 0.7,
+        "to": "proc_collect",
+        "intensity": 0.8,
         "link_type": {
-          "Sem": {
-            "verb": "进行",
-            "confidence": 0.8
+          "Proc": {
+            "prob": 0.5
           }
         }
       },
       {
         "from": "sit_mushroom_gathering",
-        "to": "sem_ordinary_magician",
+        "to": "proc_ride_broom",
+        "intensity": 0.6,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      },
+      {
+        "from": "sit_mushroom_gathering",
+        "to": "proc_adjust_clothes",
         "intensity": 0.5,
         "link_type": {
-          "Sem": {
-            "verb": "作为",
-            "confidence": 0.6
+          "Proc": {
+            "prob": 0.2
           }
         }
       },
       {
         "from": "sit_mushroom_gathering",
-        "to": "sit_leave_home",
+        "to": "proc_speak_daze",
         "intensity": 0.4,
         "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
+          "Proc": {
+            "prob": 0.1
           }
         }
       }
@@ -1021,73 +853,42 @@
     "mem_links": [
       {
         "from": "sit_with_reimu",
-        "to": "proc_speak_daze",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3404005746001483
-          }
-        }
-      },
-      {
-        "from": "sit_with_reimu",
-        "to": "proc_hide_effort",
-        "intensity": 0.2,
-        "link_type": {
-          "Proc": {
-            "prob": 0.31919885079970345
-          }
-        }
-      },
-      {
-        "from": "sit_with_reimu",
-        "to": "proc_none",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3404005746001483
-          }
-        }
-      },
-      {
-        "from": "sit_with_reimu",
         "to": "sem_reimu",
-        "intensity": 0.8,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "和",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_with_reimu",
-        "to": "sem_self",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "一起",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_with_reimu",
-        "to": "sit_visit_shrine",
-        "intensity": 0.6,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
+            "verb": "涉及",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_with_reimu",
         "to": "sit_beat_sanae",
-        "intensity": 0.5,
+        "intensity": 0.7,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_with_reimu",
+        "to": "proc_speak_daze",
+        "intensity": 0.8,
+        "link_type": {
+          "Proc": {
+            "prob": 0.6
+          }
+        }
+      },
+      {
+        "from": "sit_with_reimu",
+        "to": "proc_hide_effort",
+        "intensity": 0.6,
+        "link_type": {
+          "Proc": {
+            "prob": 0.4
           }
         }
       }
@@ -1131,65 +932,43 @@
     "mem_links": [
       {
         "from": "sit_receive_hakkero",
-        "to": "proc_collect",
-        "intensity": 0.8,
-        "link_type": {
-          "Proc": {
-            "prob": 0.5723174517806497
-          }
-        }
-      },
-      {
-        "from": "sit_receive_hakkero",
-        "to": "proc_none",
-        "intensity": 0.2,
-        "link_type": {
-          "Proc": {
-            "prob": 0.4276825482193503
-          }
-        }
-      },
-      {
-        "from": "sit_receive_hakkero",
         "to": "sem_rinno",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "接受赠予",
-            "confidence": 0.9
+            "verb": "赠与者",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_receive_hakkero",
         "to": "sem_mini_hakkero",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "获得",
-            "confidence": 1.0
+            "verb": "核心物品",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_receive_hakkero",
-        "to": "sem_magic_forest",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "住在",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_receive_hakkero",
-        "to": "sem_self",
+        "to": "proc_record_experiment",
         "intensity": 0.8,
         "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.9
+          "Proc": {
+            "prob": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_receive_hakkero",
+        "to": "proc_collect",
+        "intensity": 0.6,
+        "link_type": {
+          "Proc": {
+            "prob": 0.3
           }
         }
       }
@@ -1225,64 +1004,32 @@
     "mem_links": [
       {
         "from": "sit_learn_master_spark",
-        "to": "proc_record_experiment",
-        "intensity": 0.4,
+        "to": "sem_master_spark",
+        "intensity": 0.95,
         "link_type": {
-          "Proc": {
-            "prob": 0.3404005746001483
+          "Sem": {
+            "verb": "习得",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_learn_master_spark",
         "to": "proc_hide_effort",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3404005746001483
-          }
-        }
-      },
-      {
-        "from": "sit_learn_master_spark",
-        "to": "proc_none",
-        "intensity": 0.2,
-        "link_type": {
-          "Proc": {
-            "prob": 0.31919885079970345
-          }
-        }
-      },
-      {
-        "from": "sit_learn_master_spark",
-        "to": "sem_master_spark",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "学会",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sit_learn_master_spark",
-        "to": "sem_self",
         "intensity": 0.8,
         "link_type": {
-          "Sem": {
-            "verb": "掌握",
-            "confidence": 0.9
+          "Proc": {
+            "prob": 0.6
           }
         }
       },
       {
         "from": "sit_learn_master_spark",
-        "to": "sem_magic_ability",
+        "to": "proc_record_experiment",
         "intensity": 0.7,
         "link_type": {
-          "Sem": {
-            "verb": "提升",
-            "confidence": 0.8
+          "Proc": {
+            "prob": 0.4
           }
         }
       }
@@ -1321,41 +1068,12 @@
     "mem_links": [
       {
         "from": "sit_leave_home",
-        "to": "proc_collect",
-        "intensity": 0.25,
+        "to": "sem_magic_forest",
+        "intensity": 0.9,
         "link_type": {
-          "Proc": {
-            "prob": 0.24995119246755973
-          }
-        }
-      },
-      {
-        "from": "sit_leave_home",
-        "to": "proc_hide_effort",
-        "intensity": 0.25,
-        "link_type": {
-          "Proc": {
-            "prob": 0.24995119246755973
-          }
-        }
-      },
-      {
-        "from": "sit_leave_home",
-        "to": "proc_ride_broom",
-        "intensity": 0.2,
-        "link_type": {
-          "Proc": {
-            "prob": 0.24692401112463397
-          }
-        }
-      },
-      {
-        "from": "sit_leave_home",
-        "to": "proc_none",
-        "intensity": 0.3,
-        "link_type": {
-          "Proc": {
-            "prob": 0.2531736039402465
+          "Sem": {
+            "verb": "迁往",
+            "confidence": 0.9
           }
         }
       },
@@ -1366,51 +1084,27 @@
         "link_type": {
           "Sem": {
             "verb": "离开",
-            "confidence": 0.9
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sit_leave_home",
-        "to": "sem_magic_forest",
-        "intensity": 0.9,
+        "to": "proc_ride_broom",
+        "intensity": 0.7,
         "link_type": {
-          "Sem": {
-            "verb": "搬到",
-            "confidence": 1.0
+          "Proc": {
+            "prob": 0.6
           }
         }
       },
       {
         "from": "sit_leave_home",
-        "to": "sem_self",
-        "intensity": 0.9,
+        "to": "proc_never_organize",
+        "intensity": 0.7,
         "link_type": {
-          "Sem": {
-            "verb": "决定",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_leave_home",
-        "to": "sem_ordinary_magician",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "成为",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_leave_home",
-        "to": "sem_magic_shop",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "开创",
-            "confidence": 0.6
+          "Proc": {
+            "prob": 0.4
           }
         }
       }
@@ -1458,75 +1152,53 @@
     "mem_links": [
       {
         "from": "sit_beat_sanae",
-        "to": "proc_smell_blood",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.34090191325124597
-          }
-        }
-      },
-      {
-        "from": "sit_beat_sanae",
-        "to": "proc_ride_broom",
-        "intensity": 0.3,
-        "link_type": {
-          "Proc": {
-            "prob": 0.32954904337437707
-          }
-        }
-      },
-      {
-        "from": "sit_beat_sanae",
-        "to": "proc_none",
-        "intensity": 0.3,
-        "link_type": {
-          "Proc": {
-            "prob": 0.32954904337437707
-          }
-        }
-      },
-      {
-        "from": "sit_beat_sanae",
         "to": "sem_sanae",
-        "intensity": 0.8,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "教训",
-            "confidence": 0.9
+            "verb": "目标",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_beat_sanae",
         "to": "sem_reimu",
-        "intensity": 0.7,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "联手",
+            "verb": "并肩者",
             "confidence": 0.8
           }
         }
       },
       {
         "from": "sit_beat_sanae",
-        "to": "sem_self",
+        "to": "proc_smell_blood",
         "intensity": 0.8,
         "link_type": {
-          "Sem": {
-            "verb": "战斗",
-            "confidence": 0.9
+          "Proc": {
+            "prob": 0.5
           }
         }
       },
       {
         "from": "sit_beat_sanae",
-        "to": "sem_danmaku_rules",
+        "to": "proc_speak_daze",
         "intensity": 0.6,
         "link_type": {
-          "Sem": {
-            "verb": "遵守",
-            "confidence": 0.7
+          "Proc": {
+            "prob": 0.3
+          }
+        }
+      },
+      {
+        "from": "sit_beat_sanae",
+        "to": "proc_ride_broom",
+        "intensity": 0.5,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
           }
         }
       }
@@ -1565,75 +1237,42 @@
     "mem_links": [
       {
         "from": "sit_eientei_team",
-        "to": "proc_speak_daze",
-        "intensity": 0.3,
+        "to": "sem_alice",
+        "intensity": 0.95,
         "link_type": {
-          "Proc": {
-            "prob": 0.32954904337437707
+          "Sem": {
+            "verb": "队友",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_eientei_team",
         "to": "proc_record_experiment",
-        "intensity": 0.3,
+        "intensity": 0.7,
         "link_type": {
           "Proc": {
-            "prob": 0.32954904337437707
+            "prob": 0.5
           }
         }
       },
       {
         "from": "sit_eientei_team",
-        "to": "proc_none",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.34090191325124597
-          }
-        }
-      },
-      {
-        "from": "sit_eientei_team",
-        "to": "sem_alice",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "组队",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_eientei_team",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "参与",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_eientei_team",
-        "to": "sem_magic_ability",
+        "to": "proc_speak_daze",
         "intensity": 0.6,
         "link_type": {
-          "Sem": {
-            "verb": "使用",
-            "confidence": 0.7
+          "Proc": {
+            "prob": 0.3
           }
         }
       },
       {
         "from": "sit_eientei_team",
-        "to": "sem_mini_hakkero",
+        "to": "proc_hide_effort",
         "intensity": 0.5,
         "link_type": {
-          "Sem": {
-            "verb": "携带",
-            "confidence": 0.6
+          "Proc": {
+            "prob": 0.2
           }
         }
       }
@@ -1676,54 +1315,32 @@
     "mem_links": [
       {
         "from": "sit_chireiden",
-        "to": "proc_adjust_clothes",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.47510360739268725
-          }
-        }
-      },
-      {
-        "from": "sit_chireiden",
-        "to": "proc_none",
-        "intensity": 0.6,
-        "link_type": {
-          "Proc": {
-            "prob": 0.5248963926073127
-          }
-        }
-      },
-      {
-        "from": "sit_chireiden",
         "to": "sem_gensokyo",
-        "intensity": 0.7,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "探索",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_chireiden",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "解决",
+            "verb": "处于",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_chireiden",
-        "to": "sem_danmaku_rules",
+        "to": "proc_smell_blood",
+        "intensity": 0.8,
+        "link_type": {
+          "Proc": {
+            "prob": 0.6
+          }
+        }
+      },
+      {
+        "from": "sit_chireiden",
+        "to": "proc_ride_broom",
         "intensity": 0.6,
         "link_type": {
-          "Sem": {
-            "verb": "打破",
-            "confidence": 0.7
+          "Proc": {
+            "prob": 0.4
           }
         }
       }
@@ -1743,19 +1360,7 @@
         }
       }
     },
-    "mem_links": [
-      {
-        "from": "proc_none",
-        "to": "sem_self",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "空闲",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "proc_speak_daze",
@@ -1771,19 +1376,7 @@
         }
       }
     },
-    "mem_links": [
-      {
-        "from": "proc_speak_daze",
-        "to": "sem_self",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "口头禅",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "proc_collect",
@@ -1802,23 +1395,12 @@
     "mem_links": [
       {
         "from": "proc_collect",
-        "to": "sem_mini_hakkero",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "收藏",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "proc_collect",
         "to": "sem_magic_forest",
-        "intensity": 0.7,
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "搜集",
-            "confidence": 0.8
+            "verb": "在...收集",
+            "confidence": 0.7
           }
         }
       }
@@ -1841,12 +1423,12 @@
     "mem_links": [
       {
         "from": "proc_never_organize",
-        "to": "sem_magic_forest",
-        "intensity": 0.8,
+        "to": "sem_magic_shop",
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "弄乱",
-            "confidence": 0.9
+            "verb": "使...杂乱",
+            "confidence": 0.7
           }
         }
       }
@@ -1871,23 +1453,12 @@
     "mem_links": [
       {
         "from": "proc_ride_broom",
-        "to": "sem_self",
-        "intensity": 0.8,
+        "to": "sem_magic_forest",
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "飞行",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "proc_ride_broom",
-        "to": "sem_magic_ability",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "展示",
-            "confidence": 0.8
+            "verb": "穿行于",
+            "confidence": 0.7
           }
         }
       }
@@ -1910,22 +1481,11 @@
     "mem_links": [
       {
         "from": "proc_record_experiment",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "记录",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "proc_record_experiment",
         "to": "sem_magic_ability",
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "研究",
+            "verb": "提升",
             "confidence": 0.8
           }
         }
@@ -1946,30 +1506,7 @@
         }
       }
     },
-    "mem_links": [
-      {
-        "from": "proc_smell_blood",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "感知",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "proc_smell_blood",
-        "to": "sem_danmaku_rules",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "战斗",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "proc_adjust_clothes",
@@ -1985,30 +1522,7 @@
         }
       }
     },
-    "mem_links": [
-      {
-        "from": "proc_adjust_clothes",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "调整",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "proc_adjust_clothes",
-        "to": "sem_gensokyo",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "适应",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "proc_hide_effort",
@@ -2027,23 +1541,12 @@
     "mem_links": [
       {
         "from": "proc_hide_effort",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "隐藏",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "proc_hide_effort",
         "to": "sem_ordinary_magician",
-        "intensity": 0.7,
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "伪装",
-            "confidence": 0.8
+            "verb": "维持",
+            "confidence": 0.7
           }
         }
       }

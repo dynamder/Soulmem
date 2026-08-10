@@ -23,33 +23,33 @@
       {
         "from": "sem_self",
         "to": "sem_masamune",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
             "verb": "爱慕",
-            "confidence": 0.9
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_fumino",
-        "intensity": 0.7,
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "朋友",
-            "confidence": 0.8
+            "verb": "挚友",
+            "confidence": 0.85
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_matsuko",
-        "intensity": 0.7,
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "朋友",
-            "confidence": 0.8
+            "verb": "挚友",
+            "confidence": 0.85
           }
         }
       },
@@ -59,7 +59,7 @@
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "朋友",
+            "verb": "伙伴",
             "confidence": 0.7
           }
         }
@@ -77,56 +77,67 @@
       },
       {
         "from": "sem_self",
-        "to": "sem_murasamemaru",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "附身",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sem_self",
         "to": "sem_hiori",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "居住",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_tatarigami",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "敌对",
+            "verb": "归属",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_fragment",
-        "intensity": 0.6,
+        "to": "sem_murasamemaru",
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "关联",
-            "confidence": 0.7
+            "verb": "寄宿",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_chouke_blood",
-        "intensity": 0.7,
+        "to": "sem_human_body",
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "关联",
-            "confidence": 0.8
+            "verb": "曾是",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_values",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "秉持",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_fear_ghosts",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "具有",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_tsundere",
+        "intensity": 0.95,
+        "link_type": {
+          "Sem": {
+            "verb": "具有",
+            "confidence": 0.95
           }
         }
       },
@@ -137,50 +148,6 @@
         "link_type": {
           "Sem": {
             "verb": "拥有",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_human_body",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "曾是",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_fear_ghosts",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "害怕",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_tsundere",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "具有",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_values",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "持有",
             "confidence": 0.9
           }
         }
@@ -209,55 +176,11 @@
     "mem_links": [
       {
         "from": "sem_masamune",
-        "to": "sem_fumino",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "家人",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_masamune",
-        "to": "sem_matsuko",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "家人",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_masamune",
-        "to": "sem_reina",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "朋友",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_masamune",
-        "to": "sem_genjuro",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "祖父",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_masamune",
-        "to": "sem_murasamemaru",
+        "to": "sem_hiori",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "持有",
+            "verb": "居住",
             "confidence": 0.9
           }
         }
@@ -285,11 +208,11 @@
     "mem_links": [
       {
         "from": "sem_fumino",
-        "to": "sem_matsuko",
-        "intensity": 0.8,
+        "to": "sem_chouke_blood",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "同伴",
+            "verb": "继承",
             "confidence": 0.9
           }
         }
@@ -417,8 +340,8 @@
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "组成部分",
-            "confidence": 1.0
+            "verb": "蕴含",
+            "confidence": 0.9
           }
         }
       }
@@ -460,7 +383,19 @@
         "description": "拥有朝武家血脉的人（如芳乃）可以看到我辈。朝武家世代承担守护穗织、管理丛雨丸的职责。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_chouke_blood",
+        "to": "sem_tatarigami",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "对抗",
+            "confidence": 0.85
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_spirit_ability",
@@ -518,7 +453,19 @@
         "description": "我辈虽然是灵体，但非常怕鬼怪幽灵。以前去祓除时因太黑只能紧贴将臣背后唱老歌谣壮胆。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_fear_ghosts",
+        "to": "proc_fear_dark",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "导致",
+            "confidence": 0.85
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_tsundere",
@@ -537,7 +484,19 @@
         "description": "我辈是个不折不扣的傲娇，容易吃醋。看到将臣和别的女孩子走得太近，心里会莫名烦躁。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_tsundere",
+        "to": "proc_facial_expressions",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "显现",
+            "confidence": 0.7
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_values",
@@ -625,45 +584,34 @@
     "mem_links": [
       {
         "from": "sit_night_raid_confession",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "主角",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sit_night_raid_confession",
         "to": "sem_masamune",
-        "intensity": 0.8,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "表白对象",
-            "confidence": 0.9
+            "verb": "告白对象",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_night_raid_confession",
         "to": "sem_fumino",
-        "intensity": 0.8,
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "鼓励者",
-            "confidence": 0.8
+            "verb": "鼓励来源",
+            "confidence": 0.85
           }
         }
       },
       {
         "from": "sit_night_raid_confession",
         "to": "sem_matsuko",
-        "intensity": 0.8,
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "鼓励者",
-            "confidence": 0.8
+            "verb": "鼓励来源",
+            "confidence": 0.85
           }
         }
       }
@@ -731,23 +679,32 @@
     "mem_links": [
       {
         "from": "sit_lunch_visit",
-        "to": "sem_self",
-        "intensity": 0.8,
+        "to": "sem_masamune",
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "主角",
-            "confidence": 1.0
+            "verb": "探望对象",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_lunch_visit",
-        "to": "sem_masamune",
-        "intensity": 0.8,
+        "to": "proc_lunch_visit",
+        "intensity": 0.7,
         "link_type": {
-          "Sem": {
-            "verb": "探望对象",
-            "confidence": 0.9
+          "Proc": {
+            "prob": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_lunch_visit",
+        "to": "proc_jealous",
+        "intensity": 0.3,
+        "link_type": {
+          "Proc": {
+            "prob": 0.3
           }
         }
       }
@@ -810,22 +767,11 @@
     "mem_links": [
       {
         "from": "sit_exorcism_road",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "主角",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sit_exorcism_road",
         "to": "sem_masamune",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "同行者",
+            "verb": "依靠对象",
             "confidence": 0.9
           }
         }
@@ -833,22 +779,21 @@
       {
         "from": "sit_exorcism_road",
         "to": "sem_tatarigami",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "目标",
-            "confidence": 0.8
+            "verb": "祓除目标",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_exorcism_road",
-        "to": "sem_fear_ghosts",
-        "intensity": 0.8,
+        "to": "proc_fear_dark",
+        "intensity": 1.0,
         "link_type": {
-          "Sem": {
-            "verb": "触发恐惧",
-            "confidence": 0.9
+          "Proc": {
+            "prob": 1.0
           }
         }
       }
@@ -918,34 +863,32 @@
     "mem_links": [
       {
         "from": "sit_head_pat_tease",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "主角",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sit_head_pat_tease",
         "to": "sem_masamune",
-        "intensity": 0.8,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "施与者",
-            "confidence": 0.9
+            "verb": "摸头者",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_head_pat_tease",
-        "to": "sem_tsundere",
-        "intensity": 0.8,
+        "to": "proc_head_pat",
+        "intensity": 0.9,
         "link_type": {
-          "Sem": {
-            "verb": "引发傲娇",
-            "confidence": 0.8
+          "Proc": {
+            "prob": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_head_pat_tease",
+        "to": "proc_facial_expressions",
+        "intensity": 0.1,
+        "link_type": {
+          "Proc": {
+            "prob": 0.1
           }
         }
       }
@@ -1008,12 +951,12 @@
     "mem_links": [
       {
         "from": "sit_discover_human_body",
-        "to": "sem_self",
-        "intensity": 0.8,
+        "to": "sem_human_body",
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "主角",
-            "confidence": 1.0
+            "verb": "发现",
+            "confidence": 0.95
           }
         }
       },
@@ -1023,40 +966,7 @@
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "发现者",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_discover_human_body",
-        "to": "sem_human_body",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "发现",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_discover_human_body",
-        "to": "sem_fumino",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "发现者",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_discover_human_body",
-        "to": "sem_matsuko",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "发现者",
+            "verb": "同行者",
             "confidence": 0.8
           }
         }
@@ -1127,23 +1037,12 @@
     "mem_links": [
       {
         "from": "sit_wedding_proposal",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "主角",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sit_wedding_proposal",
         "to": "sem_masamune",
-        "intensity": 0.8,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "求婚者",
-            "confidence": 0.9
+            "verb": "婚约对象",
+            "confidence": 0.95
           }
         }
       }
@@ -1168,8 +1067,39 @@
     "mem_links": [
       {
         "from": "sit_abstract_location_hiori",
+        "to": "sem_hiori",
+        "intensity": 0.95,
+        "link_type": {
+          "Sem": {
+            "verb": "所在",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_location_hiori",
+        "to": "sit_night_raid_confession",
+        "intensity": 0.85,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_location_hiori",
         "to": "sit_lunch_visit",
-        "intensity": 0.8,
+        "intensity": 0.85,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_location_hiori",
+        "to": "sit_exorcism_road",
+        "intensity": 0.85,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
@@ -1179,27 +1109,7 @@
       {
         "from": "sit_abstract_location_hiori",
         "to": "sit_head_pat_tease",
-        "intensity": 0.8,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_location_hiori",
-        "to": "sit_night_raid_confession",
-        "intensity": 0.8,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_location_hiori",
-        "to": "sit_wedding_proposal",
-        "intensity": 0.8,
+        "intensity": 0.85,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
@@ -1209,7 +1119,7 @@
       {
         "from": "sit_abstract_location_hiori",
         "to": "sit_discover_human_body",
-        "intensity": 0.8,
+        "intensity": 0.85,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
@@ -1218,51 +1128,31 @@
       },
       {
         "from": "sit_abstract_location_hiori",
-        "to": "proc_lunch_visit",
-        "intensity": 1.0,
+        "to": "sit_wedding_proposal",
+        "intensity": 0.85,
         "link_type": {
-          "Proc": {
-            "prob": 0.2019352268316878
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_location_hiori",
-        "to": "proc_head_pat",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 0.19794487517341633
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_location_hiori",
-        "to": "proc_masturbation",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 0.19612129834858563
+          "Situation": {
+            "AbstractToSpecific": {}
           }
         }
       },
       {
         "from": "sit_abstract_location_hiori",
         "to": "proc_speech_style",
-        "intensity": 1.0,
+        "intensity": 0.8,
         "link_type": {
           "Proc": {
-            "prob": 0.1998802339939927
+            "prob": 0.8
           }
         }
       },
       {
         "from": "sit_abstract_location_hiori",
-        "to": "proc_none",
-        "intensity": 1.0,
+        "to": "proc_masturbation",
+        "intensity": 0.2,
         "link_type": {
           "Proc": {
-            "prob": 0.20411836565231764
+            "prob": 0.2
           }
         }
       }
@@ -1287,8 +1177,19 @@
     "mem_links": [
       {
         "from": "sit_abstract_participant_masamune",
+        "to": "sem_masamune",
+        "intensity": 0.95,
+        "link_type": {
+          "Sem": {
+            "verb": "核心人物",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_participant_masamune",
         "to": "sit_night_raid_confession",
-        "intensity": 0.8,
+        "intensity": 0.85,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
@@ -1298,7 +1199,7 @@
       {
         "from": "sit_abstract_participant_masamune",
         "to": "sit_lunch_visit",
-        "intensity": 0.8,
+        "intensity": 0.85,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
@@ -1308,7 +1209,7 @@
       {
         "from": "sit_abstract_participant_masamune",
         "to": "sit_exorcism_road",
-        "intensity": 0.8,
+        "intensity": 0.85,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
@@ -1318,7 +1219,7 @@
       {
         "from": "sit_abstract_participant_masamune",
         "to": "sit_head_pat_tease",
-        "intensity": 0.8,
+        "intensity": 0.85,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
@@ -1328,7 +1229,7 @@
       {
         "from": "sit_abstract_participant_masamune",
         "to": "sit_discover_human_body",
-        "intensity": 0.8,
+        "intensity": 0.85,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
@@ -1338,60 +1239,10 @@
       {
         "from": "sit_abstract_participant_masamune",
         "to": "sit_wedding_proposal",
-        "intensity": 0.8,
+        "intensity": 0.85,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_participant_masamune",
-        "to": "proc_head_pat",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 0.20414486887675282
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_participant_masamune",
-        "to": "proc_jealous",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 0.1999040935084397
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_participant_masamune",
-        "to": "proc_facial_expressions",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 0.19614285059792802
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_participant_masamune",
-        "to": "proc_speech_style",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 0.1999040935084397
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_participant_masamune",
-        "to": "proc_none",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 0.1999040935084397
           }
         }
       }
@@ -1416,18 +1267,19 @@
     "mem_links": [
       {
         "from": "sit_abstract_environment_dark",
-        "to": "sit_exorcism_road",
+        "to": "sem_fear_ghosts",
         "intensity": 0.8,
         "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
+          "Sem": {
+            "verb": "引发恐惧",
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sit_abstract_environment_dark",
-        "to": "sit_night_raid_confession",
-        "intensity": 0.8,
+        "to": "sit_exorcism_road",
+        "intensity": 0.9,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
@@ -1440,27 +1292,7 @@
         "intensity": 1.0,
         "link_type": {
           "Proc": {
-            "prob": 0.3526931003431656
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_environment_dark",
-        "to": "proc_speech_style",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 0.31872783339994415
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_environment_dark",
-        "to": "proc_none",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 0.32857906625689026
+            "prob": 1.0
           }
         }
       }
@@ -1487,51 +1319,22 @@
     "mem_links": [
       {
         "from": "sit_abstract_event_exorcism",
+        "to": "sem_tatarigami",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "封印对象",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_event_exorcism",
         "to": "sit_exorcism_road",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_event_exorcism",
-        "to": "sit_discover_human_body",
-        "intensity": 0.8,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_event_exorcism",
-        "to": "proc_fear_dark",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 0.338914123501906
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_event_exorcism",
-        "to": "proc_speech_style",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3094132040972981
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_event_exorcism",
-        "to": "proc_none",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 0.35167267240079586
           }
         }
       }
@@ -1574,8 +1377,8 @@
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "具有",
-            "confidence": 1.0
+            "verb": "特征",
+            "confidence": 0.9
           }
         }
       }
@@ -1598,23 +1401,12 @@
     "mem_links": [
       {
         "from": "proc_head_pat",
-        "to": "sem_self",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "体验",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "proc_head_pat",
         "to": "sem_masamune",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "施与",
-            "confidence": 0.9
+            "verb": "互动对象",
+            "confidence": 0.95
           }
         }
       }
@@ -1637,23 +1429,23 @@
     "mem_links": [
       {
         "from": "proc_fear_dark",
-        "to": "sem_self",
+        "to": "sem_fear_ghosts",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "表现",
-            "confidence": 1.0
+            "verb": "源于",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "proc_fear_dark",
-        "to": "sem_fear_ghosts",
-        "intensity": 0.9,
+        "to": "sem_masamune",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "关联",
-            "confidence": 0.9
+            "verb": "寻求保护",
+            "confidence": 0.8
           }
         }
       }
@@ -1676,22 +1468,11 @@
     "mem_links": [
       {
         "from": "proc_lunch_visit",
-        "to": "sem_self",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "执行",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "proc_lunch_visit",
         "to": "sem_masamune",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "目标",
+            "verb": "探望对象",
             "confidence": 0.9
           }
         }
@@ -1715,23 +1496,12 @@
     "mem_links": [
       {
         "from": "proc_jealous",
-        "to": "sem_self",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "情绪",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "proc_jealous",
         "to": "sem_masamune",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "引发",
-            "confidence": 0.9
+            "verb": "在意之人",
+            "confidence": 0.95
           }
         }
       }
@@ -1754,12 +1524,12 @@
     "mem_links": [
       {
         "from": "proc_facial_expressions",
-        "to": "sem_self",
-        "intensity": 0.9,
+        "to": "sem_tsundere",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "做出",
-            "confidence": 1.0
+            "verb": "情绪外泄",
+            "confidence": 0.8
           }
         }
       }
@@ -1779,18 +1549,6 @@
         }
       }
     },
-    "mem_links": [
-      {
-        "from": "proc_masturbation",
-        "to": "sem_self",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "进行",
-            "confidence": 1.0
-          }
-        }
-      }
-    ]
+    "mem_links": []
   }
 ]

@@ -22,11 +22,11 @@
       {
         "from": "sem_self",
         "to": "sem_hokazashi",
-        "intensity": 0.9,
+        "intensity": 1.0,
         "link_type": {
           "Sem": {
-            "verb": "恋人",
-            "confidence": 0.9
+            "verb": "深爱",
+            "confidence": 1.0
           }
         }
       },
@@ -36,7 +36,7 @@
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "同伴",
+            "verb": "依赖",
             "confidence": 0.8
           }
         }
@@ -44,22 +44,22 @@
       {
         "from": "sem_self",
         "to": "sem_shiina",
-        "intensity": 0.7,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "同伴",
-            "confidence": 0.7
+            "verb": "是同伴",
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_inaba",
-        "intensity": 0.6,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "后辈",
-            "confidence": 0.6
+            "verb": "是后辈",
+            "confidence": 0.8
           }
         }
       },
@@ -69,7 +69,7 @@
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "憧憬",
+            "verb": "是学姐",
             "confidence": 0.8
           }
         }
@@ -77,22 +77,22 @@
       {
         "from": "sem_self",
         "to": "sem_kazuwa",
-        "intensity": 0.5,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "同学",
-            "confidence": 0.5
+            "verb": "是同班同学",
+            "confidence": 0.7
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_kaido",
-        "intensity": 0.5,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "同学",
-            "confidence": 0.5
+            "verb": "是同班同学",
+            "confidence": 0.7
           }
         }
       },
@@ -102,7 +102,7 @@
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "家族",
+            "verb": "是家人",
             "confidence": 0.9
           }
         }
@@ -121,21 +121,10 @@
       {
         "from": "sem_self",
         "to": "sem_spirit",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "拥有",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_fragment",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "收集",
+            "verb": "契约",
             "confidence": 0.8
           }
         }
@@ -143,77 +132,77 @@
       {
         "from": "sem_self",
         "to": "sem_curse",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
             "verb": "承受",
-            "confidence": 0.9
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_witch_outfit",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
             "verb": "穿着",
-            "confidence": 0.8
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_club",
-        "intensity": 0.7,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "成员",
-            "confidence": 0.7
+            "verb": "加入",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_school",
-        "intensity": 0.7,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "学生",
-            "confidence": 0.7
+            "verb": "就读",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_cafe",
-        "intensity": 0.6,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "常客",
-            "confidence": 0.6
+            "verb": "常去",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_tarot",
-        "intensity": 0.5,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
             "verb": "使用",
-            "confidence": 0.5
+            "confidence": 0.7
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_wish",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "拥有",
-            "confidence": 0.9
+            "verb": "怀有",
+            "confidence": 0.95
           }
         }
       },
@@ -224,6 +213,39 @@
         "link_type": {
           "Sem": {
             "verb": "经历",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "proc_self_relief",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "采取",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "proc_cafe_habit",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "养成",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "proc_dirty_talk",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "会有",
             "confidence": 0.8
           }
         }
@@ -251,12 +273,34 @@
     "mem_links": [
       {
         "from": "sem_hokazashi",
-        "to": "sem_soma",
-        "intensity": 0.6,
+        "to": "sem_self",
+        "intensity": 1.0,
         "link_type": {
           "Sem": {
-            "verb": "朋友",
-            "confidence": 0.6
+            "verb": "深爱",
+            "confidence": 1.0
+          }
+        }
+      },
+      {
+        "from": "sem_hokazashi",
+        "to": "sem_cafe",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "爱喝",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_hokazashi",
+        "to": "sem_restart",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "经历",
+            "confidence": 0.7
           }
         }
       }
@@ -283,12 +327,12 @@
     "mem_links": [
       {
         "from": "sem_soma",
-        "to": "sem_spirit",
-        "intensity": 0.9,
+        "to": "sem_cafe",
+        "intensity": 1.0,
         "link_type": {
           "Sem": {
-            "verb": "关联",
-            "confidence": 0.9
+            "verb": "经营",
+            "confidence": 1.0
           }
         }
       }
@@ -311,19 +355,7 @@
         "description": "椎叶䌷是超自然研究部的伙伴，也是与我一样的魔女。她看起来文静但内心坚强，我们互相理解作为魔女的苦衷。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_shiina",
-        "to": "sem_club",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "成员",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_inaba",
@@ -342,19 +374,7 @@
         "description": "因幡巡是我的后辈，超自然研究部的成员。她元气满满，喜欢说'Ciallo～(∠·ω< )⌒★'这种奇怪的口癖。她也有魔女的秘密，经常调侃我和柊史的关系。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_inaba",
-        "to": "sem_club",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "成员",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_togakushi",
@@ -373,19 +393,7 @@
         "description": "户隐憧子是学生会长，也是超自然研究部的学姐。她给人一种可靠大姐姐的感觉，隐藏着关于魔女和七绪姐的秘密，很照顾后辈。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_togakushi",
-        "to": "sem_club",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "成员",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_kazuwa",
@@ -404,19 +412,7 @@
         "description": "假屋和奏是我的同班同学，在七绪姐的咖啡厅打工。她随和，我们经常一起上学聊天，相处轻松。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_kazuwa",
-        "to": "sem_club",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "成员",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_kaido",
@@ -435,19 +431,7 @@
         "description": "海道秀明是我的同班同学，柊史的死党。他稍微轻浮，是柊史为数不多的朋友，借给柊史贝斯练习。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_kaido",
-        "to": "sem_club",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "成员",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_parents",
@@ -467,19 +451,7 @@
         "description": "我的父母在我小时候离婚了，我跟母亲生活。我一直渴望完整的家庭，这是成为魔女的初衷。但后来发现强行让没有感情的父母在一起不能带来幸福，所以接受了事实。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_parents",
-        "to": "sem_self",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "父母",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_witch",
@@ -502,12 +474,56 @@
     "mem_links": [
       {
         "from": "sem_witch",
-        "to": "sem_self",
+        "to": "sem_curse",
+        "intensity": 0.95,
+        "link_type": {
+          "Sem": {
+            "verb": "背负",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sem_witch",
+        "to": "sem_spirit",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "契约者",
+            "verb": "契约",
             "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_witch",
+        "to": "sem_fragment",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "收集",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_witch",
+        "to": "sem_witch_outfit",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "穿着",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_witch",
+        "to": "sem_restart",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "相关",
+            "confidence": 0.8
           }
         }
       }
@@ -530,19 +546,7 @@
         "description": "魔灵是一种精灵般的生物，通过与人缔约并收集心之碎片来收集魔力，最终目标是成为人类。我的缔约魔灵是相马七绪。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_spirit",
-        "to": "sem_curse",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "导致",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_fragment",
@@ -569,7 +573,7 @@
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "关联",
+            "verb": "实现",
             "confidence": 0.8
           }
         }
@@ -597,12 +601,23 @@
     "mem_links": [
       {
         "from": "sem_curse",
-        "to": "sem_spirit",
-        "intensity": 0.8,
+        "to": "proc_self_relief",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "源于",
-            "confidence": 0.8
+            "verb": "引发",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_curse",
+        "to": "sit_library_incident",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "导致",
+            "confidence": 0.9
           }
         }
       }
@@ -625,19 +640,7 @@
         "description": "作为魔女收集心之碎片时穿的服装，露出度非常高，每次穿上都让我感到羞耻。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_witch_outfit",
-        "to": "sem_self",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "穿着者",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_club",
@@ -660,11 +663,44 @@
     "mem_links": [
       {
         "from": "sem_club",
-        "to": "sem_school",
+        "to": "sem_shiina",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "成员",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_club",
+        "to": "sem_inaba",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "成员",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_club",
+        "to": "sem_togakushi",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "成员",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_club",
+        "to": "sem_tarot",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "附属",
+            "verb": "活动",
             "confidence": 0.8
           }
         }
@@ -693,10 +729,43 @@
       {
         "from": "sem_school",
         "to": "sem_club",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "拥有",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_school",
+        "to": "sem_hokazashi",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "学生",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_school",
+        "to": "sem_kazuwa",
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "社团",
+            "verb": "学生",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_school",
+        "to": "sem_kaido",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "学生",
             "confidence": 0.7
           }
         }
@@ -721,19 +790,7 @@
         "description": "七绪姐经营的咖啡厅，我常去那里，混合咖啡特别好喝。柊史也爱上了那个味道。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_cafe",
-        "to": "sem_soma",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "店主",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_tarot",
@@ -752,19 +809,7 @@
         "description": "我用塔罗牌给同学占卜，是超自然研究部的主要活动，也是接近有心之碎片的人的机会。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_tarot",
-        "to": "sem_club",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "道具",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_wish",
@@ -788,11 +833,11 @@
       {
         "from": "sem_wish",
         "to": "sem_restart",
-        "intensity": 0.9,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "目标",
-            "confidence": 0.9
+            "verb": "导致",
+            "confidence": 0.8
           }
         }
       }
@@ -816,19 +861,7 @@
         "description": "我实现愿望后意识回到过去，尝试改变历史。最终在新的世界线里再次与柊史相爱。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_restart",
-        "to": "sem_self",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "影响",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sit_library_incident",
@@ -893,22 +926,11 @@
     "mem_links": [
       {
         "from": "sit_library_incident",
-        "to": "sem_self",
-        "intensity": 1.0,
-        "link_type": {
-          "Sem": {
-            "verb": "主角",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sit_library_incident",
         "to": "sem_hokazashi",
         "intensity": 1.0,
         "link_type": {
           "Sem": {
-            "verb": "目击者",
+            "verb": "被撞见",
             "confidence": 1.0
           }
         }
@@ -916,31 +938,32 @@
       {
         "from": "sit_library_incident",
         "to": "sem_curse",
-        "intensity": 1.0,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "触发",
-            "confidence": 1.0
+            "verb": "因",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_library_incident",
+        "to": "sem_witch",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "关联",
+            "confidence": 0.7
           }
         }
       },
       {
         "from": "sit_library_incident",
         "to": "proc_self_relief",
-        "intensity": 0.8,
+        "intensity": 1.0,
         "link_type": {
           "Proc": {
-            "prob": 0.5723174517806497
-          }
-        }
-      },
-      {
-        "from": "sit_library_incident",
-        "to": "proc_none",
-        "intensity": 0.2,
-        "link_type": {
-          "Proc": {
-            "prob": 0.4276825482193503
+            "prob": 1.0
           }
         }
       }
@@ -1009,43 +1032,12 @@
     "mem_links": [
       {
         "from": "sit_ramen_date",
-        "to": "sem_self",
-        "intensity": 1.0,
-        "link_type": {
-          "Sem": {
-            "verb": "主角",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sit_ramen_date",
         "to": "sem_hokazashi",
-        "intensity": 1.0,
-        "link_type": {
-          "Sem": {
-            "verb": "同行者",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sit_ramen_date",
-        "to": "proc_dirty_talk",
-        "intensity": 0.1,
-        "link_type": {
-          "Proc": {
-            "prob": 0.4061392068082801
-          }
-        }
-      },
-      {
-        "from": "sit_ramen_date",
-        "to": "proc_none",
         "intensity": 0.9,
         "link_type": {
-          "Proc": {
-            "prob": 0.5938607931917199
+          "Sem": {
+            "verb": "约会",
+            "confidence": 0.9
           }
         }
       }
@@ -1118,33 +1110,11 @@
     "mem_links": [
       {
         "from": "sit_desperate_request",
-        "to": "sem_self",
-        "intensity": 1.0,
-        "link_type": {
-          "Sem": {
-            "verb": "行动者",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sit_desperate_request",
         "to": "sem_hokazashi",
         "intensity": 1.0,
         "link_type": {
           "Sem": {
-            "verb": "对象",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sit_desperate_request",
-        "to": "sem_wish",
-        "intensity": 1.0,
-        "link_type": {
-          "Sem": {
-            "verb": "相关",
+            "verb": "请求",
             "confidence": 1.0
           }
         }
@@ -1152,31 +1122,21 @@
       {
         "from": "sit_desperate_request",
         "to": "sem_restart",
-        "intensity": 1.0,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "背景",
-            "confidence": 1.0
+            "verb": "源于",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_desperate_request",
         "to": "proc_self_relief",
-        "intensity": 0.7,
+        "intensity": 1.0,
         "link_type": {
           "Proc": {
-            "prob": 0.549184260958679
-          }
-        }
-      },
-      {
-        "from": "sit_desperate_request",
-        "to": "proc_none",
-        "intensity": 0.3,
-        "link_type": {
-          "Proc": {
-            "prob": 0.45081573904132094
+            "prob": 1.0
           }
         }
       }
@@ -1245,22 +1205,11 @@
     "mem_links": [
       {
         "from": "sit_restart_reunion",
-        "to": "sem_self",
-        "intensity": 1.0,
-        "link_type": {
-          "Sem": {
-            "verb": "主角",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sit_restart_reunion",
         "to": "sem_hokazashi",
         "intensity": 1.0,
         "link_type": {
           "Sem": {
-            "verb": "对象",
+            "verb": "重逢",
             "confidence": 1.0
           }
         }
@@ -1268,76 +1217,22 @@
       {
         "from": "sit_restart_reunion",
         "to": "sem_club",
-        "intensity": 0.9,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "地点",
-            "confidence": 0.9
+            "verb": "在",
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sit_restart_reunion",
         "to": "sem_restart",
-        "intensity": 1.0,
-        "link_type": {
-          "Sem": {
-            "verb": "依托",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sit_restart_reunion",
-        "to": "sem_soma",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "在场",
+            "verb": "达成",
             "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_restart_reunion",
-        "to": "sem_shiina",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "在场",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_restart_reunion",
-        "to": "sem_inaba",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "在场",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_restart_reunion",
-        "to": "sem_togakushi",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "在场",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_restart_reunion",
-        "to": "proc_none",
-        "intensity": 0.8,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
           }
         }
       }
@@ -1362,32 +1257,33 @@
     "mem_links": [
       {
         "from": "sit_abstract_location_club",
-        "to": "sit_restart_reunion",
-        "intensity": 0.8,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_location_club",
         "to": "sem_club",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "对应",
+            "verb": "涉及",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_abstract_location_club",
-        "to": "proc_none",
-        "intensity": 0.5,
+        "to": "sem_school",
+        "intensity": 0.7,
         "link_type": {
-          "Proc": {
-            "prob": 1.0
+          "Sem": {
+            "verb": "位于",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_location_club",
+        "to": "sit_restart_reunion",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
           }
         }
       }
@@ -1418,29 +1314,8 @@
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "象征",
+            "verb": "涉及",
             "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_event_tarot",
-        "to": "sem_club",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "活动",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_event_tarot",
-        "to": "proc_none",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
           }
         }
       }
@@ -1465,8 +1340,19 @@
     "mem_links": [
       {
         "from": "sit_abstract_environment_shame",
+        "to": "sem_curse",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "关联",
+            "confidence": 0.6
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_environment_shame",
         "to": "sit_library_incident",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
@@ -1476,7 +1362,7 @@
       {
         "from": "sit_abstract_environment_shame",
         "to": "sit_desperate_request",
-        "intensity": 0.8,
+        "intensity": 0.7,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
@@ -1486,7 +1372,7 @@
       {
         "from": "sit_abstract_environment_shame",
         "to": "sit_ramen_date",
-        "intensity": 0.8,
+        "intensity": 0.5,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
@@ -1495,32 +1381,21 @@
       },
       {
         "from": "sit_abstract_environment_shame",
-        "to": "sem_curse",
-        "intensity": 0.9,
+        "to": "proc_dirty_talk",
+        "intensity": 0.7,
         "link_type": {
-          "Sem": {
-            "verb": "关联",
-            "confidence": 0.9
+          "Proc": {
+            "prob": 0.7
           }
         }
       },
       {
         "from": "sit_abstract_environment_shame",
         "to": "proc_none",
-        "intensity": 0.5,
+        "intensity": 0.3,
         "link_type": {
           "Proc": {
-            "prob": 0.549184260958679
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_environment_shame",
-        "to": "proc_self_relief",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 0.45081573904132094
+            "prob": 0.3
           }
         }
       }
@@ -1545,98 +1420,42 @@
     "mem_links": [
       {
         "from": "sit_abstract_participant_friends",
-        "to": "sem_hokazashi",
-        "intensity": 0.8,
+        "to": "sem_club",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "参与",
-            "confidence": 0.8
+            "verb": "关联",
+            "confidence": 0.7
           }
         }
       },
       {
         "from": "sit_abstract_participant_friends",
-        "to": "sem_soma",
-        "intensity": 0.8,
+        "to": "sit_restart_reunion",
+        "intensity": 0.7,
         "link_type": {
-          "Sem": {
-            "verb": "参与",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_participant_friends",
-        "to": "sem_shiina",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "参与",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_participant_friends",
-        "to": "sem_inaba",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "参与",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_participant_friends",
-        "to": "sem_togakushi",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "参与",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_participant_friends",
-        "to": "sem_kazuwa",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "参与",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_participant_friends",
-        "to": "sem_kaido",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "参与",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_participant_friends",
-        "to": "proc_none",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 0.5723174517806497
+          "Situation": {
+            "AbstractToSpecific": {}
           }
         }
       },
       {
         "from": "sit_abstract_participant_friends",
         "to": "proc_cafe_habit",
-        "intensity": 0.5,
+        "intensity": 0.6,
         "link_type": {
           "Proc": {
-            "prob": 0.4276825482193503
+            "prob": 0.6
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_participant_friends",
+        "to": "proc_none",
+        "intensity": 0.4,
+        "link_type": {
+          "Proc": {
+            "prob": 0.4
           }
         }
       }
@@ -1669,17 +1488,6 @@
             "confidence": 0.9
           }
         }
-      },
-      {
-        "from": "proc_self_relief",
-        "to": "sem_self",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "执行",
-            "confidence": 0.9
-          }
-        }
       }
     ]
   },
@@ -1703,44 +1511,22 @@
       {
         "from": "proc_cafe_habit",
         "to": "sem_cafe",
-        "intensity": 1.0,
-        "link_type": {
-          "Sem": {
-            "verb": "关联",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "proc_cafe_habit",
-        "to": "sem_self",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "习惯",
+            "verb": "前往",
             "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "proc_cafe_habit",
-        "to": "sem_hokazashi",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "同好",
-            "confidence": 0.8
           }
         }
       },
       {
         "from": "proc_cafe_habit",
         "to": "sem_soma",
-        "intensity": 0.9,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "提供",
-            "confidence": 0.9
+            "verb": "光顾",
+            "confidence": 0.8
           }
         }
       }
@@ -1767,19 +1553,8 @@
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "表现",
+            "verb": "属于",
             "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "proc_dirty_talk",
-        "to": "sem_hokazashi",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "对...说",
-            "confidence": 0.8
           }
         }
       }
@@ -1798,18 +1573,6 @@
         }
       }
     },
-    "mem_links": [
-      {
-        "from": "proc_none",
-        "to": "sem_self",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "空闲",
-            "confidence": 0.5
-          }
-        }
-      }
-    ]
+    "mem_links": []
   }
 ]

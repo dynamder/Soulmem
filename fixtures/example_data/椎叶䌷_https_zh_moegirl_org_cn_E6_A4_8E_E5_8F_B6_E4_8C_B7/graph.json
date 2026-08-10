@@ -21,10 +21,10 @@
       {
         "from": "sem_self",
         "to": "sem_hojo_tohshi",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "恋人",
+            "verb": "喜欢",
             "confidence": 0.95
           }
         }
@@ -35,7 +35,7 @@
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "契约者",
+            "verb": "契约",
             "confidence": 0.9
           }
         }
@@ -76,11 +76,11 @@
       {
         "from": "sem_self",
         "to": "sem_kariya_kazusa",
-        "intensity": 0.7,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "同学",
-            "confidence": 0.7
+            "verb": "朋友",
+            "confidence": 0.8
           }
         }
       },
@@ -90,7 +90,7 @@
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "同学",
+            "verb": "朋友",
             "confidence": 0.7
           }
         }
@@ -98,21 +98,32 @@
       {
         "from": "sem_self",
         "to": "sem_hoshiko_taichi",
-        "intensity": 0.6,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "长辈",
-            "confidence": 0.6
+            "verb": "尊敬",
+            "confidence": 0.7
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_grandmother",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
             "verb": "家人",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_supernatural_club",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "加入",
             "confidence": 0.9
           }
         }
@@ -134,7 +145,7 @@
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "契约",
+            "verb": "关联",
             "confidence": 0.8
           }
         }
@@ -142,21 +153,10 @@
       {
         "from": "sem_self",
         "to": "sem_heart_fragment",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "收集",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_supernatural_club",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "所属",
+            "verb": "收集",
             "confidence": 0.8
           }
         }
@@ -164,11 +164,11 @@
       {
         "from": "sem_self",
         "to": "sem_hammer",
-        "intensity": 0.7,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
             "verb": "使用",
-            "confidence": 0.7
+            "confidence": 0.9
           }
         }
       },
@@ -178,7 +178,7 @@
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "日常穿着",
+            "verb": "穿着",
             "confidence": 0.9
           }
         }
@@ -197,99 +197,11 @@
       {
         "from": "sem_self",
         "to": "sem_childhood_weakness",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "曾有",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sit_transfer_school",
-        "intensity": 0.9,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
             "verb": "经历",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sit_contract_with_akagi",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sit_hojo_turned_doll",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sit_akagi_turned_crow",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sit_christmas_eve_grandmother",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sit_halloween_party",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sit_battle_with_puppy_dog",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sit_eating_parfait_with_toko",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.9
+            "confidence": 0.8
           }
         }
       }
@@ -333,7 +245,19 @@
         "description": "赤城是我缔结契约的魔灵。她平时说话带着'喏酱'的口癖，看似任性自私，但在关键时刻却展现出了坚定的信念。她和我外婆之间有跨越50年的约定，为了寻找我外婆一直努力想要变成人类。在危急时刻她主动舍弃魔力变回乌鸦，后来我再次与她缔结契约，帮助她收集心之碎片。她最喜欢吃我做的鸡肉丸子。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_akagi",
+        "to": "sem_hojo_tohshi",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "契约",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_ayachi_nene",
@@ -668,11 +592,11 @@
       {
         "from": "sit_transfer_school",
         "to": "sem_supernatural_club",
-        "intensity": 0.8,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
             "verb": "加入",
-            "confidence": 0.8
+            "confidence": 0.7
           }
         }
       }
@@ -732,10 +656,21 @@
       {
         "from": "sit_contract_with_akagi",
         "to": "sem_akagi",
+        "intensity": 0.95,
+        "link_type": {
+          "Sem": {
+            "verb": "契约",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_contract_with_akagi",
+        "to": "sem_witch",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "涉及",
+            "verb": "成为",
             "confidence": 0.9
           }
         }
@@ -743,11 +678,21 @@
       {
         "from": "sit_contract_with_akagi",
         "to": "sem_female_clothes",
-        "intensity": 0.9,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "代价",
-            "confidence": 0.9
+            "verb": "起因",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_contract_with_akagi",
+        "to": "proc_vomit_when_wearing_female_clothes",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
           }
         }
       }
@@ -811,19 +756,19 @@
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "主角",
+            "verb": "担忧",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_hojo_turned_doll",
-        "to": "sem_female_clothes",
-        "intensity": 0.8,
+        "to": "sem_akagi",
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "目的",
-            "confidence": 0.8
+            "verb": "契约",
+            "confidence": 0.85
           }
         }
       }
@@ -890,7 +835,7 @@
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "经历",
+            "verb": "心疼",
             "confidence": 0.9
           }
         }
@@ -955,22 +900,22 @@
       {
         "from": "sit_christmas_eve_grandmother",
         "to": "sem_grandmother",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
             "verb": "重逢",
-            "confidence": 0.9
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_christmas_eve_grandmother",
         "to": "sem_akagi",
-        "intensity": 0.9,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "约定",
-            "confidence": 0.9
+            "verb": "见面",
+            "confidence": 0.8
           }
         }
       }
@@ -1034,11 +979,11 @@
       {
         "from": "sit_halloween_party",
         "to": "sem_supernatural_club",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "主办",
-            "confidence": 0.8
+            "verb": "举办",
+            "confidence": 0.9
           }
         }
       },
@@ -1048,8 +993,28 @@
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "主唱",
+            "verb": "替代",
             "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_halloween_party",
+        "to": "proc_avoid_conflict",
+        "intensity": 0.8,
+        "link_type": {
+          "Proc": {
+            "prob": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_halloween_party",
+        "to": "proc_none",
+        "intensity": 0.2,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
           }
         }
       }
@@ -1106,11 +1071,11 @@
       {
         "from": "sit_battle_with_puppy_dog",
         "to": "sem_heart_fragment",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "收集",
-            "confidence": 0.9
+            "verb": "击碎",
+            "confidence": 0.95
           }
         }
       },
@@ -1178,11 +1143,32 @@
       {
         "from": "sit_eating_parfait_with_toko",
         "to": "sem_togakure_toko",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "一起",
-            "confidence": 0.8
+            "verb": "一起吃",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_eating_parfait_with_toko",
+        "to": "sem_hojo_tohshi",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "一起吃",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sit_eating_parfait_with_toko",
+        "to": "proc_get_jealous",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
           }
         }
       }
@@ -1207,31 +1193,22 @@
     "mem_links": [
       {
         "from": "sit_abs_location_clubroom",
+        "to": "sem_supernatural_club",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "地点",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_abs_location_clubroom",
         "to": "sit_halloween_party",
         "intensity": 0.8,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_abs_location_clubroom",
-        "to": "proc_vomit_when_wearing_female_clothes",
-        "intensity": 0.7,
-        "link_type": {
-          "Proc": {
-            "prob": 0.4276825482193503
-          }
-        }
-      },
-      {
-        "from": "sit_abs_location_clubroom",
-        "to": "proc_none",
-        "intensity": 0.7,
-        "link_type": {
-          "Proc": {
-            "prob": 0.5723174517806497
           }
         }
       }
@@ -1256,7 +1233,7 @@
     "mem_links": [
       {
         "from": "sit_abs_environment_peaceful",
-        "to": "sit_transfer_school",
+        "to": "sit_christmas_eve_grandmother",
         "intensity": 0.7,
         "link_type": {
           "Situation": {
@@ -1267,50 +1244,20 @@
       {
         "from": "sit_abs_environment_peaceful",
         "to": "sit_eating_parfait_with_toko",
-        "intensity": 0.7,
+        "intensity": 0.6,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_abs_environment_peaceful",
-        "to": "sit_halloween_party",
-        "intensity": 0.7,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_abs_environment_peaceful",
-        "to": "proc_avoid_conflict",
-        "intensity": 0.6,
-        "link_type": {
-          "Proc": {
-            "prob": 0.32857906625689026
-          }
-        }
-      },
-      {
-        "from": "sit_abs_environment_peaceful",
-        "to": "proc_get_jealous",
-        "intensity": 0.6,
-        "link_type": {
-          "Proc": {
-            "prob": 0.31872783339994415
           }
         }
       },
       {
         "from": "sit_abs_environment_peaceful",
         "to": "proc_none",
-        "intensity": 0.6,
+        "intensity": 1.0,
         "link_type": {
           "Proc": {
-            "prob": 0.3526931003431656
+            "prob": 1.0
           }
         }
       }
@@ -1337,6 +1284,17 @@
     "mem_links": [
       {
         "from": "sit_abs_event_collecting_fragments",
+        "to": "sem_heart_fragment",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "收集",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_abs_event_collecting_fragments",
         "to": "sit_battle_with_puppy_dog",
         "intensity": 0.9,
         "link_type": {
@@ -1347,21 +1305,31 @@
       },
       {
         "from": "sit_abs_event_collecting_fragments",
-        "to": "proc_use_hammer_when_angry",
+        "to": "sit_akagi_turned_crow",
         "intensity": 0.8,
         "link_type": {
-          "Proc": {
-            "prob": 0.5248963926073127
+          "Situation": {
+            "AbstractToSpecific": {}
           }
         }
       },
       {
         "from": "sit_abs_event_collecting_fragments",
-        "to": "proc_none",
-        "intensity": 0.8,
+        "to": "proc_use_hammer_when_angry",
+        "intensity": 0.7,
         "link_type": {
           "Proc": {
-            "prob": 0.47510360739268725
+            "prob": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_abs_event_collecting_fragments",
+        "to": "proc_avoid_conflict",
+        "intensity": 0.3,
+        "link_type": {
+          "Proc": {
+            "prob": 0.3
           }
         }
       }
@@ -1381,19 +1349,7 @@
         }
       }
     },
-    "mem_links": [
-      {
-        "from": "proc_avoid_conflict",
-        "to": "sem_childhood_weakness",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "源于",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "proc_get_jealous",
@@ -1416,7 +1372,7 @@
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "对象",
+            "verb": "因他吃醋",
             "confidence": 0.8
           }
         }
@@ -1474,7 +1430,7 @@
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "触发",
+            "verb": "反应",
             "confidence": 0.9
           }
         }
@@ -1495,18 +1451,6 @@
         }
       }
     },
-    "mem_links": [
-      {
-        "from": "proc_none",
-        "to": "sem_self",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "空闲",
-            "confidence": 0.5
-          }
-        }
-      }
-    ]
+    "mem_links": []
   }
 ]

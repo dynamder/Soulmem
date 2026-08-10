@@ -24,96 +24,19 @@
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "姐妹",
+            "verb": "姐姐",
             "confidence": 0.95
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_sakuya",
-        "intensity": 0.7,
+        "to": "sem_vampire",
+        "intensity": 1.0,
         "link_type": {
           "Sem": {
-            "verb": "被侍奉",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_patchouli",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "认识",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_meiling",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "认识",
-            "confidence": 0.6
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_koishi",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "朋友",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_aya",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "被采访",
-            "confidence": 0.6
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_marisa",
-        "intensity": 0.3,
-        "link_type": {
-          "Sem": {
-            "verb": "见过",
-            "confidence": 0.5
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_reimu",
-        "intensity": 0.3,
-        "link_type": {
-          "Sem": {
-            "verb": "见过",
-            "confidence": 0.5
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_keine",
-        "intensity": 0.2,
-        "link_type": {
-          "Sem": {
-            "verb": "知道",
-            "confidence": 0.3
+            "verb": "属于",
+            "confidence": 1.0
           }
         }
       },
@@ -123,30 +46,19 @@
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "居住",
-            "confidence": 1.0
+            "verb": "住在",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_gensokyo",
-        "intensity": 0.8,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "所属",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_vampire",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "是",
-            "confidence": 1.0
+            "verb": "生活在",
+            "confidence": 0.8
           }
         }
       },
@@ -157,18 +69,29 @@
         "link_type": {
           "Sem": {
             "verb": "拥有",
-            "confidence": 1.0
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_laevatein",
-        "intensity": 0.8,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
             "verb": "使用",
-            "confidence": 0.9
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_crystal_wings",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "拥有",
+            "confidence": 0.8
           }
         }
       },
@@ -179,18 +102,84 @@
         "link_type": {
           "Sem": {
             "verb": "年龄",
-            "confidence": 1.0
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_crystal_wings",
-        "intensity": 0.9,
+        "to": "sem_koishi",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "拥有",
-            "confidence": 1.0
+            "verb": "朋友",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_marisa",
+        "intensity": 0.5,
+        "link_type": {
+          "Sem": {
+            "verb": "相识",
+            "confidence": 0.6
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_reimu",
+        "intensity": 0.4,
+        "link_type": {
+          "Sem": {
+            "verb": "相识",
+            "confidence": 0.5
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_sakuya",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "被侍奉",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_aya",
+        "intensity": 0.5,
+        "link_type": {
+          "Sem": {
+            "verb": "被报道",
+            "confidence": 0.6
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_patchouli",
+        "intensity": 0.3,
+        "link_type": {
+          "Sem": {
+            "verb": "认识",
+            "confidence": 0.4
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_meiling",
+        "intensity": 0.3,
+        "link_type": {
+          "Sem": {
+            "verb": "认识",
+            "confidence": 0.4
           }
         }
       }
@@ -214,7 +203,41 @@
         "description": "她是我的姐姐，红魔馆的主人。我最喜欢姐姐大人了，虽然她总是不让我出门，把我关在地下室里，但我知道她是为了我好。她拥有操纵命运的能力，表面上装作什么都知道的样子，经常说“一切都是命运的安排”。她的破坏力不及我，但她是姐姐，我很尊敬她。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_remilia",
+        "to": "sem_self",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "妹妹",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_remilia",
+        "to": "sem_vampire",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "属于",
+            "confidence": 1.0
+          }
+        }
+      },
+      {
+        "from": "sem_remilia",
+        "to": "sem_mansion",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "是主人",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_sakuya",
@@ -233,7 +256,30 @@
         "description": "她是红魔馆的女仆长，一个非常能干的银发女仆。她负责照顾我的日常起居，给我送来每天的食物。她似乎并不知道地下室的门锁其实根本关不住我，这是个只有我知道的秘密。她总是很忙碌，但对我很温柔。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_sakuya",
+        "to": "sem_self",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "侍奉",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_sakuya",
+        "to": "sem_remilia",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "侍奉",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_patchouli",
@@ -385,7 +431,63 @@
         "description": "这是我和姐姐的家，位于幻想乡的雾之湖附近。这是一座巨大的洋馆，里面有地下图书室（帕秋莉的地盘）、地下储藏室（我的地盘）等各种设施。我是红魔馆的二小姐，这里是我的归属。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_mansion",
+        "to": "sem_gensokyo",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "位于",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_mansion",
+        "to": "sem_remilia",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "居住着",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_mansion",
+        "to": "sem_sakuya",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "有",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_mansion",
+        "to": "sem_patchouli",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "有",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_mansion",
+        "to": "sem_meiling",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "有",
+            "confidence": 0.7
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_gensokyo",
@@ -573,34 +675,44 @@
     "mem_links": [
       {
         "from": "sit_meteor_destruction",
+        "to": "sem_mansion",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "保护",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_meteor_destruction",
         "to": "sem_self",
-        "intensity": 1.0,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "参与",
-            "confidence": 1.0
+            "verb": "解决者",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_meteor_destruction",
-        "to": "sem_remilia",
-        "intensity": 0.7,
+        "to": "sem_destruction_eye",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "在场",
-            "confidence": 0.8
+            "verb": "展示",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_meteor_destruction",
-        "to": "sem_aya",
-        "intensity": 0.4,
+        "to": "proc_destory_eye",
+        "intensity": 0.95,
         "link_type": {
-          "Sem": {
-            "verb": "被采访",
-            "confidence": 0.6
+          "Proc": {
+            "prob": 1.0
           }
         }
       }
@@ -664,33 +776,44 @@
       {
         "from": "sit_ex_extra",
         "to": "sem_self",
-        "intensity": 1.0,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
             "verb": "设计者",
-            "confidence": 1.0
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sit_ex_extra",
         "to": "sem_marisa",
-        "intensity": 0.5,
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "对手",
-            "confidence": 0.7
+            "verb": "对战",
+            "confidence": 0.6
           }
         }
       },
       {
         "from": "sit_ex_extra",
         "to": "sem_reimu",
-        "intensity": 0.4,
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "对手",
+            "verb": "对战",
             "confidence": 0.6
+          }
+        }
+      },
+      {
+        "from": "sit_ex_extra",
+        "to": "sem_laevatein",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "使用",
+            "confidence": 0.8
           }
         }
       }
@@ -750,21 +873,21 @@
       {
         "from": "sit_gouyoku_ijin",
         "to": "sem_self",
-        "intensity": 1.0,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "自机",
-            "confidence": 1.0
+            "verb": "登场",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_gouyoku_ijin",
-        "to": "sem_destruction_eye",
+        "to": "sem_gensokyo",
         "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "关联",
+            "verb": "发生于",
             "confidence": 0.7
           }
         }
@@ -827,23 +950,23 @@
     "mem_links": [
       {
         "from": "sit_sneak_visit",
-        "to": "sem_self",
-        "intensity": 1.0,
+        "to": "sem_koishi",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "参与者",
-            "confidence": 1.0
+            "verb": "来访",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_sneak_visit",
-        "to": "sem_koishi",
-        "intensity": 1.0,
+        "to": "sem_self",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "来访者",
-            "confidence": 1.0
+            "verb": "被拜访",
+            "confidence": 0.8
           }
         }
       }
@@ -909,34 +1032,34 @@
     "mem_links": [
       {
         "from": "sit_aya_interview",
-        "to": "sem_self",
-        "intensity": 1.0,
+        "to": "sem_aya",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "被采访",
-            "confidence": 1.0
+            "verb": "采访者",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_aya_interview",
-        "to": "sem_aya",
-        "intensity": 1.0,
+        "to": "sem_self",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "记者",
-            "confidence": 1.0
+            "verb": "被采访",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_aya_interview",
         "to": "sem_remilia",
-        "intensity": 0.3,
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "在场",
-            "confidence": 0.5
+            "verb": "参与对话",
+            "confidence": 0.7
           }
         }
       }
@@ -961,21 +1084,43 @@
     "mem_links": [
       {
         "from": "sit_basement_location",
-        "to": "proc_stay_basement",
-        "intensity": 1.0,
+        "to": "sem_mansion",
+        "intensity": 0.8,
         "link_type": {
-          "Proc": {
-            "prob": 0.5723174517806497
+          "Sem": {
+            "verb": "位于",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_basement_location",
-        "to": "proc_none",
-        "intensity": 0.3,
+        "to": "sem_self",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "活动场所",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_basement_location",
+        "to": "sit_sneak_visit",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_basement_location",
+        "to": "proc_stay_basement",
+        "intensity": 0.85,
         "link_type": {
           "Proc": {
-            "prob": 0.4276825482193503
+            "prob": 1.0
           }
         }
       }
@@ -1000,31 +1145,12 @@
     "mem_links": [
       {
         "from": "sit_basement_environment",
-        "to": "proc_stay_basement",
-        "intensity": 0.8,
+        "to": "sem_mansion",
+        "intensity": 0.7,
         "link_type": {
-          "Proc": {
-            "prob": 0.3653316888997003
-          }
-        }
-      },
-      {
-        "from": "sit_basement_environment",
-        "to": "proc_obey_sister",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3173341555501499
-          }
-        }
-      },
-      {
-        "from": "sit_basement_environment",
-        "to": "proc_none",
-        "intensity": 0.3,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3173341555501499
+          "Sem": {
+            "verb": "关于",
+            "confidence": 0.8
           }
         }
       }
@@ -1051,41 +1177,44 @@
     "mem_links": [
       {
         "from": "sit_bullet_event",
-        "to": "sit_ex_extra",
+        "to": "sem_self",
         "intensity": 0.7,
         "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
+          "Sem": {
+            "verb": "参与",
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sit_bullet_event",
-        "to": "sit_gouyoku_ijin",
-        "intensity": 0.3,
+        "to": "sem_marisa",
+        "intensity": 0.6,
         "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
+          "Sem": {
+            "verb": "参与",
+            "confidence": 0.7
           }
         }
       },
       {
         "from": "sit_bullet_event",
-        "to": "proc_destory_eye",
-        "intensity": 0.5,
+        "to": "sem_reimu",
+        "intensity": 0.6,
         "link_type": {
-          "Proc": {
-            "prob": 0.45081573904132094
+          "Sem": {
+            "verb": "参与",
+            "confidence": 0.7
           }
         }
       },
       {
         "from": "sit_bullet_event",
-        "to": "proc_none",
+        "to": "sit_ex_extra",
         "intensity": 0.8,
         "link_type": {
-          "Proc": {
-            "prob": 0.549184260958679
+          "Situation": {
+            "AbstractToSpecific": {}
           }
         }
       }
@@ -1111,53 +1240,43 @@
       {
         "from": "sit_bullet_participant",
         "to": "sem_self",
-        "intensity": 0.9,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
             "verb": "参与者",
-            "confidence": 1.0
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sit_bullet_participant",
         "to": "sem_marisa",
-        "intensity": 0.6,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
             "verb": "参与者",
-            "confidence": 0.7
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sit_bullet_participant",
         "to": "sem_reimu",
-        "intensity": 0.6,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
             "verb": "参与者",
-            "confidence": 0.7
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sit_bullet_participant",
-        "to": "proc_obey_sister",
-        "intensity": 0.4,
+        "to": "proc_dont_attack_humans",
+        "intensity": 0.7,
         "link_type": {
           "Proc": {
-            "prob": 0.4276825482193503
-          }
-        }
-      },
-      {
-        "from": "sit_bullet_participant",
-        "to": "proc_none",
-        "intensity": 0.8,
-        "link_type": {
-          "Proc": {
-            "prob": 0.5723174517806497
+            "prob": 1.0
           }
         }
       }
@@ -1182,51 +1301,23 @@
     "mem_links": [
       {
         "from": "sit_misunderstood_environment",
-        "to": "sit_aya_interview",
+        "to": "sem_self",
         "intensity": 0.8,
         "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
+          "Sem": {
+            "verb": "被误解",
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sit_misunderstood_environment",
-        "to": "sit_meteor_destruction",
-        "intensity": 0.2,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_misunderstood_environment",
-        "to": "proc_obey_sister",
+        "to": "sem_vampire",
         "intensity": 0.5,
         "link_type": {
-          "Proc": {
-            "prob": 0.3404005746001483
-          }
-        }
-      },
-      {
-        "from": "sit_misunderstood_environment",
-        "to": "proc_none",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3404005746001483
-          }
-        }
-      },
-      {
-        "from": "sit_misunderstood_environment",
-        "to": "proc_dont_attack_humans",
-        "intensity": 0.3,
-        "link_type": {
-          "Proc": {
-            "prob": 0.31919885079970345
+          "Sem": {
+            "verb": "偏见目标",
+            "confidence": 0.5
           }
         }
       }
@@ -1253,41 +1344,33 @@
     "mem_links": [
       {
         "from": "sit_misunderstood_event",
-        "to": "sit_aya_interview",
-        "intensity": 0.6,
+        "to": "sem_self",
+        "intensity": 0.7,
         "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
+          "Sem": {
+            "verb": "主角",
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sit_misunderstood_event",
-        "to": "sit_meteor_destruction",
-        "intensity": 0.4,
+        "to": "sem_remilia",
+        "intensity": 0.5,
         "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
+          "Sem": {
+            "verb": "关联",
+            "confidence": 0.6
           }
         }
       },
       {
         "from": "sit_misunderstood_event",
         "to": "proc_obey_sister",
-        "intensity": 0.4,
+        "intensity": 0.8,
         "link_type": {
           "Proc": {
-            "prob": 0.45081573904132094
-          }
-        }
-      },
-      {
-        "from": "sit_misunderstood_event",
-        "to": "proc_none",
-        "intensity": 0.7,
-        "link_type": {
-          "Proc": {
-            "prob": 0.549184260958679
+            "prob": 1.0
           }
         }
       }
@@ -1310,23 +1393,23 @@
     "mem_links": [
       {
         "from": "proc_stay_basement",
-        "to": "sem_self",
-        "intensity": 1.0,
+        "to": "sem_mansion",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "行为者",
-            "confidence": 1.0
+            "verb": "位于",
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "proc_stay_basement",
-        "to": "sem_mansion",
-        "intensity": 0.9,
+        "to": "sem_self",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "地点",
-            "confidence": 1.0
+            "verb": "行为主体",
+            "confidence": 0.8
           }
         }
       }
@@ -1349,23 +1432,23 @@
     "mem_links": [
       {
         "from": "proc_destory_eye",
-        "to": "sem_self",
-        "intensity": 1.0,
+        "to": "sem_destruction_eye",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "行为者",
-            "confidence": 1.0
+            "verb": "使用",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "proc_destory_eye",
-        "to": "sem_destruction_eye",
-        "intensity": 1.0,
+        "to": "sem_self",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "使用能力",
-            "confidence": 1.0
+            "verb": "使用者",
+            "confidence": 0.8
           }
         }
       }
@@ -1388,23 +1471,23 @@
     "mem_links": [
       {
         "from": "proc_dont_attack_humans",
-        "to": "sem_self",
-        "intensity": 1.0,
+        "to": "sem_marisa",
+        "intensity": 0.4,
         "link_type": {
           "Sem": {
-            "verb": "行为者",
-            "confidence": 1.0
+            "verb": "不对...下杀手",
+            "confidence": 0.5
           }
         }
       },
       {
         "from": "proc_dont_attack_humans",
-        "to": "sem_vampire",
-        "intensity": 0.6,
+        "to": "sem_reimu",
+        "intensity": 0.4,
         "link_type": {
           "Sem": {
-            "verb": "种族特性",
-            "confidence": 0.8
+            "verb": "不对...下杀手",
+            "confidence": 0.5
           }
         }
       }
@@ -1427,23 +1510,23 @@
     "mem_links": [
       {
         "from": "proc_obey_sister",
-        "to": "sem_self",
-        "intensity": 1.0,
+        "to": "sem_remilia",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "行为者",
-            "confidence": 1.0
+            "verb": "服从",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "proc_obey_sister",
-        "to": "sem_remilia",
-        "intensity": 1.0,
+        "to": "sem_self",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "服从对象",
-            "confidence": 1.0
+            "verb": "行为主体",
+            "confidence": 0.8
           }
         }
       }
@@ -1463,18 +1546,6 @@
         }
       }
     },
-    "mem_links": [
-      {
-        "from": "proc_none",
-        "to": "sem_self",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "空闲",
-            "confidence": 1.0
-          }
-        }
-      }
-    ]
+    "mem_links": []
   }
 ]

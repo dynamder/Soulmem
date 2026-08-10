@@ -21,23 +21,12 @@
     "mem_links": [
       {
         "from": "sem_self",
-        "to": "sem_aponia",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "被养育",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
         "to": "sem_hen",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
             "verb": "父亲",
-            "confidence": 0.9
+            "confidence": 0.95
           }
         }
       },
@@ -48,6 +37,17 @@
         "link_type": {
           "Sem": {
             "verb": "母亲",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_aponia",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "敬爱",
             "confidence": 0.9
           }
         }
@@ -59,7 +59,29 @@
         "link_type": {
           "Sem": {
             "verb": "朋友",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_meibiyusi",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "同事",
             "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_ailixiya",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "同伴",
+            "confidence": 0.85
           }
         }
       },
@@ -70,29 +92,51 @@
         "link_type": {
           "Sem": {
             "verb": "朋友",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_ailixiya",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "受其影响",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_hua",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "被唤醒",
             "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_ying",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "同伴",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_su",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "同伴",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_yidian",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "同伴",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_qianjie",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "同伴",
+            "confidence": 0.8
           }
         }
       },
@@ -102,8 +146,19 @@
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "请求帮助",
-            "confidence": 0.8
+            "verb": "依赖",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_hua",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "信赖",
+            "confidence": 0.9
           }
         }
       },
@@ -113,48 +168,48 @@
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "朋友",
-            "confidence": 0.7
+            "verb": "同伴",
+            "confidence": 0.85
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_weita",
-        "intensity": 0.6,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
             "verb": "认识",
-            "confidence": 0.6
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_danzhu",
-        "intensity": 0.7,
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "得到食物",
-            "confidence": 0.7
+            "verb": "敬爱",
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_cangxuan",
-        "intensity": 0.7,
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "得到食物",
-            "confidence": 0.7
+            "verb": "敬爱",
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_mawen",
-        "intensity": 0.8,
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
             "verb": "伙伴",
@@ -165,21 +220,21 @@
       {
         "from": "sem_self",
         "to": "sem_guan",
-        "intensity": 0.8,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "宠物",
-            "confidence": 0.8
+            "verb": "陪伴",
+            "confidence": 0.85
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_zhuhuo",
-        "intensity": 0.9,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "成员",
+            "verb": "属于",
             "confidence": 0.9
           }
         }
@@ -190,7 +245,18 @@
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "成员",
+            "verb": "属于",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_chaobian",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "接受",
             "confidence": 0.8
           }
         }
@@ -198,11 +264,11 @@
       {
         "from": "sem_self",
         "to": "sem_fangzhou",
-        "intensity": 0.7,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "相关",
-            "confidence": 0.7
+            "verb": "执行",
+            "confidence": 0.9
           }
         }
       },
@@ -213,7 +279,7 @@
         "link_type": {
           "Sem": {
             "verb": "拥有",
-            "confidence": 0.9
+            "confidence": 0.95
           }
         }
       },
@@ -224,7 +290,7 @@
         "link_type": {
           "Sem": {
             "verb": "使用",
-            "confidence": 0.8
+            "confidence": 0.9
           }
         }
       },
@@ -235,14 +301,14 @@
         "link_type": {
           "Sem": {
             "verb": "使用",
-            "confidence": 0.8
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_qiming",
-        "intensity": 0.8,
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
             "verb": "居住",
@@ -256,26 +322,15 @@
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "身份",
-            "confidence": 0.8
+            "verb": "担任",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_guangjian",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "使用",
-            "confidence": 0.6
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_huabi",
-        "intensity": 0.9,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
             "verb": "使用",
@@ -285,100 +340,23 @@
       },
       {
         "from": "sem_self",
-        "to": "sem_yuhangfu",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "装备",
-            "confidence": 0.5
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_meibiyusi",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "同事",
-            "confidence": 0.6
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_su",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "同伴",
-            "confidence": 0.6
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_yidian",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "同伴",
-            "confidence": 0.6
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_ying",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "同伴",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_ling",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "照顾",
-            "confidence": 0.5
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_chaobian",
+        "to": "sem_huabi",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "经历",
+            "verb": "使用",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_yuhangfu",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "穿着",
             "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_dibaci_benghuai",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_dijiucibenghuai",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.7
           }
         }
       }
@@ -406,11 +384,11 @@
       {
         "from": "sem_hen",
         "to": "sem_bulanka",
-        "intensity": 0.9,
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "配偶",
-            "confidence": 0.9
+            "verb": "伴侣",
+            "confidence": 0.8
           }
         }
       }
@@ -453,7 +431,19 @@
         "description": "她像妈妈一样照顾我，父母去世后她和科斯魔一起照料我。她给予我温柔的爱护，周围有暖黄的色彩。我画了一幅《向日葵》给她。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_aponia",
+        "to": "sem_self",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "养育",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_kesimo",
@@ -472,7 +462,19 @@
         "description": "他一直沉默地照顾我。他是个好人，但总是很孤单。我为他画了《星空下的少年》。他喜欢和孩子们玩。后来我代替他执行方舟计划。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_kesimo",
+        "to": "sem_fangzhou",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "抗拒",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_meibiyusi",
@@ -510,7 +512,19 @@
         "description": "她让我叫她「爱莉希雅妹妹」，是一位人见人爱的英桀。我很想为她画画但最终未能落笔。她教我说「画笔，臣服于我！」。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_ailixiya",
+        "to": "proc_phrase",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "影响",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_paduo",
@@ -548,7 +562,19 @@
         "description": "她很可爱，每次我叫她姐姐时她想起自己的妹妹。应铃的请求我给她画了《哭泣的司祭》。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_ying",
+        "to": "sem_ling",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "妹妹",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_ling",
@@ -567,7 +593,19 @@
         "description": "樱的妹妹。她请我为樱画了《哭泣的司祭》。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_ling",
+        "to": "sem_ying",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "姐姐",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_su",
@@ -717,7 +755,19 @@
         "description": "神州仙人，前文明成员。她给我讲神话故事，给我带了很多面饼和春不老让我带上方舟。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_danzhu",
+        "to": "sem_cangxuan",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "同伴",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_cangxuan",
@@ -792,7 +842,151 @@
         "description": "前文明对抗崩坏的最强战士团体，共有十三人。我是其中第十一位，背负「繁星」之铭。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_zhuhuo",
+        "to": "sem_zhuhuo_zhi_e",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "隶属",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_zhuhuo",
+        "to": "sem_self",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_zhuhuo",
+        "to": "sem_aponia",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_zhuhuo",
+        "to": "sem_kesimo",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_zhuhuo",
+        "to": "sem_meibiyusi",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_zhuhuo",
+        "to": "sem_ailixiya",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_zhuhuo",
+        "to": "sem_paduo",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_zhuhuo",
+        "to": "sem_ying",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_zhuhuo",
+        "to": "sem_su",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_zhuhuo",
+        "to": "sem_yidian",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_zhuhuo",
+        "to": "sem_qianjie",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_zhuhuo",
+        "to": "sem_weierwei",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_zhuhuo",
+        "to": "sem_hua",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_zhuhuo_zhi_e",
@@ -810,7 +1004,30 @@
         "description": "前文明时代对抗崩坏的组织，英桀都是其成员。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_zhuhuo_zhi_e",
+        "to": "sem_dibaci_benghuai",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "应对",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_zhuhuo_zhi_e",
+        "to": "sem_dijiucibenghuai",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "应对",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_chaobian",
@@ -828,7 +1045,19 @@
         "description": "一种将崩坏兽基因与人类融合的手术，接受后成为融合战士。我为了在第八次崩坏中活下来接受了手术。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_chaobian",
+        "to": "sem_huishizhe",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "赋予",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_dibaci_benghuai",
@@ -882,7 +1111,19 @@
         "description": "前文明的延续计划之一。我代替科斯魔乘上方舟，在宇宙中航行了数千年。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_fangzhou",
+        "to": "sem_weierwei",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "负责",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_huishizhe",
@@ -901,7 +1142,30 @@
         "description": "我的画作能影响观看者的认知。接触他人后会沾染颜色，通过画画释放。画作在认知空间可化为实体。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_huishizhe",
+        "to": "sem_fanxing_huishi",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "关联",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_huishizhe",
+        "to": "sem_tianxing_huixing",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "关联",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_fanxing_huishi",
@@ -1072,52 +1336,32 @@
       {
         "from": "sit_draw_sunflower",
         "to": "sem_aponia",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "送给",
-            "confidence": 0.8
+            "verb": "献给",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_draw_sunflower",
-        "to": "sem_self",
-        "intensity": 0.6,
+        "to": "sem_huabi",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "参与者",
-            "confidence": 0.6
+            "verb": "使用",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_draw_sunflower",
         "to": "proc_silence",
-        "intensity": 0.3,
+        "intensity": 0.8,
         "link_type": {
           "Proc": {
-            "prob": 0.32857906625689026
-          }
-        }
-      },
-      {
-        "from": "sit_draw_sunflower",
-        "to": "proc_phrase",
-        "intensity": 0.2,
-        "link_type": {
-          "Proc": {
-            "prob": 0.31872783339994415
-          }
-        }
-      },
-      {
-        "from": "sit_draw_sunflower",
-        "to": "proc_none",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3526931003431656
+            "prob": 1.0
           }
         }
       }
@@ -1172,11 +1416,11 @@
       {
         "from": "sit_replace_kesimo",
         "to": "sem_kesimo",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "涉及",
-            "confidence": 0.8
+            "verb": "代替",
+            "confidence": 0.95
           }
         }
       },
@@ -1186,37 +1430,26 @@
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "求助",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_replace_kesimo",
-        "to": "sem_self",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "主角",
-            "confidence": 0.7
+            "verb": "请求",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_replace_kesimo",
         "to": "sem_fangzhou",
-        "intensity": 0.7,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "相关",
-            "confidence": 0.7
+            "verb": "参与",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_replace_kesimo",
-        "to": "proc_none",
-        "intensity": 1.0,
+        "to": "proc_keep_food",
+        "intensity": 0.6,
         "link_type": {
           "Proc": {
             "prob": 1.0
@@ -1268,36 +1501,36 @@
         "link_type": {
           "Sem": {
             "verb": "唤醒",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_awaken_by_hua",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "被唤醒",
-            "confidence": 0.8
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_awaken_by_hua",
         "to": "sem_weita",
-        "intensity": 0.6,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "认识",
-            "confidence": 0.6
+            "verb": "结识",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_awaken_by_hua",
-        "to": "proc_none",
-        "intensity": 1.0,
+        "to": "sem_chengshi_dailiren",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "接触",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_awaken_by_hua",
+        "to": "proc_silence",
+        "intensity": 0.7,
         "link_type": {
           "Proc": {
             "prob": 1.0
@@ -1354,17 +1587,28 @@
         "link_type": {
           "Sem": {
             "verb": "接触",
-            "confidence": 0.9
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_contact_qianjie_chaos",
-        "to": "sem_self",
-        "intensity": 0.8,
+        "to": "sem_huishizhe",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "导致内乱",
+            "verb": "涉及",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_contact_qianjie_chaos",
+        "to": "sem_chengshi_dailiren",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "影响",
             "confidence": 0.8
           }
         }
@@ -1372,20 +1616,20 @@
       {
         "from": "sit_contact_qianjie_chaos",
         "to": "proc_imitate",
-        "intensity": 0.4,
+        "intensity": 0.8,
         "link_type": {
           "Proc": {
-            "prob": 0.47510360739268725
+            "prob": 0.7
           }
         }
       },
       {
         "from": "sit_contact_qianjie_chaos",
-        "to": "proc_none",
+        "to": "proc_silence",
         "intensity": 0.6,
         "link_type": {
           "Proc": {
-            "prob": 0.5248963926073127
+            "prob": 0.3
           }
         }
       }
@@ -1429,12 +1673,12 @@
     "mem_links": [
       {
         "from": "sit_watch_movies_on_ark",
-        "to": "sem_self",
-        "intensity": 0.7,
+        "to": "sem_fangzhou",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "学习",
-            "confidence": 0.7
+            "verb": "发生于",
+            "confidence": 0.9
           }
         }
       },
@@ -1444,8 +1688,8 @@
         "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "提供说明",
-            "confidence": 0.6
+            "verb": "来自",
+            "confidence": 0.8
           }
         }
       },
@@ -1455,38 +1699,28 @@
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "学习使用",
-            "confidence": 0.8
+            "verb": "学习",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_watch_movies_on_ark",
         "to": "proc_learn_from_movies",
-        "intensity": 0.7,
+        "intensity": 0.9,
         "link_type": {
           "Proc": {
-            "prob": 0.3781773451174708
+            "prob": 0.8
           }
         }
       },
       {
         "from": "sit_watch_movies_on_ark",
         "to": "proc_sleep_with_tail",
-        "intensity": 0.1,
+        "intensity": 0.5,
         "link_type": {
           "Proc": {
-            "prob": 0.3067485487710047
-          }
-        }
-      },
-      {
-        "from": "sit_watch_movies_on_ark",
-        "to": "proc_none",
-        "intensity": 0.2,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3150741061115245
+            "prob": 0.2
           }
         }
       }
@@ -1531,64 +1765,54 @@
     "mem_links": [
       {
         "from": "sit_draw_cartoon",
-        "to": "sem_self",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "作者",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_draw_cartoon",
         "to": "sem_misitelin",
-        "intensity": 0.7,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "角色",
-            "confidence": 0.7
+            "verb": "画入",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sit_draw_cartoon",
         "to": "sem_weita",
-        "intensity": 0.6,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "协助",
-            "confidence": 0.6
+            "verb": "相助",
+            "confidence": 0.85
           }
         }
       },
       {
         "from": "sit_draw_cartoon",
-        "to": "proc_keep_food",
-        "intensity": 0.2,
+        "to": "sem_huabi",
+        "intensity": 0.7,
         "link_type": {
-          "Proc": {
-            "prob": 0.31872783339994415
+          "Sem": {
+            "verb": "使用",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sit_draw_cartoon",
         "to": "proc_delay",
-        "intensity": 0.3,
+        "intensity": 0.8,
         "link_type": {
           "Proc": {
-            "prob": 0.32857906625689026
+            "prob": 0.7
           }
         }
       },
       {
         "from": "sit_draw_cartoon",
-        "to": "proc_none",
-        "intensity": 0.5,
+        "to": "proc_phrase",
+        "intensity": 0.6,
         "link_type": {
           "Proc": {
-            "prob": 0.3526931003431656
+            "prob": 0.3
           }
         }
       }
@@ -1611,12 +1835,12 @@
     "mem_links": [
       {
         "from": "proc_silence",
-        "to": "sem_self",
-        "intensity": 0.8,
+        "to": "sem_huabi",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "表现",
-            "confidence": 0.8
+            "verb": "使用",
+            "confidence": 0.9
           }
         }
       }
@@ -1636,19 +1860,7 @@
         }
       }
     },
-    "mem_links": [
-      {
-        "from": "proc_imitate",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "模仿",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "proc_phrase",
@@ -1668,11 +1880,22 @@
       {
         "from": "proc_phrase",
         "to": "sem_ailixiya",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "模仿",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "proc_phrase",
+        "to": "sem_huabi",
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "模仿爱莉希雅",
-            "confidence": 0.7
+            "verb": "呼喊",
+            "confidence": 0.9
           }
         }
       }
@@ -1696,10 +1919,10 @@
       {
         "from": "proc_sleep_with_tail",
         "to": "sem_paduo",
-        "intensity": 0.9,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "抱着尾巴",
+            "verb": "依偎",
             "confidence": 0.9
           }
         }
@@ -1707,11 +1930,11 @@
       {
         "from": "proc_sleep_with_tail",
         "to": "sem_guan",
-        "intensity": 0.8,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "脚伸到肚子",
-            "confidence": 0.8
+            "verb": "依靠",
+            "confidence": 0.9
           }
         }
       }
@@ -1735,22 +1958,22 @@
       {
         "from": "proc_keep_food",
         "to": "sem_danzhu",
-        "intensity": 0.8,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "得到面饼",
-            "confidence": 0.8
+            "verb": "珍藏",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "proc_keep_food",
         "to": "sem_cangxuan",
-        "intensity": 0.8,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "得到春不老",
-            "confidence": 0.8
+            "verb": "珍藏",
+            "confidence": 0.9
           }
         }
       }
@@ -1772,23 +1995,23 @@
     "mem_links": [
       {
         "from": "proc_learn_from_movies",
-        "to": "sem_weierwei",
-        "intensity": 0.6,
+        "to": "sem_guangjian",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "学习来源",
-            "confidence": 0.6
+            "verb": "掌握",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "proc_learn_from_movies",
-        "to": "sem_guangjian",
-        "intensity": 0.7,
+        "to": "sem_weierwei",
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "学会使用",
-            "confidence": 0.7
+            "verb": "得益于",
+            "confidence": 0.8
           }
         }
       }
@@ -1808,19 +2031,7 @@
         }
       }
     },
-    "mem_links": [
-      {
-        "from": "proc_delay",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "拖延",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "proc_none",
@@ -1835,18 +2046,6 @@
         }
       }
     },
-    "mem_links": [
-      {
-        "from": "proc_none",
-        "to": "sem_self",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "休息",
-            "confidence": 0.5
-          }
-        }
-      }
-    ]
+    "mem_links": []
   }
 ]
