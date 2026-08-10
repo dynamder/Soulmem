@@ -44,5 +44,10 @@ pub struct RetrievalTrace {
     /// 独立于记忆分数的动作节点（procedure top-k）：按动作自身分数单独排名，
     /// 不参与 merged_nodes 的分数合并与截断，保证"瞬时行为倾向"始终进入最终结果。
     pub action_nodes: Vec<TracedNode>,
+    /// 说话方式/语气通道（ActionType::Speak，至多 1 条）：持久语气属性，单独进入上下文，
+    /// 避免多个 Speak 内容互相矛盾；未检出时为空。
+    pub speech_nodes: Vec<TracedNode>,
+    /// 思维习惯/性格倾向通道（ActionType::Think 且非 proc_none，至多 1 条）。
+    pub think_nodes: Vec<TracedNode>,
     pub per_query: Vec<QueryTrace>,
 }

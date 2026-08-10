@@ -589,6 +589,18 @@ impl PlayTestJudgeState {
                     Style::new().yellow(),
                 )));
             }
+            if !full_trace.speech_nodes.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    format!("  说话风格: {}", full_trace.speech_nodes[0].content),
+                    Style::new().yellow(),
+                )));
+            }
+            if !full_trace.think_nodes.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    format!("  思维习惯: {}", full_trace.think_nodes[0].content),
+                    Style::new().yellow(),
+                )));
+            }
         }
 
         let line_count = lines.len();

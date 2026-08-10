@@ -337,6 +337,24 @@ fn fmt_trace(kind: &str, t: &RetrievalTrace) -> String {
             .join("; ");
         out.push_str(&format!("  动作倾向: {}\n", actions));
     }
+    if !t.speech_nodes.is_empty() {
+        let s = t
+            .speech_nodes
+            .iter()
+            .map(|n| format!("{} ({:.3})", n.content, n.score))
+            .collect::<Vec<_>>()
+            .join("; ");
+        out.push_str(&format!("  说话风格: {}\n", s));
+    }
+    if !t.think_nodes.is_empty() {
+        let s = t
+            .think_nodes
+            .iter()
+            .map(|n| format!("{} ({:.3})", n.content, n.score))
+            .collect::<Vec<_>>()
+            .join("; ");
+        out.push_str(&format!("  思维习惯: {}\n", s));
+    }
     out
 }
 

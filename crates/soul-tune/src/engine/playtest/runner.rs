@@ -12,7 +12,10 @@ use soul_mem_algo::algo::retrieve::{
     RetrStrategy,
 };
 use soul_mem_core::memory_note::situation_mem::SituationType;
+use soul_mem_core::memory_note::proc_mem::ActionType;
 use soul_mem_core::memory_note::{MemoryId, MemoryType};
+use soul_mem_core::memory_links::MemoryLinkType;
+use soul_mem_core::memory_links::proc_mem::{ProcMemLink, TrigToAction};
 use soul_mem_query::embedding::query::note::{
     EmbeddedMemoryRetrieveQuery, MemoryRetrieveQueryEmbedding,
 };
@@ -570,10 +573,20 @@ impl PlayTestRunner {
             .as_ref()
             .map(|t| t.action_nodes.clone())
             .unwrap_or_default();
+        let full_speech = fullpipeline_trace
+            .as_ref()
+            .map(|t| t.speech_nodes.clone())
+            .unwrap_or_default();
+        let full_think = fullpipeline_trace
+            .as_ref()
+            .map(|t| t.think_nodes.clone())
+            .unwrap_or_default();
 
         let emb_context = self.format_nodes(&emb_nodes);
         let full_context = self.format_nodes(&full_nodes);
         let full_action_text = self.format_action_nodes(&full_actions);
+        let full_speech_text = self.format_action_nodes(&full_speech);
+        let full_think_text = self.format_action_nodes(&full_think);
 
         let mut chat_prompt = format!("{}\n\n{}", self.system_prompt, CHAT_INSTRUCTION);
         if let Some(ref role) = self.human_role {
@@ -581,6 +594,12 @@ impl PlayTestRunner {
         }
         let emb_prompt = format!("{}\n\n相关记忆:\n{}", chat_prompt, emb_context);
         let mut full_prompt = format!("{}\n\n相关记忆:\n{}", chat_prompt, full_context);
+        if !full_speech_text.is_empty() {
+            full_prompt = format!("{}\n\n说话风格:\n{}", full_prompt, full_speech_text);
+        }
+        if !full_think_text.is_empty() {
+            full_prompt = format!("{}\n\n思维习惯:\n{}", full_prompt, full_think_text);
+        }
         if !full_action_text.is_empty() {
             full_prompt = format!("{}\n\n当前行为倾向:\n{}", full_prompt, full_action_text);
         }
@@ -1148,6 +1167,8 @@ impl PlayTestRunner {
             total_elapsed: total_start.elapsed(),
             merged_nodes: all_nodes,
             action_nodes: vec![],
+            speech_nodes: vec![],
+            think_nodes: vec![],
             per_query,
         })
     }
@@ -1163,8 +1184,26 @@ impl PlayTestRunner {
 
         let mut per_query = Vec::new();
         let mut merged_map: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
-        // 动作节点独立通道：不参与记忆分数合并，单独排名后进入最终结果
-        let mut merged_actions: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
+        // 动作节点按 ActionType 拆成三路独立通道（不参与记忆分数合并）：
+        // Speak 语气 / Think 思维习惯各至多 1 条，其余行为类按 action_top_k
+        let mut merged_speech: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
+        let mut merged_think: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
+        let mut merged_behavior: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
+        let action_type_map: HashMap<MemoryId, ActionType> = self
+            .wm
+            .memory_cluster()
+            .read_or_compute(|c| {
+                c.graph()
+                    .node_weights()
+                    .filter_map(|n| match n.note().mem_type() {
+                        MemoryType::Procedure(p) => Some((
+                            n.note().id(),
+                            p.get_action().get_action_type().clone(),
+                        )),
+                        _ => None,
+                    })
+                    .collect()
+            });
 
         // priority 只作小偏移：分数接近时保护重要查询，分数差距大时由分数主导
         let p_max = prepared
@@ -1315,6 +1354,26 @@ impl PlayTestRunner {
             };
             per_query.push(qt);
 
+            // 按 ActionType 分流：Speak→语气、Think（非 proc_none）→思维习惯、其余→行为
+            let mut speech = Vec::new();
+            let mut think = Vec::new();
+            let mut behavior = Vec::new();
+            for n in action_nodes {
+                match action_type_map.get(&n.id) {
+                    Some(ActionType::Speak) => speech.push(n),
+                    Some(ActionType::Think)
+                        if self
+                            .graph_names
+                            .get(&n.id)
+                            .map(|s| s.as_str())
+                            != Some("proc_none") =>
+                    {
+                        think.push(n)
+                    }
+                    _ => behavior.push(n),
+                }
+            }
+
             let mut merged: Vec<TracedNode> = Vec::new();
             for n in sim_nodes.into_iter().chain(ppr_nodes) {
                 if let Some(existing) = merged.iter_mut().find(|e: &&mut TracedNode| e.id == n.id) {
@@ -1331,7 +1390,9 @@ impl PlayTestRunner {
                     .unwrap_or(std::cmp::Ordering::Equal)
             });
             fold_priority_nodes(&mut merged_map, merged, bonus);
-            fold_priority_nodes(&mut merged_actions, action_nodes, bonus);
+            fold_priority_nodes(&mut merged_speech, speech, bonus);
+            fold_priority_nodes(&mut merged_think, think, bonus);
+            fold_priority_nodes(&mut merged_behavior, behavior, bonus);
         }
 
         if per_query.is_empty() {
@@ -1340,17 +1401,87 @@ impl PlayTestRunner {
 
         let mut all_nodes = finish_merged(merged_map);
         all_nodes.truncate(self.config.merged_top_k);
-        // 动作独立 top-k：即使分数低于记忆节点也保留进最终结果
-        let mut action_nodes = finish_merged(merged_actions);
+        // 行为类动作独立 top-k：即使分数低于记忆节点也保留进最终结果
+        let mut action_nodes = finish_merged(merged_behavior);
         action_nodes.truncate(self.config.action_top_k);
+        // 语气 / 思维习惯单席：只取分数最高 1 条，避免多个 Speak 内容互相矛盾
+        let mut speech_nodes = finish_merged(merged_speech);
+        speech_nodes.truncate(1);
+        if speech_nodes.is_empty() {
+            if let Some((id, score)) = self.trait_fallback_scores(&ActionType::Speak) {
+                speech_nodes.push(self.traced_action_node(id, score));
+            }
+        }
+        let mut think_nodes = finish_merged(merged_think);
+        think_nodes.truncate(1);
+        if think_nodes.is_empty() {
+            if let Some((id, score)) = self.trait_fallback_scores(&ActionType::Think) {
+                if self.graph_names.get(&id).map(|s| s.as_str()) != Some("proc_none") {
+                    think_nodes.push(self.traced_action_node(id, score));
+                }
+            }
+        }
 
         Some(RetrievalTrace {
             mode: RetrieveMode::FullPipeline,
             total_elapsed: total_start.elapsed(),
             merged_nodes: all_nodes,
             action_nodes,
+            speech_nodes,
+            think_nodes,
             per_query,
         })
+    }
+
+    /// 常驻语气/思维习惯兜底：Bayes 未检出对应类型时，从图中选择
+    /// "广泛抽象触发总概率最高"的 Speak/Think proc。持久特质与对话恒相关，
+    /// 单席注入不会带来矛盾内容。
+    fn trait_fallback_scores(&self, want: &ActionType) -> Option<(MemoryId, f64)> {
+        self.wm.memory_cluster().read_or_compute(|c| {
+            let mut proc_type: HashMap<MemoryId, ActionType> = HashMap::new();
+            for n in c.graph().node_weights() {
+                if let MemoryType::Procedure(p) = n.note().mem_type() {
+                    proc_type.insert(n.note().id(), p.get_action().get_action_type().clone());
+                }
+            }
+            let mut scores: HashMap<MemoryId, f64> = HashMap::new();
+            for n in c.graph().node_weights() {
+                if !matches!(
+                    n.note().mem_type(),
+                    MemoryType::Situation(SituationType::AbstractSituation(_))
+                ) {
+                    continue;
+                }
+                for link in n.note().links() {
+                    if let MemoryLinkType::Proc(ProcMemLink::TrigToAction(TrigToAction {
+                        prob,
+                        ..
+                    })) = link.link_type()
+                    {
+                        if proc_type.get(&link.to()) == Some(want) {
+                            *scores.entry(link.to()).or_insert(0.0) += prob;
+                        }
+                    }
+                }
+            }
+            scores
+                .into_iter()
+                .max_by(|a, b| a.1.total_cmp(&b.1))
+        })
+    }
+
+    fn traced_action_node(&self, id: MemoryId, score: f64) -> TracedNode {
+        TracedNode {
+            id,
+            name: self.graph_names.get(&id).cloned().unwrap_or_default(),
+            content: self
+                .id_names
+                .get(&id)
+                .map(|s| s.primary.clone())
+                .unwrap_or_default(),
+            score,
+            stage: HitStage::Action,
+        }
     }
 
     fn format_nodes(&self, nodes: &[TracedNode]) -> String {
@@ -1807,7 +1938,7 @@ mod tests {
     }
 
     #[test]
-    fn test_fullpipeline_actions_get_independent_slot() {
+    fn test_fullpipeline_actions_split_by_type() {
         let runner = load_geluoxiu_runner();
         let model = get_bge_model().expect("BGE 模型应可用");
         // 情境查询：命中 sit_watch_movies_on_ark → 触发 proc_learn_from_movies 等
@@ -1824,20 +1955,35 @@ mod tests {
             .run_fullpipeline_retrieval(&[prepared])
             .expect("full pipeline 应有 trace");
 
-        assert!(
-            !trace.action_nodes.is_empty(),
-            "动作应通过独立通道进入最终结果"
-        );
+        // Speak / Think 单席：各至多 1 条
+        assert!(trace.speech_nodes.len() <= 1, "说话风格通道至多 1 条");
+        assert!(trace.think_nodes.len() <= 1, "思维习惯通道至多 1 条");
+        // 常驻兜底：格蕾修图存在 Speak 与 Think proc，即使 Bayes 未命中也应各有 1 条
+        assert_eq!(trace.speech_nodes.len(), 1, "Speak 常驻兜底应生效");
+        assert_eq!(trace.think_nodes.len(), 1, "Think 常驻兜底应生效");
+        // 行为类通道受 action_top_k 限制
         assert!(
             trace.action_nodes.len() <= runner.config.action_top_k,
-            "动作数量应受 action_top_k 限制"
+            "行为类动作数量应受 action_top_k 限制"
+        );
+        // 至少一路检出动作（Think 通道应包含学习/睡觉习惯）
+        assert!(
+            trace.speech_nodes.len() + trace.think_nodes.len() + trace.action_nodes.len() >= 1,
+            "应有动作被检出"
         );
         assert!(
-            trace.action_nodes.iter().all(|n| matches!(n.stage, HitStage::Action)),
-            "独立动作通道只应包含 Action stage 节点"
+            trace.think_nodes.iter().all(|n| n.name != "proc_none"),
+            "proc_none 不应进入思维习惯通道"
         );
-        // 动作内容来自 proc 节点（流程类型 primary = action content）
-        assert!(trace.action_nodes.iter().all(|n| !n.content.is_empty()));
+        assert!(
+            trace
+                .speech_nodes
+                .iter()
+                .chain(trace.think_nodes.iter())
+                .chain(trace.action_nodes.iter())
+                .all(|n| !n.content.is_empty()),
+            "动作内容应来自 proc 节点"
+        );
     }
 
 }
