@@ -79,6 +79,11 @@ pub const QUERY_VALIDATION_FLOOR: f32 = 0.35;
 /// 记忆线索固定条数（k 固定为 5，提示词开销不随图规模增长）。
 pub const HINT_TOP_K: usize = 5;
 
+/// hint 相关性兜底分：hint 检索与注入使用 `max(检索兜底分, 该值)`。
+/// 密集角色图里 0.35 附近的命中多为语义近邻而非当前对话相关，
+/// 抬高到 0.45 可显著减少无关记忆线索注入提示词。
+pub const HINT_RELEVANCE_FLOOR: f32 = 0.45;
+
 /// 记忆线索多样性替换的考察范围：top-k 内无 Situation 时，在 top-lookahead
 /// 内寻找分数达标的 Situation 节点替换第 k 个 hint。
 pub const HINT_LOOKAHEAD_K: usize = 10;
@@ -687,8 +692,10 @@ impl PlayTestRunner {
             Err(_) => return Vec::new(),
         };
 
+        // hint 相关性兜底分：比检索兜底分更严，过滤语义近邻噪音
+        let hint_floor = self.config.similarity_threshold.max(HINT_RELEVANCE_FLOOR);
         let sim_config = SimilarityConfig {
-            similarity_threshold: self.config.similarity_threshold,
+            similarity_threshold: hint_floor,
             max_results: HINT_LOOKAHEAD_K,
         };
         let sim_req = sim_config.into_request(
@@ -720,7 +727,7 @@ impl PlayTestRunner {
             HINT_TOP_K
         };
 
-        select_hints(hits, k, HINT_LOOKAHEAD_K, self.config.similarity_threshold)
+        select_hints(hits, k, HINT_LOOKAHEAD_K, hint_floor)
             .into_iter()
             .map(|h| {
                 let mut content: String = h.summary.chars().take(HINT_CONTENT_MAX_CHARS).collect();
@@ -774,7 +781,8 @@ impl PlayTestRunner {
         } else {
             format!(
                 "【记忆线索】\n\
-                 以下片段来自你的记忆（只作回想线索，不要直接引用原文）：\n{}\n\n",
+                 以下片段来自你的记忆，仅作为候选素材（不要直接引用原文）。\n\
+                 只有与当前对话直接相关的线索才参考，无关的线索一律忽略，不要基于无关线索生成查询：\n{}\n\n",
                 hints.join("\n")
             )
         };
@@ -800,6 +808,8 @@ impl PlayTestRunner {
                {{\"tag\": [\"日常\", \"习惯\"], \"variant\": {{\"Situation\": [{{\"narrative\": \"灵梦每天在神社喝茶扫地，检查空空的赛钱箱\"}}]}}, \"priority\": 4}}\n\
              ]\n\n\
              【要点】\n\
+             - 所有查询必须与对方说/问的内容直接相关；宁少勿多，不要为了凑 4-8 条生成与对话无关的查询\n\
+             - 记忆线索只是候选素材：与当前对话无关的线索直接忽略，绝不基于无关线索展开查询\n\
              - 同一概念可以用多个不同描述的查询覆盖不同角度，提升召回\n\
              - 注意与你对话的人是谁：优先回想与对方的关系、共同经历和对方相关的人物记忆（除非对话内容明显无关）\n\
              - Situation 只填 narrative，不要填其他子字段\n\
@@ -1669,6 +1679,8 @@ mod tests {
         assert!(prompt.contains("【记忆线索】"));
         assert!(prompt.contains("- 格蕾修在画画"));
         assert!(prompt.contains("4-8 条"));
+        assert!(prompt.contains("所有查询必须与对方说/问的内容直接相关"));
+        assert!(prompt.contains("无关的线索一律忽略"));
         assert!(prompt.contains("不要编造线索中不存在的人物、事件、细节或关系"));
         assert!(prompt.contains("Situation 的 narrative 必须是真实记忆的转述"));
         assert!(prompt.contains("如果当前对话没有任何对应记忆"));
