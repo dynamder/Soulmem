@@ -328,6 +328,15 @@ fn fmt_trace(kind: &str, t: &RetrievalTrace) -> String {
             n.name, n.stage, n.score, content
         ));
     }
+    if !t.action_nodes.is_empty() {
+        let actions = t
+            .action_nodes
+            .iter()
+            .map(|n| format!("{} ({:.3})", n.content, n.score))
+            .collect::<Vec<_>>()
+            .join("; ");
+        out.push_str(&format!("  动作倾向: {}\n", actions));
+    }
     out
 }
 

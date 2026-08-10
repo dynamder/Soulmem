@@ -52,6 +52,9 @@ impl ProcMemory {
     pub fn new(action: Action) -> Self {
         Self { action }
     }
+    pub fn get_action(&self) -> &Action {
+        &self.action
+    }
 }
 impl From<Action> for ProcMemory {
     fn from(action: Action) -> Self {

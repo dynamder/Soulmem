@@ -451,9 +451,11 @@ impl PlayTestRunner {
                         MemoryType::Situation(_) => {
                             (String::from("情境"), String::new(), String::new())
                         }
-                        MemoryType::Procedure(_) => {
-                            (String::from("流程"), String::new(), String::new())
-                        }
+                        MemoryType::Procedure(proc) => (
+                            String::from("流程"),
+                            proc.get_action().get_content().to_string(),
+                            String::new(),
+                        ),
                     };
                     (
                         id,
@@ -559,16 +561,24 @@ impl PlayTestRunner {
             .as_ref()
             .map(|t| t.merged_nodes.clone())
             .unwrap_or_default();
+        let full_actions = fullpipeline_trace
+            .as_ref()
+            .map(|t| t.action_nodes.clone())
+            .unwrap_or_default();
 
         let emb_context = self.format_nodes(&emb_nodes);
         let full_context = self.format_nodes(&full_nodes);
+        let full_action_text = self.format_action_nodes(&full_actions);
 
         let mut chat_prompt = format!("{}\n\n{}", self.system_prompt, CHAT_INSTRUCTION);
         if let Some(ref role) = self.human_role {
             chat_prompt = format!("{}\n\n现在与你对话的是: {}", chat_prompt, role);
         }
         let emb_prompt = format!("{}\n\n相关记忆:\n{}", chat_prompt, emb_context);
-        let full_prompt = format!("{}\n\n相关记忆:\n{}", chat_prompt, full_context);
+        let mut full_prompt = format!("{}\n\n相关记忆:\n{}", chat_prompt, full_context);
+        if !full_action_text.is_empty() {
+            full_prompt = format!("{}\n\n当前行为倾向:\n{}", full_prompt, full_action_text);
+        }
 
         let mut runs: Vec<PlayRunSnapshot> = Vec::with_capacity(self.config.runs_per_turn);
         let user_text = match &self.human_role {
@@ -1125,6 +1135,7 @@ impl PlayTestRunner {
             mode: RetrieveMode::Embedding,
             total_elapsed: total_start.elapsed(),
             merged_nodes: all_nodes,
+            action_nodes: vec![],
             per_query,
         })
     }
@@ -1140,6 +1151,8 @@ impl PlayTestRunner {
 
         let mut per_query = Vec::new();
         let mut merged_map: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
+        // 动作节点独立通道：不参与记忆分数合并，单独排名后进入最终结果
+        let mut merged_actions: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
 
         // priority 只作小偏移：分数接近时保护重要查询，分数差距大时由分数主导
         let p_max = prepared
@@ -1291,7 +1304,7 @@ impl PlayTestRunner {
             per_query.push(qt);
 
             let mut merged: Vec<TracedNode> = Vec::new();
-            for n in sim_nodes.into_iter().chain(ppr_nodes).chain(action_nodes) {
+            for n in sim_nodes.into_iter().chain(ppr_nodes) {
                 if let Some(existing) = merged.iter_mut().find(|e: &&mut TracedNode| e.id == n.id) {
                     if n.score > existing.score {
                         existing.score = n.score;
@@ -1306,6 +1319,7 @@ impl PlayTestRunner {
                     .unwrap_or(std::cmp::Ordering::Equal)
             });
             fold_priority_nodes(&mut merged_map, merged, bonus);
+            fold_priority_nodes(&mut merged_actions, action_nodes, bonus);
         }
 
         if per_query.is_empty() {
@@ -1314,11 +1328,15 @@ impl PlayTestRunner {
 
         let mut all_nodes = finish_merged(merged_map);
         all_nodes.truncate(self.config.merged_top_k);
+        // 动作独立 top-k：即使分数低于记忆节点也保留进最终结果
+        let mut action_nodes = finish_merged(merged_actions);
+        action_nodes.truncate(self.config.action_top_k);
 
         Some(RetrievalTrace {
             mode: RetrieveMode::FullPipeline,
             total_elapsed: total_start.elapsed(),
             merged_nodes: all_nodes,
+            action_nodes,
             per_query,
         })
     }
@@ -1336,6 +1354,27 @@ impl PlayTestRunner {
                     .map(|s| format!("[{}] {}", s.type_label, s.primary))
                     .unwrap_or_else(|| n.name.clone());
                 format!("- {}", summary)
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+
+    /// 动作节点（procedure）的独立上下文格式：动作有自己的分数通道，
+    /// 不参与记忆节点的合并截断，始终以「当前行为倾向」进入提示词。
+    fn format_action_nodes(&self, nodes: &[TracedNode]) -> String {
+        if nodes.is_empty() {
+            return String::new();
+        }
+        nodes
+            .iter()
+            .map(|n| {
+                let content = self
+                    .id_names
+                    .get(&n.id)
+                    .map(|s| s.primary.clone())
+                    .filter(|c| !c.trim().is_empty())
+                    .unwrap_or_else(|| n.name.clone());
+                format!("- {}", content)
             })
             .collect::<Vec<_>>()
             .join("\n")
@@ -1751,6 +1790,40 @@ mod tests {
         );
         assert_eq!(prepared.len(), 1, "有保留查询时不应追加兜底");
         assert!(!prepared[0].dropped);
+    }
+
+    #[test]
+    fn test_fullpipeline_actions_get_independent_slot() {
+        let runner = load_geluoxiu_runner();
+        let model = get_bge_model().expect("BGE 模型应可用");
+        // 情境查询：命中 sit_watch_movies_on_ark → 触发 proc_learn_from_movies 等
+        let query = MemoryRetrieveQuery::new(
+            vec!["日常".to_string()],
+            MemoryRetrieveQueryVariant::Situation(vec![SituationQueryUnit::new()
+                .with_narrative("我在方舟上的时候喜欢看科幻电影".to_string())]),
+        )
+        .with_priority(5);
+        let prepared = runner
+            .validate_query(query, model)
+            .expect("情境查询应通过校验");
+        let trace = runner
+            .run_fullpipeline_retrieval(&[prepared])
+            .expect("full pipeline 应有 trace");
+
+        assert!(
+            !trace.action_nodes.is_empty(),
+            "动作应通过独立通道进入最终结果"
+        );
+        assert!(
+            trace.action_nodes.len() <= runner.config.action_top_k,
+            "动作数量应受 action_top_k 限制"
+        );
+        assert!(
+            trace.action_nodes.iter().all(|n| matches!(n.stage, HitStage::Action)),
+            "独立动作通道只应包含 Action stage 节点"
+        );
+        // 动作内容来自 proc 节点（流程类型 primary = action content）
+        assert!(trace.action_nodes.iter().all(|n| !n.content.is_empty()));
     }
 
 }

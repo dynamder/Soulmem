@@ -41,5 +41,8 @@ pub struct RetrievalTrace {
     pub mode: RetrieveMode,
     pub total_elapsed: Duration,
     pub merged_nodes: Vec<TracedNode>,
+    /// 独立于记忆分数的动作节点（procedure top-k）：按动作自身分数单独排名，
+    /// 不参与 merged_nodes 的分数合并与截断，保证"瞬时行为倾向"始终进入最终结果。
+    pub action_nodes: Vec<TracedNode>,
     pub per_query: Vec<QueryTrace>,
 }
