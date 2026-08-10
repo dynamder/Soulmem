@@ -2442,5 +2442,151 @@
       }
     },
     "mem_links": []
+  },
+  {
+    "id": "sit_abstract_deep_talk",
+    "tags": [
+      "情境",
+      "对话",
+      "探索本质"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "与他人进行深入对话，探讨命运的真相与人的本质",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_deep_talk",
+        "to": "proc_hide_speech",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5333333333333333
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_deep_talk",
+        "to": "proc_question_habit",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.4666666666666666
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_with_others",
+    "tags": [
+      "情境",
+      "社交",
+      "同行"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "与他人同行或身处人群之中",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_with_others",
+        "to": "proc_alone_travel",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_solitude_idle",
+    "tags": [
+      "情境",
+      "独处",
+      "闲暇"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "独自一人，没有明确目的地或任务，处于闲暇状态",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_solitude_idle",
+        "to": "proc_monologue",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5833333333333334
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_solitude_idle",
+        "to": "proc_none",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.4166666666666667
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_sacred_place",
+    "tags": [
+      "情境",
+      "神圣之地",
+      "信仰"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Location": {
+            "name": "神圣之地或神像面前",
+            "coordinates": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_sacred_place",
+        "to": "proc_no_pray",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

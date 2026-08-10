@@ -2254,5 +2254,141 @@
         }
       }
     ]
+  },
+  {
+    "id": "sit_abstract_praised_social",
+    "tags": [
+      "情境",
+      "社交",
+      "夸奖"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "被夸奖或受到社交关注",
+            "action_intensity": 0.6,
+            "initiator": "他人",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_praised_social",
+        "to": "proc_speak_boast",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5555555555555555
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_praised_social",
+        "to": "proc_scratch_head",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.4444444444444444
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_dining",
+    "tags": [
+      "情境",
+      "日常",
+      "饮食"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "用餐/面对食物",
+            "action_intensity": 0.7,
+            "initiator": "我",
+            "target": "食物"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_dining",
+        "to": "proc_eat_greedy",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_morning_wakeup",
+    "tags": [
+      "情境",
+      "日常",
+      "早晨"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "清晨温暖的卧室",
+            "tone": "困倦慵懒"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_morning_wakeup",
+        "to": "proc_sleep_in",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_exam_prep",
+    "tags": [
+      "情境",
+      "学业",
+      "考试"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "面临考试/需要备考",
+            "action_intensity": 0.5,
+            "initiator": "考试",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_exam_prep",
+        "to": "proc_exam_cram",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

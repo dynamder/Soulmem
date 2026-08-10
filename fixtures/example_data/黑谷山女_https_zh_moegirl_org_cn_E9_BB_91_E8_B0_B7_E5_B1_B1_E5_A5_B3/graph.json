@@ -1720,5 +1720,131 @@
         }
       }
     ]
+  },
+  {
+    "id": "sit_abstract_feeding_on_prey",
+    "tags": [
+      "情境",
+      "进食",
+      "狩猎"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "进食猎物/用餐",
+            "action_intensity": 0.0,
+            "initiator": "我",
+            "target": "猎物/食物"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_feeding_on_prey",
+        "to": "proc_eat_with_disease",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_building_request",
+    "tags": [
+      "情境",
+      "建筑",
+      "委托"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "接到建筑建造委托",
+            "action_intensity": 0.0,
+            "initiator": "委托人",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_building_request",
+        "to": "proc_construction",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_being_with_others",
+    "tags": [
+      "情境",
+      "社交",
+      "他人"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Participant": {
+            "name": "他人",
+            "role": "社交场合中的其他对象"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_being_with_others",
+        "to": "proc_not_abuse_disease",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_playful_showoff",
+    "tags": [
+      "情境",
+      "嬉闹",
+      "展示"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "嬉闹玩闹/展示自己",
+            "action_intensity": 0.4,
+            "initiator": "我",
+            "target": "周围的同伴"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_playful_showoff",
+        "to": "proc_handstand",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

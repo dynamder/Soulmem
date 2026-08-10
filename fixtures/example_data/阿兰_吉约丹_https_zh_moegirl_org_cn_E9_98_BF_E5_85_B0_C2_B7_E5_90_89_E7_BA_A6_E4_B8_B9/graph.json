@@ -2330,5 +2330,229 @@
       }
     },
     "mem_links": []
+  },
+  {
+    "id": "sit_abstract_research_immersion",
+    "tags": [
+      "情境",
+      "研究",
+      "沉浸"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "沉浸于研究/发明中",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_research_immersion",
+        "to": "proc_immersed_study",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_mechanical_parts",
+    "tags": [
+      "情境",
+      "机械",
+      "零件"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "接触/看到机械零件或废弃装置",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_mechanical_parts",
+        "to": "proc_tinker_parts",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_conversation",
+    "tags": [
+      "情境",
+      "社交",
+      "对话"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "与人交谈/表达观点",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_conversation",
+        "to": "proc_direct_speech",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_inevitable_end",
+    "tags": [
+      "情境",
+      "结局",
+      "遗憾"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "面对无法改变的坏结局或告别",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_inevitable_end",
+        "to": "proc_phrase_regret",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_invention_complete",
+    "tags": [
+      "情境",
+      "发明",
+      "创造"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "完成一项发明或创造",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_invention_complete",
+        "to": "proc_no_patent",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_dangerous_experiment",
+    "tags": [
+      "情境",
+      "实验",
+      "危险"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "进行有风险的实验或试验",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_dangerous_experiment",
+        "to": "proc_danger_experiment",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_westmor_inquiry",
+    "tags": [
+      "情境",
+      "西摩尔",
+      "询问"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "被人问起或提及西摩尔",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_westmor_inquiry",
+        "to": "proc_answer_westmor",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

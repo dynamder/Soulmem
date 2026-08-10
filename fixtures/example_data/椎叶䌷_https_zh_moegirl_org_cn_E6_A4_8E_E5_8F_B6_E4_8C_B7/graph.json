@@ -1452,5 +1452,131 @@
       }
     },
     "mem_links": []
+  },
+  {
+    "id": "sit_abstract_conflict_escape",
+    "tags": [
+      "情境",
+      "冲突",
+      "社交"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "与他人发生冲突或争执",
+            "action_intensity": 0.7,
+            "initiator": "他人",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_conflict_escape",
+        "to": "proc_avoid_conflict",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_jealousy_scene",
+    "tags": [
+      "情境",
+      "恋爱",
+      "嫉妒"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "看到喜欢的人与其他女生亲近",
+            "action_intensity": 0.8,
+            "initiator": "喜欢的人",
+            "target": "其他女生"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_jealousy_scene",
+        "to": "proc_get_jealous",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_angry_situation",
+    "tags": [
+      "情境",
+      "愤怒",
+      "对抗"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "愤怒、紧张",
+            "tone": "激烈"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_angry_situation",
+        "to": "proc_use_hammer_when_angry",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_crossdressing_situation",
+    "tags": [
+      "情境",
+      "女装",
+      "不適"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "穿戴女式服装",
+            "action_intensity": 1.0,
+            "initiator": "我",
+            "target": "女式服装"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_crossdressing_situation",
+        "to": "proc_vomit_when_wearing_female_clothes",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

@@ -1741,5 +1741,123 @@
         }
       }
     ]
+  },
+  {
+    "id": "sit_abstract_social_interaction",
+    "tags": [
+      "情境",
+      "社交",
+      "人际互动"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "参与社交互动/与人交流",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_social_interaction",
+        "to": "proc_third_person",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5714285714285715
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_social_interaction",
+        "to": "proc_look_down",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.4285714285714286
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_danger_threat",
+    "tags": [
+      "情境",
+      "危险",
+      "威胁",
+      "紧张"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "遭遇突发危险或处于冲突威胁中",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_danger_threat",
+        "to": "proc_grip_clothes",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.4516129032258065
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_danger_threat",
+        "to": "proc_fear_danger",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5483870967741936
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_peaceful_moment",
+    "tags": [
+      "情境",
+      "宁静",
+      "美好",
+      "独处"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "经历宁静而美好的时刻",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_peaceful_moment",
+        "to": "proc_write_diary",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

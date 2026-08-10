@@ -3225,5 +3225,37 @@
         }
       }
     ]
+  },
+  {
+    "id": "sit_abstract_after_battle",
+    "tags": [
+      "情境",
+      "战后",
+      "休整"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "战斗结束后的休整",
+            "action_intensity": 0.3,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_after_battle",
+        "to": "proc_polish_lance",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

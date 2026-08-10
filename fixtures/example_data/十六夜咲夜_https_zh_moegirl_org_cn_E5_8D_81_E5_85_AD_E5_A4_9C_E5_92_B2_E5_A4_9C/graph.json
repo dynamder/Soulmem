@@ -1836,5 +1836,231 @@
         }
       }
     ]
+  },
+  {
+    "id": "sit_abstract_hot_drink",
+    "tags": [
+      "情境",
+      "饮食",
+      "日常"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "饮用热饮或茶点",
+            "action_intensity": 0.3,
+            "initiator": "我",
+            "target": "热饮/茶点"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_hot_drink",
+        "to": "proc_blow_tea",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_think",
+    "tags": [
+      "情境",
+      "思考",
+      "独处"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "安静沉思",
+            "tone": "专注"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_think",
+        "to": "proc_pocket_watch",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_chat",
+    "tags": [
+      "情境",
+      "社交",
+      "对话"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Participant": {
+            "name": "其他人",
+            "role": "交谈对象"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_chat",
+        "to": "proc_topic_switch",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_pressure",
+    "tags": [
+      "情境",
+      "压力",
+      "挑战"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "高压紧张",
+            "tone": "竞争激烈"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_pressure",
+        "to": "proc_strong_mode",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_battle",
+    "tags": [
+      "情境",
+      "战斗",
+      "弹幕战"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "进行战斗或弹幕对轰",
+            "action_intensity": 0.9,
+            "initiator": "对手",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_battle",
+        "to": "proc_recover_knives",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.41935483870967744
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_battle",
+        "to": "proc_battle_tactic",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5806451612903226
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_curio",
+    "tags": [
+      "情境",
+      "探索",
+      "珍奇"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "发现新奇或珍奇的物品",
+            "action_intensity": 0.6,
+            "initiator": "环境",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_curio",
+        "to": "proc_collect_rare",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_show",
+    "tags": [
+      "情境",
+      "表演",
+      "社交"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "热闹愉快",
+            "tone": "表演娱乐"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_show",
+        "to": "proc_magic_show",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

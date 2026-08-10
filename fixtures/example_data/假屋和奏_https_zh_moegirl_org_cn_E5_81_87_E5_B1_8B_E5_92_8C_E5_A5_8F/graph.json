@@ -1773,5 +1773,67 @@
         }
       }
     ]
+  },
+  {
+    "id": "sit_abstract_public_performance",
+    "tags": [
+      "情境",
+      "表演"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "登台公开演出",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_public_performance",
+        "to": "proc_stage_fright",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_guitar_practice",
+    "tags": [
+      "情境",
+      "练习"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "日常吉他练习",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_guitar_practice",
+        "to": "proc_daily_practice",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

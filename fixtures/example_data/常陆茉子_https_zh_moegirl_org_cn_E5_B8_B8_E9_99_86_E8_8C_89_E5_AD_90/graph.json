@@ -1900,5 +1900,67 @@
       }
     },
     "mem_links": []
+  },
+  {
+    "id": "sit_abstract_praised_event",
+    "tags": [
+      "情境",
+      "社交",
+      "被夸奖"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "被夸奖/收到他人的称赞",
+            "action_intensity": 0.7,
+            "initiator": "他人",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_praised_event",
+        "to": "proc_shy_escape",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_high_place",
+    "tags": [
+      "情境",
+      "高处",
+      "环境"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "高处悬空、随时可能坠落的不安感",
+            "tone": "惊险压抑"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_high_place",
+        "to": "proc_fear_heights",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

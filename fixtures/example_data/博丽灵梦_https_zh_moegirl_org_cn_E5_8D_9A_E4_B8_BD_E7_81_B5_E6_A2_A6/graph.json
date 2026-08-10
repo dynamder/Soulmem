@@ -1900,5 +1900,67 @@
       }
     },
     "mem_links": []
+  },
+  {
+    "id": "sit_abstract_daily_outing",
+    "tags": [
+      "情境",
+      "日常"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "平时外出走动、处理日常事务",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_daily_outing",
+        "to": "proc_carry_equipment",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_shopping",
+    "tags": [
+      "情境",
+      "购物"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "在店铺或集市选购、取用商品",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_shopping",
+        "to": "proc_charge_to_marisa",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

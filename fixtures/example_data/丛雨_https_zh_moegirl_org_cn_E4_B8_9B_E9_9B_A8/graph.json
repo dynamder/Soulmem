@@ -1550,5 +1550,193 @@
       }
     },
     "mem_links": []
+  },
+  {
+    "id": "sit_abstract_talk_masamune",
+    "tags": [
+      "情境",
+      "对话",
+      "社交"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "与将臣面对面交谈",
+            "action_intensity": 0.5,
+            "initiator": "我",
+            "target": "将臣"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_talk_masamune",
+        "to": "proc_speech_style",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_headpat_tender",
+    "tags": [
+      "情境",
+      "亲密",
+      "身体接触"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "将臣温柔地摸我的头或对我做亲昵动作",
+            "action_intensity": 0.6,
+            "initiator": "将臣",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_headpat_tender",
+        "to": "proc_head_pat",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_lunchtime",
+    "tags": [
+      "情境",
+      "时间",
+      "午休"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "午休时间到来",
+            "action_intensity": 0.3,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_lunchtime",
+        "to": "proc_lunch_visit",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_masamune_with_other_girl",
+    "tags": [
+      "情境",
+      "将臣",
+      "其他女性",
+      "社交"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "将臣与其他女孩亲密交谈或走得很近",
+            "action_intensity": 0.7,
+            "initiator": "将臣",
+            "target": "其他女孩"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_masamune_with_other_girl",
+        "to": "proc_jealous",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_emotional_fluctuation",
+    "tags": [
+      "情境",
+      "情绪波动"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "情绪剧烈波动",
+            "tone": "起伏不定"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_emotional_fluctuation",
+        "to": "proc_facial_expressions",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_alone_lonely",
+    "tags": [
+      "情境",
+      "独处",
+      "寂寞"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "寂静孤独的独处时光",
+            "tone": "寂寞"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_alone_lonely",
+        "to": "proc_masturbation",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

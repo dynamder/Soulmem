@@ -2261,5 +2261,138 @@
         }
       }
     ]
+  },
+  {
+    "id": "sit_abstract_close_company",
+    "tags": [
+      "情境",
+      "社交",
+      "同伴"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Participant": {
+            "name": "亲近的伙伴们",
+            "role": "好友/同伴"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_close_company",
+        "to": "proc_add_bao",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_bedtime",
+    "tags": [
+      "情境",
+      "夜晚",
+      "安神"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "夜深人静、准备入睡的氛围",
+            "tone": "温暖安宁"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_bedtime",
+        "to": "proc_drink_milk_tea",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_crafting",
+    "tags": [
+      "情境",
+      "手工",
+      "休闲"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "闲暇时改造旧物、制作手工艺品",
+            "action_intensity": 0.3,
+            "initiator": "我",
+            "target": "旧衣、罐子等材料"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_crafting",
+        "to": "proc_handicraft",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_outdoor_nature",
+    "tags": [
+      "情境",
+      "户外",
+      "自然",
+      "庭院"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Location": {
+            "name": "庭院、花园等户外自然角落",
+            "coordinates": "翁法罗斯各地"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_outdoor_nature",
+        "to": "proc_observe_birds",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.48387096774193544
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_outdoor_nature",
+        "to": "proc_plant_flowers",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5161290322580645
+          }
+        }
+      }
+    ]
   }
 ]

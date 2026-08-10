@@ -1551,5 +1551,259 @@
         }
       }
     ]
+  },
+  {
+    "id": "sit_abstract_conversation",
+    "tags": [
+      "情境",
+      "社交",
+      "对话"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "与人交谈/处于社交场合",
+            "action_intensity": 0.6,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_conversation",
+        "to": "proc_speak_daze",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_curious_object",
+    "tags": [
+      "情境",
+      "探索",
+      "收藏"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "发现有趣/新奇的东西",
+            "action_intensity": 0.7,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_curious_object",
+        "to": "proc_collect",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_at_home",
+    "tags": [
+      "情境",
+      "居住",
+      "日常"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Location": {
+            "name": "我的家/房间",
+            "coordinates": "魔法森林"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_at_home",
+        "to": "proc_never_organize",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_outing",
+    "tags": [
+      "情境",
+      "出行",
+      "旅行"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "外出/前往某个地方",
+            "action_intensity": 0.5,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_outing",
+        "to": "proc_ride_broom",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_magic_experiment",
+    "tags": [
+      "情境",
+      "魔法",
+      "实验"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "进行魔法实验/练习新魔法",
+            "action_intensity": 0.8,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_magic_experiment",
+        "to": "proc_record_experiment",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_battle",
+    "tags": [
+      "情境",
+      "战斗",
+      "危险"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "身处战斗/生死冲突",
+            "action_intensity": 0.9,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_battle",
+        "to": "proc_smell_blood",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_weather_outdoor",
+    "tags": [
+      "情境",
+      "天气",
+      "外出"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "外出并遇到天气变化",
+            "action_intensity": 0.4,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_weather_outdoor",
+        "to": "proc_adjust_clothes",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_observed_practice",
+    "tags": [
+      "情境",
+      "修行",
+      "他人"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "在他人面前学习或修行",
+            "action_intensity": 0.6,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_observed_practice",
+        "to": "proc_hide_effort",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

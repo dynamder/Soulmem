@@ -1547,5 +1547,131 @@
       }
     },
     "mem_links": []
+  },
+  {
+    "id": "sit_abstract_indoor_stay",
+    "tags": [
+      "情境",
+      "日常",
+      "室内"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "安静封闭的室内，外界刺激很少",
+            "tone": "慵懒安稳"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_indoor_stay",
+        "to": "proc_stay_basement",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_threat_or_destruction",
+    "tags": [
+      "情境",
+      "战斗",
+      "威胁"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "产生破坏欲望或遭遇威胁",
+            "action_intensity": 0.8,
+            "initiator": "我或外部威胁",
+            "target": "目标物体"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_threat_or_destruction",
+        "to": "proc_destory_eye",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_human_encounter",
+    "tags": [
+      "情境",
+      "人际",
+      "人类"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "与人类相遇或对峙",
+            "action_intensity": 0.4,
+            "initiator": "",
+            "target": "人类"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_human_encounter",
+        "to": "proc_dont_attack_humans",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_sister_instruction",
+    "tags": [
+      "情境",
+      "家族",
+      "指令"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "姐姐大人对我作出安排或表达意愿",
+            "action_intensity": 0.6,
+            "initiator": "蕾米莉亚",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_sister_instruction",
+        "to": "proc_obey_sister",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

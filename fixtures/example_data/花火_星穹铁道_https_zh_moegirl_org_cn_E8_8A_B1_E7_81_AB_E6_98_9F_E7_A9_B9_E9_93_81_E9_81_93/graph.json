@@ -2828,5 +2828,175 @@
         }
       }
     ]
+  },
+  {
+    "id": "sit_abstract_social_interact",
+    "tags": [
+      "情境",
+      "社交",
+      "互动"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "与他人交谈互动",
+            "action_intensity": 0.4,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_social_interact",
+        "to": "proc_speech_style",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5714285714285715
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_social_interact",
+        "to": "proc_habitual_movements",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.4285714285714286
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_triumph_celebration",
+    "tags": [
+      "情境",
+      "庆祝",
+      "胜利"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "取得胜利或恶作剧成功",
+            "action_intensity": 0.8,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_triumph_celebration",
+        "to": "proc_victory_dance",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_combat",
+    "tags": [
+      "情境",
+      "战斗",
+      "冲突"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "发生战斗或冲突",
+            "action_intensity": 0.7,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_combat",
+        "to": "proc_battle_style",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_rejection",
+    "tags": [
+      "情境",
+      "拒绝",
+      "社交"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "遭到拒绝或否定",
+            "action_intensity": 0.5,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_rejection",
+        "to": "proc_rejected_reaction",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_remote_prank",
+    "tags": [
+      "情境",
+      "恶作剧",
+      "通讯"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "远程发送消息进行恶作剧",
+            "action_intensity": 0.6,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_remote_prank",
+        "to": "proc_sms_scam",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

@@ -2328,5 +2328,160 @@
       }
     },
     "mem_links": []
+  },
+  {
+    "id": "sit_abstract_social_interaction",
+    "tags": [
+      "情境",
+      "社交"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "与他人交谈或参与社交活动",
+            "action_intensity": 0.6,
+            "initiator": "我",
+            "target": "交流对象"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_social_interaction",
+        "to": "proc_third_person",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_tense_emotional",
+    "tags": [
+      "情境",
+      "情绪",
+      "压力"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "紧张或情绪冲突",
+            "tone": "压抑克制"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_tense_emotional",
+        "to": "proc_emotionless",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_gaming",
+    "tags": [
+      "情境",
+      "游戏"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "玩电子游戏或参与电竞活动",
+            "action_intensity": 0.7,
+            "initiator": "我",
+            "target": "游戏对手或合作者"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_gaming",
+        "to": "proc_game_skill",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_network_task",
+    "tags": [
+      "情境",
+      "网络",
+      "黑客"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "入侵系统或破解加密信息",
+            "action_intensity": 0.8,
+            "initiator": "我",
+            "target": "目标系统"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_network_task",
+        "to": "proc_hack",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_battle",
+    "tags": [
+      "情境",
+      "战斗"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "与敌人战斗或发生武力冲突",
+            "action_intensity": 0.9,
+            "initiator": "我",
+            "target": "敌人"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_battle",
+        "to": "proc_fight_style",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

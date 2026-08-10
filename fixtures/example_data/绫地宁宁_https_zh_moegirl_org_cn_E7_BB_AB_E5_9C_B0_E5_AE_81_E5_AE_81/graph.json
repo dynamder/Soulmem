@@ -1574,5 +1574,38 @@
       }
     },
     "mem_links": []
+  },
+  {
+    "id": "sit_abstract_curse_onset",
+    "tags": [
+      "情境",
+      "契约代价",
+      "发情",
+      "独处"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "契约代价发作，陷入难以忍受的发情状态",
+            "action_intensity": 0.8,
+            "initiator": "契约代价",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_curse_onset",
+        "to": "proc_self_relief",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

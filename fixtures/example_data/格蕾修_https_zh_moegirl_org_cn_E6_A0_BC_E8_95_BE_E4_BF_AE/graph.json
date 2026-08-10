@@ -2047,5 +2047,227 @@
       }
     },
     "mem_links": []
+  },
+  {
+    "id": "sit_abstract_social_encounter",
+    "tags": [
+      "情境",
+      "社交",
+      "交流"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "与他人会面交流",
+            "action_intensity": 0.5,
+            "initiator": "他人",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_social_encounter",
+        "to": "proc_silence",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_emotional_contact",
+    "tags": [
+      "情境",
+      "情感",
+      "相互影响"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "与他人产生强烈情感共鸣或意志碰撞",
+            "action_intensity": 0.8,
+            "initiator": "对方",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_emotional_contact",
+        "to": "proc_imitate",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_ailixiya_influence",
+    "tags": [
+      "情境",
+      "爱莉希雅",
+      "影响"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "受爱莉希雅影响与鼓舞",
+            "action_intensity": 0.7,
+            "initiator": "爱莉希雅",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_ailixiya_influence",
+        "to": "proc_phrase",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_night_sleep",
+    "tags": [
+      "情境",
+      "夜晚",
+      "休息"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "安静舒适的夜晚",
+            "tone": "温馨安宁"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_night_sleep",
+        "to": "proc_sleep_with_tail",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_receive_gift",
+    "tags": [
+      "情境",
+      "礼物",
+      "朋友"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "收到来自朋友的食物或礼物",
+            "action_intensity": 0.6,
+            "initiator": "朋友",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_receive_gift",
+        "to": "proc_keep_food",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_watch_scifi",
+    "tags": [
+      "情境",
+      "科幻",
+      "电影"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "观看科幻电影或影视作品",
+            "action_intensity": 0.5,
+            "initiator": "我",
+            "target": "电影"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_watch_scifi",
+        "to": "proc_learn_from_movies",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_artwork_deadline",
+    "tags": [
+      "情境",
+      "委托",
+      "画稿"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "受托创作画稿且面临交付期待",
+            "action_intensity": 0.6,
+            "initiator": "委托者",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_artwork_deadline",
+        "to": "proc_delay",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

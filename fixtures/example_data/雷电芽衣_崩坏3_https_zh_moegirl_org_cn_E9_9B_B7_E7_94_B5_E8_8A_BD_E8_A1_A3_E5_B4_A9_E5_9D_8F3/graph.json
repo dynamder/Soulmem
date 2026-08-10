@@ -2243,5 +2243,35 @@
       }
     },
     "mem_links": []
+  },
+  {
+    "id": "sit_abstract_idle_moment",
+    "tags": [
+      "情境",
+      "日常",
+      "习惯"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "空闲无事可做",
+            "tone": "放松又有点无聊"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_idle_moment",
+        "to": "proc_head_move",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

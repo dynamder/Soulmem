@@ -1953,5 +1953,141 @@
         }
       }
     ]
+  },
+  {
+    "id": "sit_abstract_concerned_interaction",
+    "tags": [
+      "情境",
+      "社交",
+      "关心"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "被他人关心或安慰",
+            "action_intensity": 0.6,
+            "initiator": "他人",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_concerned_interaction",
+        "to": "proc_talking_tsundere",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_combat",
+    "tags": [
+      "情境",
+      "战斗",
+      "对峙"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "进入战斗/与敌人交战",
+            "action_intensity": 0.8,
+            "initiator": "敌人",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_combat",
+        "to": "proc_weapon_control",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_bored_daily",
+    "tags": [
+      "情境",
+      "日常",
+      "无聊"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "平静而无趣的日常氛围，缺乏新鲜刺激",
+            "tone": "慵懒、无聊"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_bored_daily",
+        "to": "proc_organize_tea_party",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_immersed_work",
+    "tags": [
+      "情境",
+      "工作",
+      "专注"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "我沉浸于研究工作，专注得忘记了时间和身边的一切",
+            "action_intensity": 0.8,
+            "initiator": "我",
+            "target": "研究工作"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_immersed_work",
+        "to": "proc_night_owl",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5151515151515151
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_immersed_work",
+        "to": "proc_eat_irregular",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.4848484848484849
+          }
+        }
+      }
+    ]
   }
 ]

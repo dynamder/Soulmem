@@ -2500,5 +2500,173 @@
       }
     },
     "mem_links": []
+  },
+  {
+    "id": "sit_abstract_unexpected_situation",
+    "tags": [
+      "情境",
+      "压力",
+      "冷静"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "遇到突发状况或紧张局面",
+            "action_intensity": 0.6,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_unexpected_situation",
+        "to": "proc_calm_approach",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_difficulty",
+    "tags": [
+      "情境",
+      "困难",
+      "独立"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "遇到困难或挑战",
+            "action_intensity": 0.5,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_difficulty",
+        "to": "proc_self_reliance",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_cooking_occasion",
+    "tags": [
+      "情境",
+      "烹饪",
+      "聚餐"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "准备餐食或参加聚餐",
+            "action_intensity": 0.4,
+            "initiator": "我",
+            "target": "他人"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_cooking_occasion",
+        "to": "proc_cooking",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_young_companions",
+    "tags": [
+      "情境",
+      "社交",
+      "年轻后辈"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Participant": {
+            "name": "年轻一代",
+            "role": "后辈/学生"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_young_companions",
+        "to": "proc_old_fashioned",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_companions_in_danger",
+    "tags": [
+      "情境",
+      "危险",
+      "守护"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "同伴遭遇危险或威胁",
+            "action_intensity": 0.9,
+            "initiator": "敌人",
+            "target": "同伴"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_companions_in_danger",
+        "to": "proc_protect_companions",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5625
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_companions_in_danger",
+        "to": "proc_use_yuandu",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 0.43749999999999994
+          }
+        }
+      }
+    ]
   }
 ]

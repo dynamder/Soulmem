@@ -1780,5 +1780,130 @@
         }
       }
     ]
+  },
+  {
+    "id": "sit_abstract_combat",
+    "tags": [
+      "情境",
+      "战斗"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "遭遇敌人并展开战斗",
+            "action_intensity": 0.8,
+            "initiator": "敌人/对手",
+            "target": "旅行者"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_combat",
+        "to": "proc_sword_combat",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_cooking",
+    "tags": [
+      "情境",
+      "烹饪",
+      "日常"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "准备食物/做饭",
+            "action_intensity": 0.4,
+            "initiator": "旅行者",
+            "target": "食材"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_cooking",
+        "to": "proc_cooking",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_drawing_request",
+    "tags": [
+      "情境",
+      "绘画",
+      "请求"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "被人请求画画或参与绘画创作",
+            "action_intensity": 0.3,
+            "initiator": "他人",
+            "target": "旅行者"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_drawing_request",
+        "to": "proc_no_drawing",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_sleep_night",
+    "tags": [
+      "情境",
+      "睡眠",
+      "夜晚"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "宁静安睡的氛围",
+            "tone": "孤寂"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_sleep_night",
+        "to": "proc_nightmare",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

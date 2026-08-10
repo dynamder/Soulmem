@@ -2672,5 +2672,133 @@
         }
       }
     ]
+  },
+  {
+    "id": "sit_abstract_formal_communication",
+    "tags": [
+      "情境",
+      "社交",
+      "正式交流"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "进行正式沟通或解释重要事务",
+            "action_intensity": 0.5,
+            "initiator": "我或对方",
+            "target": "需要理解的人"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_formal_communication",
+        "to": "proc_overcautious_speech",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_leisure_time",
+    "tags": [
+      "情境",
+      "日常",
+      "闲暇"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "空闲休息或独处放松",
+            "action_intensity": 0.2,
+            "initiator": "我",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_leisure_time",
+        "to": "proc_book_habit",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_market_goods",
+    "tags": [
+      "情境",
+      "市集",
+      "购物"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "逛街或逛市场，看到在售商品",
+            "action_intensity": 0.4,
+            "initiator": "我",
+            "target": "市售商品"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_market_goods",
+        "to": "proc_appraise",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_friendly_game",
+    "tags": [
+      "情境",
+      "社交",
+      "休闲竞技"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "和朋友进行休闲竞技或游戏",
+            "action_intensity": 0.6,
+            "initiator": "我",
+            "target": "朋友们"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_friendly_game",
+        "to": "proc_fishing_trick",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]
