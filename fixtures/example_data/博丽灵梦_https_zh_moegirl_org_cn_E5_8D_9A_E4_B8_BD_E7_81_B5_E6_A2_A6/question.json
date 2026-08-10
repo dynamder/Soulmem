@@ -17,7 +17,7 @@
       "description": "atomic query 0",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 10,
           "tag": [
             "人物",
             "自身"
@@ -25,8 +25,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "红白的巫女",
-                "description": "幻想乡的巫女，住在边界的神社里"
+                "concept_identifier": "幻想乡边境的巫女",
+                "description": "住在博丽神社，每天喝茶扫地、退治妖怪、解决异变的巫女"
               }
             ]
           }
@@ -40,6 +40,7 @@
           ],
           "bonus_ranking": [
             "sem_hakurei_shrine",
+            "sem_barrier",
             "sem_gensokyo"
           ]
         }
@@ -49,6 +50,7 @@
       ],
       "bonus_combined_ranking": [
         "sem_hakurei_shrine",
+        "sem_barrier",
         "sem_gensokyo"
       ],
       "expected_actions": []
@@ -66,8 +68,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "金发的魔法使",
-                "description": "经常来神社蹭茶喝的魔法使"
+                "concept_identifier": "魔法森林来的魔法使",
+                "description": "经常来神社蹭茶喝，总说最喜欢她的人"
               }
             ]
           }
@@ -80,8 +82,7 @@
             "sem_marisa"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "sem_alice"
+            "sem_self"
           ]
         }
       ],
@@ -89,108 +90,13 @@
         "sem_marisa"
       ],
       "bonus_combined_ranking": [
-        "sem_self",
-        "sem_alice"
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
       "name": "query_2",
       "description": "atomic query 2",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "异变"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "吸血鬼因为讨厌太阳制造了红雾，灵梦冲进城堡教训了她一顿",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_red_mist_incident"
-          ],
-          "bonus_ranking": [
-            "sem_remilia",
-            "sem_self",
-            "sem_hakurei_shrine"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_red_mist_incident"
-      ],
-      "bonus_combined_ranking": [
-        "sem_remilia",
-        "sem_self",
-        "sem_hakurei_shrine"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_3",
-      "description": "atomic query 3",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "魔理沙"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "魔理沙在智灵奇传中被怨灵附身消失了，灵梦当时很着急",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_marisa_disappear"
-          ],
-          "bonus_ranking": [
-            "sem_marisa",
-            "sem_self",
-            "sem_yukari"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_marisa_disappear"
-      ],
-      "bonus_combined_ranking": [
-        "sem_marisa",
-        "sem_self",
-        "sem_yukari"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_4",
-      "description": "atomic query 4",
       "sub_queries": [
         {
           "priority": 8,
@@ -201,8 +107,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "隙间的妖怪",
-                "description": "幻想乡的贤者，经常偷神社的茶喝"
+                "concept_identifier": "操控隙间的贤者",
+                "description": "幻想乡的贤者，在她神社偷茶喝也会往赛钱箱投钱，算是监护人"
               }
             ]
           }
@@ -230,67 +136,20 @@
       "expected_actions": []
     },
     {
-      "name": "query_5",
-      "description": "atomic query 5",
+      "name": "query_3",
+      "description": "atomic query 3",
       "sub_queries": [
         {
           "priority": 7,
           "tag": [
-            "事件",
-            "喝酒"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "赏花会上被鸦天狗灌醉，不小心说了不该说的话",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_drunken_hanami"
-          ],
-          "bonus_ranking": [
-            "sem_aya",
-            "sem_self",
-            "proc_drink_tea"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_drunken_hanami"
-      ],
-      "bonus_combined_ranking": [
-        "sem_aya",
-        "sem_self",
-        "proc_drink_tea"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_6",
-      "description": "atomic query 6",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "物品",
-            "秘宝"
+            "人物",
+            "鬼族"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "又硬又重的勾玉",
-                "description": "博丽神社最硬的秘宝，蕴含强大力量"
+                "concept_identifier": "鬼族的四天王之一",
+                "description": "萃梦想事件后被她留在神社干体力活的鬼，能操纵密度和疏密"
               }
             ]
           }
@@ -300,341 +159,38 @@
         {
           "q": 0,
           "ranking": [
-            "sem_yinyang_orb"
-          ],
-          "bonus_ranking": [
-            "sem_misumaru",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_yinyang_orb"
-      ],
-      "bonus_combined_ranking": [
-        "sem_misumaru",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_7",
-      "description": "atomic query 7",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "概念",
-            "规则"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "弹幕规则",
-                "description": "灵梦提出的让妖怪和人类不危及生命的对决规则"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_spell_card_rule"
+            "sem_suika"
           ],
           "bonus_ranking": [
             "sem_self",
-            "sem_remilia"
+            "sit_suika_stay"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_spell_card_rule"
+        "sem_suika"
       ],
       "bonus_combined_ranking": [
         "sem_self",
-        "sem_remilia"
+        "sit_suika_stay"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_8",
-      "description": "atomic query 8",
+      "name": "query_4",
+      "description": "atomic query 4",
       "sub_queries": [
         {
           "priority": 8,
           "tag": [
-            "事件",
-            "鬼族"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "鬼族四天王之一在事件后留下在神社帮忙干体力活",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_suika_stay"
-          ],
-          "bonus_ranking": [
-            "sem_suika",
-            "sem_self",
-            "sem_hakurei_shrine"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_suika_stay"
-      ],
-      "bonus_combined_ranking": [
-        "sem_suika",
-        "sem_self",
-        "sem_hakurei_shrine"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_9",
-      "description": "atomic query 9",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "地点",
-            "神社"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "妖怪的宴会场所",
-                "description": "位于幻想乡东部边界，每天都没什么香客的神社"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_hakurei_shrine"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_gensokyo"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_hakurei_shrine"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_gensokyo"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_10",
-      "description": "atomic query 10",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "日常",
-            "习惯"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "灵梦的日常：喝茶、扫地、检查空空的赛钱箱",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_daily_routine"
-          ],
-          "bonus_ranking": [
-            "proc_drink_tea",
-            "proc_sweep",
-            "proc_check_saisen"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_daily_routine"
-      ],
-      "bonus_combined_ranking": [
-        "proc_drink_tea",
-        "proc_sweep",
-        "proc_check_saisen"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_11",
-      "description": "atomic query 11",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "能力",
-            "奥义"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "完全无敌的状态",
-                "description": "灵梦的究极奥义，变成无法被触碰的透明人"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_musou_tensei"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_flying_ability"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_musou_tensei"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_flying_ability"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_12",
-      "description": "atomic query 12",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "能力",
-            "天生"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "漂浮于空中的天赋",
-                "description": "灵梦天生就能不受重力束缚地飞行"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_flying_ability"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_flying_ability"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_13",
-      "description": "atomic query 13",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "深秘录"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "灵梦和独臂仙人一起调查了都市传说异变",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_urban_legend_incident"
-          ],
-          "bonus_ranking": [
-            "sem_kasen",
-            "sem_self",
-            "proc_use_intuition"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_urban_legend_incident"
-      ],
-      "bonus_combined_ranking": [
-        "sem_kasen",
-        "sem_self",
-        "proc_use_intuition"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
             "人物",
-            "同行"
+            "吸血鬼"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "外来的巫女",
-                "description": "守矢神社的巫女，从外界带来新信仰抢了灵梦的香客"
+                "concept_identifier": "红魔馆的大小姐",
+                "description": "因为讨厌日光发动红雾异变的吸血鬼，被教训后反而经常来神社"
               }
             ]
           }
@@ -644,26 +200,26 @@
         {
           "q": 0,
           "ranking": [
-            "sem_sanae"
+            "sem_remilia"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "sem_hakurei_shrine"
+            "sit_red_mist_incident",
+            "sem_spell_card_rule"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_sanae"
+        "sem_remilia"
       ],
       "bonus_combined_ranking": [
-        "sem_self",
-        "sem_hakurei_shrine"
+        "sit_red_mist_incident",
+        "sem_spell_card_rule"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_15",
-      "description": "atomic query 15",
+      "name": "query_5",
+      "description": "atomic query 5",
       "sub_queries": [
         {
           "priority": 7,
@@ -674,8 +230,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "独臂的仙人",
-                "description": "住在妖怪之山，经常来神社说教并帮忙解决异变"
+                "concept_identifier": "独臂仙人",
+                "description": "住在妖怪之山，经常对她说教也会一起调查异变的人"
               }
             ]
           }
@@ -703,151 +259,100 @@
       "expected_actions": []
     },
     {
-      "name": "query_16",
-      "description": "atomic query 16",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "地点",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在兽道上遇到妖怪就毫不犹豫地退治",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_youkai_location"
-          ],
-          "bonus_ranking": [
-            "proc_fight_youkai",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_youkai_location"
-      ],
-      "bonus_combined_ranking": [
-        "proc_fight_youkai",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_17",
-      "description": "atomic query 17",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "背景",
-            "传承"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "巫女的血脉之谜",
-                "description": "关于灵梦是怎么成为巫女的，她自己也不清楚"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_succession_mystery"
-          ],
-          "bonus_ranking": [
-            "sem_previous_miko",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_succession_mystery"
-      ],
-      "bonus_combined_ranking": [
-        "sem_previous_miko",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_18",
-      "description": "atomic query 18",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "信念",
-            "态度"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "随性而活的信条",
-                "description": "灵梦认为努力不一定有回报，不如随心所欲"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_no_effort_belief"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_equality_attitude"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_no_effort_belief"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_equality_attitude"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_19",
-      "description": "atomic query 19",
+      "name": "query_6",
+      "description": "atomic query 6",
       "sub_queries": [
         {
           "priority": 6,
           "tag": [
             "人物",
-            "记者"
+            "匠人"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "鸦天狗记者曾经灌醉灵梦套话，酒量比灵梦好",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "制作阴阳玉的匠人",
+                "description": "在虹龙洞遇到的勾玉匠人，说她是阴阳玉的继承者"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_misumaru"
+          ],
+          "bonus_ranking": [
+            "sem_yinyang_orb"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_misumaru"
+      ],
+      "bonus_combined_ranking": [
+        "sem_yinyang_orb"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "先代"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "上一代的巫女",
+                "description": "可能是她亲生母亲或养母，关于传承的事知道得很少"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_previous_miko"
+          ],
+          "bonus_ranking": [
+            "sem_succession_mystery",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_previous_miko"
+      ],
+      "bonus_combined_ranking": [
+        "sem_succession_mystery",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "鸦天狗"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "灌醉过她的鸦天狗",
+                "description": "赏花会上把她灌醉套话的记者，酒量比她好"
               }
             ]
           }
@@ -875,52 +380,11 @@
       "expected_actions": []
     },
     {
-      "name": "query_20",
-      "description": "atomic query 20",
+      "name": "query_9",
+      "description": "atomic query 9",
       "sub_queries": [
         {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "吸血鬼"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "红魔馆的主人",
-                "description": "曾发动红雾异变的吸血鬼，被教训后反而常来神社"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_remilia"
-          ],
-          "bonus_ranking": [
-            "sit_red_mist_incident",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_remilia"
-      ],
-      "bonus_combined_ranking": [
-        "sit_red_mist_incident",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_21",
-      "description": "atomic query 21",
-      "sub_queries": [
-        {
-          "priority": 5,
+          "priority": 6,
           "tag": [
             "人物",
             "店主"
@@ -928,8 +392,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "香霖堂的半人半妖",
-                "description": "帮灵梦做衣服和道具，灵梦拿东西从不付钱"
+                "concept_identifier": "开道具店的那位",
+                "description": "做她衣服和道具的半人半妖，知道很多神社的事却不肯说"
               }
             ]
           }
@@ -957,20 +421,61 @@
       "expected_actions": []
     },
     {
-      "name": "query_22",
-      "description": "atomic query 22",
+      "name": "query_10",
+      "description": "atomic query 10",
       "sub_queries": [
         {
-          "priority": 5,
+          "priority": 8,
+          "tag": [
+            "物品",
+            "秘宝"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "能用来砸人的勾玉",
+                "description": "又硬又重的博丽神社秘宝，能当弹幕子机也能直接当武器"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_yinyang_orb"
+          ],
+          "bonus_ranking": [
+            "sem_misumaru",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_yinyang_orb"
+      ],
+      "bonus_combined_ranking": [
+        "sem_misumaru",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 7,
           "tag": [
             "能力",
-            "弹幕"
+            "奥义"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "比其他人小的判定点",
-                "description": "灵梦在弹幕游戏里判定点小一圈，更不容易被击中"
+                "concept_identifier": "不透明的透明人状态",
+                "description": "使用后完全无法被触碰的无敌奥义，漂浮于所有事物之上"
               }
             ]
           }
@@ -980,7 +485,7 @@
         {
           "q": 0,
           "ranking": [
-            "sem_small_hitbox"
+            "sem_musou_tensei"
           ],
           "bonus_ranking": [
             "sem_self"
@@ -988,7 +493,7 @@
         }
       ],
       "expected_combined_ranking": [
-        "sem_small_hitbox"
+        "sem_musou_tensei"
       ],
       "bonus_combined_ranking": [
         "sem_self"
@@ -996,110 +501,20 @@
       "expected_actions": []
     },
     {
-      "name": "set_lm",
-      "description": "查询灵梦本人的各种描述",
+      "name": "query_12",
+      "description": "atomic query 12",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 8,
           "tag": [
-            "人物",
-            "自身"
+            "概念",
+            "规则"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "红白的巫女",
-                "description": "幻想乡的巫女"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "自身"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "乐园的巫女",
-                "description": "住在边界神社的懒散巫女"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "自身"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "博丽",
-                "description": "幻想乡平衡的维护者"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "自身"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个用直觉解决问题的巫女",
-                "description": "从不努力，全靠直觉和天赋的麻烦终结者"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "自身"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的游戏判定点很小",
-                "description": "弹幕里的自机判定点比别的角色小"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "自身"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "信仰看运气的人",
-                "description": "她相信直觉和运气，不相信努力"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "自身"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "博丽神社的现任主人",
-                "description": "穿着红白巫女服，整天喝茶打妖怪的巫女"
+                "concept_identifier": "以美为核心的战斗规则",
+                "description": "给绝技命名宣战、规定符卡数量的弹幕对决规则，让妖怪和人类能安全战斗"
               }
             ]
           }
@@ -1109,80 +524,65 @@
         {
           "q": 0,
           "ranking": [
-            "sem_self"
+            "sem_spell_card_rule"
           ],
           "bonus_ranking": [
-            "sem_hakurei_shrine"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": [
-            "sem_hakurei_shrine"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": [
-            "sem_hakurei_shrine"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": [
-            "sem_hakurei_shrine"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": [
-            "sem_hakurei_shrine"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": [
-            "sem_hakurei_shrine"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": [
-            "sem_hakurei_shrine",
-            "sem_gensokyo"
+            "sem_self",
+            "sem_remilia"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_self"
+        "sem_spell_card_rule"
       ],
       "bonus_combined_ranking": [
-        "sem_hakurei_shrine",
-        "sem_gensokyo"
+        "sem_self",
+        "sem_remilia"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_redmist",
-      "description": "查询红雾异变相关事件",
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "能力",
+            "天生"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "天生的飞行能力",
+                "description": "不受重力和力量差距束缚，能自由飘浮在空中"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_flying_ability"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_flying_ability"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
       "sub_queries": [
         {
           "priority": 9,
@@ -1193,121 +593,7 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "吸血鬼制造红雾，灵梦冲进城堡用武力解决了问题",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "异变"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "蕾米莉亚因为讨厌太阳引起的大骚动",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "异变"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "有人用红雾把幻想乡变得暗无天日，灵梦去红魔馆教训了罪魁祸首",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "异变"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "那个被冲进自己家教训了一顿的吸血鬼后来反而经常去神社",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "异变"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "灵梦与红魔馆主人初次交手的原因",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "异变"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "因为雾太浓而出门的异变解决",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "异变"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "灵梦和吸血鬼的第一次冲突",
+                "narrative": "幻想乡被红雾笼罩时，她冲进红魔馆把发动异变的吸血鬼教训了一顿",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1321,66 +607,6 @@
       "expected_per_query": [
         {
           "q": 0,
-          "ranking": [
-            "sit_red_mist_incident"
-          ],
-          "bonus_ranking": [
-            "sem_remilia",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_red_mist_incident"
-          ],
-          "bonus_ranking": [
-            "sem_remilia",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_red_mist_incident"
-          ],
-          "bonus_ranking": [
-            "sem_remilia",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_red_mist_incident"
-          ],
-          "bonus_ranking": [
-            "sem_remilia",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_red_mist_incident"
-          ],
-          "bonus_ranking": [
-            "sem_remilia",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_red_mist_incident"
-          ],
-          "bonus_ranking": [
-            "sem_remilia",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 6,
           "ranking": [
             "sit_red_mist_incident"
           ],
@@ -1400,120 +626,24 @@
       "expected_actions": []
     },
     {
-      "name": "set_marisa",
-      "description": "查询魔理沙的相关信息（混合变体）",
+      "name": "query_15",
+      "description": "atomic query 15",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 8,
           "tag": [
-            "人物",
-            "挚友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "金发的魔法使",
-                "description": "经常来神社蹭茶喝的魔法使"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "挚友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "灵梦最好的朋友",
-                "description": "住在魔法森林，性格大大咧咧的魔法使"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "挚友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "总被记在黑账上的人",
-                "description": "灵梦从香霖堂拿东西都记在她账上"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "挚友",
-            "事件"
+            "事件",
+            "魔理沙"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "魔理沙在智灵奇传里被怨灵附身消失了",
+                "narrative": "金发魔法使被怨灵附身消失的时候，她心里很着急",
                 "location": null,
                 "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "挚友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个总说灵梦是她最喜欢的东西的人",
-                "description": "灵梦的搭档和挚友，一起解决过很多异变"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "挚友",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "灵梦的挚友被怨灵附身消失时她着急了",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "挚友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "即使大大咧咧也很可靠的人",
-                "description": "灵梦最重要的伙伴，和她一起度过的时光很多"
               }
             ]
           }
@@ -1523,194 +653,42 @@
         {
           "q": 0,
           "ranking": [
-            "sem_marisa"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_alice"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_marisa"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_alice"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_marisa"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_morichika"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
             "sit_marisa_disappear"
           ],
           "bonus_ranking": [
             "sem_marisa",
             "sem_self"
           ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_marisa"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_alice",
-            "sem_morichika"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_marisa_disappear"
-          ],
-          "bonus_ranking": [
-            "sem_marisa",
-            "sem_self",
-            "sem_yukari"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_marisa"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_alice"
-          ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_marisa",
         "sit_marisa_disappear"
       ],
       "bonus_combined_ranking": [
-        "sem_self",
-        "sem_alice",
-        "sem_morichika",
         "sem_marisa",
-        "sem_yukari"
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_spellcard",
-      "description": "查询符卡规则",
+      "name": "query_16",
+      "description": "atomic query 16",
       "sub_queries": [
         {
           "priority": 7,
           "tag": [
-            "概念",
-            "规则"
+            "事件",
+            "赏花"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "弹幕规则",
-                "description": "灵梦提出的以美为核心的战斗规则"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "概念",
-            "规则"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "不危及性命的战斗方式",
-                "description": "让人类和妖怪能安全对决的规矩"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "概念",
-            "规则"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "符卡的数量限制",
-                "description": "规定绝技要命名，用完符卡就输的规则"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "概念",
-            "规则"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "灵梦发明的规则",
-                "description": "她自己提出的，现在全幻想乡都在用"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "概念",
-            "规则"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "Spell Card规则",
-                "description": "把弹幕变成美丽的对决"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "概念",
-            "规则"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "幻想乡的弹幕规矩",
-                "description": "先耗尽符卡的一方为负"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "概念",
-            "规则"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "命名决斗法",
-                "description": "给绝技起个华丽名字再打"
+                "narrative": "赏花会上被鸦天狗灌醉，迷迷糊糊说出一些不该说的话",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -1720,91 +698,37 @@
         {
           "q": 0,
           "ranking": [
-            "sem_spell_card_rule"
+            "sit_drunken_hanami"
           ],
           "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_spell_card_rule"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_spell_card_rule"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_remilia"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_spell_card_rule"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_spell_card_rule"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_spell_card_rule"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_spell_card_rule"
-          ],
-          "bonus_ranking": [
+            "sem_aya",
             "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_spell_card_rule"
+        "sit_drunken_hanami"
       ],
       "bonus_combined_ranking": [
-        "sem_self",
-        "sem_remilia"
+        "sem_aya",
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_daily",
-      "description": "查询灵梦的日常习惯",
+      "name": "query_17",
+      "description": "atomic query 17",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 7,
           "tag": [
-            "日常",
-            "习惯"
+            "事件",
+            "异变"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "灵梦每天在神社喝茶扫地",
+                "narrative": "深秘录里她和一个独臂仙人一起调查都市传说异变",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1813,17 +737,43 @@
               }
             ]
           }
-        },
+        }
+      ],
+      "expected_per_query": [
         {
-          "priority": 4,
+          "q": 0,
+          "ranking": [
+            "sit_urban_legend_incident"
+          ],
+          "bonus_ranking": [
+            "sem_kasen",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_urban_legend_incident"
+      ],
+      "bonus_combined_ranking": [
+        "sem_kasen",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 7,
           "tag": [
-            "日常",
-            "习惯"
+            "事件",
+            "鬼族"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "红白巫女的日常：检查空箱子、喝茶、拿扫帚",
+                "narrative": "萃梦想事件结束后把鬼王留在神社帮忙做体力活",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1832,9 +782,35 @@
               }
             ]
           }
-        },
+        }
+      ],
+      "expected_per_query": [
         {
-          "priority": 4,
+          "q": 0,
+          "ranking": [
+            "sit_suika_stay"
+          ],
+          "bonus_ranking": [
+            "sem_suika",
+            "sem_hakurei_shrine"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_suika_stay"
+      ],
+      "bonus_combined_ranking": [
+        "sem_suika",
+        "sem_hakurei_shrine"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 5,
           "tag": [
             "日常",
             "习惯"
@@ -1842,83 +818,7 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "待在神社什么也不做的悠闲日子",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 4,
-          "tag": [
-            "日常",
-            "习惯"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在缘侧喝茶发呆的时间",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 4,
-          "tag": [
-            "日常",
-            "习惯"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "早上起来扫扫地，看看赛钱箱，然后喝茶",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 4,
-          "tag": [
-            "日常",
-            "习惯"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "灵梦最喜欢的消遣：泡茶发呆",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 4,
-          "tag": [
-            "日常",
-            "习惯"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "拿着扫帚在神社周围晃悠",
+                "narrative": "每天在博丽神社喝茶扫地，没什么香客拜访的平静日子",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1936,67 +836,8 @@
             "sit_daily_routine"
           ],
           "bonus_ranking": [
-            "proc_drink_tea",
-            "proc_sweep"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_daily_routine"
-          ],
-          "bonus_ranking": [
-            "proc_drink_tea",
-            "proc_sweep",
-            "proc_check_saisen"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_daily_routine"
-          ],
-          "bonus_ranking": [
-            "proc_drink_tea",
-            "proc_sweep"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_daily_routine"
-          ],
-          "bonus_ranking": [
-            "proc_drink_tea",
-            "proc_check_saisen"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_daily_routine"
-          ],
-          "bonus_ranking": [
-            "proc_sweep",
-            "proc_check_saisen"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_daily_routine"
-          ],
-          "bonus_ranking": [
-            "proc_drink_tea"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_daily_routine"
-          ],
-          "bonus_ranking": [
-            "proc_sweep"
+            "sem_self",
+            "sem_hakurei_shrine"
           ]
         }
       ],
@@ -2004,128 +845,33 @@
         "sit_daily_routine"
       ],
       "bonus_combined_ranking": [
-        "proc_drink_tea",
-        "proc_sweep",
-        "proc_check_saisen"
+        "sem_self",
+        "sem_hakurei_shrine"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_drink_tea",
+        "proc_sweep"
+      ]
     },
     {
-      "name": "set_yinyang",
-      "description": "查询阴阳玉相关（混合变体）",
+      "name": "query_20",
+      "description": "atomic query 20",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 5,
           "tag": [
-            "物品",
-            "秘宝"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "博丽神社的秘宝",
-                "description": "很硬很重的勾玉"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "物品",
-            "秘宝"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "玉造魅须丸制作的硬石头",
-                "description": "连华扇都不能随便碰的强力道具"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "物品",
-            "秘宝",
-            "战斗"
+            "日常",
+            "习惯"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "灵梦平时带着一个又硬又重的球形物体，还能发射出去打人",
+                "narrative": "每天早上都要看一眼赛钱箱，可惜里面从来都是空的",
                 "location": null,
                 "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "物品",
-            "秘宝"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "阴阳玉",
-                "description": "博丽巫女继承的宝物，蕴含巨大力量"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "物品",
-            "秘宝",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "灵梦使用的那个能变出弹幕的球体，是虹龙洞里遇到的匠人做的",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "物品",
-            "秘宝"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "又圆又硬的武器",
-                "description": "平时带在身边，战斗时用来砸人或发射弹幕"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "物品",
-            "秘宝",
-            "能力"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "勾玉匠人制作的秘宝",
-                "description": "博丽神社最大的秘宝，只有巫女能使用"
               }
             ]
           }
@@ -2135,85 +881,1423 @@
         {
           "q": 0,
           "ranking": [
-            "sem_yinyang_orb"
+            "sit_daily_routine"
           ],
           "bonus_ranking": [
-            "sem_misumaru",
+            "sem_saisen_box",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_daily_routine"
+      ],
+      "bonus_combined_ranking": [
+        "sem_saisen_box",
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_check_saisen"
+      ]
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "地点",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在兽道上撞见妖怪时，会毫不犹豫地直接退治掉",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_youkai_location"
+          ],
+          "bonus_ranking": [
+            "sem_gensokyo",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_youkai_location"
+      ],
+      "bonus_combined_ranking": [
+        "sem_gensokyo",
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_fight_youkai"
+      ]
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "发生异变时起初不着急，后来靠着直觉和运气漫无目的地出发调查",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_incident_event"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sit_red_mist_incident"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_incident_event"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_red_mist_incident"
+      ],
+      "expected_actions": [
+        "proc_use_intuition",
+        "proc_carry_equipment"
+      ]
+    },
+    {
+      "name": "query_23",
+      "description": "atomic query 23",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "宴会",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "妖怪们在神社开完热闹的宴会后，她认命地收拾满地狼藉",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_party_env"
+          ],
+          "bonus_ranking": [
+            "sem_hakurei_shrine",
+            "sit_drunken_hanami"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_party_env"
+      ],
+      "bonus_combined_ranking": [
+        "sem_hakurei_shrine",
+        "sit_drunken_hanami"
+      ],
+      "expected_actions": [
+        "proc_clean_up_party"
+      ]
+    },
+    {
+      "name": "query_24",
+      "description": "atomic query 24",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "战斗",
+            "妖怪"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "遇到来袭击的妖怪时从不手软，直接打进战斗",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_youkai_participant"
+          ],
+          "bonus_ranking": [
+            "sit_incident_event",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_youkai_participant"
+      ],
+      "bonus_combined_ranking": [
+        "sit_incident_event",
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_fight_youkai"
+      ]
+    },
+    {
+      "name": "set_marisa_bestie",
+      "description": "查询灵梦的挚友雾雨魔理沙",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "魔法森林来的魔法使",
+                "description": "住在魔法森林，总来神社蹭茶的魔法使"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的挚友",
+                "description": "一起解决过大量异变的搭档，性格大大咧咧"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "雾雨家的姑娘",
+                "description": "总把灵梦是我最喜欢的东西挂在嘴边的家伙"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个魔法使",
+                "description": "会从香霖堂借走各种道具的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被栽赃记账的人",
+                "description": "她从香霖堂拿东西时，账却记在魔理沙头上"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "笑眯眯说最喜欢她的那个人",
+                "description": "那句话里的最喜欢的东西指的就是她"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "常来蹭茶的金发女孩",
+                "description": "魔法森林来的常客，神社茶客里最熟的那一个"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "失踪时让她着急的人",
+                "description": "被怨灵附身消失时，她担心得坐不住"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_marisa"
+          ],
+          "bonus_ranking": [
             "sem_self"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_yinyang_orb"
+            "sem_marisa"
           ],
           "bonus_ranking": [
-            "sem_misumaru",
-            "sem_self"
+            "sem_self",
+            "sem_alice"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_yinyang_orb"
+            "sem_marisa"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "proc_carry_equipment"
+            "sem_self"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_yinyang_orb"
+            "sem_marisa"
           ],
           "bonus_ranking": [
-            "sem_misumaru",
-            "sem_self"
+            "sem_morichika"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_yinyang_orb"
+            "sem_marisa"
           ],
           "bonus_ranking": [
-            "sem_misumaru",
-            "sem_self",
-            "sit_urban_legend_incident"
+            "sem_morichika",
+            "sem_self"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sem_yinyang_orb"
+            "sem_marisa"
           ],
           "bonus_ranking": [
-            "sem_misumaru",
             "sem_self"
           ]
         },
         {
           "q": 6,
           "ranking": [
-            "sem_yinyang_orb"
+            "sem_marisa"
           ],
           "bonus_ranking": [
-            "sem_misumaru",
+            "sem_self",
+            "sem_hakurei_shrine"
+          ]
+        },
+        {
+          "q": 7,
+          "ranking": [
+            "sem_marisa"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sit_marisa_disappear"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_marisa"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_alice",
+        "sem_morichika",
+        "sem_hakurei_shrine",
+        "sit_marisa_disappear"
+      ],
+      "expected_actions": [
+        "proc_charge_to_marisa",
+        "proc_carry_equipment",
+        "proc_use_intuition"
+      ]
+    },
+    {
+      "name": "set_red_mist_incident",
+      "description": "查询红雾异变事件及解决过程",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "异变"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "幻想乡被不详的红雾笼罩，她一路追查到了洋馆",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "异变"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "红魔馆的吸血鬼因为讨厌阳光发动了异变，被巫女找上了门",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "异变"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她冲进红魔馆，和馆主大打出手，最后把她教训了一顿",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "异变"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "解决那场大雾时，她一开始照样喝茶摸鱼，随后才靠直觉出手",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "异变"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "异变解决后，吸血鬼大小姐反而对她产生了兴趣，常来神社串门",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "异变"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在红魔馆里她靠符卡规则和吸血鬼公平对决，没有下死手",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "异变"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "发现红雾时她二话不说带上符札和阴阳玉就出发了",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "异变"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "面对馆主的密集弹幕，她靠着小判定点和直觉躲过绝杀",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_red_mist_incident"
+          ],
+          "bonus_ranking": [
+            "sem_remilia",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_red_mist_incident"
+          ],
+          "bonus_ranking": [
+            "sem_remilia",
+            "sem_spell_card_rule"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_red_mist_incident"
+          ],
+          "bonus_ranking": [
+            "sem_remilia",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_red_mist_incident"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_hakurei_shrine"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_red_mist_incident"
+          ],
+          "bonus_ranking": [
+            "sem_remilia",
+            "sem_hakurei_shrine"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_red_mist_incident"
+          ],
+          "bonus_ranking": [
+            "sem_remilia",
+            "sem_spell_card_rule"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_red_mist_incident"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_yinyang_orb",
+            "sem_ofuda"
+          ]
+        },
+        {
+          "q": 7,
+          "ranking": [
+            "sit_red_mist_incident"
+          ],
+          "bonus_ranking": [
+            "sem_small_hitbox",
             "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_yinyang_orb"
+        "sit_red_mist_incident"
       ],
       "bonus_combined_ranking": [
-        "sem_misumaru",
+        "sem_remilia",
         "sem_self",
-        "proc_carry_equipment",
-        "sit_urban_legend_incident"
+        "sem_spell_card_rule",
+        "sem_hakurei_shrine",
+        "sem_yinyang_orb",
+        "sem_ofuda",
+        "sem_small_hitbox"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_fight_youkai",
+        "proc_use_intuition",
+        "proc_carry_equipment"
+      ]
+    },
+    {
+      "name": "set_daily_routine",
+      "description": "查询灵梦的日常习惯与行为模式",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "日常",
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "随性而活的巫女",
+                "description": "相信直觉和运气，不觉得努力会有回报的生活态度"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "日常",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "每天在神社喝茶扫地发呆，没什么香客来",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "战斗",
+            "态度"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "不管人类还是妖怪她都一视同仁，敢惹她就会被直接打回去",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "日常",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "早上一睁眼先去看赛钱箱，虽然还是空的",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "日常",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "闲暇时坐在缘侧喝茶，看着院子发呆",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "日常",
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "随身带着的符纸和勾玉",
+                "description": "她总是随身携带符札和阴阳玉，以备不时之需"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "宴会",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "妖怪们闹完后她一个人收拾满地的酒瓶和残局",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "能力",
+            "日常"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "天生能飞",
+                "description": "不用修炼就能飞，所以觉得努力没什么用"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_no_effort_belief"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_daily_routine"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_hakurei_shrine"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_youkai_participant"
+          ],
+          "bonus_ranking": [
+            "sem_equality_attitude",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_daily_routine"
+          ],
+          "bonus_ranking": [
+            "sem_saisen_box"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_daily_routine"
+          ],
+          "bonus_ranking": [
+            "sem_hakurei_shrine"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_ofuda",
+            "sem_yinyang_orb"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_party_env"
+          ],
+          "bonus_ranking": [
+            "sem_hakurei_shrine"
+          ]
+        },
+        {
+          "q": 7,
+          "ranking": [
+            "sem_flying_ability"
+          ],
+          "bonus_ranking": [
+            "sem_no_effort_belief"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_no_effort_belief",
+        "sit_daily_routine",
+        "sit_youkai_participant",
+        "sem_ofuda",
+        "sem_yinyang_orb",
+        "sit_party_env",
+        "sem_flying_ability"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_hakurei_shrine",
+        "sem_equality_attitude",
+        "sem_saisen_box",
+        "sem_no_effort_belief"
+      ],
+      "expected_actions": [
+        "proc_drink_tea",
+        "proc_sweep",
+        "proc_fight_youkai",
+        "proc_check_saisen",
+        "proc_carry_equipment",
+        "proc_clean_up_party"
+      ]
+    },
+    {
+      "name": "set_suika_stay",
+      "description": "查询萃香留在神社的事件与关系",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "鬼族"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "鬼族的四天王之一",
+                "description": "被留在神社帮忙干体力活的鬼族，能操纵密度"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "鬼族"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "萃梦想事件后她收留了鬼王，让鬼王在神社做体力活",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "鬼族"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那个能操纵密度的鬼，在她这儿赖下来不走了",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "鬼族"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "酒量很好的合作者",
+                "description": "和她一起解决过异变，也留下来帮忙干活的鬼族"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "鬼王在神社时她会递扫帚让鬼干活，自己继续喝茶",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "鬼族"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被使唤的鬼",
+                "description": "被灵梦留在神社扫地帮忙的鬼族，偶尔一起喝酒"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "宴会"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "鬼王在神社醉倒后，灵梦还得负责收拾残局",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "鬼族"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "神社里的鬼族帮手",
+                "description": "被收留的鬼族四天王，拥有操纵密度和疏密的能力"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_suika"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sit_suika_stay"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_suika_stay"
+          ],
+          "bonus_ranking": [
+            "sem_suika",
+            "sem_hakurei_shrine"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_suika_stay"
+          ],
+          "bonus_ranking": [
+            "sem_suika"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_suika"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sit_suika_stay"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_suika_stay"
+          ],
+          "bonus_ranking": [
+            "sem_hakurei_shrine"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_suika"
+          ],
+          "bonus_ranking": [
+            "sem_hakurei_shrine"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_suika_stay"
+          ],
+          "bonus_ranking": [
+            "sit_party_env",
+            "sem_hakurei_shrine"
+          ]
+        },
+        {
+          "q": 7,
+          "ranking": [
+            "sem_suika"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_suika",
+        "sit_suika_stay"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_suika_stay",
+        "sem_suika",
+        "sem_hakurei_shrine",
+        "sit_party_env"
+      ],
+      "expected_actions": [
+        "proc_sweep",
+        "proc_drink_tea",
+        "proc_clean_up_party"
+      ]
+    },
+    {
+      "name": "set_drunken_hanami",
+      "description": "查询赏花会上被灌醉的事件",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "赏花"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "赏花会上被鸦天狗灌醉，迷迷糊糊说了些不该说的",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "赏花"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "射命丸文借着酒劲套她的话，她酒后失言",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "喝醉之前她还在喝茶，酒量不如那个记者",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "赏花"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "宴会上妖怪们喝得东倒西歪，她也被灌趴下了",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "宴会散场后她还得撑着收拾残局，哪怕自己还醉着",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "赏花会上她喝大了，之后从香霖堂拿的东西照样记在魔理沙账上",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "赏花"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "文那家伙酒量太好，灌醉她完全不是问题",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "喝醉后的早晨，她照旧坐在缘侧喝茶醒酒",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_drunken_hanami"
+          ],
+          "bonus_ranking": [
+            "sem_aya",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_drunken_hanami"
+          ],
+          "bonus_ranking": [
+            "sem_aya"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_drunken_hanami"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_drunken_hanami"
+          ],
+          "bonus_ranking": [
+            "sem_aya",
+            "sem_hakurei_shrine"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_drunken_hanami"
+          ],
+          "bonus_ranking": [
+            "sem_hakurei_shrine"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_drunken_hanami"
+          ],
+          "bonus_ranking": [
+            "sem_morichika",
+            "sem_marisa"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_drunken_hanami"
+          ],
+          "bonus_ranking": [
+            "sem_aya"
+          ]
+        },
+        {
+          "q": 7,
+          "ranking": [
+            "sit_drunken_hanami"
+          ],
+          "bonus_ranking": [
+            "sem_hakurei_shrine"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_drunken_hanami"
+      ],
+      "bonus_combined_ranking": [
+        "sem_aya",
+        "sem_self",
+        "sem_hakurei_shrine",
+        "sem_morichika",
+        "sem_marisa"
+      ],
+      "expected_actions": [
+        "proc_drink_tea",
+        "proc_clean_up_party",
+        "proc_charge_to_marisa"
+      ]
     }
   ]
 }

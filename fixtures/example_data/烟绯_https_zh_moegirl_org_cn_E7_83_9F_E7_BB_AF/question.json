@@ -17,87 +17,16 @@
       "description": "atomic query 0",
       "sub_queries": [
         {
-          "priority": 3,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "律法咨询师",
-                "description": "璃月港那位头顶有角的半仙律师"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_self"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_1",
-      "description": "atomic query 1",
-      "sub_queries": [
-        {
           "priority": 8,
           "tag": [
-            "人物"
+            "人物",
+            "师父"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个潇洒云游的仙人老爹",
-                "description": "打完仗就跑回家结婚，把女儿丢给萍姥姥的父亲"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_father"
-          ],
-          "bonus_ranking": [
-            "sem_scale"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_father"
-      ],
-      "bonus_combined_ranking": [
-        "sem_scale"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_2",
-      "description": "atomic query 2",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "师父萍姥姥",
-                "description": "住在玉京台，把烟绯带大的那位慈祥老人"
+                "concept_identifier": "带我长大的长辈",
+                "description": "把我从小带大、教我修行和道理的仙人婆婆，住在玉京台"
               }
             ]
           }
@@ -123,46 +52,8 @@
       "expected_actions": []
     },
     {
-      "name": "query_3",
-      "description": "atomic query 3",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个从异世界来的朋友",
-                "description": "曾和烟绯一起冒险，还让她失眠分析一句话的旅行者"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_traveler"
-          ],
-          "bonus_ranking": [
-            "sit_encounter_traveler_insomnia"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_traveler"
-      ],
-      "bonus_combined_ranking": [
-        "sit_encounter_traveler_insomnia"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_4",
-      "description": "atomic query 4",
+      "name": "query_1",
+      "description": "atomic query 1",
       "sub_queries": [
         {
           "priority": 9,
@@ -173,14 +64,9 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "在层岩巨渊那次，烟绯和旅行者用空间关联把想牺牲的人救了出来",
+                "narrative": "层岩巨渊的一场惊险冒险，有人想牺牲自己打开通道",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "绿发仙人",
-                    "role": "牺牲者未遂"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -197,8 +83,7 @@
           ],
           "bonus_ranking": [
             "sem_xiao",
-            "sem_traveler",
-            "sem_ar_taki"
+            "sem_traveler"
           ]
         }
       ],
@@ -207,8 +92,132 @@
       ],
       "bonus_combined_ranking": [
         "sem_xiao",
-        "sem_traveler",
-        "sem_ar_taki"
+        "sem_traveler"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_2",
+      "description": "atomic query 2",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "异世界来的旅行者",
+                "description": "让我分析了一整晚那句话的人，也是层岩巨渊并肩作战的朋友"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_traveler"
+          ],
+          "bonus_ranking": [
+            "sit_encounter_traveler_insomnia",
+            "sit_chasm_adventure"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_traveler"
+      ],
+      "bonus_combined_ranking": [
+        "sit_encounter_traveler_insomnia",
+        "sit_chasm_adventure"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "父亲"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "云游的老爹",
+                "description": "打完仗就回家结婚的仙人父亲，留给我宝秤和快乐生活的契约"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_father"
+          ],
+          "bonus_ranking": [
+            "sem_scale",
+            "sem_happy_life"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_father"
+      ],
+      "bonus_combined_ranking": [
+        "sem_scale",
+        "sem_happy_life"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "人物"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "降魔大圣差点牺牲自己救大家的那次冒险，还好最后平安无事",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_chasm_adventure"
+          ],
+          "bonus_ranking": [
+            "sem_xiao"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_chasm_adventure"
+      ],
+      "bonus_combined_ranking": [
+        "sem_xiao"
       ],
       "expected_actions": []
     },
@@ -217,15 +226,16 @@
       "description": "atomic query 5",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 8,
           "tag": [
-            "宝物"
+            "地点",
+            "工作"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "帝君钦赐的宝秤",
-                "description": "能衡量事物价值但不会随市场更新的秤"
+                "concept_identifier": "璃月港的律法咨询事务所",
+                "description": "我经营的最顶尖私人事务所，提供解读律法和随行咨询服务"
               }
             ]
           }
@@ -235,20 +245,20 @@
         {
           "q": 0,
           "ranking": [
-            "sem_scale"
+            "sem_office"
           ],
           "bonus_ranking": [
-            "sem_father",
-            "sit_scale_test"
+            "sit_work_location",
+            "sem_liyue_law"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_scale"
+        "sem_office"
       ],
       "bonus_combined_ranking": [
-        "sem_father",
-        "sit_scale_test"
+        "sit_work_location",
+        "sem_liyue_law"
       ],
       "expected_actions": []
     },
@@ -257,20 +267,16 @@
       "description": "atomic query 6",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 8,
           "tag": [
-            "事件",
-            "实验"
+            "装备",
+            "能力"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "用宝秤称神之眼，放法典才平衡",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "火元素神之眼",
+                "description": "应希望所有人都遵纪守法的愿望而诞生的火元素力量"
               }
             ]
           }
@@ -280,22 +286,18 @@
         {
           "q": 0,
           "ranking": [
-            "sit_scale_test"
+            "sem_pyro_vision"
           ],
           "bonus_ranking": [
-            "sem_pyro_vision",
-            "sem_final_codex",
-            "sem_scale"
+            "sit_scale_test"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_scale_test"
+        "sem_pyro_vision"
       ],
       "bonus_combined_ranking": [
-        "sem_pyro_vision",
-        "sem_final_codex",
-        "sem_scale"
+        "sit_scale_test"
       ],
       "expected_actions": []
     },
@@ -304,15 +306,16 @@
       "description": "atomic query 7",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
-            "价值观"
+            "价值观",
+            "哲学"
           ],
           "variant": {
             "Semantic": [
               {
                 "concept_identifier": "随心所欲不逾矩",
-                "description": "她的信条：理解所有规则才能不被规则束缚"
+                "description": "想不被规则束缚就要先完全理解规则，律法是工具而非枷锁"
               }
             ]
           }
@@ -325,7 +328,8 @@
             "sem_contract_philosophy"
           ],
           "bonus_ranking": [
-            "sem_maxim"
+            "sem_liyue_law",
+            "sem_happy_life"
           ]
         }
       ],
@@ -333,7 +337,8 @@
         "sem_contract_philosophy"
       ],
       "bonus_combined_ranking": [
-        "sem_maxim"
+        "sem_liyue_law",
+        "sem_happy_life"
       ],
       "expected_actions": []
     },
@@ -342,335 +347,7 @@
       "description": "atomic query 8",
       "sub_queries": [
         {
-          "priority": 8,
-          "tag": [
-            "价值观"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "和老爸的契约",
-                "description": "要快乐地生活，这是烟绯与父亲之间最严肃的约定"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_happy_life"
-          ],
-          "bonus_ranking": [
-            "sem_father"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_happy_life"
-      ],
-      "bonus_combined_ranking": [
-        "sem_father"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_9",
-      "description": "atomic query 9",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "知识",
-            "律法"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "璃月百法通则",
-                "description": "由凝光主持修订的璃月法典，烟绯熟记于心"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_liyue_law"
-          ],
-          "bonus_ranking": [
-            "sem_ningguang",
-            "sem_office"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_liyue_law"
-      ],
-      "bonus_combined_ranking": [
-        "sem_ningguang",
-        "sem_office"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_10",
-      "description": "atomic query 10",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "命之座"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "法兽座",
-                "description": "与獬豸相关的命之座，象征法律与公正"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_fa_shou"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_fa_shou"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_11",
-      "description": "atomic query 11",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "信条"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "工作信条",
-                "description": "烟绯的教诲：不墨守成规，灵活变通"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_maxim"
-          ],
-          "bonus_ranking": [
-            "sem_contract_philosophy"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_maxim"
-      ],
-      "bonus_combined_ranking": [
-        "sem_contract_philosophy"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_12",
-      "description": "atomic query 12",
-      "sub_queries": [
-        {
-          "priority": 3,
-          "tag": [
-            "场所"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "烟绯在璃月港经营的律法咨询事务所",
-                "location": [
-                  {
-                    "name": "璃月港"
-                  }
-                ],
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_work_location"
-          ],
-          "bonus_ranking": [
-            "sem_office"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_work_location"
-      ],
-      "bonus_combined_ranking": [
-        "sem_office"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_13",
-      "description": "atomic query 13",
-      "sub_queries": [
-        {
           "priority": 7,
-          "tag": [
-            "书籍",
-            "理想"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "轻薄法典",
-                "description": "只记载几条基本理论，象征法律深入人心的终极形态"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_final_codex"
-          ],
-          "bonus_ranking": [
-            "sem_happy_life"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_final_codex"
-      ],
-      "bonus_combined_ranking": [
-        "sem_happy_life"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "事件",
-            "合作"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "请夜兰吃饭感谢她帮忙对付做假账的人",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_dinner_with_ye_lan"
-          ],
-          "bonus_ranking": [
-            "sem_ye_lan"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_dinner_with_ye_lan"
-      ],
-      "bonus_combined_ranking": [
-        "sem_ye_lan"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_15",
-      "description": "atomic query 15",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "事件",
-            "教学"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "稻妻来的律法学生在烟绯事务所讨论案件实习，结束时鞠躬道谢",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_discuss_case_with_kuki"
-          ],
-          "bonus_ranking": [
-            "sem_kuki",
-            "sem_liyue_law"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_discuss_case_with_kuki"
-      ],
-      "bonus_combined_ranking": [
-        "sem_kuki",
-        "sem_liyue_law"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_16",
-      "description": "atomic query 16",
-      "sub_queries": [
-        {
-          "priority": 6,
           "tag": [
             "事件",
             "工作"
@@ -678,7 +355,7 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "每次凝光修订法典，烟绯都要重新背一大堆新内容，有点累",
+                "narrative": "天权星每次修订法典后都要背新内容，上次增加三条律法修改一百二十一条注释",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -711,19 +388,404 @@
       "expected_actions": []
     },
     {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "教学"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "久岐忍来璃月留学时约我讨论案件实习，每次结束她都会鞠躬道谢",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_discuss_case_with_kuki"
+          ],
+          "bonus_ranking": [
+            "sem_kuki",
+            "sem_office"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_discuss_case_with_kuki"
+      ],
+      "bonus_combined_ranking": [
+        "sem_kuki",
+        "sem_office"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "社交"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "为感谢夜兰搞定做假账的硬茬，请她吃了一顿饭",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_dinner_with_ye_lan"
+          ],
+          "bonus_ranking": [
+            "sem_ye_lan"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_dinner_with_ye_lan"
+      ],
+      "bonus_combined_ranking": [
+        "sem_ye_lan"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "缠人的鬼族大个子",
+                "description": "在层岩巨渊被解围后追着报恩的荒泷派老大"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_ar_taki"
+          ],
+          "bonus_ranking": [
+            "sit_chasm_adventure",
+            "sem_kuki"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_ar_taki"
+      ],
+      "bonus_combined_ranking": [
+        "sit_chasm_adventure",
+        "sem_kuki"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "蒙德来的骑士",
+                "description": "救过我一次、之后书信不断的劳伦斯家大小姐"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_eula"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_eula"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "主顾"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "飞云商会的小少爷",
+                "description": "伶牙俐齿的年轻主顾，思考速度跟得上我"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_xingqiu"
+          ],
+          "bonus_ranking": [
+            "sem_office",
+            "sem_hu_tao"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_xingqiu"
+      ],
+      "bonus_combined_ranking": [
+        "sem_office",
+        "sem_hu_tao"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "社交"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和记厅朋友们钓鱼时故意垫底，其实有一百种办法赢",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_fishing_with_friends"
+          ],
+          "bonus_ranking": [
+            "sem_traveler",
+            "sem_happy_life",
+            "proc_fishing_trick"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_fishing_with_friends"
+      ],
+      "bonus_combined_ranking": [
+        "sem_traveler",
+        "sem_happy_life",
+        "proc_fishing_trick"
+      ],
+      "expected_actions": [
+        "proc_fishing_trick"
+      ]
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "模式"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "身上有个隐形开关，平时模式和工作模式判若两人",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_work_environment"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sit_work_location",
+            "proc_mode_switch"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_work_environment"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_work_location",
+        "proc_mode_switch"
+      ],
+      "expected_actions": [
+        "proc_mode_switch"
+      ]
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "给自己编行为准则的采药小姑娘",
+                "description": "娇小但办事有条有理的僵尸小女孩"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_qiqi"
+          ],
+          "bonus_ranking": [
+            "sem_ganyu"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_qiqi"
+      ],
+      "bonus_combined_ranking": [
+        "sem_ganyu"
+      ],
+      "expected_actions": []
+    },
+    {
       "name": "query_17",
       "description": "atomic query 17",
       "sub_queries": [
         {
           "priority": 4,
           "tag": [
+            "人物",
+            "半仙"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "同为半仙的忙碌前辈",
+                "description": "和帝君签了契约纠结于身份的甘雨，我则过得快快乐乐"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_ganyu"
+          ],
+          "bonus_ranking": [
+            "sem_half_immortal",
+            "sem_happy_life"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_ganyu"
+      ],
+      "bonus_combined_ranking": [
+        "sem_half_immortal",
+        "sem_happy_life"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
             "事件",
-            "文化"
+            "音乐"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "烟绯偶然看了辛焱的表演，被吸引甚至想转行说唱",
+                "narrative": "偶然看到辛焱的摇滚表演后立刻被新潮艺术吸引，甚至想转行当说唱歌手",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -754,20 +816,20 @@
       "expected_actions": []
     },
     {
-      "name": "query_18",
-      "description": "atomic query 18",
+      "name": "query_19",
+      "description": "atomic query 19",
       "sub_queries": [
         {
-          "priority": 3,
+          "priority": 5,
           "tag": [
-            "人物",
-            "朋友"
+            "书籍",
+            "理想"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个蒙德骑士",
-                "description": "曾经救过烟绯一次，现在保持书信往来的朋友"
+                "concept_identifier": "轻薄的法律书",
+                "description": "只记载几条最基本法律理论的终极法典，法律深入人心时堆积如山的法典将蒙尘"
               }
             ]
           }
@@ -777,34 +839,78 @@
         {
           "q": 0,
           "ranking": [
-            "sem_eula"
+            "sem_final_codex"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_happy_life",
+            "sem_scale"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_eula"
+        "sem_final_codex"
       ],
       "bonus_combined_ranking": [
-        "sem_self"
+        "sem_happy_life",
+        "sem_scale"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_19",
-      "description": "atomic query 19",
+      "name": "query_20",
+      "description": "atomic query 20",
       "sub_queries": [
         {
-          "priority": 5,
+          "priority": 4,
           "tag": [
-            "习惯"
+            "宝物",
+            "衡器"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "老爹给的秤",
+                "description": "能衡量摩拉诞生时最初价格的宝秤，提醒很多东西无法用世俗价值估量"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_scale"
+          ],
+          "bonus_ranking": [
+            "sem_father",
+            "sit_scale_test"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_scale"
+      ],
+      "bonus_combined_ranking": [
+        "sem_father",
+        "sit_scale_test"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "天气",
+            "心情"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "烟绯工作模式切换，平时和认真模式判若两人，甚至有点可怕",
+                "narrative": "下雨天会感觉潮湿黏腻，下雪天又寒冷，这种天气里更想窝着看书",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -819,136 +925,42 @@
         {
           "q": 0,
           "ranking": [
-            "sit_work_environment"
+            "sit_rainy_day"
           ],
           "bonus_ranking": [
-            "proc_mode_switch",
-            "proc_overcautious_speech"
+            "sit_snowy_day",
+            "sem_self",
+            "proc_book_habit"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_work_environment"
+        "sit_rainy_day"
       ],
       "bonus_combined_ranking": [
-        "proc_mode_switch",
-        "proc_overcautious_speech"
+        "sit_snowy_day",
+        "sem_self",
+        "proc_book_habit"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_book_habit"
+      ]
     },
     {
-      "name": "set_half_immortal",
-      "description": "查询烟绯的半仙血脉来源",
+      "name": "query_22",
+      "description": "atomic query 22",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 5,
           "tag": [
-            "血脉",
-            "天赋"
+            "知识",
+            "律法"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那一对兽角",
-                "description": "烟绯头顶那对角是半仙的标志"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "血脉"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "父亲是仙兽",
-                "description": "父亲的仙兽血脉和母亲的凡人血脉混合"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "自身"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "与甘雨同为半仙",
-                "description": "烟绯和甘雨都是半仙，但烟绯更自由"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个混血半仙",
-                "description": "璃月的半仙律师，不需要承担仙家职责"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "角色"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "不是完全的人类",
-                "description": "她体内流淌着仙人的血，但又过着凡人的生活"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "天赋"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "仙兽和凡人的后代",
-                "description": "烟绯的父亲是仙兽，母亲是普通人，所以她是半仙，头生双角，寿命很长但不用像仙人那样履行职责"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "血脉"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "半仙之体",
-                "description": "她不是纯人类也不是纯仙人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "角色"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "半仙律法顾问",
-                "description": "因为她身上的仙兽血统，所以被称为半仙"
+                "concept_identifier": "璃月律法大全",
+                "description": "由凝光主持修订的璃月法典，我将上万条律法熟记于心"
               }
             ]
           }
@@ -958,139 +970,316 @@
         {
           "q": 0,
           "ranking": [
-            "sem_half_immortal"
+            "sem_liyue_law"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_office",
+            "sem_ningguang"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_liyue_law"
+      ],
+      "bonus_combined_ranking": [
+        "sem_office",
+        "sem_ningguang"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_23",
+      "description": "atomic query 23",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "说话"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "说话总是消除歧义的毛病",
+                "description": "说话时会不自觉补上所有漏洞，显得啰嗦，偶尔用书角敲脑袋"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "sit_client_participant",
+            "proc_overcautious_speech"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_self"
+      ],
+      "bonus_combined_ranking": [
+        "sit_client_participant",
+        "proc_overcautious_speech"
+      ],
+      "expected_actions": [
+        "proc_overcautious_speech"
+      ]
+    },
+    {
+      "name": "query_24",
+      "description": "atomic query 24",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "看书"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "空闲时看书的习惯",
+                "description": "闲下来就掏出一本厚书凑近看，不是因为近视，只是字太小"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "sit_rainy_day",
+            "sit_snowy_day",
+            "proc_book_habit"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_self"
+      ],
+      "bonus_combined_ranking": [
+        "sit_rainy_day",
+        "sit_snowy_day",
+        "proc_book_habit"
+      ],
+      "expected_actions": [
+        "proc_book_habit"
+      ]
+    },
+    {
+      "name": "set_traveler",
+      "description": "查询烟绯与旅行者之间复杂而重要的关系",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "异乡来的旅人",
+                "description": "从异世界来到提瓦特的旅行者"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "让我失眠的人",
+                "description": "偶遇时一句'没想到会在这里遇到你'让我分析到睡不着"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "生日礼物收件人",
+                "description": "我为他准备了各国律法资料当生日礼物"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "层岩巨渊的战友",
+                "description": "在层岩巨渊和我一起救下魈的伙伴"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "特别在意的朋友",
+                "description": "一个我觉得好像很在意我的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "旅行者",
+                "description": "那个有趣的异乡人，我们还一起去钓过鱼"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "和魈并肩的同伴",
+                "description": "与降魔大圣同行的异世界人，也是我重要的朋友"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_traveler"
+          ],
+          "bonus_ranking": [
+            "sit_encounter_traveler_insomnia",
+            "sit_chasm_adventure"
+          ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_half_immortal"
+            "sem_traveler"
           ],
           "bonus_ranking": [
-            "sem_father"
+            "sit_encounter_traveler_insomnia",
+            "sit_chasm_adventure"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_half_immortal"
+            "sem_traveler"
           ],
           "bonus_ranking": [
-            "sem_ganyu"
+            "sit_encounter_traveler_insomnia",
+            "sit_chasm_adventure"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_half_immortal"
+            "sem_traveler"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sit_encounter_traveler_insomnia",
+            "sit_chasm_adventure"
+          ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_half_immortal"
+            "sem_traveler"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sit_encounter_traveler_insomnia",
+            "sit_chasm_adventure"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sem_half_immortal"
+            "sem_traveler"
           ],
           "bonus_ranking": [
-            "sem_father",
-            "sem_ping"
+            "sit_encounter_traveler_insomnia",
+            "sit_chasm_adventure"
           ]
         },
         {
           "q": 6,
           "ranking": [
-            "sem_half_immortal"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 7,
-          "ranking": [
-            "sem_half_immortal"
+            "sem_traveler"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sit_encounter_traveler_insomnia",
+            "sit_chasm_adventure"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_half_immortal"
+        "sem_traveler"
       ],
       "bonus_combined_ranking": [
-        "sem_father",
-        "sem_ganyu",
-        "sem_self",
-        "sem_ping"
+        "sit_encounter_traveler_insomnia",
+        "sit_chasm_adventure"
       ],
       "expected_actions": []
     },
     {
       "name": "set_chasm",
-      "description": "查询层岩巨渊冒险事件",
+      "description": "查询层岩巨渊冒险事件的经过",
       "sub_queries": [
         {
           "priority": 9,
           "tag": [
+            "事件",
             "冒险"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在层岩巨渊那次危险的经历",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "绿头发的仙人"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "烟绯和旅行者如何救了想牺牲自己的人",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "愚人众头领"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "冒险"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "一群人被困在巨渊深处，有人想牺牲自己开通道",
+                "narrative": "层岩巨渊下发生的一场惊心动魄的冒险",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1104,30 +1293,12 @@
           "priority": 9,
           "tag": [
             "事件",
-            "救人"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "利用空间与思想关联，把想牺牲的人传送回来",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
             "冒险"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "和荒泷一斗、久岐忍他们在层岩巨渊的故事",
+                "narrative": "魈想牺牲自己打开通道，我和旅行者把他传送回来的事件",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1140,30 +1311,13 @@
         {
           "priority": 9,
           "tag": [
-            "故事"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "层岩巨渊里，烟绯如何拯救降魔大圣",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
+            "事件",
             "冒险"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在璃月矿区深处的一次生死冒险",
+                "narrative": "在璃月矿区里，和旅行者、荒泷一斗、久岐忍、魈一起经历的生死时刻",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1176,12 +1330,70 @@
         {
           "priority": 9,
           "tag": [
+            "事件",
             "冒险"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "魈差点牺牲自己救大家，最后被烟绯和旅行者用特殊方法救了",
+                "narrative": "降魔大圣差点牺牲的那次行动，最终大家平安无事",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "冒险"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "空间与思想产生关联的那次救援，我们成功把魈送回了身边",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "冒险"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "层岩巨渊底层的大冒险，参与者有仙人、鬼族、律法学生和旅行者",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "冒险"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "被荒泷一斗当成恩人的那次事件，起因于巨渊中的解围",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1199,7 +1411,8 @@
             "sit_chasm_adventure"
           ],
           "bonus_ranking": [
-            "sem_xiao"
+            "sem_xiao",
+            "sem_traveler"
           ]
         },
         {
@@ -1208,8 +1421,8 @@
             "sit_chasm_adventure"
           ],
           "bonus_ranking": [
-            "sem_traveler",
-            "sem_xiao"
+            "sem_xiao",
+            "sem_traveler"
           ]
         },
         {
@@ -1218,7 +1431,8 @@
             "sit_chasm_adventure"
           ],
           "bonus_ranking": [
-            "sem_xiao"
+            "sem_xiao",
+            "sem_traveler"
           ]
         },
         {
@@ -1227,7 +1441,7 @@
             "sit_chasm_adventure"
           ],
           "bonus_ranking": [
-            "sem_self",
+            "sem_xiao",
             "sem_traveler"
           ]
         },
@@ -1237,8 +1451,8 @@
             "sit_chasm_adventure"
           ],
           "bonus_ranking": [
-            "sem_ar_taki",
-            "sem_kuki"
+            "sem_xiao",
+            "sem_traveler"
           ]
         },
         {
@@ -1247,20 +1461,12 @@
             "sit_chasm_adventure"
           ],
           "bonus_ranking": [
-            "sem_xiao"
+            "sem_xiao",
+            "sem_traveler"
           ]
         },
         {
           "q": 6,
-          "ranking": [
-            "sit_chasm_adventure"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 7,
           "ranking": [
             "sit_chasm_adventure"
           ],
@@ -1275,41 +1481,69 @@
       ],
       "bonus_combined_ranking": [
         "sem_xiao",
-        "sem_traveler",
-        "sem_self",
-        "sem_ar_taki",
-        "sem_kuki"
+        "sem_traveler"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_traveler_relation",
-      "description": "查询烟绯与旅行者的关系",
+      "name": "set_work_behavior",
+      "description": "查询烟绯的工作状态与模式切换（混合语义与情境变体）",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 7,
           "tag": [
-            "人物",
-            "朋友"
+            "习惯",
+            "模式"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个异世界的旅人",
-                "description": "烟绯的朋友，一起经历过很多事"
+                "concept_identifier": "工作时的另一个我",
+                "description": "身上有个隐形开关，拨到工作模式就会认真得有点可怕"
               }
             ]
           }
         },
         {
-          "priority": 9,
+          "priority": 7,
           "tag": [
-            "事件"
+            "习惯",
+            "模式"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "认真可怕的律师状态",
+                "description": "一旦开始工作就像换了个人，说话滴水不漏"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "习惯",
+            "模式"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "我的工作信条",
+                "description": "工作状态由'随心所欲不逾矩'驱动，但执行起来雷厉风行"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "习惯",
+            "模式"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "烟绯因为旅行者的一句话失眠了一整晚",
+                "narrative": "处理案件时氛围会变得认真严肃，甚至有点可怕",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1320,28 +1554,15 @@
           }
         },
         {
-          "priority": 9,
+          "priority": 7,
           "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "烟绯的朋友",
-                "description": "烟绯为他的生日准备了各国律法资料"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "互动"
+            "习惯",
+            "模式"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "偶遇旅行者后，分析他那句话的深意",
+                "narrative": "在事务所里一旦进入工作状态，身上的开关就咻地拨过去了",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1352,29 +1573,15 @@
           }
         },
         {
-          "priority": 9,
+          "priority": 7,
           "tag": [
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "一起在层岩巨渊冒险的人",
-                "description": "旅行者和烟绯在层岩巨渊并肩作战"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "失眠"
+            "习惯",
+            "模式"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "因为想太多，半夜睡不着",
+                "narrative": "工作环境中我变成一个较真的律法顾问，与平时判若两人",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1385,29 +1592,20 @@
           }
         },
         {
-          "priority": 9,
+          "priority": 7,
           "tag": [
-            "朋友"
+            "习惯",
+            "模式"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "他好像很在意我",
-                "description": "烟绯感觉旅行者很在乎她"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个金发的异乡人",
-                "description": "从另一个世界来到提瓦特"
+                "narrative": "接见客户时的严肃氛围，让人不敢随便糊弄",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -1417,197 +1615,201 @@
         {
           "q": 0,
           "ranking": [
-            "sem_traveler"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_contract_philosophy",
+            "sit_work_environment",
+            "proc_mode_switch"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sit_encounter_traveler_insomnia"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_traveler"
+            "sem_contract_philosophy",
+            "sit_work_environment",
+            "proc_mode_switch"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_traveler"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_contract_philosophy",
+            "sit_work_environment",
+            "proc_mode_switch"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sit_encounter_traveler_insomnia"
+            "sit_work_environment"
           ],
           "bonus_ranking": [
-            "sem_traveler"
+            "sem_self",
+            "sit_work_location",
+            "proc_mode_switch"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_traveler"
+            "sit_work_environment"
           ],
           "bonus_ranking": [
-            "sit_chasm_adventure"
+            "sem_self",
+            "sit_work_location",
+            "proc_mode_switch"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sit_encounter_traveler_insomnia"
+            "sit_work_environment"
           ],
           "bonus_ranking": [
-            "sem_traveler"
+            "sem_self",
+            "sit_work_location",
+            "proc_mode_switch"
           ]
         },
         {
           "q": 6,
           "ranking": [
-            "sem_traveler"
+            "sit_work_environment"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_self",
+            "sit_work_location",
+            "proc_mode_switch"
           ]
-        },
-        {
-          "q": 7,
-          "ranking": [
-            "sem_traveler"
-          ],
-          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
-        "sem_traveler",
-        "sit_encounter_traveler_insomnia"
+        "sem_self",
+        "sit_work_environment"
       ],
       "bonus_combined_ranking": [
+        "sem_contract_philosophy",
+        "sit_work_environment",
+        "proc_mode_switch",
         "sem_self",
-        "sem_traveler",
-        "sit_chasm_adventure"
+        "sit_work_location"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_mode_switch"
+      ]
     },
     {
-      "name": "set_happy_life",
-      "description": "查询烟绯的快乐生活理念",
+      "name": "set_speech_habit",
+      "description": "查询烟绯说话时的谨慎习惯",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 4,
           "tag": [
-            "价值观"
+            "习惯",
+            "说话"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "与老爹的契约",
-                "description": "要快乐地生活，这是最严肃的约定"
+                "concept_identifier": "说话爱补漏洞的毛病",
+                "description": "总想把每句话里的歧义都消除，结果显得啰嗦"
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 4,
           "tag": [
-            "人生目标"
+            "习惯",
+            "说话"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "烟绯的快乐",
-                "description": "包括事业有成、衣食自由、遇见有趣的人和事"
+                "concept_identifier": "书角敲脑袋的动作",
+                "description": "发现可能让对方不快时，会用书角懊恼地敲敲脑袋"
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 4,
           "tag": [
-            "价值观"
+            "习惯",
+            "说话"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "随心所欲",
-                "description": "她追求的自由快乐，但不逾矩"
+                "concept_identifier": "谨慎到啰嗦的说话方式",
+                "description": "为了不留漏洞，说话时经常长篇大论"
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 4,
           "tag": [
-            "人生"
+            "习惯",
+            "说话"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "快乐生活契约",
-                "description": "父亲留给烟绯的遗训"
+                "concept_identifier": "语言手术师",
+                "description": "对措辞精雕细琢，生怕被人钻空子的说话习惯"
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 4,
           "tag": [
-            "理想"
+            "习惯",
+            "说话"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "快乐地活着",
-                "description": "烟绯和父亲最重要的约定"
+                "concept_identifier": "被自己啰嗦到懊恼",
+                "description": "察觉到说的话太绕时，会用书角敲脑袋的习惯"
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 4,
           "tag": [
-            "生命意义"
+            "习惯",
+            "说话"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "烟绯的人生哲学",
-                "description": "快乐是最重要的目标"
+                "concept_identifier": "解释狂",
+                "description": "说话时总要把所有隐藏含义都摆到台面上"
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 4,
           "tag": [
-            "契约"
+            "习惯",
+            "说话"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "与老爹的约定",
-                "description": "要快乐地生活"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "价值观"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "快乐为纲",
-                "description": "老爹希望烟绯快乐"
+                "concept_identifier": "严谨过头的表达",
+                "description": "对话语中每个细节都要交代清楚，有时反而让人不耐烦"
               }
             ]
           }
@@ -1617,112 +1819,107 @@
         {
           "q": 0,
           "ranking": [
-            "sem_happy_life"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_father"
+            "sit_client_participant",
+            "sit_work_environment",
+            "proc_overcautious_speech"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_happy_life"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sit_client_participant",
+            "sit_work_environment",
+            "proc_overcautious_speech"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_happy_life"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_contract_philosophy"
+            "sit_client_participant",
+            "sit_work_environment",
+            "proc_overcautious_speech"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_happy_life"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_father"
+            "sit_client_participant",
+            "sit_work_environment",
+            "proc_overcautious_speech"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_happy_life"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_father"
+            "sit_client_participant",
+            "sit_work_environment",
+            "proc_overcautious_speech"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sem_happy_life"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sit_client_participant",
+            "sit_work_environment",
+            "proc_overcautious_speech"
           ]
         },
         {
           "q": 6,
           "ranking": [
-            "sem_happy_life"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_father"
+            "sit_client_participant",
+            "sit_work_environment",
+            "proc_overcautious_speech"
           ]
-        },
-        {
-          "q": 7,
-          "ranking": [
-            "sem_happy_life"
-          ],
-          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
-        "sem_happy_life"
+        "sem_self"
       ],
       "bonus_combined_ranking": [
-        "sem_father",
-        "sem_self",
-        "sem_contract_philosophy"
+        "sit_client_participant",
+        "sit_work_environment",
+        "proc_overcautious_speech"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_overcautious_speech"
+      ]
     },
     {
-      "name": "set_kuki",
-      "description": "查询烟绯与久岐忍的关系",
+      "name": "set_fishing",
+      "description": "查询烟绯和记厅朋友钓鱼时的社交智慧",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 6,
           "tag": [
-            "人物",
-            "学生"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "来留学的那位",
-                "description": "从稻妻来璃月专修律法的女生"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件"
+            "习惯",
+            "社交"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "讨论案件实习的稻妻律法学生",
+                "narrative": "和记厅朋友们钓鱼时会故意垫底",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1733,29 +1930,15 @@
           }
         },
         {
-          "priority": 7,
+          "priority": 6,
           "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "阿忍",
-                "description": "后来成了荒泷派二把手"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "教学"
+            "习惯",
+            "社交"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "每次讨论结束都鞠躬，让烟绯不好意思",
+                "narrative": "钓鱼切磋明明能赢却假装最后一名",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1766,29 +1949,15 @@
           }
         },
         {
-          "priority": 7,
+          "priority": 6,
           "tag": [
-            "人物",
-            "校友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "烟绯指导过的学生",
-                "description": "烟绯认为她将来会成为出色的律法专家"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件"
+            "习惯",
+            "社交"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在璃月的事务所里讨论案件",
+                "narrative": "为了照顾生意关系，我在钓鱼时藏拙",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1799,30 +1968,77 @@
           }
         },
         {
-          "priority": 7,
+          "priority": 6,
           "tag": [
-            "人物",
-            "关系"
+            "习惯",
+            "社交"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "荒泷一斗的同伴",
-                "description": "久岐忍是荒泷派的法律担当"
+                "narrative": "和朋友们钓鱼时的表现：有一百种方法赢，但选择垫底",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 6,
           "tag": [
-            "人物"
+            "习惯",
+            "社交"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "那个戴面具的律法专家",
-                "description": "稻妻来的律法顾问"
+                "narrative": "钓鱼时假装输给朋友以维护关系的做法",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "社交"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和记厅朋友们的钓鱼局上，我故意表现得很差",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "社交"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "为了不抢朋友风头，钓鱼时毫不留情地放水",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -1832,85 +2048,92 @@
         {
           "q": 0,
           "ranking": [
-            "sem_kuki"
+            "sit_fishing_with_friends"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_traveler",
+            "sem_happy_life",
+            "proc_fishing_trick"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sit_discuss_case_with_kuki"
+            "sit_fishing_with_friends"
           ],
           "bonus_ranking": [
-            "sem_kuki"
+            "sem_traveler",
+            "sem_happy_life",
+            "proc_fishing_trick"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_kuki"
+            "sit_fishing_with_friends"
           ],
           "bonus_ranking": [
-            "sem_ar_taki"
+            "sem_traveler",
+            "sem_happy_life",
+            "proc_fishing_trick"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sit_discuss_case_with_kuki"
+            "sit_fishing_with_friends"
           ],
           "bonus_ranking": [
-            "sem_kuki"
+            "sem_traveler",
+            "sem_happy_life",
+            "proc_fishing_trick"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_kuki"
+            "sit_fishing_with_friends"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_traveler",
+            "sem_happy_life",
+            "proc_fishing_trick"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sit_discuss_case_with_kuki"
+            "sit_fishing_with_friends"
           ],
           "bonus_ranking": [
-            "sem_office"
+            "sem_traveler",
+            "sem_happy_life",
+            "proc_fishing_trick"
           ]
         },
         {
           "q": 6,
           "ranking": [
-            "sem_kuki"
+            "sit_fishing_with_friends"
           ],
           "bonus_ranking": [
-            "sem_ar_taki"
+            "sem_traveler",
+            "sem_happy_life",
+            "proc_fishing_trick"
           ]
-        },
-        {
-          "q": 7,
-          "ranking": [
-            "sem_kuki"
-          ],
-          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
-        "sem_kuki",
-        "sit_discuss_case_with_kuki"
+        "sit_fishing_with_friends"
       ],
       "bonus_combined_ranking": [
-        "sem_self",
-        "sem_kuki",
-        "sem_ar_taki",
-        "sem_office"
+        "sem_traveler",
+        "sem_happy_life",
+        "proc_fishing_trick"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_fishing_trick"
+      ]
     }
   ]
 }

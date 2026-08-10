@@ -19,14 +19,13 @@
         {
           "priority": 8,
           "tag": [
-            "人物",
-            "兄长"
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "预言家哥哥",
-                "description": "他的兄长是坎瑞亚预言家，给了他不死之戒"
+                "concept_identifier": "深渊教团的首领",
+                "description": "金发的异乡人，曾经与戴因结伴游历提瓦特"
               }
             ]
           }
@@ -36,20 +35,20 @@
         {
           "q": 0,
           "ranking": [
-            "sem_viserbnir"
+            "sem_traveler_sibling"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "sem_deathless_ring"
+            "sem_abyss",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_viserbnir"
+        "sem_traveler_sibling"
       ],
       "bonus_combined_ranking": [
-        "sem_self",
-        "sem_deathless_ring"
+        "sem_abyss",
+        "sem_self"
       ],
       "expected_actions": []
     },
@@ -58,486 +57,15 @@
       "description": "atomic query 1",
       "sub_queries": [
         {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "剑术老师"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "教他黑蛇剑术的人",
-                "description": "那个体罚学生的剑术老师，后来在纳塔成了深渊走狗"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_harnden"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_black_serpent"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_harnden"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_black_serpent"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_2",
-      "description": "atomic query 2",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "概念",
-            "花"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "坎瑞亚的国花",
-                "description": "洁白花瓣，象征思乡的花"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_inteyvat"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_inteyvat"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_3",
-      "description": "atomic query 3",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "人物",
-            "旅伴"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "金发异乡人",
-                "description": "曾与他结伴游历提瓦特，后因理念分道扬镳的人"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_traveler_sibling"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sit_parting_with_sibling"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_traveler_sibling"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sit_parting_with_sibling"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_4",
-      "description": "atomic query 4",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "概念",
-            "罪人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "瓜分深渊之力的五人",
-                "description": "当初一起救兄长的四人加上他的兄长，后来成为五大罪人"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_five_sinners"
-          ],
-          "bonus_ranking": [
-            "sem_viserbnir",
-            "sem_surtalogi",
-            "sem_rhinedottir",
-            "sem_rellier",
-            "sem_hellatide"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_five_sinners"
-      ],
-      "bonus_combined_ranking": [
-        "sem_viserbnir",
-        "sem_surtalogi",
-        "sem_rhinedottir",
-        "sem_rellier",
-        "sem_hellatide"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_5",
-      "description": "atomic query 5",
-      "sub_queries": [
-        {
           "priority": 8,
           "tag": [
             "人物",
-            "部下"
+            "关系"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在层岩巨渊有一个黑蛇骑士，是戴因曾经的部下，用身体挡住机关牺牲，临终前询问坎瑞亚的状况",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_halfdan_sacrifice"
-          ],
-          "bonus_ranking": [
-            "sem_halfdan",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_halfdan_sacrifice"
-      ],
-      "bonus_combined_ranking": [
-        "sem_halfdan",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_6",
-      "description": "atomic query 6",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "仇敌"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "五百年前是剑术老师，五百年后在纳塔成为深渊走狗，戴因杀了他两百遍",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_harnden_battle"
-          ],
-          "bonus_ranking": [
-            "sem_harnden",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_harnden_battle"
-      ],
-      "bonus_combined_ranking": [
-        "sem_harnden",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_7",
-      "description": "atomic query 7",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "白垩之子"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "莱茵多特创造的白垩之子",
-                "description": "西风骑士团首席炼金术士，掌握黑土之术，戴因一直关注他"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_albedo"
-          ],
-          "bonus_ranking": [
-            "sem_rhinedottir"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_albedo"
-      ],
-      "bonus_combined_ranking": [
-        "sem_rhinedottir"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_8",
-      "description": "atomic query 8",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "旧友"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在挪德卡莱再次遇到以前的友人，他已成为猎月人，引发狂猎，戴因与少女一起对抗他",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_rellier_encounter"
-          ],
-          "bonus_ranking": [
-            "sem_rellier",
-            "sem_columbina",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_rellier_encounter"
-      ],
-      "bonus_combined_ranking": [
-        "sem_rellier",
-        "sem_columbina",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_9",
-      "description": "atomic query 9",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "习惯",
-            "提问"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "戴因斯雷布喜欢用三个核心问题来试探一个人的本质，比如在蒙德初见旅行者时",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_question_abstract"
-          ],
-          "bonus_ranking": [
-            "proc_question_habit",
-            "sem_traveler"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_question_abstract"
-      ],
-      "bonus_combined_ranking": [
-        "proc_question_habit",
-        "sem_traveler"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_10",
-      "description": "atomic query 10",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "概念",
-            "机械"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "耕地机的眼睛",
-                "description": "第一座耕地机的眼睛，深渊教团用来制造命运织机的核心道具"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_field_tiller"
-          ],
-          "bonus_ranking": [
-            "sem_loom_of_fate"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_field_tiller"
-      ],
-      "bonus_combined_ranking": [
-        "sem_loom_of_fate"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_11",
-      "description": "atomic query 11",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "探索"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在须弥与旅行者一起调查命运织机，发现卡利贝尔投放虚假记忆的阴谋，最终被血亲击败并夺走眼睛",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_abyss_investigation"
-          ],
-          "bonus_ranking": [
-            "sem_loom_of_fate",
-            "sem_traveler",
-            "sem_traveler_sibling"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_abyss_investigation"
-      ],
-      "bonus_combined_ranking": [
-        "sem_loom_of_fate",
-        "sem_traveler",
-        "sem_traveler_sibling"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_12",
-      "description": "atomic query 12",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "决裂"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "与金发血亲因理念不同而分道扬镳，他选择深渊，戴因选择人类，成为心中最深的伤痕",
+                "narrative": "理念无法调和，与那位金发旅人分道扬镳的那次告别",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -556,7 +84,6 @@
           ],
           "bonus_ranking": [
             "sem_traveler_sibling",
-            "sem_self",
             "sem_abyss"
           ]
         }
@@ -566,26 +93,27 @@
       ],
       "bonus_combined_ranking": [
         "sem_traveler_sibling",
-        "sem_self",
         "sem_abyss"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_alone_travel"
+      ]
     },
     {
-      "name": "query_13",
-      "description": "atomic query 13",
+      "name": "query_2",
+      "description": "atomic query 2",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
             "人物",
-            "同窗"
+            "关系"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "极恶骑",
-                "description": "死囚之子，天赋极高的剑士，与他一同在哈登手下学习，后来成为五大罪人之一，游历星海"
+                "concept_identifier": "被刺瞎双眼的预言家",
+                "description": "戴因的兄长，被黑王关押又被救出，最后成为五大罪人之一"
               }
             ]
           }
@@ -595,42 +123,88 @@
         {
           "q": 0,
           "ranking": [
-            "sem_surtalogi"
+            "sem_viserbnir"
           ],
           "bonus_ranking": [
-            "sem_harnden",
-            "sem_five_sinners"
+            "sem_five_sinners",
+            "sem_deathless_ring"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_surtalogi"
+        "sem_viserbnir"
       ],
       "bonus_combined_ranking": [
-        "sem_harnden",
-        "sem_five_sinners"
+        "sem_five_sinners",
+        "sem_deathless_ring"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_14",
-      "description": "atomic query 14",
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "历史"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "众神一同降临覆灭地底国度的那个夜晚，有人在甘露花海醒来",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "众神",
+                    "role": "入侵者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_khaenriah_fall"
+          ],
+          "bonus_ranking": [
+            "sem_khaenriah",
+            "sem_gods"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_khaenriah_fall"
+      ],
+      "bonus_combined_ranking": [
+        "sem_khaenriah",
+        "sem_gods"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
       "sub_queries": [
         {
           "priority": 8,
           "tag": [
-            "事件",
-            "救援"
+            "人物",
+            "事件"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "戴因召集四位同伴闯入王宫，救出被囚禁的兄长维瑟弗尼尔和金发旅人，但同伴们后来被深渊诱惑",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "瓜分深渊之力的五人",
+                "description": "坎瑞亚覆灭之夜堕落，被戴因追猎的旧日同伴"
               }
             ]
           }
@@ -640,91 +214,42 @@
         {
           "q": 0,
           "ranking": [
-            "sit_brother_rescue"
+            "sem_five_sinners"
           ],
           "bonus_ranking": [
-            "sem_viserbnir",
-            "sem_hellatide",
-            "sem_rhinedottir",
-            "sem_surtalogi",
-            "sem_rellier"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_brother_rescue"
-      ],
-      "bonus_combined_ranking": [
-        "sem_viserbnir",
-        "sem_hellatide",
-        "sem_rhinedottir",
-        "sem_surtalogi",
-        "sem_rellier"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_15",
-      "description": "atomic query 15",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "战斗",
-            "风格"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "戴因的战斗风格精准致命，使用黑蛇剑术，每剑都带着五百年的经验与愤怒，但不滥杀无辜",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_battle_abstract"
-          ],
-          "bonus_ranking": [
-            "proc_precise_combat",
-            "sem_black_serpent",
+            "sem_abyss",
             "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_battle_abstract"
+        "sem_five_sinners"
       ],
       "bonus_combined_ranking": [
-        "proc_precise_combat",
-        "sem_black_serpent",
+        "sem_abyss",
         "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_16",
-      "description": "atomic query 16",
+      "name": "query_5",
+      "description": "atomic query 5",
       "sub_queries": [
         {
-          "priority": 5,
+          "priority": 9,
           "tag": [
-            "概念",
-            "神明"
+            "人物",
+            "事件"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "戴因对神明的态度",
-                "description": "他深恨所有神灵，不信仰任何神，是拒信者"
+                "narrative": "一个黑蛇骑士在层岩巨渊找到了泉水和深渊装置，最后用身体挡住机关",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -734,38 +259,276 @@
         {
           "q": 0,
           "ranking": [
-            "sem_gods"
+            "sit_halfdan_sacrifice"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "proc_no_pray"
+            "sem_halfdan",
+            "sem_traveler"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_gods"
+        "sit_halfdan_sacrifice"
       ],
       "bonus_combined_ranking": [
-        "sem_self",
-        "proc_no_pray"
+        "sem_halfdan",
+        "sem_traveler"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_17",
-      "description": "atomic query 17",
+      "name": "query_6",
+      "description": "atomic query 6",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
             "人物",
-            "后裔"
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在璃月地下与五百年前的部下重逢，他还守着当年守护人民的命令",
+                "location": [
+                  {
+                    "name": "层岩巨渊",
+                    "coordinates": "璃月地下"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_halfdan_sacrifice"
+          ],
+          "bonus_ranking": [
+            "sem_halfdan",
+            "sem_khaenriah",
+            "sem_traveler"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_halfdan_sacrifice"
+      ],
+      "bonus_combined_ranking": [
+        "sem_halfdan",
+        "sem_khaenriah",
+        "sem_traveler"
+      ],
+      "expected_actions": [
+        "proc_monologue"
+      ]
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "能力",
+            "战斗"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "凯亚·亚尔伯里奇",
-                "description": "西风骑士团骑兵队长，坎瑞亚遗孤，亚尔伯里奇家族的后裔，戴因在须弥酒馆点破他的身份"
+                "concept_identifier": "坎瑞亚宫廷卫队的剑法",
+                "description": "由哈登传授的精准致命剑术，戴因战斗风格的来源"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_black_serpent"
+          ],
+          "bonus_ranking": [
+            "sem_harnden",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_black_serpent"
+      ],
+      "bonus_combined_ranking": [
+        "sem_harnden",
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_precise_combat"
+      ]
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "复仇"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "五百年后在纳塔重逢曾经的剑术老师，他沦为深渊走狗，被杀了两百遍",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "曾经的剑术老师",
+                    "role": "深渊走狗"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_harnden_battle"
+          ],
+          "bonus_ranking": [
+            "sem_harnden",
+            "sem_abyss"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_harnden_battle"
+      ],
+      "bonus_combined_ranking": [
+        "sem_harnden",
+        "sem_abyss"
+      ],
+      "expected_actions": [
+        "proc_revengeful",
+        "proc_precise_combat"
+      ]
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "对峙"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在挪德卡莱维持月之门，与猎月人旧友交锋，身旁是愚人众的少女",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_rellier_encounter"
+          ],
+          "bonus_ranking": [
+            "sem_rellier",
+            "sem_columbina"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_rellier_encounter"
+      ],
+      "bonus_combined_ranking": [
+        "sem_rellier",
+        "sem_columbina"
+      ],
+      "expected_actions": [
+        "proc_precise_combat"
+      ]
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "罪人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "创造漆黑兽潮的炼金术士",
+                "description": "坎瑞亚的顶尖炼金术士，被称为黄金，魔女会成员"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_rhinedottir"
+          ],
+          "bonus_ranking": [
+            "sem_albedo",
+            "sem_five_sinners"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_rhinedottir"
+      ],
+      "bonus_combined_ranking": [
+        "sem_albedo",
+        "sem_five_sinners"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "西风骑士团的骑兵队长",
+                "description": "亚尔伯里奇家族后裔，血统纯正的坎瑞亚遗孤"
               }
             ]
           }
@@ -778,8 +541,7 @@
             "sem_kaeya"
           ],
           "bonus_ranking": [
-            "sem_clothar_alberich",
-            "sem_self"
+            "sem_clothar_alberich"
           ]
         }
       ],
@@ -787,26 +549,25 @@
         "sem_kaeya"
       ],
       "bonus_combined_ranking": [
-        "sem_clothar_alberich",
-        "sem_self"
+        "sem_clothar_alberich"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_18",
-      "description": "atomic query 18",
+      "name": "query_12",
+      "description": "atomic query 12",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 7,
           "tag": [
-            "概念",
-            "计划"
+            "人物",
+            "能力"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "命运的织机",
-                "description": "深渊教团想要制造的一种能改写命运的工具，需要第一座耕地机的眼睛"
+                "concept_identifier": "西风骑士团的首席炼金术士",
+                "description": "莱茵多特创造的白垩之子，掌握黑土之术，被戴因密切关注"
               }
             ]
           }
@@ -816,38 +577,41 @@
         {
           "q": 0,
           "ranking": [
-            "sem_loom_of_fate"
+            "sem_albedo"
           ],
           "bonus_ranking": [
-            "sem_abyss",
-            "sem_field_tiller"
+            "sem_rhinedottir"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_loom_of_fate"
+        "sem_albedo"
       ],
       "bonus_combined_ranking": [
-        "sem_abyss",
-        "sem_field_tiller"
+        "sem_rhinedottir"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_19",
-      "description": "atomic query 19",
+      "name": "query_13",
+      "description": "atomic query 13",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 7,
           "tag": [
-            "习惯",
-            "说话"
+            "事件",
+            "调查"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "戴因斯雷布说话方式晦涩，常用比喻和预言，因为真相本身太复杂",
-                "location": null,
+                "narrative": "在须弥调查改写命运的工具，被虚假记忆欺骗后失去了保管的眼睛",
+                "location": [
+                  {
+                    "name": "须弥",
+                    "coordinates": "智慧之国"
+                  }
+                ],
                 "participants": null,
                 "time_span": null,
                 "environment": null,
@@ -861,74 +625,31 @@
         {
           "q": 0,
           "ranking": [
-            "sit_question_abstract"
+            "sit_abyss_investigation"
           ],
           "bonus_ranking": [
-            "proc_hide_speech",
-            "sem_self"
+            "sem_loom_of_fate",
+            "sem_traveler"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_question_abstract"
+        "sit_abyss_investigation"
       ],
       "bonus_combined_ranking": [
-        "proc_hide_speech",
-        "sem_self"
+        "sem_loom_of_fate",
+        "sem_traveler"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_question_habit"
+      ]
     },
     {
-      "name": "query_20",
-      "description": "atomic query 20",
+      "name": "query_14",
+      "description": "atomic query 14",
       "sub_queries": [
         {
-          "priority": 5,
-          "tag": [
-            "状态",
-            "孤独"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "戴因习惯独行，即使与人同行也保持距离，这是五百年流浪后的自然状态",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_alone_wander_abstract"
-          ],
-          "bonus_ranking": [
-            "proc_alone_travel",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_alone_wander_abstract"
-      ],
-      "bonus_combined_ranking": [
-        "proc_alone_travel",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_21",
-      "description": "atomic query 21",
-      "sub_queries": [
-        {
-          "priority": 8,
+          "priority": 6,
           "tag": [
             "事件",
             "相遇"
@@ -936,12 +657,23 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "在蒙德初次遇到旅行者，用三个问题试探他/她的立场，观察到未熄灭的光芒",
+                "narrative": "在蒙德初次遇见旅行者，用三个问题试探其立场",
                 "location": null,
-                "participants": null,
+                "participants": [
+                  {
+                    "name": "异乡旅人",
+                    "role": "被试探者"
+                  }
+                ],
                 "time_span": null,
                 "environment": null,
-                "event": null
+                "event": [
+                  {
+                    "action": "试探",
+                    "initiator": "戴因斯雷布",
+                    "target": "旅行者"
+                  }
+                ]
               }
             ]
           }
@@ -955,8 +687,7 @@
           ],
           "bonus_ranking": [
             "sem_traveler",
-            "sem_paimon",
-            "sem_self"
+            "sem_paimon"
           ]
         }
       ],
@@ -965,26 +696,31 @@
       ],
       "bonus_combined_ranking": [
         "sem_traveler",
-        "sem_paimon",
-        "sem_self"
+        "sem_paimon"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_question_habit"
+      ]
     },
     {
-      "name": "query_22",
-      "description": "atomic query 22",
+      "name": "query_15",
+      "description": "atomic query 15",
       "sub_queries": [
         {
           "priority": 7,
           "tag": [
-            "人物",
-            "罪人"
+            "事件",
+            "战斗"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "黄金莱茵多特",
-                "description": "五大罪人之一，坎瑞亚顶尖炼金术士，创造了魔龙杜林、阿贝多等"
+                "narrative": "在纳塔与旅行者并肩剿灭深渊据点",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -994,38 +730,40 @@
         {
           "q": 0,
           "ranking": [
-            "sem_rhinedottir"
+            "sit_nata_abyss_cleansing"
           ],
           "bonus_ranking": [
-            "sem_five_sinners",
-            "sem_albedo"
+            "sem_traveler",
+            "sem_abyss"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_rhinedottir"
+        "sit_nata_abyss_cleansing"
       ],
       "bonus_combined_ranking": [
-        "sem_five_sinners",
-        "sem_albedo"
+        "sem_traveler",
+        "sem_abyss"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_precise_combat"
+      ]
     },
     {
-      "name": "query_23",
-      "description": "atomic query 23",
+      "name": "query_16",
+      "description": "atomic query 16",
       "sub_queries": [
         {
           "priority": 4,
           "tag": [
             "概念",
-            "诅咒"
+            "地点"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "不死诅咒",
-                "description": "坎瑞亚覆灭后天理施加的诅咒，多数人变丘丘人，少数人如戴因获得不死之身"
+                "concept_identifier": "坎瑞亚的国花",
+                "description": "洁白如雪，花语是思乡的花"
               }
             ]
           }
@@ -1035,38 +773,36 @@
         {
           "q": 0,
           "ranking": [
-            "sem_curse"
+            "sem_inteyvat"
           ],
           "bonus_ranking": [
-            "sem_deathless_ring",
             "sem_khaenriah"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_curse"
+        "sem_inteyvat"
       ],
       "bonus_combined_ranking": [
-        "sem_deathless_ring",
         "sem_khaenriah"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_24",
-      "description": "atomic query 24",
+      "name": "query_17",
+      "description": "atomic query 17",
       "sub_queries": [
         {
-          "priority": 3,
+          "priority": 4,
           "tag": [
             "活动",
-            "解说"
+            "习惯"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "拾枝杂谈",
-                "description": "戴因不知为何成为给七国冒险者解说角色战斗技巧的人，他的评论像对世界的叹息"
+                "concept_identifier": "给冒险者解说角色的惯例",
+                "description": "评价七国角色战斗技巧的活动，已成为戴因的习惯"
               }
             ]
           }
@@ -1089,108 +825,29 @@
       "bonus_combined_ranking": [
         "sem_self"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_monologue"
+      ]
     },
     {
-      "name": "set_viserbnir",
-      "description": "查询戴因的兄长维瑟弗尼尔",
+      "name": "query_18",
+      "description": "atomic query 18",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 4,
           "tag": [
-            "人物",
-            "兄长"
+            "习惯",
+            "状态"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "预言家哥哥",
-                "description": "他的兄长是坎瑞亚预言家，给了他不死之戒"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "维瑟弗尼尔",
-                "description": "戴因的哥哥，因预言坎瑞亚灭亡被刺瞎双眼，后来成为五大罪人之一"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "送戒指的人",
-                "description": "在坎瑞亚覆灭时给了戴因一枚戒指让他不死的人，也是他的亲哥哥"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "被救的盲人预言家",
-                "description": "戴因曾和其他人一起从王宫救出的人，是他的兄长，双眼已盲"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "五大罪人之一",
-                "description": "戴因的哥哥也是五大罪人之一，他与其他四人瓜分了深渊之力"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "兄长"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "他哥哥去哪儿了",
-                "description": "那个被救出的预言家，后来堕落成罪人，戴因不知道他现在在哪里"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "不死之戒的来源",
-                "description": "戴因的不死之戒来自他的哥哥，正是这枚戒指让戴因在坎瑞亚覆灭后得以不断复原"
+                "narrative": "五百年流浪，即使与同伴同行也保持距离",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -1200,99 +857,392 @@
         {
           "q": 0,
           "ranking": [
-            "sem_viserbnir"
+            "sit_alone_wander_abstract"
           ],
           "bonus_ranking": [
             "sem_self",
+            "sit_parting_with_sibling"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_alone_wander_abstract"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_parting_with_sibling"
+      ],
+      "expected_actions": [
+        "proc_alone_travel"
+      ]
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "物品",
+            "遗物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "兄长留下的戒指",
+                "description": "能让身躯不断复原，造就戴因不死之身的遗物"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
             "sem_deathless_ring"
+          ],
+          "bonus_ranking": [
+            "sem_viserbnir",
+            "sem_curse"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_deathless_ring"
+      ],
+      "bonus_combined_ranking": [
+        "sem_viserbnir",
+        "sem_curse"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "旅行者身边漂浮的小家伙",
+                "description": "自称最好的伙伴，斗篷上有星空图案，身份或许不简单"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_paimon"
+          ],
+          "bonus_ranking": [
+            "sem_traveler"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_paimon"
+      ],
+      "bonus_combined_ranking": [
+        "sem_traveler"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "概念",
+            "信仰"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "戴因怨恨且从不祈祷的对象",
+                "description": "五百年前降临覆灭坎瑞亚的存在，戴因是拒信者"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_gods"
+          ],
+          "bonus_ranking": [
+            "sem_khaenriah"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_gods"
+      ],
+      "bonus_combined_ranking": [
+        "sem_khaenriah"
+      ],
+      "expected_actions": [
+        "proc_no_pray"
+      ]
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "深渊教团的创始人",
+                "description": "摆脱不死诅咒得到真正死亡的坎瑞亚人，他的后裔是蒙德骑兵队长"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_clothar_alberich"
+          ],
+          "bonus_ranking": [
+            "sem_kaeya"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_clothar_alberich"
+      ],
+      "bonus_combined_ranking": [
+        "sem_kaeya"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_sibling",
+      "description": "查询与戴因结伴又决裂的金发旅伴，如今深渊教团的首领",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "深渊教团的首领",
+                "description": "金发的异乡人，戴因曾经的旅伴"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "像太阳碎片般耀眼的人",
+                "description": "与戴因结伴游历整个提瓦特，最终选择深渊道路的金发旅人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "空或荧的同胞",
+                "description": "旅行者的血亲，被戴因视为必须杀死的人也是忏悔对象"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "戴因心中最深的伤痕",
+                "description": "那位曾结伴同行、如今站在对立面的金发少女"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "事件"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被黑王立为王储的金发旅人",
+                "description": "覆灭之夜被五大罪人瓜分身上深渊之力的容器"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "让他纠结的那个旅伴",
+                "description": "一起看过晨曦与落日，最后因理念不合而分开的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "金发异乡人",
+                "description": "曾与戴因并肩行走在提瓦特大陆上的旅伴"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_traveler_sibling"
+          ],
+          "bonus_ranking": [
+            "sem_abyss"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_viserbnir"
+            "sem_traveler_sibling"
           ],
           "bonus_ranking": [
-            "sem_five_sinners"
+            "sem_abyss"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_viserbnir"
+            "sem_traveler_sibling"
           ],
           "bonus_ranking": [
-            "sem_deathless_ring",
-            "sem_self"
+            "sem_traveler"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_viserbnir"
+            "sem_traveler_sibling"
           ],
           "bonus_ranking": [
-            "sit_brother_rescue",
             "sem_self"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_viserbnir"
+            "sem_traveler_sibling"
           ],
           "bonus_ranking": [
+            "sem_irmin",
             "sem_five_sinners"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sem_viserbnir"
+            "sem_traveler_sibling"
           ],
           "bonus_ranking": [
-            "sem_five_sinners"
+            "sit_travel_with_sibling"
           ]
         },
         {
           "q": 6,
           "ranking": [
-            "sem_viserbnir"
+            "sem_traveler_sibling"
           ],
           "bonus_ranking": [
-            "sem_deathless_ring",
-            "sem_curse"
+            "sem_traveler"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_viserbnir"
+        "sem_traveler_sibling"
       ],
       "bonus_combined_ranking": [
+        "sem_abyss",
+        "sem_traveler",
         "sem_self",
-        "sem_deathless_ring",
+        "sem_irmin",
         "sem_five_sinners",
-        "sit_brother_rescue",
-        "sem_curse"
+        "sit_travel_with_sibling"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_monologue"
+      ]
     },
     {
-      "name": "set_halfdan_sacrifice",
-      "description": "查询哈夫丹牺牲的相关情境",
+      "name": "set_fall",
+      "description": "查询坎瑞亚覆灭之夜与戴因获救的经历",
       "sub_queries": [
         {
           "priority": 9,
           "tag": [
             "事件",
-            "牺牲"
+            "历史"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在层岩巨渊，戴因昔日的部下化为黑蛇骑士，用身体挡住机关，临终前问坎瑞亚是否亡国",
+                "narrative": "众神一同降临，覆灭了那个没有神明的国度",
                 "location": null,
-                "participants": null,
+                "participants": [
+                  {
+                    "name": "众神",
+                    "role": "入侵者"
+                  }
+                ],
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -1301,15 +1251,14 @@
           }
         },
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
-            "人物",
-            "部下"
+            "事件"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "戴因在层岩巨渊遇到一个黑蛇骑士，原来是他以前的部下，最后牺牲自己救了戴因和旅行者",
+                "narrative": "戴因获得不死之身的那场灾变",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1327,25 +1276,7 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "哈夫丹在层岩巨渊找到泉水和深渊装置，然后用身躯挡住机关，为戴因争取时间",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "一个忠诚的骑士，虽然变成了黑蛇骑士，但潜意识还在执行戴因五百年前的命令——守护人民",
+                "narrative": "在甘露花海中醒来，与花灵并肩对抗漆黑兽潮",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1359,12 +1290,35 @@
           "priority": 9,
           "tag": [
             "事件",
-            "牺牲"
+            "关系"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "黑蛇骑士牺牲时灵魂以原貌出现，问戴因坎瑞亚还在不在，戴因回答了实话",
+                "narrative": "兄长用一枚戒指换来弟弟生命的那个夜晚",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "兄长",
+                    "role": "赠戒者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "火光与爆炸中，悲愤绝望地看着家乡被众神铲除",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1375,14 +1329,39 @@
           }
         },
         {
-          "priority": 7,
+          "priority": 8,
           "tag": [
+            "事件",
             "人物"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "戴因曾经嘱托他守护人民，五百年后他仍以黑蛇骑士身份守护丘丘人，最后为戴因而死",
+                "narrative": "嘱托黑蛇骑士守护人民，独自赶往皇宫的末日时刻",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "黑蛇骑士",
+                    "role": "守卫者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "历史"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "从地底之国的毁灭到不死诅咒的开端，五百年悲剧的起点",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1397,26 +1376,208 @@
         {
           "q": 0,
           "ranking": [
-            "sit_halfdan_sacrifice"
+            "sit_khaenriah_fall"
           ],
           "bonus_ranking": [
-            "sem_halfdan",
-            "sem_self",
-            "sem_khaenriah"
+            "sem_khaenriah",
+            "sem_gods"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sit_halfdan_sacrifice"
+            "sit_khaenriah_fall"
           ],
           "bonus_ranking": [
-            "sem_halfdan",
-            "sem_traveler"
+            "sem_curse",
+            "sem_deathless_ring"
           ]
         },
         {
           "q": 2,
+          "ranking": [
+            "sit_khaenriah_fall"
+          ],
+          "bonus_ranking": [
+            "sem_traveler_sibling"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_khaenriah_fall"
+          ],
+          "bonus_ranking": [
+            "sem_viserbnir",
+            "sem_deathless_ring"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_khaenriah_fall"
+          ],
+          "bonus_ranking": [
+            "sem_khaenriah",
+            "sem_gods"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_khaenriah_fall"
+          ],
+          "bonus_ranking": [
+            "sem_halfdan",
+            "sem_black_serpent"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_khaenriah_fall"
+          ],
+          "bonus_ranking": [
+            "sem_curse",
+            "sem_khaenriah"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_khaenriah_fall"
+      ],
+      "bonus_combined_ranking": [
+        "sem_khaenriah",
+        "sem_gods",
+        "sem_curse",
+        "sem_deathless_ring",
+        "sem_traveler_sibling",
+        "sem_viserbnir",
+        "sem_halfdan",
+        "sem_black_serpent"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_halfdan",
+      "description": "查询在层岩巨渊牺牲的忠诚部下哈夫丹",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "黑蛇骑士",
+                "description": "层岩巨渊中用身体挡住机关的老部下"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在层岩巨渊地底找到泉水和深渊装置，最后用身躯挡住致命机关的部下",
+                "location": [
+                  {
+                    "name": "层岩巨渊"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "宫廷卫队的年轻精英",
+                "description": "灾变之日被戴因嘱托守护人民的忠诚骑士"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "牺牲前灵魂以原貌出现，问坎瑞亚是否亡国的那个瞬间",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "把丘丘人当国民守护的人",
+                "description": "五百年潜意识执行命令，失去自我仍不曾辱没骑士称号的老部下"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "看着化为黑蛇骑士的旧日部下在层岩巨渊倒下",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_halfdan"
+          ],
+          "bonus_ranking": [
+            "sit_halfdan_sacrifice"
+          ]
+        },
+        {
+          "q": 1,
           "ranking": [
             "sit_halfdan_sacrifice"
           ],
@@ -1425,468 +1586,106 @@
           ]
         },
         {
-          "q": 3,
-          "ranking": [
-            "sit_halfdan_sacrifice"
-          ],
-          "bonus_ranking": [
-            "sem_halfdan",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_halfdan_sacrifice"
-          ],
-          "bonus_ranking": [
-            "sem_halfdan",
-            "sem_khaenriah"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_halfdan_sacrifice"
-          ],
-          "bonus_ranking": [
-            "sem_halfdan",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_halfdan_sacrifice"
-      ],
-      "bonus_combined_ranking": [
-        "sem_halfdan",
-        "sem_self",
-        "sem_khaenriah",
-        "sem_traveler"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_curse_immortality",
-      "description": "查询戴因的不死诅咒和相关物品",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "概念",
-            "诅咒"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "不死诅咒",
-                "description": "坎瑞亚覆灭后戴因获得的不死诅咒，不会衰老也无法真正死亡"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "物品"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "不死之戒",
-                "description": "兄长维瑟弗尼尔留给戴因的戒指，让他的身体能不断复原"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "概念",
-            "诅咒"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "天理诅咒",
-                "description": "坎瑞亚覆灭后众神施加的诅咒，多数人变丘丘人，少数人如戴因变成不死者"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "概念"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "为什么戴因不会死",
-                "description": "因为他体内寄宿着不死之戒，是兄长给的，能让他在受伤后不断复原"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "概念"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "坎瑞亚人的诅咒",
-                "description": "坎瑞亚覆灭后幸存者受到的诅咒，变成丘丘人或获得不死"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "概念",
-            "诅咒"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "戴因的不死之身",
-                "description": "他活了五百年，不会衰老，受伤后能复原，全凭一枚戒指"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_curse"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_deathless_ring"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_deathless_ring"
-          ],
-          "bonus_ranking": [
-            "sem_curse",
-            "sem_viserbnir"
-          ]
-        },
-        {
           "q": 2,
           "ranking": [
-            "sem_curse"
+            "sem_halfdan"
           ],
           "bonus_ranking": [
             "sem_khaenriah",
-            "sem_gods"
+            "sem_self"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_deathless_ring"
+            "sit_halfdan_sacrifice"
           ],
           "bonus_ranking": [
-            "sem_curse",
-            "sem_viserbnir"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_curse"
-          ],
-          "bonus_ranking": [
+            "sem_halfdan",
             "sem_khaenriah"
           ]
         },
         {
-          "q": 5,
+          "q": 4,
           "ranking": [
-            "sem_curse"
+            "sem_halfdan"
           ],
           "bonus_ranking": [
-            "sem_deathless_ring",
-            "sem_self"
+            "sem_black_serpent"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_halfdan_sacrifice"
+          ],
+          "bonus_ranking": [
+            "sem_halfdan",
+            "sem_traveler"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_curse",
-        "sem_deathless_ring"
+        "sem_halfdan",
+        "sit_halfdan_sacrifice"
       ],
       "bonus_combined_ranking": [
-        "sem_self",
-        "sem_deathless_ring",
-        "sem_curse",
-        "sem_viserbnir",
+        "sit_halfdan_sacrifice",
+        "sem_halfdan",
         "sem_khaenriah",
-        "sem_gods"
+        "sem_self",
+        "sem_black_serpent",
+        "sem_traveler"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_monologue"
+      ]
     },
     {
-      "name": "set_traveler_relationship",
-      "description": "查询戴因与旅行者及其血亲的关系",
+      "name": "set_sinners",
+      "description": "查询坎瑞亚五大罪人群体及其成员信息",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 5,
           "tag": [
             "人物",
-            "盟友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "空/荧",
-                "description": "戴因在蒙德初遇的旅行者，后来多次合作，在他身上看到血亲影子"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "旅伴"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "金发旅人",
-                "description": "戴因曾经与ta结伴游历提瓦特，但后来因为道路选择而决裂"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
             "事件"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "戴因用三个问题试探旅行者的立场，关于龙灾、失去神明后的守护和神之眼的意义",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "坎瑞亚覆灭之夜堕落的那五人",
+                "description": "在覆灭之夜瓜分深渊之力，被戴因追猎的罪人"
               }
             ]
           }
         },
         {
-          "priority": 9,
+          "priority": 4,
           "tag": [
             "人物",
-            "关系"
+            "罪人"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "旅行者的血亲",
-                "description": "那个像太阳碎片一样耀眼的人，后来成为深渊教团首领，是戴因必须面对的矛盾"
+                "concept_identifier": "五大罪人里的炼金术士",
+                "description": "被称为黄金的魔女会成员，创造阿贝多与漆黑兽潮的坎瑞亚顶尖炼金术士"
               }
             ]
           }
         },
         {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "合作"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在纳塔与旅行者一起清剿深渊据点，并肩作战",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "合作"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在须弥与旅行者合作调查命运织机，共同对抗深渊教团的阴谋",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "派蒙",
-                "description": "旅行者身边漂浮的小家伙，斗篷有星空图案，戴因觉得她身份不简单"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_traveler"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sit_first_meet_traveler"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_traveler_sibling"
-          ],
-          "bonus_ranking": [
-            "sit_parting_with_sibling",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_first_meet_traveler"
-          ],
-          "bonus_ranking": [
-            "sem_traveler",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_traveler_sibling"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_abyss"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_nata_abyss_cleansing"
-          ],
-          "bonus_ranking": [
-            "sem_traveler",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_abyss_investigation"
-          ],
-          "bonus_ranking": [
-            "sem_traveler",
-            "sem_loom_of_fate"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_paimon"
-          ],
-          "bonus_ranking": [
-            "sem_traveler",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_traveler",
-        "sem_traveler_sibling",
-        "sit_first_meet_traveler",
-        "sit_nata_abyss_cleansing",
-        "sit_abyss_investigation",
-        "sem_paimon"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sit_first_meet_traveler",
-        "sit_parting_with_sibling",
-        "sem_traveler",
-        "sem_abyss",
-        "sem_loom_of_fate"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_kaeya_and_khaenriah",
-      "description": "查询凯亚与坎瑞亚的关系",
-      "sub_queries": [
-        {
-          "priority": 7,
+          "priority": 3,
           "tag": [
             "人物",
-            "后裔"
+            "罪人"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "凯亚·亚尔伯里奇",
-                "description": "西风骑士团骑兵队长，坎瑞亚遗孤，亚尔伯里奇家族后裔"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "坎瑞亚的末裔",
-                "description": "凯亚是亚尔伯里奇家族的后代，这个家族出了深渊教团创始人，戴因在须弥酒馆挑明了他的身份"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "历史"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "克洛达尔·亚尔伯里奇",
-                "description": "深渊教团创始人，凯亚的祖先，戴因在须弥挖出了他和妻子的尸体"
+                "concept_identifier": "五大罪人中的贤者",
+                "description": "关于他的信息最为稀少的那个罪人"
               }
             ]
           }
@@ -1894,42 +1693,44 @@
         {
           "priority": 5,
           "tag": [
-            "人物"
+            "人物",
+            "罪人"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "坎瑞亚的国花",
-                "description": "因提瓦特花，代表思乡，是坎瑞亚的象征"
+                "concept_identifier": "五大罪人中的猎月人",
+                "description": "失去挚爱后堕落的旧友，在挪德卡莱引发狂猎之灾"
               }
             ]
           }
         },
         {
-          "priority": 8,
+          "priority": 5,
           "tag": [
-            "概念",
-            "国家"
+            "人物",
+            "罪人"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "无神国度坎瑞亚",
-                "description": "戴因的祖国，地下文明巅峰，被众神覆灭，人民受诅咒"
+                "concept_identifier": "五大罪人中的极恶骑",
+                "description": "失去一条腿和一只手的天才剑士，离开提瓦特游历星海"
               }
             ]
           }
         },
         {
-          "priority": 6,
+          "priority": 5,
           "tag": [
-            "人物"
+            "人物",
+            "关系"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "亚尔伯里奇始祖",
-                "description": "克洛达尔·亚尔伯里奇，深渊教团创始人，他的儿子卡利贝尔似乎向戴因投放了虚假记忆"
+                "concept_identifier": "五大罪人中戴因的兄长",
+                "description": "被刺瞎双眼的预言家，留给戴因不死之戒的人"
               }
             ]
           }
@@ -1939,124 +1740,110 @@
         {
           "q": 0,
           "ranking": [
-            "sem_kaeya"
+            "sem_five_sinners"
           ],
           "bonus_ranking": [
-            "sem_clothar_alberich",
-            "sem_self"
+            "sem_abyss"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_kaeya"
+            "sem_five_sinners"
           ],
           "bonus_ranking": [
-            "sem_clothar_alberich"
+            "sem_rhinedottir"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_clothar_alberich"
+            "sem_five_sinners"
           ],
           "bonus_ranking": [
-            "sem_kaeya",
-            "sem_self"
+            "sem_hellatide"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_inteyvat"
+            "sem_five_sinners"
           ],
           "bonus_ranking": [
-            "sem_khaenriah"
+            "sem_rellier"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_khaenriah"
+            "sem_five_sinners"
           ],
           "bonus_ranking": [
-            "sem_curse",
-            "sem_gods",
-            "sem_self"
+            "sem_surtalogi"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sem_clothar_alberich"
+            "sem_five_sinners"
           ],
           "bonus_ranking": [
-            "sem_kaeya",
-            "sem_self",
-            "sem_abyss"
+            "sem_viserbnir",
+            "sem_deathless_ring"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_kaeya",
-        "sem_clothar_alberich",
-        "sem_inteyvat",
-        "sem_khaenriah"
+        "sem_five_sinners"
       ],
       "bonus_combined_ranking": [
-        "sem_clothar_alberich",
-        "sem_self",
-        "sem_kaeya",
-        "sem_khaenriah",
-        "sem_curse",
-        "sem_gods",
-        "sem_abyss"
+        "sem_abyss",
+        "sem_rhinedottir",
+        "sem_hellatide",
+        "sem_rellier",
+        "sem_surtalogi",
+        "sem_viserbnir",
+        "sem_deathless_ring"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_abyss_and_gods",
-      "description": "查询戴因对抗深渊与对众神的仇恨",
+      "name": "set_first_meet",
+      "description": "查询戴因在蒙德初次遇见旅行者时的试探经历",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 5,
           "tag": [
-            "概念",
-            "力量"
+            "事件",
+            "相遇"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "深渊",
-                "description": "诱惑人的力量，五大罪人因它堕落，坎瑞亚因它覆灭，戴因以对抗深渊为己任"
+                "narrative": "蒙德初见旅行者，用三个问题试探对方的立场",
+                "location": [
+                  {
+                    "name": "蒙德",
+                    "coordinates": "风之城"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
         },
         {
-          "priority": 8,
-          "tag": [
-            "概念",
-            "神明"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "众神",
-                "description": "戴因深恨所有的神，因为他们覆灭了没有神明的坎瑞亚"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
+          "priority": 6,
           "tag": [
             "事件"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "坎瑞亚覆灭之夜，众神一同降临，戴因在绝望中看着国家毁灭，只有戒指让他活下来",
+                "narrative": "关于龙灾关键、失去神明后的守护、神之眼意义的三次提问",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -2067,29 +1854,38 @@
           }
         },
         {
-          "priority": 9,
+          "priority": 4,
           "tag": [
-            "概念",
-            "力量"
+            "事件",
+            "人物"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "五大罪人",
-                "description": "在坎瑞亚覆灭之夜瓜分深渊之力的五人，戴因追猎他们"
+                "narrative": "异乡旅人第一次见到那位黑衣人，被问了几个直指核心的问题",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "黑衣人",
+                    "role": "提问者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
         },
         {
-          "priority": 8,
+          "priority": 6,
           "tag": [
             "事件"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在纳塔与旅行者一起清剿深渊据点，清理深渊势力",
+                "narrative": "风之城的那次交谈，注意到旅人身上未熄灭的光芒",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -2102,13 +1898,165 @@
         {
           "priority": 7,
           "tag": [
-            "概念"
+            "事件",
+            "人物"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "派蒙漂浮在一旁，旅人作答时，戴因心中想着另一位金发旅人",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在蒙德确认旅行者与血亲不同与相似之处的初次相遇",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_first_meet_traveler"
+          ],
+          "bonus_ranking": [
+            "sem_traveler"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_first_meet_traveler"
+          ],
+          "bonus_ranking": [
+            "sem_traveler"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_first_meet_traveler"
+          ],
+          "bonus_ranking": [
+            "sem_traveler",
+            "sem_paimon"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_first_meet_traveler"
+          ],
+          "bonus_ranking": [
+            "sem_traveler"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_first_meet_traveler"
+          ],
+          "bonus_ranking": [
+            "sem_paimon",
+            "sem_traveler_sibling"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_first_meet_traveler"
+          ],
+          "bonus_ranking": [
+            "sem_traveler",
+            "sem_traveler_sibling"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_first_meet_traveler"
+      ],
+      "bonus_combined_ranking": [
+        "sem_traveler",
+        "sem_paimon",
+        "sem_traveler_sibling"
+      ],
+      "expected_actions": [
+        "proc_question_habit"
+      ]
+    },
+    {
+      "name": "set_behavior",
+      "description": "查询戴因的处世习惯、信仰与战斗风格",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "概念",
+            "信仰"
           ],
           "variant": {
             "Semantic": [
               {
                 "concept_identifier": "拒信者",
-                "description": "戴因不信仰任何神，从不祈祷，他认为神不存在于人类历史"
+                "description": "不信仰任何神明，从不在神像前祈祷的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "从不在任何神像前祈祷，不踏入神圣之地",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "状态"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "习惯独行，即使与同伴同行也保持距离",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -2116,14 +2064,63 @@
         {
           "priority": 6,
           "tag": [
-            "概念",
-            "国家"
+            "人物",
+            "性格"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "坎瑞亚的覆灭",
-                "description": "众神认为人类不依赖神是威胁，于是五百年前覆灭了坎瑞亚"
+                "concept_identifier": "记仇的流浪者",
+                "description": "对于哈登的背叛杀了两百遍，一遍都不多余"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "能力",
+            "战斗"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "精准致命的黑蛇剑术",
+                "description": "干脆利落的剑术风格，带着五百年积累的经验与愤怒"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在战斗之地以精准致命的风格迎敌，从不滥杀无辜",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "说话"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "说话晦涩的人",
+                "description": "说话方式晦涩，因为真相太过复杂，常用预言式评论"
               }
             ]
           }
@@ -2133,95 +2130,90 @@
         {
           "q": 0,
           "ranking": [
-            "sem_abyss"
+            "sem_gods"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "sem_five_sinners"
+            "sem_self"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_gods"
+            "sit_khaenriah_fall"
           ],
           "bonus_ranking": [
-            "sem_khaenriah",
-            "sem_self"
+            "sem_gods"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sit_khaenriah_fall"
+            "sit_alone_wander_abstract"
           ],
           "bonus_ranking": [
-            "sem_khaenriah",
-            "sem_gods",
             "sem_self"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_five_sinners"
+            "sem_harnden"
           ],
           "bonus_ranking": [
-            "sem_abyss",
-            "sem_self"
+            "sit_harnden_battle"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sit_nata_abyss_cleansing"
+            "sem_black_serpent"
           ],
           "bonus_ranking": [
-            "sem_abyss",
-            "sem_traveler",
             "sem_self"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sem_gods"
+            "sit_battle_abstract"
           ],
           "bonus_ranking": [
-            "proc_no_pray",
-            "sem_self"
+            "sem_black_serpent"
           ]
         },
         {
           "q": 6,
           "ranking": [
-            "sem_khaenriah"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_gods",
-            "sit_khaenriah_fall"
+            "sem_curse"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_abyss",
         "sem_gods",
         "sit_khaenriah_fall",
-        "sem_five_sinners",
-        "sit_nata_abyss_cleansing",
-        "sem_khaenriah"
+        "sit_alone_wander_abstract",
+        "sem_harnden",
+        "sem_black_serpent",
+        "sit_battle_abstract",
+        "sem_self"
       ],
       "bonus_combined_ranking": [
         "sem_self",
-        "sem_five_sinners",
-        "sem_khaenriah",
         "sem_gods",
-        "sem_abyss",
-        "sem_traveler",
-        "proc_no_pray",
-        "sit_khaenriah_fall"
+        "sit_harnden_battle",
+        "sem_black_serpent",
+        "sem_curse"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_no_pray",
+        "proc_alone_travel",
+        "proc_revengeful",
+        "proc_precise_combat",
+        "proc_hide_speech"
+      ]
     }
   ]
 }

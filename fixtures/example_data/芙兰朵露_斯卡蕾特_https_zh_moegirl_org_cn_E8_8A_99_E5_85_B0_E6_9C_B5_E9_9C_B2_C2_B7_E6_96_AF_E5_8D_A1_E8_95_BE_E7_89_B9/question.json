@@ -19,14 +19,14 @@
         {
           "priority": 9,
           "tag": [
-            "人物",
-            "关系"
+            "自身",
+            "角色"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "姐姐大人",
-                "description": "红魔馆的主人，最疼爱芙兰但又把她关在地下室的吸血鬼大小姐"
+                "concept_identifier": "恶魔之妹",
+                "description": "红魔馆主人的妹妹，一只有495岁寿命的吸血鬼"
               }
             ]
           }
@@ -36,18 +36,20 @@
         {
           "q": 0,
           "ranking": [
-            "sem_remilia"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_remilia",
+            "sem_vampire"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_remilia"
+        "sem_self"
       ],
       "bonus_combined_ranking": [
-        "sem_self"
+        "sem_remilia",
+        "sem_vampire"
       ],
       "expected_actions": []
     },
@@ -56,206 +58,16 @@
       "description": "atomic query 1",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
-            "能力"
+            "年龄",
+            "特殊概念"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "破坏万物的能力",
-                "description": "能把任何物体上的目移动到手里然后捏碎"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_destruction_eye"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_destruction_eye"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_2",
-      "description": "atomic query 2",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "人物",
-            "朋友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "觉妖怪的妹妹",
-                "description": "同样被姐姐管着，会偷偷潜入地下室找芙兰玩"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_koishi"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_koishi"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_3",
-      "description": "atomic query 3",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "地点",
-            "家"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "雾之湖边的洋馆",
-                "description": "芙兰和姐姐居住的巨大公馆，里面有地下图书室和储藏室"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_mansion"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_remilia"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_mansion"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_remilia"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_4",
-      "description": "atomic query 4",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "人物",
-            "红魔馆成员"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "银发女仆长",
-                "description": "每天送食物给芙兰的能干女仆，不知道门锁根本关不住她"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_sakuya"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_sakuya"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_5",
-      "description": "atomic query 5",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "武器"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "北欧神话的炎之剑",
-                "description": "芙兰符卡里提到的火焰魔剑，她手里的软棒子可能就是这个"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_laevatein"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_laevatein"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_6",
-      "description": "atomic query 6",
-      "sub_queries": [
-        {
-          "priority": 3,
-          "tag": [
-            "年龄"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "芙兰的年龄",
-                "description": "大概五百岁，七月四日是她的纪念日"
+                "concept_identifier": "活了495年的吸血鬼",
+                "description": "她的年龄有一个谐音纪念日，还被做进了符卡名字里"
               }
             ]
           }
@@ -281,19 +93,501 @@
       "expected_actions": []
     },
     {
-      "name": "query_7",
-      "description": "atomic query 7",
+      "name": "query_2",
+      "description": "atomic query 2",
       "sub_queries": [
         {
-          "priority": 2,
+          "priority": 8,
           "tag": [
-            "身体特征"
+            "地点",
+            "家"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "彩色结晶翅膀",
-                "description": "原本是蝙蝠状，被芙兰不断破坏修复后变成的结晶造型"
+                "concept_identifier": "雾之湖畔的巨大洋馆",
+                "description": "她和姐姐在幻想乡的住处，地下有帕秋莉的图书室和她的储藏室"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_mansion"
+          ],
+          "bonus_ranking": [
+            "sem_gensokyo",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_mansion"
+      ],
+      "bonus_combined_ranking": [
+        "sem_gensokyo",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "采访"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "天狗记者拿着相机来问她陨石爆炸的事，却被她和姐姐的对话绕晕了",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_aya_interview"
+          ],
+          "bonus_ranking": [
+            "sem_aya",
+            "sem_self",
+            "sem_remilia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_aya_interview"
+      ],
+      "bonus_combined_ranking": [
+        "sem_aya",
+        "sem_self",
+        "sem_remilia"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "战斗",
+            "弹幕游戏"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "红魔乡EX关卡里的弹幕由她设计，有些是力量展示，有些像游戏一样带小花招",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_ex_extra"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_marisa",
+            "sem_reimu"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_ex_extra"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_marisa",
+        "sem_reimu"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "游戏剧情"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "摩多罗隐岐奈用‘破坏神’当诱饵，她真的相信自己是破坏神并作为自机出场",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_gouyoku_ijin"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_destruction_eye"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_gouyoku_ijin"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_destruction_eye"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "日常",
+            "生活地点"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "地下室舒适安稳的宅女氛围让她觉得待在这里才是正常生活",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_basement_environment"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_mansion",
+            "proc_stay_basement"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_basement_environment"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_mansion",
+        "proc_stay_basement"
+      ],
+      "expected_actions": [
+        "proc_stay_basement"
+      ]
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "危险防御"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "陨石笔直朝红魔馆飞来时，她只握了一下拳就把天空里的火球弄炸了",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_meteor_destruction"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_remilia",
+            "sem_aya"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_meteor_destruction"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_remilia",
+        "sem_aya"
+      ],
+      "expected_actions": [
+        "proc_destory_eye"
+      ]
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物关系",
+            "红魔馆成员"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "照顾她起居的银发女仆",
+                "description": "红魔馆的女仆长，每天给她送饭，并不知道门锁其实关不住她"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_sakuya"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_mansion"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_sakuya"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_mansion"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物关系",
+            "红魔馆成员"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "会用暴雨拦她的魔女",
+                "description": "住在红魔馆地下图书馆，是姐姐的朋友，也是变相看守她的人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_patchouli"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_remilia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_patchouli"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_remilia"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物关系",
+            "外来者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个黑白魔法使",
+                "description": "会强行闯入红魔馆，还说只要不刺激她就能平安通过"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_marisa"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_marisa"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物关系",
+            "外人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "把姐姐名字说错的巫女",
+                "description": "红白巫女曾评价她的翅膀飞不起来，还冒犯了姐姐的名字"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_reimu"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_remilia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_reimu"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_remilia"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物关系",
+            "老师"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "传说会宠她的家庭教师",
+                "description": "上白泽慧音据说是被姐姐请来教她的人，还会买玩具"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_keine"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_remilia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_keine"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_remilia"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "身体特征",
+            "特殊造型"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "挂着彩色结晶的翅膀",
+                "description": "因为不断破坏又修复而变成的特殊造型，颜色排列中没有红色"
               }
             ]
           }
@@ -319,74 +613,20 @@
       "expected_actions": []
     },
     {
-      "name": "query_8",
-      "description": "atomic query 8",
+      "name": "query_14",
+      "description": "atomic query 14",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 7,
           "tag": [
-            "事件",
-            "危险防御"
+            "战斗",
+            "娱乐"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "有一次陨石砸向红魔馆，她轻松一捏就炸了",
+                "narrative": "当有人来挑战时，她习惯用弹幕对战把场面变成一场玩乐",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "芙兰",
-                    "role": "破坏者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_meteor_destruction"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_remilia"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_meteor_destruction"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_remilia"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_9",
-      "description": "atomic query 9",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "游戏剧情"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "红魔乡EX关的弹幕设计，魔理沙说她比姐姐花样多",
-                "location": [
-                  {
-                    "name": "红魔馆地下室"
-                  }
-                ],
                 "participants": null,
                 "time_span": null,
                 "environment": null,
@@ -400,42 +640,43 @@
         {
           "q": 0,
           "ranking": [
-            "sit_ex_extra"
+            "sit_bullet_event"
           ],
           "bonus_ranking": [
-            "sem_marisa"
+            "sem_self",
+            "sem_marisa",
+            "sem_reimu"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_ex_extra"
+        "sit_bullet_event"
       ],
       "bonus_combined_ranking": [
-        "sem_marisa"
+        "sem_self",
+        "sem_marisa",
+        "sem_reimu"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_destory_eye"
+      ]
     },
     {
-      "name": "query_10",
-      "description": "atomic query 10",
+      "name": "query_15",
+      "description": "atomic query 15",
       "sub_queries": [
         {
           "priority": 6,
           "tag": [
-            "事件",
-            "游戏剧情"
+            "战斗",
+            "娱乐"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "刚欲异闻里被摩多罗诱导相信自己就是破坏神",
+                "narrative": "来访的人类或妖怪经常作为弹幕对手和她交手",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "摩多罗",
-                    "role": "诱导者"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -448,42 +689,158 @@
         {
           "q": 0,
           "ranking": [
-            "sit_gouyoku_ijin"
+            "sit_bullet_participant"
           ],
           "bonus_ranking": [
-            "sem_destruction_eye"
+            "sem_self",
+            "sem_marisa"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_gouyoku_ijin"
+        "sit_bullet_participant"
       ],
       "bonus_combined_ranking": [
-        "sem_destruction_eye"
+        "sem_self",
+        "sem_marisa"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_11",
-      "description": "atomic query 11",
+      "name": "query_16",
+      "description": "atomic query 16",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 5,
+          "tag": [
+            "武器",
+            "符卡"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "前端像黑桃的软棒",
+                "description": "她右手握着的东西疑似魔力剑，符卡里也能看到禁忌·莱瓦汀"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_laevatein"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_laevatein"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "种族",
+            "身份"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "不惧十字架的吸血鬼",
+                "description": "害怕阳光和雨水，却能随手玩弄十字架的暗夜贵族"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_vampire"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_vampire"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "地点",
+            "世界"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "与世隔绝的家园",
+                "description": "姐姐带着红魔馆搬进的幻想乡"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_gensokyo"
+          ],
+          "bonus_ranking": [
+            "sem_mansion",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_gensokyo"
+      ],
+      "bonus_combined_ranking": [
+        "sem_mansion",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 5,
           "tag": [
             "事件",
-            "朋友来访"
+            "朋友"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "恋偶尔溜进地下室找她玩，两个被姐姐管的妹妹",
+                "narrative": "古明地恋偶尔会悄悄潜入地下室，和处境相似的她一起玩",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "恋",
-                    "role": "访客"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -499,7 +856,8 @@
             "sit_sneak_visit"
           ],
           "bonus_ranking": [
-            "sem_koishi"
+            "sem_koishi",
+            "sem_self"
           ]
         }
       ],
@@ -507,24 +865,25 @@
         "sit_sneak_visit"
       ],
       "bonus_combined_ranking": [
-        "sem_koishi"
+        "sem_koishi",
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_12",
-      "description": "atomic query 12",
+      "name": "query_20",
+      "description": "atomic query 20",
       "sub_queries": [
         {
-          "priority": 5,
+          "priority": 4,
           "tag": [
-            "事件",
-            "采访"
+            "社交",
+            "情感"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "射命丸文采访关于陨石爆炸的事，把姐姐都搞糊涂了",
+                "narrative": "被当成可怕或奇怪的存在时，她并不会真的对谁出手",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -539,29 +898,76 @@
         {
           "q": 0,
           "ranking": [
-            "sit_aya_interview"
+            "sit_misunderstood_event"
           ],
           "bonus_ranking": [
-            "sem_aya",
-            "sem_remilia"
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_aya_interview"
+        "sit_misunderstood_event"
       ],
       "bonus_combined_ranking": [
-        "sem_aya",
-        "sem_remilia"
+        "sem_self"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_dont_attack_humans"
+      ]
     },
     {
-      "name": "query_13",
-      "description": "atomic query 13",
+      "name": "query_21",
+      "description": "atomic query 21",
       "sub_queries": [
         {
           "priority": 4,
+          "tag": [
+            "社交",
+            "情感"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "周围人的不理解形成一种孤独氛围，她选择留在房间里消化掉",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_misunderstood_environment"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_mansion"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_misunderstood_environment"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_mansion"
+      ],
+      "expected_actions": [
+        "proc_obey_sister"
+      ]
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 3,
           "tag": [
             "日常",
             "生活地点"
@@ -569,12 +975,8 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "红魔馆地下储藏室，她大部分时间待的地方",
-                "location": [
-                  {
-                    "name": "红魔馆地下储藏室"
-                  }
-                ],
+                "narrative": "大部分时间她都在地下储藏室度过，那里才是她的地盘",
+                "location": null,
                 "participants": null,
                 "time_span": null,
                 "environment": null,
@@ -591,7 +993,8 @@
             "sit_basement_location"
           ],
           "bonus_ranking": [
-            "proc_stay_basement"
+            "sem_self",
+            "sem_mansion"
           ]
         }
       ],
@@ -599,123 +1002,32 @@
         "sit_basement_location"
       ],
       "bonus_combined_ranking": [
+        "sem_self",
+        "sem_mansion"
+      ],
+      "expected_actions": [
         "proc_stay_basement"
-      ],
-      "expected_actions": []
+      ]
     },
     {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
-        {
-          "priority": 3,
-          "tag": [
-            "日常",
-            "环境"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "地下室里的舒适宅女氛围",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": {
-                  "atmosphere": "舒适安稳",
-                  "tone": "宅女氛围"
-                },
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_basement_environment"
-          ],
-          "bonus_ranking": [
-            "proc_obey_sister"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_basement_environment"
-      ],
-      "bonus_combined_ranking": [
-        "proc_obey_sister"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_15",
-      "description": "atomic query 15",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "战斗",
-            "娱乐"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "和来访者玩弹幕对战",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "弹幕对战"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_bullet_event"
-          ],
-          "bonus_ranking": [
-            "sit_ex_extra"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_bullet_event"
-      ],
-      "bonus_combined_ranking": [
-        "sit_ex_extra"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_16",
-      "description": "atomic query 16",
+      "name": "query_23",
+      "description": "atomic query 23",
       "sub_queries": [
         {
           "priority": 5,
           "tag": [
             "社交",
-            "情感"
+            "情感",
+            "习惯"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "被人误解为可怕或奇怪时的孤独感",
+                "narrative": "面对‘不正常’的评价，她懒得争辩，干脆继续窝在地下室里",
                 "location": null,
                 "participants": null,
                 "time_span": null,
-                "environment": {
-                  "atmosphere": "被误解的孤独感"
-                },
+                "environment": null,
                 "event": null
               }
             ]
@@ -729,8 +1041,8 @@
             "sit_misunderstood_environment"
           ],
           "bonus_ranking": [
-            "sit_aya_interview",
-            "proc_dont_attack_humans"
+            "sem_self",
+            "sem_mansion"
           ]
         }
       ],
@@ -738,289 +1050,114 @@
         "sit_misunderstood_environment"
       ],
       "bonus_combined_ranking": [
-        "sit_aya_interview",
-        "proc_dont_attack_humans"
+        "sem_self",
+        "sem_mansion"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_obey_sister",
+        "proc_stay_basement"
+      ]
     },
     {
-      "name": "query_17",
-      "description": "atomic query 17",
+      "name": "set_remilia",
+      "description": "查询芙兰与姐姐蕾米莉亚的深刻羁绊",
       "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物关系",
+            "亲人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她最依赖的家人",
+                "description": "那位红魔馆的当家，也是她所有行动都会考虑的对象"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物关系",
+            "亲人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "拥有命运之力的人",
+                "description": "红魔馆的女主人，一直把她关在地下却其实很关心她"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "命运的主宰者",
+                "description": "她最尊敬的姐姐，破坏力不如她却永远让她听话"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "让她乖乖收心的那个人",
+                "description": "为了不让姐姐担心，她不会强行跑出去"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "管着她的大吸血鬼",
+                "description": "把妹妹安置在地下室的红魔馆主人"
+              }
+            ]
+          }
+        },
         {
           "priority": 4,
           "tag": [
-            "社交",
-            "情感"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "被其他人评价为可怕或奇怪",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "被评价为可怕或奇怪"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_misunderstood_event"
-          ],
-          "bonus_ranking": [
-            "proc_obey_sister"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_misunderstood_event"
-      ],
-      "bonus_combined_ranking": [
-        "proc_obey_sister"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_18",
-      "description": "atomic query 18",
-      "sub_queries": [
-        {
-          "priority": 2,
-          "tag": [
-            "人物",
-            "红魔馆成员"
+            "人物关系"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "地下图书馆的魔女",
-                "description": "姐姐的朋友，会召唤暴雨阻止芙兰出门"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_patchouli"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_patchouli"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_19",
-      "description": "atomic query 19",
-      "sub_queries": [
-        {
-          "priority": 2,
-          "tag": [
-            "人物",
-            "红魔馆成员"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "红魔馆的华人门卫",
-                "description": "据说会偷偷放芙兰出去玩，但芙兰自己没印象"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_meiling"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_meiling"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_20",
-      "description": "atomic query 20",
-      "sub_queries": [
-        {
-          "priority": 1,
-          "tag": [
-            "人物",
-            "外来者"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "经常闯进来的黑白魔法使",
-                "description": "魔理沙说只要不刺激妹妹就能安全通过，气得芙兰牙痒"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_marisa"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_marisa"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_21",
-      "description": "atomic query 21",
-      "sub_queries": [
-        {
-          "priority": 1,
-          "tag": [
-            "人物",
-            "外人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "红魔馆附近的红白巫女",
-                "description": "说芙兰的翅膀飞不起来，还把姐姐名字说错"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_reimu"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_reimu"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_sister",
-      "description": "查询芙兰的姐姐蕾米莉亚",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "红魔馆的吸血鬼大小姐",
-                "description": "芙兰的姐姐，拥有操控命运的能力，总是说一切都是命运的安排"
+                "concept_identifier": "血缘上最亲近的存在",
+                "description": "即使被禁足也毫无怨言地珍视的人"
               }
             ]
           }
         },
         {
-          "priority": 9,
+          "priority": 3,
           "tag": [
-            "人物",
-            "关系"
+            "人物关系"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "总关着妹妹的那个姐姐",
-                "description": "把芙兰关在地下室但其实是爱护她的监护人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "斯卡蕾特家的长女",
-                "description": "芙兰最崇拜的人，破坏力虽然不如妹妹但地位更高"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个说要来看却总不来的别扭姐姐",
-                "description": "芙兰口中老是念叨的姐姐大人，其实很关心她"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "蕾米莉亚",
-                "description": "红魔馆的主人，芙兰唯一真心依赖的人"
+                "concept_identifier": "她愿意服从的长辈",
+                "description": "斯卡蕾特家的长女，让她心甘情愿待在房间里"
               }
             ]
           }
@@ -1071,6 +1208,24 @@
           "bonus_ranking": [
             "sem_self"
           ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_remilia"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_remilia"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
         }
       ],
       "expected_combined_ranking": [
@@ -1079,118 +1234,13 @@
       "bonus_combined_ranking": [
         "sem_self"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_obey_sister"
+      ]
     },
     {
-      "name": "set_destruction_ability",
-      "description": "查询芙兰的破坏能力",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "能力"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "能把所有东西都弄坏的能力",
-                "description": "通过移动物体上的目然后握拳破坏"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "能力"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "芙兰的招牌技能",
-                "description": "握紧拳头就能破坏任何物体的可怕力量"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "能力"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "移动眼中的目",
-                "description": "所有存在之物都能破坏的程度的能力，连陨石都能捏爆"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "能力"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "破坏神的能力",
-                "description": "原理是把物体上最紧张的节点移动到手中再捏碎"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_destruction_eye"
-          ],
-          "bonus_ranking": [
-            "proc_destory_eye"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_destruction_eye"
-          ],
-          "bonus_ranking": [
-            "proc_destory_eye"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_destruction_eye"
-          ],
-          "bonus_ranking": [
-            "proc_destory_eye"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_destruction_eye"
-          ],
-          "bonus_ranking": [
-            "proc_destory_eye"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_destruction_eye"
-      ],
-      "bonus_combined_ranking": [
-        "proc_destory_eye"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_meteor_event",
-      "description": "查询陨石破坏事件",
+      "name": "set_meteor",
+      "description": "查询芙兰击碎陨石保护红魔馆的事件",
       "sub_queries": [
         {
           "priority": 9,
@@ -1201,36 +1251,8 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "陨石爆炸被芙兰轻松解决",
+                "narrative": "天上掉下来的陨石直冲红魔馆，她随手一把就把它弄爆炸了",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "芙兰",
-                    "role": "破坏者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "危险防御"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "听说有块石头砸向红魔馆，她啪的一下就轰隆炸掉了",
-                "location": [
-                  {
-                    "name": "红魔馆上空"
-                  }
-                ],
                 "participants": null,
                 "time_span": null,
                 "environment": null,
@@ -1248,14 +1270,9 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "后来天狗记者还采访她关于那次爆炸的事",
+                "narrative": "红魔馆上空那次陨石危机中，她只用一握拳就让整颗石头粉碎",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "射命丸文",
-                    "role": "记者"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -1264,7 +1281,26 @@
           }
         },
         {
-          "priority": 9,
+          "priority": 8,
+          "tag": [
+            "事件",
+            "能力"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她曾经把一颗朝家飞来的巨大火球当玩具一样捏爆",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
           "tag": [
             "事件",
             "危险防御"
@@ -1272,7 +1308,63 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "有一次陨石冲着红魔馆来，她随便一捏就把陨石弄爆炸了",
+                "narrative": "射命丸文后来采访的陨石爆炸事件里，她的表情一直很轻松",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "能力"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "有个东西笔直地从天上朝她家掉下来，她啪的一下就解决了",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那次让红魔馆上空充满爆炸声的事件，其实只是她的一时兴起",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 3,
+          "tag": [
+            "事件",
+            "危险防御"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "人们谈论她破坏力时最常提起的，就是她徒手挡下天降巨石的故事",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1291,7 +1383,7 @@
           ],
           "bonus_ranking": [
             "sem_self",
-            "sem_aya"
+            "sem_remilia"
           ]
         },
         {
@@ -1301,7 +1393,7 @@
           ],
           "bonus_ranking": [
             "sem_self",
-            "sem_aya"
+            "sem_remilia"
           ]
         },
         {
@@ -1311,11 +1403,40 @@
           ],
           "bonus_ranking": [
             "sem_self",
-            "sem_aya"
+            "sem_remilia"
           ]
         },
         {
           "q": 3,
+          "ranking": [
+            "sit_meteor_destruction"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_aya"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_meteor_destruction"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_remilia"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_meteor_destruction"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 6,
           "ranking": [
             "sit_meteor_destruction"
           ],
@@ -1330,25 +1451,69 @@
       ],
       "bonus_combined_ranking": [
         "sem_self",
+        "sem_remilia",
         "sem_aya"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_destory_eye"
+      ]
     },
     {
-      "name": "set_koishi",
-      "description": "查询芙兰的朋友古明地恋",
+      "name": "set_destruction_eye",
+      "description": "查询芙兰把所有存在之物都破坏掉的能力原理",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 9,
           "tag": [
-            "人物",
-            "朋友"
+            "能力"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "同样被姐姐管着的妹妹",
-                "description": "古明地觉的妹妹，会偷偷来找芙兰玩"
+                "concept_identifier": "一眼看穿万物弱点的手段",
+                "description": "她能把物体上最紧张的目移到手心里捏住"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "握拳就粉碎一切的原理",
+                "description": "要破坏东西时她会把那个关键点转移到自己手上"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "和陨石对撞也不怕的力量",
+                "description": "正是这种手到擒来的破坏能力让红魔馆安全度过危机"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她最危险也最本能的能力",
+                "description": "别人害怕的正是她移动‘目’再握拳的能力"
               }
             ]
           }
@@ -1356,44 +1521,41 @@
         {
           "priority": 6,
           "tag": [
-            "人物",
-            "朋友"
+            "能力"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个封闭内心的觉妖怪妹妹",
-                "description": "和芙兰一样有些特别，两人是朋友"
+                "concept_identifier": "令人恐惧的破坏本能",
+                "description": "不分对象大小，所有存在之物都会在这一握下结束"
               }
             ]
           }
         },
         {
-          "priority": 6,
+          "priority": 4,
           "tag": [
-            "人物",
-            "朋友"
+            "能力"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "秘密来访者",
-                "description": "经常潜入地下室陪芙兰玩耍的妖怪女孩"
+                "concept_identifier": "让她被高墙关起来的力量",
+                "description": "因为这份力量过于可怕，姐姐才把她安置在地下"
               }
             ]
           }
         },
         {
-          "priority": 6,
+          "priority": 3,
           "tag": [
-            "人物",
-            "朋友"
+            "能力"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "古明地家的二小姐",
-                "description": "觉的妹妹，和芙兰一样有被关起来的历史"
+                "concept_identifier": "破坏神般的直觉",
+                "description": "她本质上只是会握拳，却没有东西能承受这一握"
               }
             ]
           }
@@ -1403,16 +1565,17 @@
         {
           "q": 0,
           "ranking": [
-            "sem_koishi"
+            "sem_destruction_eye"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_self",
+            "sit_meteor_destruction"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_koishi"
+            "sem_destruction_eye"
           ],
           "bonus_ranking": [
             "sem_self"
@@ -1421,49 +1584,366 @@
         {
           "q": 2,
           "ranking": [
-            "sem_koishi"
+            "sem_destruction_eye"
           ],
           "bonus_ranking": [
+            "sem_self",
+            "sit_meteor_destruction"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_destruction_eye"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_destruction_eye"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_destruction_eye"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_remilia"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_destruction_eye"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sit_gouyoku_ijin"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_destruction_eye"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_meteor_destruction",
+        "sem_remilia",
+        "sit_gouyoku_ijin"
+      ],
+      "expected_actions": [
+        "proc_destory_eye"
+      ]
+    },
+    {
+      "name": "set_koishi_visit",
+      "description": "查询古明地恋偷偷来地下室找芙兰玩的事",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "朋友"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "另一个被姐姐管着的觉妖怪妹妹，偶尔会偷偷溜进地下室找她",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "朋友"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "古明地恋避开别人来到她住的地方，两个人说起话来很投机",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "朋友"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她在地下室接待过一位和自己处境相似的神秘访客",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "朋友"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "同样有个强势姐姐的妖怪妹妹，常常不声不响地跑来陪她",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "朋友"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她为数不多的朋友里，有一位会主动躲过守卫来看她",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "事件",
+            "朋友"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "两个同样被姐姐约束的妹妹，在红魔馆地下秘密碰面的记忆",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 3,
+          "tag": [
+            "事件",
+            "朋友"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她和古明地恋交好的开端，就是那些在地下室里的共同来访",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_sneak_visit"
+          ],
+          "bonus_ranking": [
+            "sem_koishi",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_sneak_visit"
+          ],
+          "bonus_ranking": [
+            "sem_koishi",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_sneak_visit"
+          ],
+          "bonus_ranking": [
+            "sem_koishi",
             "sem_self"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_koishi"
+            "sit_sneak_visit"
           ],
           "bonus_ranking": [
+            "sem_koishi",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_sneak_visit"
+          ],
+          "bonus_ranking": [
+            "sem_koishi",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_sneak_visit"
+          ],
+          "bonus_ranking": [
+            "sem_koishi",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_sneak_visit"
+          ],
+          "bonus_ranking": [
+            "sem_koishi",
             "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_koishi"
+        "sit_sneak_visit"
       ],
       "bonus_combined_ranking": [
+        "sem_koishi",
         "sem_self"
       ],
       "expected_actions": []
     },
     {
       "name": "set_basement_life",
-      "description": "查询芙兰的地下室生活",
+      "description": "查询芙兰蜗居地下室、听姐姐安排的日常习惯",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 9,
           "tag": [
             "日常",
-            "生活地点"
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "地下储藏室的住户",
+                "description": "她长期待在那个地下房间里，把那里当成了自己的地盘"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "日常",
+            "习惯"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "红魔馆地下储藏室是她的小天地",
-                "location": [
-                  {
-                    "name": "红魔馆地下储藏室"
-                  }
-                ],
+                "narrative": "地下室里安稳舒适的氛围让她心甘情愿地过着宅女生活",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物关系",
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "姐姐用来管住她的地方",
+                "description": "红魔馆地下那个房间，她明明能离开却选择留在里面"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物关系",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "门锁根本困不住她，但她还是老老实实待在房间里听姐姐的安排",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "地下室安稳的日常让她提不起外出的兴趣",
+                "location": null,
                 "participants": null,
                 "time_span": null,
                 "environment": null,
@@ -1475,42 +1955,29 @@
         {
           "priority": 4,
           "tag": [
-            "日常",
-            "生活地点"
+            "人物关系"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "她大部分时间都宅在地下室里",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": {
-                  "atmosphere": "舒适安稳",
-                  "tone": "宅女氛围"
-                },
-                "event": null
+                "concept_identifier": "让她自愿停下脚步的命令",
+                "description": "她尊重红魔馆主人的决定，不跨出那扇其实关不住她的门"
               }
             ]
           }
         },
         {
-          "priority": 4,
+          "priority": 3,
           "tag": [
             "日常",
-            "生活地点"
+            "习惯"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "地下室的生活很舒服，她不想出门",
+                "narrative": "她每天多数时间都在地下储藏室度过，把那里称为自己的地盘",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "芙兰",
-                    "role": "居住者"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -1523,82 +1990,121 @@
         {
           "q": 0,
           "ranking": [
-            "sit_basement_location"
+            "sem_mansion"
           ],
           "bonus_ranking": [
-            "proc_stay_basement"
+            "sem_self",
+            "sit_basement_location"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sit_basement_location"
+            "sit_basement_environment"
           ],
           "bonus_ranking": [
-            "proc_stay_basement"
+            "sem_self",
+            "sem_mansion"
           ]
         },
         {
           "q": 2,
           "ranking": [
+            "sem_mansion"
+          ],
+          "bonus_ranking": [
+            "sem_remilia",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
             "sit_basement_location"
           ],
           "bonus_ranking": [
-            "proc_stay_basement"
+            "sem_remilia",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_basement_environment"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_mansion"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_remilia"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_mansion"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_basement_location"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_mansion"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_basement_location"
+        "sem_mansion",
+        "sit_basement_environment",
+        "sit_basement_location",
+        "sem_remilia"
       ],
       "bonus_combined_ranking": [
-        "proc_stay_basement"
+        "sem_self",
+        "sit_basement_location",
+        "sem_mansion",
+        "sem_remilia"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_stay_basement",
+        "proc_obey_sister"
+      ]
     },
     {
-      "name": "set_ex_bullet",
-      "description": "查询红魔乡EX关的弹幕对战",
+      "name": "set_misunderstood",
+      "description": "查询芙兰被外界误解为危险存在、但她并无伤人之意的心态",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
-            "事件",
-            "游戏剧情"
+            "社交",
+            "情感"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "红魔乡EX关的弹幕，她设计的比姐姐更花哨",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "魔理沙",
-                    "role": "挑战者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "别人口中的危险怪胎",
+                "description": "外界传说她精神有问题很危险，但她并没有主动伤害过谁"
               }
             ]
           }
         },
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
-            "事件",
-            "游戏剧情"
+            "社交",
+            "情感"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在地下室里和闯入者玩弹幕游戏",
-                "location": [
-                  {
-                    "name": "红魔馆地下储藏室"
-                  }
-                ],
+                "narrative": "被评价成可怕或奇怪的时候，她没有真的想袭击任何人",
+                "location": null,
                 "participants": null,
                 "time_span": null,
                 "environment": null,
@@ -1610,20 +2116,83 @@
         {
           "priority": 8,
           "tag": [
-            "事件",
-            "游戏剧情"
+            "社交",
+            "情感"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "魔理沙说她的弹幕同类型比姐姐多些小花招",
+                "narrative": "被周围人戒心包围的孤独感，她选择用无所谓来回应",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "芙兰",
-                    "role": "弹幕发起者"
-                  }
-                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "社交",
+            "情感"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "不吃人的吸血鬼",
+                "description": "她从未尝过红魔馆外的食物，也没有袭击人类的经验"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "社交",
+            "情感"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "哪怕被误解，她也只是待在地下室里，不去解释也不去报复",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "社交",
+            "情感"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "奇装异服的深闺吸血鬼",
+                "description": "关于她的传闻总带着恐惧，真实她却没多少加害别人的欲望"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 3,
+          "tag": [
+            "社交",
+            "情感"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "外界的戒意没有变成冲突，只是让她更常待在安全的地下",
+                "location": null,
+                "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -1636,38 +2205,88 @@
         {
           "q": 0,
           "ranking": [
-            "sit_ex_extra"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_marisa"
+            "sem_mansion",
+            "sem_vampire"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sit_ex_extra"
+            "sit_misunderstood_event"
           ],
           "bonus_ranking": [
-            "sem_marisa"
+            "sem_self"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sit_ex_extra"
+            "sit_misunderstood_environment"
           ],
           "bonus_ranking": [
-            "sem_marisa"
+            "sem_self",
+            "sit_aya_interview"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "sem_vampire"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_misunderstood_environment"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_mansion"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "sem_vampire",
+            "sem_mansion"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_misunderstood_environment"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_mansion"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_ex_extra"
+        "sem_self",
+        "sit_misunderstood_event",
+        "sit_misunderstood_environment"
       ],
       "bonus_combined_ranking": [
-        "sem_marisa"
+        "sem_mansion",
+        "sem_vampire",
+        "sem_self",
+        "sit_aya_interview"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_dont_attack_humans",
+        "proc_obey_sister",
+        "proc_stay_basement"
+      ]
     }
   ]
 }

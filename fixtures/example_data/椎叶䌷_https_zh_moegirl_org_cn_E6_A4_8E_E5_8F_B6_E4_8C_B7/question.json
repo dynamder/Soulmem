@@ -17,15 +17,16 @@
       "description": "atomic query 0",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 8,
           "tag": [
-            "自身"
+            "人物",
+            "身份"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "温和但容易吃醋的音痴女生",
-                "description": "描述她的性格特点"
+                "concept_identifier": "高二转来的插班生",
+                "description": "姬松学园高二第二学期转来的女生，也是超自研的一员"
               }
             ]
           }
@@ -38,7 +39,7 @@
             "sem_self"
           ],
           "bonus_ranking": [
-            "sem_childhood_weakness"
+            "sem_supernatural_club"
           ]
         }
       ],
@@ -46,7 +47,7 @@
         "sem_self"
       ],
       "bonus_combined_ranking": [
-        "sem_childhood_weakness"
+        "sem_supernatural_club"
       ],
       "expected_actions": []
     },
@@ -55,15 +56,16 @@
       "description": "atomic query 1",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 9,
           "tag": [
-            "人物"
+            "人物",
+            "能力"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "能感知别人情绪的人",
-                "description": "他的能力是感知情绪"
+                "concept_identifier": "能读懂别人情绪的男生",
+                "description": "转学后认识的最重要的人，拥有感知他人情绪的能力，温柔又体贴"
               }
             ]
           }
@@ -75,13 +77,17 @@
           "ranking": [
             "sem_hojo_tohshi"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_self"
+          ]
         }
       ],
       "expected_combined_ranking": [
         "sem_hojo_tohshi"
       ],
-      "bonus_combined_ranking": [],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
       "expected_actions": []
     },
     {
@@ -89,56 +95,16 @@
       "description": "atomic query 2",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
             "人物",
-            "关系"
+            "魔灵"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她最重要的人",
-                "description": "她与柊史君是恋人关系"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_hojo_tohshi",
-            "sem_self"
-          ],
-          "bonus_ranking": [
-            "sit_hojo_turned_doll"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_hojo_tohshi",
-        "sem_self"
-      ],
-      "bonus_combined_ranking": [
-        "sit_hojo_turned_doll"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_3",
-      "description": "atomic query 3",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "说话带喏酱的魔灵",
-                "description": "赤城喜欢鸡肉丸子"
+                "concept_identifier": "带着奇怪口癖的契约魔灵",
+                "description": "说话总爱带'喏酱'，关键时刻很可靠的契约对象，喜欢吃鸡肉丸子"
               }
             ]
           }
@@ -164,19 +130,24 @@
       "expected_actions": []
     },
     {
-      "name": "query_4",
-      "description": "atomic query 4",
+      "name": "query_3",
+      "description": "atomic query 3",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 9,
           "tag": [
-            "概念"
+            "事件",
+            "关系"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "心之碎片",
-                "description": "魔女需要收集心之碎片"
+                "narrative": "平安夜时一只乌鸦和年迈的老婆婆重逢，完成了五十年前的约定",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -186,18 +157,65 @@
         {
           "q": 0,
           "ranking": [
-            "sem_heart_fragment"
+            "sit_christmas_eve_grandmother"
           ],
           "bonus_ranking": [
-            "sem_witch"
+            "sem_grandmother",
+            "sem_akagi"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_heart_fragment"
+        "sit_christmas_eve_grandmother"
       ],
       "bonus_combined_ranking": [
-        "sem_witch"
+        "sem_grandmother",
+        "sem_akagi"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "感情"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "他为了让她每天都能有一小段穿女装的时间，不惜把自己变成玩偶",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_hojo_turned_doll"
+          ],
+          "bonus_ranking": [
+            "sem_hojo_tohshi",
+            "sem_female_clothes"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_hojo_turned_doll"
+      ],
+      "bonus_combined_ranking": [
+        "sem_hojo_tohshi",
+        "sem_female_clothes"
       ],
       "expected_actions": []
     },
@@ -208,376 +226,13 @@
         {
           "priority": 9,
           "tag": [
-            "人物",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "跨越50年的约定",
-                "description": "50年前外婆在医院与乌鸦约定"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_grandmother",
-            "sem_akagi"
-          ],
-          "bonus_ranking": [
-            "sit_christmas_eve_grandmother"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_grandmother",
-        "sem_akagi"
-      ],
-      "bonus_combined_ranking": [
-        "sit_christmas_eve_grandmother"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_6",
-      "description": "atomic query 6",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "概念",
-            "经历"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "童年体弱",
-                "description": "因为家族遗传体弱而被迫穿男装"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_childhood_weakness"
-          ],
-          "bonus_ranking": [
-            "sem_male_clothes",
-            "sem_female_clothes"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_childhood_weakness"
-      ],
-      "bonus_combined_ranking": [
-        "sem_male_clothes",
-        "sem_female_clothes"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_7",
-      "description": "atomic query 7",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "社团"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "姬松学园超自然研究部",
-                "description": "超自研的全称"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_supernatural_club"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_supernatural_club"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_8",
-      "description": "atomic query 8",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "物品",
-            "武器"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "䌷大锤",
-                "description": "她生气时使用的大锤，外号䌷大锤"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_hammer",
-            "sem_self"
-          ],
-          "bonus_ranking": [
-            "proc_use_hammer_when_angry"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_hammer",
-        "sem_self"
-      ],
-      "bonus_combined_ranking": [
-        "proc_use_hammer_when_angry"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_9",
-      "description": "atomic query 9",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "人物",
-            "长辈"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "柊史的父亲",
-                "description": "保科太一经常和她父亲一起喝酒"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_hoshiko_taichi"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_hoshiko_taichi"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_10",
-      "description": "atomic query 10",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "概念"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "魔灵",
-                "description": "与魔女缔结契约的超自然存在"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_spirit"
-          ],
-          "bonus_ranking": [
-            "sem_akagi"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_spirit"
-      ],
-      "bonus_combined_ranking": [
-        "sem_akagi"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_11",
-      "description": "atomic query 11",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "经历",
-            "学校"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "有个女生在高中时转学到了一所新学校",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_transfer_school"
-          ],
-          "bonus_ranking": [
-            "sem_supernatural_club"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_transfer_school"
-      ],
-      "bonus_combined_ranking": [
-        "sem_supernatural_club"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_12",
-      "description": "atomic query 12",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
             "事件",
             "超自然"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "有一次她看中了一条裙子，冲动之下就和那个说话带喏酱的魔灵做了交易",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_contract_with_akagi"
-          ],
-          "bonus_ranking": [
-            "sem_akagi",
-            "sem_female_clothes"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_contract_with_akagi"
-      ],
-      "bonus_combined_ranking": [
-        "sem_akagi",
-        "sem_female_clothes"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_13",
-      "description": "atomic query 13",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "感情"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "那个温柔的人为了让她能穿女装，不惜把自己变成了玩偶",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_hojo_turned_doll"
-          ],
-          "bonus_ranking": [
-            "sem_hojo_tohshi",
-            "sem_female_clothes"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_hojo_turned_doll"
-      ],
-      "bonus_combined_ranking": [
-        "sem_hojo_tohshi",
-        "sem_female_clothes"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "超自然"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在危机时刻，魔灵舍弃了所有魔力变回乌鸦，放弃了变成人的机会",
+                "narrative": "危急关头，契约魔灵舍弃全部魔力变回乌鸦，救下了她和柊史",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -596,6 +251,7 @@
           ],
           "bonus_ranking": [
             "sem_akagi",
+            "sem_hojo_tohshi",
             "sem_self"
           ]
         }
@@ -605,24 +261,25 @@
       ],
       "bonus_combined_ranking": [
         "sem_akagi",
+        "sem_hojo_tohshi",
         "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_15",
-      "description": "atomic query 15",
+      "name": "query_6",
+      "description": "atomic query 6",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 8,
           "tag": [
             "事件",
-            "家庭"
+            "战斗"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "一只乌鸦在平安夜见到了变成老婆婆的旧识，完成了50年前的约定",
+                "narrative": "最后用大锤击碎那只小狗魔灵夺走的全部心之碎片的战斗",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -637,20 +294,387 @@
         {
           "q": 0,
           "ranking": [
-            "sit_christmas_eve_grandmother"
+            "sit_battle_with_puppy_dog"
           ],
           "bonus_ranking": [
-            "sem_grandmother",
-            "sem_akagi"
+            "sem_hammer",
+            "sem_heart_fragment"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_christmas_eve_grandmother"
+        "sit_battle_with_puppy_dog"
       ],
       "bonus_combined_ranking": [
-        "sem_grandmother",
-        "sem_akagi"
+        "sem_hammer",
+        "sem_heart_fragment"
+      ],
+      "expected_actions": [
+        "proc_use_hammer_when_angry"
+      ]
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "服装",
+            "代价"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "想穿却不能自由穿的衣服",
+                "description": "最向往穿漂亮裙子，但穿多了会触发呕吐反应"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_female_clothes"
+          ],
+          "bonus_ranking": [
+            "sem_witch",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_female_clothes"
+      ],
+      "bonus_combined_ranking": [
+        "sem_witch",
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_vomit_when_wearing_female_clothes"
+      ]
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "服装",
+            "经历"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "从小被要求穿男装的原因",
+                "description": "家族遗传体弱，所以小时候一直被要求穿男装，也因此格外向往女装"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_male_clothes"
+          ],
+          "bonus_ranking": [
+            "sem_childhood_weakness",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_male_clothes"
+      ],
+      "bonus_combined_ranking": [
+        "sem_childhood_weakness",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "物品",
+            "外号"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被人拿来取外号的大锤",
+                "description": "生气时会抡起的大锤，也是'䌷大锤'这个外号的由来"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_hammer"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_hammer"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_use_hammer_when_angry"
+      ]
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "地点",
+            "社团"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "表面研究超自然的社团",
+                "description": "姬松学园的超自然研究部，暗地里其实是魔女们活动的地方"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_supernatural_club"
+          ],
+          "bonus_ranking": [
+            "sem_ayachi_nene",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_supernatural_club"
+      ],
+      "bonus_combined_ranking": [
+        "sem_ayachi_nene",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "魔女"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "有特殊体质的魔女同学",
+                "description": "和她同样是魔女，是超自研核心成员，会因体质原因不受控制地兴奋"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_ayachi_nene"
+          ],
+          "bonus_ranking": [
+            "sem_witch",
+            "sem_supernatural_club"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_ayachi_nene"
+      ],
+      "bonus_combined_ranking": [
+        "sem_witch",
+        "sem_supernatural_club"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "学妹"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "总说奇怪口头禅的元气学妹",
+                "description": "见面总爱说'Ciallo'，待人真诚的学妹"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_inaba_meguru"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_inaba_meguru"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "学姐"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "成熟稳重的学姐前辈",
+                "description": "超自研里最年长的成员，关键时刻给后辈们指导和建议"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_togakure_toko"
+          ],
+          "bonus_ranking": [
+            "sem_supernatural_club"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_togakure_toko"
+      ],
+      "bonus_combined_ranking": [
+        "sem_supernatural_club"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "和恋人一起组乐队的朋友",
+                "description": "像假小子一样性格豪爽，和柊史他们一起组乐队的同学"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_kariya_kazusa"
+          ],
+          "bonus_ranking": [
+            "sem_hojo_tohshi",
+            "sem_kaido_hideaki"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kariya_kazusa"
+      ],
+      "bonus_combined_ranking": [
+        "sem_hojo_tohshi",
+        "sem_kaido_hideaki"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "长辈"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "恋人那位会做菜的父亲",
+                "description": "她和柊史父亲两家人相处融洽，柊史的料理手艺来自他"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_hoshiko_taichi"
+          ],
+          "bonus_ranking": [
+            "sem_hojo_tohshi"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_hoshiko_taichi"
+      ],
+      "bonus_combined_ranking": [
+        "sem_hojo_tohshi"
       ],
       "expected_actions": []
     },
@@ -659,15 +683,183 @@
       "description": "atomic query 16",
       "sub_queries": [
         {
+          "priority": 7,
+          "tag": [
+            "概念",
+            "超自然"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "填补心灵空洞的能量碎片",
+                "description": "魔女收集来填补心灵空洞的特殊碎片，柊史的特殊体质可以吸收它们"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_heart_fragment"
+          ],
+          "bonus_ranking": [
+            "sem_witch",
+            "sem_hojo_tohshi"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_heart_fragment"
+      ],
+      "bonus_combined_ranking": [
+        "sem_witch",
+        "sem_hojo_tohshi"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "概念",
+            "超自然"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "和魔灵签订契约的存在",
+                "description": "通过与魔灵缔结契约获得愿望之力、同时必须付出代价的存在"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_witch"
+          ],
+          "bonus_ranking": [
+            "sem_spirit",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_witch"
+      ],
+      "bonus_combined_ranking": [
+        "sem_spirit",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
           "priority": 6,
           "tag": [
-            "事件",
-            "社团"
+            "概念",
+            "超自然"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "魔女背后的超自然搭档",
+                "description": "与魔女契约、帮忙收集心之碎片的超自然存在"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_spirit"
+          ],
+          "bonus_ranking": [
+            "sem_akagi",
+            "sem_witch"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_spirit"
+      ],
+      "bonus_combined_ranking": [
+        "sem_akagi",
+        "sem_witch"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "经历",
+            "学校"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "社团在活动室办派对，有人想让她代替主唱，但她因为音痴拒绝了",
+                "narrative": "高二第二学期作为转学生进入姬松学园，开始新生活",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_transfer_school"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_supernatural_club"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_transfer_school"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_supernatural_club"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "超自研的万圣节派对上，她因为五音不全拒绝了代替和奏唱歌的提议",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -700,64 +892,19 @@
       "expected_actions": []
     },
     {
-      "name": "query_17",
-      "description": "atomic query 17",
+      "name": "query_21",
+      "description": "atomic query 21",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 7,
           "tag": [
             "事件",
-            "战斗"
+            "情绪"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她用锤子击碎了一只即将变成魔灵的小狗掠夺的所有碎片",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_battle_with_puppy_dog"
-          ],
-          "bonus_ranking": [
-            "sem_hammer",
-            "sem_heart_fragment"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_battle_with_puppy_dog"
-      ],
-      "bonus_combined_ranking": [
-        "sem_hammer",
-        "sem_heart_fragment"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_18",
-      "description": "atomic query 18",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "事件",
-            "感情"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她看到柊史君和学姐一起吃芭菲，心里酸溜溜的",
+                "narrative": "看到柊史和憧子学姐一起吃芭菲，她心里酸溜溜地吃醋",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -787,26 +934,114 @@
         "sem_togakure_toko",
         "sem_hojo_tohshi"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_get_jealous"
+      ]
     },
     {
-      "name": "query_19",
-      "description": "atomic query 19",
+      "name": "query_22",
+      "description": "atomic query 22",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 6,
           "tag": [
-            "地点"
+            "习惯",
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "遇到冲突会先躲开的性格",
+                "description": "从小体弱形成的习惯，让她碰上争执时第一反应是避开而不是硬碰硬"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_childhood_weakness"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_childhood_weakness"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_avoid_conflict"
+      ]
+    },
+    {
+      "name": "query_23",
+      "description": "atomic query 23",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "超自然",
+            "代价"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "社团活动室是他们聚会讨论的场所",
-                "location": [
-                  {
-                    "name": "超自然研究部活动室"
-                  }
-                ],
+                "narrative": "因为一条售罄的裙子冲动地和赤城缔结契约成为魔女，结果反而不能随心所欲穿女装",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_contract_with_akagi"
+          ],
+          "bonus_ranking": [
+            "sem_akagi",
+            "sem_female_clothes"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_contract_with_akagi"
+      ],
+      "bonus_combined_ranking": [
+        "sem_akagi",
+        "sem_female_clothes"
+      ],
+      "expected_actions": [
+        "proc_vomit_when_wearing_female_clothes"
+      ]
+    },
+    {
+      "name": "query_24",
+      "description": "atomic query 24",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "地点",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "超自研的部员们经常聚在一起的活动室",
+                "location": null,
                 "participants": null,
                 "time_span": null,
                 "environment": null,
@@ -823,7 +1058,8 @@
             "sit_abs_location_clubroom"
           ],
           "bonus_ranking": [
-            "sem_supernatural_club"
+            "sem_supernatural_club",
+            "sem_self"
           ]
         }
       ],
@@ -831,100 +1067,14 @@
         "sit_abs_location_clubroom"
       ],
       "bonus_combined_ranking": [
-        "sem_supernatural_club"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_20",
-      "description": "atomic query 20",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "事件",
-            "超自然"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "魔女们平时的主要工作就是收集心之碎片来填充空洞",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_abs_event_collecting_fragments"
-          ],
-          "bonus_ranking": [
-            "sem_heart_fragment",
-            "sem_witch"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_abs_event_collecting_fragments"
-      ],
-      "bonus_combined_ranking": [
-        "sem_heart_fragment",
-        "sem_witch"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_21",
-      "description": "atomic query 21",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "氛围"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "部室内总是气氛融洽，大家都互相照顾",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_abs_environment_peaceful"
-          ],
-          "bonus_ranking": [
-            "sem_supernatural_club"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_abs_environment_peaceful"
-      ],
-      "bonus_combined_ranking": [
-        "sem_supernatural_club"
+        "sem_supernatural_club",
+        "sem_self"
       ],
       "expected_actions": []
     },
     {
       "name": "set_hojo_tohshi",
-      "description": "查询关于保科柊史的信息",
+      "description": "查询她最重要的恋人保科柊史",
       "sub_queries": [
         {
           "priority": 9,
@@ -934,8 +1084,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个能感知情绪的人",
-                "description": "她转学后认识的第一个朋友"
+                "concept_identifier": "转学后认识的那个男生",
+                "description": "她在新学校最先熟悉起来、后来变得最重要的人"
               }
             ]
           }
@@ -948,22 +1098,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "保科柊史",
-                "description": "她想要共度一生的人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "玩偶男",
-                "description": "那个为了让她穿女装而把自己变成玩偶的笨蛋"
+                "concept_identifier": "能看穿别人心情的少年",
+                "description": "拥有感知情绪的能力，比谁都懂得体谅她的人"
               }
             ]
           }
@@ -976,51 +1112,64 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "死鱼眼",
-                "description": "自称有死鱼眼但其实很会照顾人的男生"
+                "concept_identifier": "为了她把自己变成玩偶的恋人",
+                "description": "为了让她每天能穿一会儿女装，和魔灵做违规交易变成玩偶的人"
               }
             ]
           }
         },
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
             "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "情绪感知者",
-                "description": "能察觉到别人心情的温柔男生"
+                "concept_identifier": "自称阴郁死鱼眼的人",
+                "description": "明明说自己眼神阴郁，在她眼里却温柔得不得了的人"
               }
             ]
           }
         },
         {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的男朋友",
-                "description": "和她有恋爱关系的男生"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
+          "priority": 9,
           "tag": [
             "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "赤城的另一个契约者",
-                "description": "曾与赤城违规契约把自己变玩偶的人"
+                "concept_identifier": "被她认定要共度一生的人",
+                "description": "她说想要一直走下去、组成家庭的那个人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个会照顾人的同班男生",
+                "description": "转学后一直陪在她身边、敏感又体贴的存在"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "愿意为她付出一切的人",
+                "description": "为了她有片刻幸福就肯牺牲自己的傻家伙"
               }
             ]
           }
@@ -1032,7 +1181,9 @@
           "ranking": [
             "sem_hojo_tohshi"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_self"
+          ]
         },
         {
           "q": 1,
@@ -1048,7 +1199,9 @@
           "ranking": [
             "sem_hojo_tohshi"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_self"
+          ]
         },
         {
           "q": 3,
@@ -1056,7 +1209,7 @@
             "sem_hojo_tohshi"
           ],
           "bonus_ranking": [
-            "sem_female_clothes"
+            "sem_self"
           ]
         },
         {
@@ -1064,7 +1217,9 @@
           "ranking": [
             "sem_hojo_tohshi"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_self"
+          ]
         },
         {
           "q": 5,
@@ -1080,483 +1235,33 @@
           "ranking": [
             "sem_hojo_tohshi"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_self"
+          ]
         }
       ],
       "expected_combined_ranking": [
         "sem_hojo_tohshi"
       ],
       "bonus_combined_ranking": [
-        "sem_self",
-        "sem_female_clothes"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_akagi",
-      "description": "查询关于魔灵赤城的信息",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "说喏酱的魔灵",
-                "description": "她的契约魔灵，喜欢鸡肉丸子"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "红色乌鸦",
-                "description": "原本是乌鸦，后来变成魔灵的存在"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "䌷的契约魔灵",
-                "description": "和她缔结契约的那个任性魔灵"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "外婆的老相识",
-                "description": "50年前和外婆在医院有约定的乌鸦"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "魔灵赤城",
-                "description": "口癖是喏酱的魔灵"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个任性的搭档",
-                "description": "看似自私但关键时刻很可靠的魔灵"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "牺牲者",
-                "description": "为了救她舍弃魔力变回乌鸦的魔灵"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_akagi"
-          ],
-          "bonus_ranking": [
-            "sem_spirit"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_akagi"
-          ],
-          "bonus_ranking": [
-            "sem_grandmother"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_akagi"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_akagi"
-          ],
-          "bonus_ranking": [
-            "sem_grandmother"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_akagi"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_akagi"
-          ],
-          "bonus_ranking": [
-            "sem_spirit"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_akagi"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_akagi"
-      ],
-      "bonus_combined_ranking": [
-        "sem_spirit",
-        "sem_grandmother"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_contract",
-      "description": "查询她与赤城缔结契约的事件",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "有个女生因为一条漂亮的裙子，冲动地和一只会说人话的乌鸦做了交易成为魔女",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她看中一件售罄的裙子，结果和一只魔灵缔结契约成为了魔女",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她为了能穿上心爱的裙子，和那个说话带喏酱的家伙做了个交易",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "一次逛街时她看到一条裙子，冲动之下就和一个魔灵签订了契约",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她成为魔女的过程，起因是一条让她心动的裙子",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "超自然"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "那个转学生女孩为了穿女装，与一只魔灵缔结了契约，结果反而不能随便穿女装了",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她曾为了一个愿望与赤城成为契约者，但代价让她哭笑不得",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_contract_with_akagi"
-          ],
-          "bonus_ranking": [
-            "sem_akagi",
-            "sem_female_clothes"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_contract_with_akagi"
-          ],
-          "bonus_ranking": [
-            "sem_akagi"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_contract_with_akagi"
-          ],
-          "bonus_ranking": [
-            "sem_female_clothes"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_contract_with_akagi"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_contract_with_akagi"
-          ],
-          "bonus_ranking": [
-            "sem_witch"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_contract_with_akagi"
-          ],
-          "bonus_ranking": [
-            "sem_akagi",
-            "sem_female_clothes"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_contract_with_akagi"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_contract_with_akagi"
-      ],
-      "bonus_combined_ranking": [
-        "sem_akagi",
-        "sem_female_clothes",
-        "sem_witch",
         "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_christmas",
-      "description": "查询平安夜外婆与赤城重逢的事件",
+      "name": "set_akagi_grandmother_contract",
+      "description": "查询赤城与外婆跨越五十年的约定和重逢",
       "sub_queries": [
         {
           "priority": 9,
           "tag": [
             "事件",
-            "家庭"
+            "关系"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "一只乌鸦在平安夜见到了年迈的老婆婆，完成了50年前的约定",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在车站前，赤城以乌鸦形态见到了已经成为老婆婆的外婆",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "跨越50年的约定在平安夜实现了，外婆和乌鸦重逢",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "柊史告诉她，当年医院里和赤城约定的小孩子其实就是外婆",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "圣诞节前，她看到赤城和外婆重逢的场景，非常感动",
+                "narrative": "平安夜，一只乌鸦和已经是老婆婆的人在车站前重逢",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1570,12 +1275,12 @@
           "priority": 9,
           "tag": [
             "事件",
-            "约定"
+            "关系"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "一只乌鸦飞到老婆婆面前，其实50年前他们就有约定，现在终于见面了",
+                "narrative": "五十年前医院里相识的乌鸦和小孩，后来以一场平安夜重逢了却约定",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1586,14 +1291,91 @@
           }
         },
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
-            "事件"
+            "事件",
+            "关系"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "外婆和赤城在平安夜重逢，这是她最感动的回忆之一",
+                "narrative": "赤城和外婆之间那段跨越半个世纪的缘分",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "外婆年轻时与一只懂人话的乌鸦之间的约定，最后在平安夜实现",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "变成乌鸦的赤城终于见到年迈的椎叶外婆的瞬间",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "因为搬家而失约的当年之事，在哪个时间点得到了弥补",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她和外婆之间那个与赤城有关的圣诞节约定究竟如何落幕",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1621,7 +1403,8 @@
             "sit_christmas_eve_grandmother"
           ],
           "bonus_ranking": [
-            "sem_grandmother"
+            "sem_grandmother",
+            "sem_akagi"
           ]
         },
         {
@@ -1630,6 +1413,7 @@
             "sit_christmas_eve_grandmother"
           ],
           "bonus_ranking": [
+            "sem_grandmother",
             "sem_akagi"
           ]
         },
@@ -1639,7 +1423,8 @@
             "sit_christmas_eve_grandmother"
           ],
           "bonus_ranking": [
-            "sem_hojo_tohshi"
+            "sem_grandmother",
+            "sem_akagi"
           ]
         },
         {
@@ -1647,7 +1432,10 @@
           "ranking": [
             "sit_christmas_eve_grandmother"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_grandmother",
+            "sem_akagi"
+          ]
         },
         {
           "q": 5,
@@ -1665,7 +1453,8 @@
             "sit_christmas_eve_grandmother"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_grandmother",
+            "sem_akagi"
           ]
         }
       ],
@@ -1674,243 +1463,25 @@
       ],
       "bonus_combined_ranking": [
         "sem_grandmother",
-        "sem_akagi",
-        "sem_hojo_tohshi",
-        "sem_self"
+        "sem_akagi"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_halloween",
-      "description": "查询超自研万圣节派对的事件",
+      "name": "set_female_clothes_cost",
+      "description": "查询她想穿女装却因魔女代价呕吐的矛盾",
       "sub_queries": [
         {
           "priority": 7,
           "tag": [
-            "社团",
-            "事件"
+            "服装",
+            "代价"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "万圣节派对",
-                "description": "超自研举办的万圣节活动"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "部室开万圣节派对，柊史想让她代替和奏主唱，她因为音痴拒绝了",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "人物",
-            "事件"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "超自研的音痴成员",
-                "description": "在万圣节派对上因为音痴拒绝唱歌的她"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "有一次万圣节，社团举办了派对，她还记得自己被要求唱歌的尴尬",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "社团"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "超自然研究部的派对活动",
-                "description": "万圣节时大家在活动室聚会"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "社团活动时，柊史提议让她唱歌，但大家都知道她是音痴",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "万圣节卡拉OK",
-                "description": "超自研的万圣节派对上有人想让她当主唱"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [],
-          "bonus_ranking": [
-            "sem_supernatural_club",
-            "sit_halloween_party"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [],
-          "bonus_ranking": [
-            "sit_halloween_party",
-            "sem_kariya_kazusa"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [],
-          "bonus_ranking": [
-            "sem_kariya_kazusa",
-            "sem_supernatural_club"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [],
-          "bonus_ranking": [
-            "sit_halloween_party",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [],
-          "bonus_ranking": [
-            "sem_supernatural_club"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [],
-          "bonus_ranking": [
-            "sit_halloween_party",
-            "sem_hojo_tohshi"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [],
-          "bonus_ranking": [
-            "sem_supernatural_club",
-            "sem_kariya_kazusa"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [],
-      "bonus_combined_ranking": [
-        "sem_supernatural_club",
-        "sit_halloween_party",
-        "sem_kariya_kazusa",
-        "sem_self",
-        "sem_hojo_tohshi"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_jealousy",
-      "description": "查询她自己爱吃醋的习惯",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "情绪",
-            "习惯"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "爱吃醋的她",
-                "description": "看到喜欢的人和别人亲近就会心里酸溜溜"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她看到柊史和憧子学姐一起吃芭菲，吃醋了好久",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "情绪"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "嫉妒的表现",
-                "description": "她容易吃醋，特别是关于柊史君的事情"
+                "concept_identifier": "最向往却会让她难受的衣服",
+                "description": "漂亮裙子是她最想要的东西，但超过一定限度就会引发呕吐"
               }
             ]
           }
@@ -1919,12 +1490,12 @@
           "priority": 7,
           "tag": [
             "事件",
-            "感情"
+            "代价"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "有一次柊史和学姐一起吃甜品，她因此耿耿于怀",
+                "narrative": "为了买下那条售罄的裙子而和赤城缔结契约，结果换来一个不能随意穿女装的代价",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1935,28 +1506,30 @@
           }
         },
         {
-          "priority": 5,
+          "priority": 7,
           "tag": [
-            "情绪"
+            "概念",
+            "代价"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "吃醋习惯",
-                "description": "当喜欢的人和其他女生亲近时她会感到嫉妒"
+                "concept_identifier": "魔女付出的代价",
+                "description": "成为魔女的代价和女装有关，穿上稍多就会身体不适"
               }
             ]
           }
         },
         {
-          "priority": 6,
+          "priority": 7,
           "tag": [
-            "事件"
+            "事件",
+            "代价"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她曾经因为柊史和憧子学姐一起吃东西而吃醋",
+                "narrative": "她一时冲动签下契约成为魔女，没想到反而失去了自由穿裙子的权利",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1967,15 +1540,50 @@
           }
         },
         {
-          "priority": 8,
+          "priority": 7,
           "tag": [
-            "情绪"
+            "服装",
+            "代价"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "吃醋的女生",
-                "description": "她对喜欢的人和其他女生亲密会有强烈反应"
+                "concept_identifier": "让人反胃的可爱衣服",
+                "description": "可爱的内衣和裙子都是她向往的，可是穿戴超过一定点数会让她呕吐"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "代价"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "从那场契约之后，她每次想穿可爱衣服都被身体反应拦着",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "服装",
+            "代价"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "裙子与副作用的矛盾",
+                "description": "她对女装的狂热渴望和成为魔女后不能自由穿着的矛盾"
               }
             ]
           }
@@ -1984,71 +1592,494 @@
       "expected_per_query": [
         {
           "q": 0,
-          "ranking": [],
+          "ranking": [
+            "sem_female_clothes"
+          ],
           "bonus_ranking": [
-            "proc_get_jealous",
-            "sem_hojo_tohshi"
+            "sem_witch",
+            "sem_self"
           ]
         },
         {
           "q": 1,
-          "ranking": [],
+          "ranking": [
+            "sit_contract_with_akagi"
+          ],
           "bonus_ranking": [
-            "sit_eating_parfait_with_toko",
-            "sem_togakure_toko"
+            "sem_female_clothes",
+            "sem_akagi"
           ]
         },
         {
           "q": 2,
-          "ranking": [],
+          "ranking": [
+            "sem_witch"
+          ],
           "bonus_ranking": [
-            "proc_get_jealous",
+            "sem_female_clothes",
             "sem_self"
           ]
         },
         {
           "q": 3,
-          "ranking": [],
+          "ranking": [
+            "sit_contract_with_akagi"
+          ],
           "bonus_ranking": [
-            "sit_eating_parfait_with_toko",
-            "sem_hojo_tohshi"
+            "sem_witch",
+            "sem_female_clothes"
           ]
         },
         {
           "q": 4,
-          "ranking": [],
+          "ranking": [
+            "sem_female_clothes"
+          ],
           "bonus_ranking": [
-            "proc_get_jealous"
+            "sem_witch"
           ]
         },
         {
           "q": 5,
-          "ranking": [],
+          "ranking": [
+            "sit_contract_with_akagi"
+          ],
           "bonus_ranking": [
-            "sit_eating_parfait_with_toko",
-            "sem_togakure_toko",
-            "sem_hojo_tohshi"
+            "sem_female_clothes",
+            "sem_witch"
           ]
         },
         {
           "q": 6,
-          "ranking": [],
+          "ranking": [
+            "sem_female_clothes"
+          ],
           "bonus_ranking": [
-            "proc_get_jealous",
+            "sem_self",
+            "sem_witch"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_female_clothes",
+        "sit_contract_with_akagi",
+        "sem_witch"
+      ],
+      "bonus_combined_ranking": [
+        "sem_witch",
+        "sem_self",
+        "sem_female_clothes",
+        "sem_akagi"
+      ],
+      "expected_actions": [
+        "proc_vomit_when_wearing_female_clothes"
+      ]
+    },
+    {
+      "name": "set_jealous_tendency",
+      "description": "查询她容易吃醋、看到恋人和别人亲近会酸溜溜的习惯",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "情绪"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她看到喜欢的人和别的女生亲近时的反应",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "情绪"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "柊史和憧子学姐一起吃芭菲那件事，她心里留下的感觉",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "情绪"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她吃醋时那种心里酸溜溜的状态",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "情绪"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她因为喜欢的人和别人走得近而闹别扭的经历",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "情绪"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "恋爱中的她最容易因为什么而嫉妒",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "情绪"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "让她耿耿于怀很久的芭菲事件",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "情绪"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她看到恋人和其他女性朋友关系亲密时的心情",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_eating_parfait_with_toko"
+          ],
+          "bonus_ranking": [
+            "sem_hojo_tohshi",
+            "sem_togakure_toko"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_eating_parfait_with_toko"
+          ],
+          "bonus_ranking": [
+            "sem_hojo_tohshi",
+            "sem_togakure_toko"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_eating_parfait_with_toko"
+          ],
+          "bonus_ranking": [
+            "sem_hojo_tohshi",
+            "sem_togakure_toko"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_eating_parfait_with_toko"
+          ],
+          "bonus_ranking": [
+            "sem_hojo_tohshi",
+            "sem_togakure_toko"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_eating_parfait_with_toko"
+          ],
+          "bonus_ranking": [
+            "sem_hojo_tohshi",
+            "sem_togakure_toko"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_eating_parfait_with_toko"
+          ],
+          "bonus_ranking": [
+            "sem_hojo_tohshi",
+            "sem_togakure_toko"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_eating_parfait_with_toko"
+          ],
+          "bonus_ranking": [
             "sem_hojo_tohshi",
             "sem_togakure_toko"
           ]
         }
       ],
-      "expected_combined_ranking": [],
+      "expected_combined_ranking": [
+        "sit_eating_parfait_with_toko"
+      ],
       "bonus_combined_ranking": [
-        "proc_get_jealous",
         "sem_hojo_tohshi",
-        "sit_eating_parfait_with_toko",
-        "sem_togakure_toko",
+        "sem_togakure_toko"
+      ],
+      "expected_actions": [
+        "proc_get_jealous"
+      ]
+    },
+    {
+      "name": "set_avoid_conflict_habit",
+      "description": "查询她性格温和软弱、遇到冲突会先避开的习惯",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她软弱的性格",
+                "description": "从小体弱让她遇到冲突总想躲开"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她面对争执的第一反应",
+                "description": "不喜欢冲突，第一反应是避开或逃开"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她回避冲突的习惯",
+                "description": "和人起争执时不会硬碰硬，而是选择退让"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她容易逃避的个性",
+                "description": "因为童年经历，她养成了不爱起冲突、能躲就躲的性格"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她不想吵起来的心理",
+                "description": "性格温和软弱，碰上对抗场面会下意识想离远一点"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她遇到麻烦时先退缩的倾向",
+                "description": "明明会为重要的人鼓起勇气，但平时遇上争执还是会先跑"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她不爱正面冲突的原因",
+                "description": "从小体弱形成的习惯，让她面对冲突时总是回避"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_childhood_weakness"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_childhood_weakness"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_childhood_weakness"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_childhood_weakness"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_childhood_weakness"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_childhood_weakness"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_childhood_weakness"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_childhood_weakness"
+      ],
+      "bonus_combined_ranking": [
         "sem_self"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_avoid_conflict"
+      ]
     }
   ]
 }

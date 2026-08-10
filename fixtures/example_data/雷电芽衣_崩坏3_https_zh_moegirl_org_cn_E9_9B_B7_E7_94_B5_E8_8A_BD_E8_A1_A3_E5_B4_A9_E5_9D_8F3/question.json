@@ -19,14 +19,14 @@
         {
           "priority": 9,
           "tag": [
-            "自身",
-            "角色"
+            "人物",
+            "关系"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "雷电芽衣",
-                "description": "第三律者，后成为始源之律者，天命小队队长"
+                "concept_identifier": "那个徒手折断律者雷翼的少女",
+                "description": "把我从黑暗拉向光明、我生命中最重要的那个人"
               }
             ]
           }
@@ -36,15 +36,19 @@
         {
           "q": 0,
           "ranking": [
-            "sem_self"
+            "sem_kiana"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_self"
+          ]
         }
       ],
       "expected_combined_ranking": [
+        "sem_kiana"
+      ],
+      "bonus_combined_ranking": [
         "sem_self"
       ],
-      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
@@ -52,16 +56,16 @@
       "description": "atomic query 1",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 8,
           "tag": [
             "人物",
-            "亲友"
+            "能力"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个徒手折断雷翼的银发女生",
-                "description": "芽衣最重要的人，后来成为终焉之律者"
+                "concept_identifier": "成为终焉的白发女孩",
+                "description": "在月球上封印崩坏能后独自留守的战士"
               }
             ]
           }
@@ -73,13 +77,17 @@
           "ranking": [
             "sem_kiana"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_finality"
+          ]
         }
       ],
       "expected_combined_ranking": [
         "sem_kiana"
       ],
-      "bonus_combined_ranking": [],
+      "bonus_combined_ranking": [
+        "sem_finality"
+      ],
       "expected_actions": []
     },
     {
@@ -87,359 +95,15 @@
       "description": "atomic query 2",
       "sub_queries": [
         {
-          "priority": 6,
-          "tag": [
-            "人物",
-            "亲友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "理之律者",
-                "description": "可靠的战友，沉迷游戏"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_bronya"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_bronya"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_3",
-      "description": "atomic query 3",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "ME社社长",
-                "description": "父亲，教导北辰一刀流"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_raiden_ryoma"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_raiden_ryoma"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_4",
-      "description": "atomic query 4",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "恩师"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那位在太空中牺牲的红发女武神",
-                "description": "芽衣的老师，薪火相传的精神"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_himeko"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_himeko"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_5",
-      "description": "atomic query 5",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "敌人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "世界蛇主人",
-                "description": "前文明战士，推行圣痕计划"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_kevin"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_kevin"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_6",
-      "description": "atomic query 6",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "传承者"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "粉色妖精",
-                "description": "最初的始源之律者，将力量托付给芽衣"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_elysia"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_elysia"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_7",
-      "description": "atomic query 7",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "人物",
-            "盟友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "学园长",
-                "description": "圣芙蕾雅的创建者，身材娇小"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_theresa"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_theresa"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_8",
-      "description": "atomic query 8",
-      "sub_queries": [
-        {
           "priority": 9,
           "tag": [
-            "人物",
+            "事件",
             "关系"
           ],
           "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个说宁可死也不想让芽衣走的人",
-                "description": "与芽衣在千羽学园天台诀别，后成为终焉"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_kiana"
-          ],
-          "bonus_ranking": [
-            "sit_farewell_rooftop",
-            "sem_qianyuan"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_kiana"
-      ],
-      "bonus_combined_ranking": [
-        "sit_farewell_rooftop",
-        "sem_qianyuan"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_9",
-      "description": "atomic query 9",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "计划",
-            "概念"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个否定人类现状的计划",
-                "description": "凯文推行的，被芽衣、琪亚娜、布洛妮娅在月球阻止"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_stigma_plan"
-          ],
-          "bonus_ranking": [
-            "sem_kevin",
-            "sit_moon_battle"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_stigma_plan"
-      ],
-      "bonus_combined_ranking": [
-        "sem_kevin",
-        "sit_moon_battle"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_10",
-      "description": "atomic query 10",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "重要事件",
-            "诀别"
-          ],
-          "variant": {
             "Situation": [
               {
-                "narrative": "在千羽学园天台与琪亚娜决斗并告别",
-                "location": [
-                  {
-                    "name": "千羽学园天台"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "琪亚娜",
-                    "role": "对手"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_farewell_rooftop"
-          ],
-          "bonus_ranking": [
-            "sem_kiana"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_farewell_rooftop"
-      ],
-      "bonus_combined_ranking": [
-        "sem_kiana"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_11",
-      "description": "atomic query 11",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "重要事件",
-            "加入世界蛇"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "为了拯救琪亚娜，与凯文做交易加入世界蛇",
+                "narrative": "为了救一个最重要的人，她答应了一个强大男人的条件，自愿加入一个神秘组织并重新成为律者",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -457,7 +121,9 @@
             "sit_join_world_serpent"
           ],
           "bonus_ranking": [
-            "sem_kevin"
+            "sem_kevin",
+            "sem_world_serpent",
+            "sem_kiana"
           ]
         }
       ],
@@ -465,24 +131,75 @@
         "sit_join_world_serpent"
       ],
       "bonus_combined_ranking": [
-        "sem_kevin"
+        "sem_kevin",
+        "sem_world_serpent",
+        "sem_kiana"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_12",
-      "description": "atomic query 12",
+      "name": "query_3",
+      "description": "atomic query 3",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
+            "事件",
             "重要事件",
+            "诀别"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和最爱的人在最初相遇的那所学校天台上兵刃相向，抓住她坠落的手又放下，说出诀别的话",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_farewell_rooftop"
+          ],
+          "bonus_ranking": [
+            "sem_qianyuan",
+            "sem_kiana",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_farewell_rooftop"
+      ],
+      "bonus_combined_ranking": [
+        "sem_qianyuan",
+        "sem_kiana",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 10,
+          "tag": [
+            "事件",
+            "能力",
             "传承"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在世界蛇期间探索往世乐土，遇见英桀，获得始源之力",
+                "narrative": "在一个保存前文明记忆的虚拟空间里，一位粉色头发的英桀把超越律者的力量托付给她",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -500,7 +217,9 @@
             "sit_elysian_realm_journey"
           ],
           "bonus_ranking": [
-            "sem_elysia"
+            "sem_elysia",
+            "sem_origin_authority",
+            "sem_elysian_realm"
           ]
         }
       ],
@@ -508,24 +227,26 @@
         "sit_elysian_realm_journey"
       ],
       "bonus_combined_ranking": [
-        "sem_elysia"
+        "sem_elysia",
+        "sem_origin_authority",
+        "sem_elysian_realm"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_13",
-      "description": "atomic query 13",
+      "name": "query_5",
+      "description": "atomic query 5",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
-            "重要事件",
+            "事件",
             "决战"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "与琪亚娜、布洛妮娅在月球上对抗凯文，阻止圣痕计划",
+                "narrative": "和两个重要的伙伴在月球上与凯文最终决战，最后其中一人成为终焉封印了崩坏",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -544,7 +265,8 @@
           ],
           "bonus_ranking": [
             "sem_kevin",
-            "sem_finality"
+            "sem_kiana",
+            "sem_stigma_plan"
           ]
         }
       ],
@@ -553,7 +275,336 @@
       ],
       "bonus_combined_ranking": [
         "sem_kevin",
-        "sem_finality"
+        "sem_kiana",
+        "sem_stigma_plan"
+      ],
+      "expected_actions": [
+        "proc_battle_style"
+      ]
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "操控雷电和电磁场的力量",
+                "description": "曾拥有征服宝石，后来吸收长空市崩坏能再次觉醒的律者权能"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_thunder_authority"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_thunder_authority"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "万物起始的力量",
+                "description": "由爱莉希雅传承、超越律者的存在，战甲化为红金配色"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_origin_authority"
+          ],
+          "bonus_ranking": [
+            "sem_elysia",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_origin_authority"
+      ],
+      "bonus_combined_ranking": [
+        "sem_elysia",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "技能",
+            "剑道"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "父亲教导的剑术流派",
+                "description": "传统的日本剑道，来自父亲雷电龙马，是战斗风格的根基"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_hokushin"
+          ],
+          "bonus_ranking": [
+            "sem_raiden_ryoma",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_hokushin"
+      ],
+      "bonus_combined_ranking": [
+        "sem_raiden_ryoma",
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_battle_style"
+      ]
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "物品",
+            "武器"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "父亲设计的最高杰作太刀",
+                "description": "据说连律者都能冻结的武器，只有再次觉醒律者时才会拔出的刀"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_plasma_shadow"
+          ],
+          "bonus_ranking": [
+            "sem_raiden_ryoma",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_plasma_shadow"
+      ],
+      "bonus_combined_ranking": [
+        "sem_raiden_ryoma",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "家人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "ME社社长",
+                "description": "她的父亲，教导她北辰一刀流，后来因案件入狱并下落不明"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_raiden_ryoma"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_plasma_shadow"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_raiden_ryoma"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_plasma_shadow"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "恩师"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "在她心脏植入炸弹的老师",
+                "description": "给她重新活过的机会、教导她成为女武神，最后牺牲的姬子老师"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_himeko"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "proc_cooking"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_himeko"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "proc_cooking"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "盟友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "圣芙蕾雅学园的创建者",
+                "description": "娇小但强大的学园长，一直庇护她们并评价她更温柔可靠"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_theresa"
+          ],
+          "bonus_ranking": [
+            "sem_stfreya",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_theresa"
+      ],
+      "bonus_combined_ranking": [
+        "sem_stfreya",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "敌人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "世界蛇的主人",
+                "description": "前文明战士卡斯兰娜祖先，推行圣痕计划，最后在月球被击败"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_kevin"
+          ],
+          "bonus_ranking": [
+            "sem_world_serpent",
+            "sem_stigma_plan"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kevin"
+      ],
+      "bonus_combined_ranking": [
+        "sem_world_serpent",
+        "sem_stigma_plan"
       ],
       "expected_actions": []
     },
@@ -562,15 +613,264 @@
       "description": "atomic query 14",
       "sub_queries": [
         {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "传承者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "粉色妖精",
+                "description": "往世乐土中最初的始源之律者，将她的信念与力量托付给自己"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_elysia"
+          ],
+          "bonus_ranking": [
+            "sem_origin_authority",
+            "sit_elysian_realm_journey"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_elysia"
+      ],
+      "bonus_combined_ranking": [
+        "sem_origin_authority",
+        "sit_elysian_realm_journey"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "人物",
+            "同僚"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "代号乌鸦的世界蛇成员",
+                "description": "表面冷酷但内心柔软，会照顾收容的孩子，和她形成奇特战友情"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_raven"
+          ],
+          "bonus_ranking": [
+            "sem_world_serpent",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_raven"
+      ],
+      "bonus_combined_ranking": [
+        "sem_world_serpent",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "队员"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "会吐槽她年龄的年轻队员",
+                "description": "后崩坏书时代她队里的女孩，总让她想起曾经的琪亚娜"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_carole"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "proc_leader_care"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_carole"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "proc_leader_care"
+      ],
+      "expected_actions": [
+        "proc_leader_care"
+      ]
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "战友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "天命最强女武神",
+                "description": "起初在天穹市交手无法战胜，后来并肩作战的值得尊敬的战士"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_durandal"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_tianqiong"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_durandal"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_tianqiong"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
           "priority": 6,
           "tag": [
-            "场景",
-            "学园"
+            "地点",
+            "回忆"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "琪亚娜藏身的城市",
+                "description": "让她得知爱人时日无多、感到‘我什么都做不到’的城市"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_tianqiong"
+          ],
+          "bonus_ranking": [
+            "sem_kiana",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_tianqiong"
+      ],
+      "bonus_combined_ranking": [
+        "sem_kiana",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "地点",
+            "回忆"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "第三次崩坏爆发地",
+                "description": "她和琪亚娜第一次相遇的学校，也是诀别之战的天台所在地"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_qianyuan"
+          ],
+          "bonus_ranking": [
+            "sem_kiana",
+            "sit_farewell_rooftop"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_qianyuan"
+      ],
+      "bonus_combined_ranking": [
+        "sem_kiana",
+        "sit_farewell_rooftop"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "地点",
+            "日常",
+            "回忆"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在圣芙蕾雅学园每天做饭、训练的日子",
+                "narrative": "在学园里和伙伴们一起生活的温暖日常，她像个大家长一样照顾所有人的饮食起居",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -588,7 +888,9 @@
             "sit_stfreya_daily"
           ],
           "bonus_ranking": [
-            "proc_cooking"
+            "sem_stfreya",
+            "proc_cooking",
+            "proc_head_move"
           ]
         }
       ],
@@ -596,114 +898,28 @@
         "sit_stfreya_daily"
       ],
       "bonus_combined_ranking": [
-        "proc_cooking"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_15",
-      "description": "atomic query 15",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人际关系",
-            "日常"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "和琪亚娜、布洛妮娅在一起的快乐时光",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_with_loved_ones"
-          ],
-          "bonus_ranking": [
-            "proc_cooking",
-            "proc_age_reaction"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_with_loved_ones"
-      ],
-      "bonus_combined_ranking": [
+        "sem_stfreya",
         "proc_cooking",
-        "proc_age_reaction"
+        "proc_head_move"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_cooking"
+      ]
     },
     {
-      "name": "query_16",
-      "description": "atomic query 16",
+      "name": "query_21",
+      "description": "atomic query 21",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 3,
           "tag": [
-            "重要事件",
-            "交易"
+            "习惯",
+            "性格"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "凯文在长空市提出条件，芽衣为救琪亚娜接受",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_join_world_serpent"
-          ],
-          "bonus_ranking": [
-            "sem_kevin",
-            "sem_kiana"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_join_world_serpent"
-      ],
-      "bonus_combined_ranking": [
-        "sem_kevin",
-        "sem_kiana"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_17",
-      "description": "atomic query 17",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "日常",
-            "互动"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "卡萝尔调侃芽衣的年龄，芽衣感到苦恼",
+                "narrative": "被年轻队员调侃年龄、喊阿姨的时候，她心里其实很在意又不好意思承认",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -733,23 +949,30 @@
         "sem_carole",
         "proc_age_reaction"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_age_reaction"
+      ]
     },
     {
-      "name": "query_18",
-      "description": "atomic query 18",
+      "name": "query_22",
+      "description": "atomic query 22",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 6,
           "tag": [
-            "地点",
-            "城市"
+            "战斗",
+            "氛围",
+            "习惯"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "琪亚娜曾藏身的城市",
-                "description": "芽衣在此与琪亚娜重逢，得知她时日无多"
+                "narrative": "面对紧张激烈的战斗气氛，她会用太刀完成快速居合斩，还是直接召唤雷霆",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -759,36 +982,44 @@
         {
           "q": 0,
           "ranking": [
-            "sem_tianqiong"
+            "sit_battle_tension"
           ],
           "bonus_ranking": [
-            "sem_kiana"
+            "sit_moon_battle",
+            "proc_battle_style"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_tianqiong"
+        "sit_battle_tension"
       ],
       "bonus_combined_ranking": [
-        "sem_kiana"
+        "sit_moon_battle",
+        "proc_battle_style"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_battle_style"
+      ]
     },
     {
-      "name": "query_19",
-      "description": "atomic query 19",
+      "name": "query_23",
+      "description": "atomic query 23",
       "sub_queries": [
         {
-          "priority": 3,
+          "priority": 6,
           "tag": [
-            "物品",
-            "武器"
+            "人际关系",
+            "日常"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "父亲设计的最强太刀",
-                "description": "据说能冻结律者"
+                "narrative": "和最喜欢的两人待在一起时，她的习惯是主动下厨照顾她们，偶尔还会做头部运动放松",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -798,36 +1029,85 @@
         {
           "q": 0,
           "ranking": [
-            "sem_plasma_shadow"
+            "sit_with_loved_ones"
           ],
           "bonus_ranking": [
-            "sem_raiden_ryoma"
+            "sem_kiana",
+            "sem_bronya",
+            "proc_cooking"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_plasma_shadow"
+        "sit_with_loved_ones"
       ],
       "bonus_combined_ranking": [
-        "sem_raiden_ryoma"
+        "sem_kiana",
+        "sem_bronya",
+        "proc_cooking"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_cooking",
+        "proc_head_move"
+      ]
+    },
+    {
+      "name": "query_24",
+      "description": "atomic query 24",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "时代",
+            "角色"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "大崩坏结束八年后",
+                "description": "她成为新天命第三小队队长、等待与琪亚娜重逢的时代"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_post_honkai"
+          ],
+          "bonus_ranking": [
+            "sem_carole",
+            "proc_leader_care"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_post_honkai"
+      ],
+      "bonus_combined_ranking": [
+        "sem_carole",
+        "proc_leader_care"
+      ],
+      "expected_actions": [
+        "proc_leader_care"
+      ]
     },
     {
       "name": "set_kiana",
-      "description": "查询琪亚娜·卡斯兰娜",
+      "description": "查询芽衣最珍视的人琪亚娜",
       "sub_queries": [
         {
           "priority": 9,
           "tag": [
-            "人物",
-            "亲友"
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她的挚爱",
-                "description": "那个徒手折断雷翼的人"
+                "concept_identifier": "那个徒手折断律者雷翼的少女",
+                "description": "把我从黑暗拉向光明的人"
               }
             ]
           }
@@ -836,13 +1116,41 @@
           "priority": 9,
           "tag": [
             "人物",
-            "亲友"
+            "关系"
           ],
           "variant": {
             "Semantic": [
               {
                 "concept_identifier": "白练",
-                "description": "终焉之律者"
+                "description": "K423，那个笨拙却温柔的白发女孩"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的挚爱",
+                "description": "终焉之律者，留在月球上守护地球的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "卡斯兰娜家的女孩",
+                "description": "比这个世界更重要、值得与世界为敌也要守护的人"
               }
             ]
           }
@@ -851,73 +1159,28 @@
           "priority": 9,
           "tag": [
             "人物",
-            "亲友"
+            "关系"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个在月球封印崩坏的人",
-                "description": "芽衣最重要的人"
+                "concept_identifier": "在月球上成为终焉的那位",
+                "description": "大崩坏最后一战后独自封印崩坏的战士"
               }
             ]
           }
         },
         {
-          "priority": 9,
+          "priority": 8,
           "tag": [
             "人物",
-            "亲友"
+            "关系"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "K423",
-                "description": "卡斯兰娜家的女孩"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "亲友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "芽衣的公主",
-                "description": "从黑暗救出芽衣的人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "亲友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "再也不会回来的人",
-                "description": "独自留在月球"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "亲友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个让芽衣愿意与世界为敌的人",
-                "description": "比世界更重要"
+                "concept_identifier": "那个让她甘愿坠入黑暗的人",
+                "description": "为了拯救对方，她与世界蛇做了交易"
               }
             ]
           }
@@ -930,7 +1193,7 @@
             "sem_kiana"
           ],
           "bonus_ranking": [
-            "sem_finality"
+            "sem_self"
           ]
         },
         {
@@ -939,7 +1202,7 @@
             "sem_kiana"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_finality"
           ]
         },
         {
@@ -958,7 +1221,7 @@
             "sem_kiana"
           ],
           "bonus_ranking": [
-            "sem_qianyuan"
+            "sem_self"
           ]
         },
         {
@@ -967,7 +1230,7 @@
             "sem_kiana"
           ],
           "bonus_ranking": [
-            "sem_stfreya"
+            "sem_finality"
           ]
         },
         {
@@ -976,17 +1239,7 @@
             "sem_kiana"
           ],
           "bonus_ranking": [
-            "sem_finality"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_kiana"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_finality"
+            "sit_join_world_serpent"
           ]
         }
       ],
@@ -994,27 +1247,26 @@
         "sem_kiana"
       ],
       "bonus_combined_ranking": [
-        "sem_finality",
         "sem_self",
-        "sem_qianyuan",
-        "sem_stfreya"
+        "sem_finality",
+        "sit_join_world_serpent"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_farewell_rooftop",
-      "description": "查询千羽学园天台诀别事件",
+      "name": "set_join_serpent",
+      "description": "查询芽衣为拯救琪亚娜加入世界蛇的关键事件",
       "sub_queries": [
         {
           "priority": 9,
           "tag": [
-            "重要事件",
-            "诀别"
+            "事件",
+            "关系"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在千羽学园楼顶与琪亚娜兵刃相向",
+                "narrative": "为了救一个人，她和那个组织的主人做了交易，重新成为律者",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1027,13 +1279,12 @@
         {
           "priority": 9,
           "tag": [
-            "重要事件",
-            "诀别"
+            "事件"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "芽衣放下手中的人转身离去",
+                "narrative": "走投无路时有人抛出橄榄枝，条件是加入一个神秘组织",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1046,13 +1297,31 @@
         {
           "priority": 9,
           "tag": [
-            "重要事件",
-            "诀别"
+            "事件",
+            "选择"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "雷光斩断过去",
+                "narrative": "为了降低律者核心对爱人的负担，她自愿坠入黑暗的一次交易",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在长空市，她答应了凯文提出的条件，加入了世界蛇",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1065,13 +1334,13 @@
         {
           "priority": 9,
           "tag": [
-            "重要事件",
-            "诀别"
+            "事件",
+            "关系"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "就像当年她被抓住那样",
+                "narrative": "那一次她为了救回最重要的人，亲手接过了变强的代价",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1082,53 +1351,14 @@
           }
         },
         {
-          "priority": 9,
+          "priority": 8,
           "tag": [
-            "重要事件",
-            "诀别"
+            "事件"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "为了换你回到光明",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "重要事件",
-            "诀别"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在长空市最痛苦的一战",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "重要事件",
-            "诀别"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "琪亚娜说宁可死也不想让我走",
+                "narrative": "重新觉醒为雷之律者的决定，始于对某个人的承诺",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1143,228 +1373,32 @@
         {
           "q": 0,
           "ranking": [
-            "sit_farewell_rooftop"
+            "sit_join_world_serpent"
           ],
           "bonus_ranking": [
+            "sem_kevin",
+            "sem_world_serpent",
             "sem_kiana"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sit_farewell_rooftop"
+            "sit_join_world_serpent"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_kevin",
+            "sem_world_serpent"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sit_farewell_rooftop"
-          ],
-          "bonus_ranking": [
-            "sem_kiana"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_farewell_rooftop"
-          ],
-          "bonus_ranking": [
-            "sem_qianyuan"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_farewell_rooftop"
+            "sit_join_world_serpent"
           ],
           "bonus_ranking": [
             "sem_kiana",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_farewell_rooftop"
-          ],
-          "bonus_ranking": [
-            "sem_qianyuan"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_farewell_rooftop"
-          ],
-          "bonus_ranking": [
-            "sem_kiana"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_farewell_rooftop"
-      ],
-      "bonus_combined_ranking": [
-        "sem_kiana",
-        "sem_self",
-        "sem_qianyuan"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_kevin",
-      "description": "查询凯文·卡斯兰娜及相关事件",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "敌人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "世界蛇主人",
-                "description": "前文明战士"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "敌人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "卡斯兰娜祖先",
-                "description": "推行圣痕计划"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "敌人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个向芽衣抛出橄榄枝的人",
-                "description": "在长空市提出交易"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "重要事件",
-            "交易"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "凯文在长空市与芽衣谈判，芽衣为救琪亚娜接受条件",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "重要事件",
-            "决战"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "月球上芽衣与凯文最终决战",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "重要事件",
-            "交易"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "世界蛇首领招募雷之律者",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "重要事件",
-            "计划"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "圣痕计划的推动者被击败",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
             "sem_kevin"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_kevin"
-          ],
-          "bonus_ranking": [
-            "sem_stigma_plan"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_kevin"
-          ],
-          "bonus_ranking": [
-            "sit_join_world_serpent"
           ]
         },
         {
@@ -1373,16 +1407,18 @@
             "sit_join_world_serpent"
           ],
           "bonus_ranking": [
-            "sem_kevin"
+            "sem_kevin",
+            "sem_world_serpent"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sit_moon_battle"
+            "sit_join_world_serpent"
           ],
           "bonus_ranking": [
-            "sem_kevin"
+            "sem_kiana",
+            "sem_world_serpent"
           ]
         },
         {
@@ -1391,49 +1427,75 @@
             "sit_join_world_serpent"
           ],
           "bonus_ranking": [
-            "sem_kevin",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_moon_battle"
-          ],
-          "bonus_ranking": [
-            "sem_kevin",
-            "sem_stigma_plan"
+            "sem_thunder_authority",
+            "sem_kevin"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_kevin",
-        "sit_join_world_serpent",
-        "sit_moon_battle"
+        "sit_join_world_serpent"
       ],
       "bonus_combined_ranking": [
-        "sem_stigma_plan",
-        "sit_join_world_serpent",
         "sem_kevin",
-        "sem_self"
+        "sem_world_serpent",
+        "sem_kiana",
+        "sem_thunder_authority"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_elysia",
-      "description": "查询爱莉希雅及往世乐土传承",
+      "name": "set_elysia_origin",
+      "description": "查询芽衣在往世乐土获得始源之力的传承事件",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 10,
+          "tag": [
+            "事件",
+            "能力",
+            "传承"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在虚拟空间中，一位前文明的粉色英桀交给她超越律者的力量",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 10,
           "tag": [
             "人物",
-            "传承者"
+            "传承"
           ],
           "variant": {
             "Semantic": [
               {
                 "concept_identifier": "粉色妖精",
-                "description": "最初的始源之律者"
+                "description": "往世乐土中引导她并托付始源之力的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 10,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "探索前文明英桀记忆体的旅程，最终让她从雷之律者蜕变成更强大的存在",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -1441,52 +1503,13 @@
         {
           "priority": 9,
           "tag": [
-            "人物",
-            "传承者"
+            "能力"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "逐火十三英桀之一",
-                "description": "热爱人类的律者"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "重要事件",
-            "传承"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "芽衣在往世乐土接受爱莉希雅的传承",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "重要事件",
-            "传承"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "始源之力托付给雷之律者",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "万物起始的力量",
+                "description": "爱莉希雅传承给她的超越律者的权能，战甲变为红金配色"
               }
             ]
           }
@@ -1495,13 +1518,13 @@
           "priority": 9,
           "tag": [
             "人物",
-            "传承者"
+            "信念"
           ],
           "variant": {
             "Semantic": [
               {
                 "concept_identifier": "人之律者",
-                "description": "她的信念成为了芽衣的信念"
+                "description": "那位热爱人类世界的初代始源，她的信念成为了芽衣的信念"
               }
             ]
           }
@@ -1509,32 +1532,13 @@
         {
           "priority": 9,
           "tag": [
-            "重要事件",
-            "探索"
+            "地点",
+            "事件"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "探索前文明记忆体，遇见爱莉希雅",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "重要事件",
-            "传承"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "获得始源之力，战甲化为红金配色",
+                "narrative": "世界蛇内部那个保存前文明记忆的虚拟空间里，她找到了自己的答案",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1548,95 +1552,131 @@
       "expected_per_query": [
         {
           "q": 0,
-          "ranking": [
-            "sem_elysia"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_elysia"
-          ],
-          "bonus_ranking": [
-            "sem_elysian_realm"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_elysian_realm_journey"
-          ],
-          "bonus_ranking": [
-            "sem_elysia"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_elysian_realm_journey"
-          ],
-          "bonus_ranking": [
-            "sem_origin_authority"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_elysia"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 5,
           "ranking": [
             "sit_elysian_realm_journey"
           ],
           "bonus_ranking": [
             "sem_elysia",
-            "sem_elysian_realm"
+            "sem_origin_authority"
           ]
         },
         {
-          "q": 6,
+          "q": 1,
+          "ranking": [
+            "sem_elysia"
+          ],
+          "bonus_ranking": [
+            "sit_elysian_realm_journey",
+            "sem_origin_authority"
+          ]
+        },
+        {
+          "q": 2,
           "ranking": [
             "sit_elysian_realm_journey"
+          ],
+          "bonus_ranking": [
+            "sem_elysian_realm",
+            "sem_origin_authority"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_origin_authority"
+          ],
+          "bonus_ranking": [
+            "sem_elysia",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_elysia"
           ],
           "bonus_ranking": [
             "sem_origin_authority",
             "sem_self"
           ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_elysian_realm_journey"
+          ],
+          "bonus_ranking": [
+            "sem_elysian_realm",
+            "sem_self"
+          ]
         }
       ],
       "expected_combined_ranking": [
+        "sit_elysian_realm_journey",
         "sem_elysia",
-        "sit_elysian_realm_journey"
+        "sem_origin_authority"
       ],
       "bonus_combined_ranking": [
-        "sem_elysian_realm",
         "sem_elysia",
         "sem_origin_authority",
+        "sit_elysian_realm_journey",
+        "sem_elysian_realm",
         "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_post_honkai",
-      "description": "查询后崩坏书时代",
+      "name": "set_cooking",
+      "description": "查询芽衣用做饭表达关心的习惯",
       "sub_queries": [
         {
-          "priority": 5,
+          "priority": 6,
           "tag": [
-            "时代",
-            "后崩坏书"
+            "习惯",
+            "技能"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "崩坏结束八年后",
-                "description": "芽衣担任小队队长"
+                "concept_identifier": "她表达爱意的方式",
+                "description": "给全队做饭、做流心蛋包饭，是她照顾别人的习惯"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和珍视的人待在一起时，她会用做一桌好菜来表达关心",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "日常",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在圣芙蕾雅的日常里，她总是负责给全员做饭，这似乎是她的温柔",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -1644,14 +1684,14 @@
         {
           "priority": 5,
           "tag": [
-            "时代",
-            "后崩坏书"
+            "习惯",
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "圣方丹调查",
-                "description": "带领卡萝尔"
+                "concept_identifier": "会做流心蛋包饭的队长",
+                "description": "用一餐饭照顾队员身心的队长，像大家长一样"
               }
             ]
           }
@@ -1659,14 +1699,17 @@
         {
           "priority": 5,
           "tag": [
-            "时代",
-            "后崩坏书"
+            "习惯"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "等待琪亚娜回归的时代",
-                "description": "所有付出结出果实"
+                "narrative": "待在喜欢的人身边时，她会不会不由自主地想要做东西给对方吃",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -1674,59 +1717,14 @@
         {
           "priority": 5,
           "tag": [
-            "时代",
-            "后崩坏书"
+            "习惯",
+            "技能"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "第三小队",
-                "description": "对抗崩坏"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "时代",
-            "后崩坏书"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "八年后",
-                "description": "新天命时代"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "时代",
-            "后崩坏书"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "队长芽衣",
-                "description": "带领年轻队员"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "时代",
-            "后崩坏书"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "后崩坏书",
-                "description": "99%崩坏被驱逐"
+                "concept_identifier": "她最拿手的另一项技能",
+                "description": "不是战斗，而是让伙伴们吃到热腾腾饭菜的本事"
               }
             ]
           }
@@ -1736,279 +1734,458 @@
         {
           "q": 0,
           "ranking": [
-            "sem_post_honkai"
+            "sem_self"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "proc_cooking",
+            "sem_carole"
+          ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_post_honkai"
+            "sit_with_loved_ones"
           ],
           "bonus_ranking": [
-            "sem_carole"
+            "sem_kiana",
+            "sem_bronya",
+            "proc_cooking"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_post_honkai"
+            "sit_stfreya_daily"
           ],
           "bonus_ranking": [
+            "sem_stfreya",
+            "proc_cooking"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "sem_carole",
+            "proc_cooking"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_with_loved_ones"
+          ],
+          "bonus_ranking": [
+            "proc_cooking",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "proc_cooking",
             "sem_kiana"
           ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_post_honkai"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_post_honkai"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_post_honkai"
-          ],
-          "bonus_ranking": [
-            "sem_carole"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_post_honkai"
-          ],
-          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
-        "sem_post_honkai"
-      ],
-      "bonus_combined_ranking": [
-        "sem_carole",
-        "sem_kiana"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_with_loved_ones",
-      "description": "查询与亲友在一起的时光",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人际关系",
-            "日常"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "和琪亚娜布洛妮娅一起吃饭",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人际关系",
-            "日常"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "为两个人做饭",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人际关系",
-            "日常"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "被叫阿姨时感到苦恼",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人际关系",
-            "日常"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "做头部运动打发时间",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人际关系",
-            "日常"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "关心队员武器是否顺手",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人际关系",
-            "日常"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "一起逛街",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人际关系",
-            "日常"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "吐槽年龄时的反应",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_with_loved_ones"
-          ],
-          "bonus_ranking": [
-            "proc_cooking"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_with_loved_ones"
-          ],
-          "bonus_ranking": [
-            "proc_cooking"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_with_loved_ones"
-          ],
-          "bonus_ranking": [
-            "proc_age_reaction"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_with_loved_ones"
-          ],
-          "bonus_ranking": [
-            "proc_head_move"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_with_loved_ones"
-          ],
-          "bonus_ranking": [
-            "proc_leader_care"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_with_loved_ones"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_with_loved_ones"
-          ],
-          "bonus_ranking": [
-            "proc_age_reaction"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_with_loved_ones"
+        "sem_self",
+        "sit_with_loved_ones",
+        "sit_stfreya_daily"
       ],
       "bonus_combined_ranking": [
         "proc_cooking",
-        "proc_age_reaction",
-        "proc_head_move",
-        "proc_leader_care"
+        "sem_carole",
+        "sem_kiana",
+        "sem_bronya",
+        "sem_stfreya",
+        "sem_self"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_cooking",
+        "proc_leader_care"
+      ]
+    },
+    {
+      "name": "set_battle_style",
+      "description": "查询芽衣面对紧张战斗时的战斗方式",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "战斗",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "面对激烈战斗的紧张氛围时，她会用什么武器、什么招式应敌",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "危急关头她的战斗方式是什么，快速居合斩还是召唤雷电",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "战斗",
+            "技能"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她战斗时的风格特征：凌厉快速，太刀出鞘",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在紧张激烈的战场上，她通常怎么融合雷电与剑术",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "战斗",
+            "氛围"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "最高压的战斗氛围中，她的第一反应是拔刀还是凝聚雷电",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "战斗",
+            "技能"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "月球上那场终极决战里，她作为战士展现出来的战斗方式",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_battle_tension"
+          ],
+          "bonus_ranking": [
+            "proc_battle_style",
+            "sem_thunder_authority"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_battle_tension"
+          ],
+          "bonus_ranking": [
+            "proc_battle_style",
+            "sem_thunder_authority"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_battle_tension"
+          ],
+          "bonus_ranking": [
+            "proc_battle_style",
+            "sem_hokushin"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_battle_tension"
+          ],
+          "bonus_ranking": [
+            "proc_battle_style",
+            "sem_thunder_authority",
+            "sem_hokushin"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_battle_tension"
+          ],
+          "bonus_ranking": [
+            "proc_battle_style",
+            "sem_thunder_authority"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_battle_tension"
+          ],
+          "bonus_ranking": [
+            "sit_moon_battle",
+            "proc_battle_style"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_battle_tension"
+      ],
+      "bonus_combined_ranking": [
+        "proc_battle_style",
+        "sem_thunder_authority",
+        "sem_hokushin",
+        "sit_moon_battle"
+      ],
+      "expected_actions": [
+        "proc_battle_style"
+      ]
+    },
+    {
+      "name": "set_age_teasing",
+      "description": "查询芽衣被调侃年龄时的反应",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "性格"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "被年轻队员叫阿姨时，她会有什么反应",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "日常",
+            "性格"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "卡萝尔吐槽她的年龄以后，当事人的心情",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "会喊她阿姨的队员",
+                "description": "那个年轻活泼、总在年龄上开她玩笑的女孩"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被夸年轻就开心的那个人",
+                "description": "被叫阿姨会苦恼，但被夸赞年轻会暗自欣喜"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "日常",
+            "互动"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "一起逛街时，关系好的后辈突然拿年龄开她玩笑",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "在意年龄的战士",
+                "description": "一个早就不再老去的律者，却会因为‘阿姨’这个词而困扰"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_age_teasing"
+          ],
+          "bonus_ranking": [
+            "sem_carole",
+            "proc_age_reaction"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_age_teasing"
+          ],
+          "bonus_ranking": [
+            "sem_carole",
+            "sem_self",
+            "proc_age_reaction"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_carole"
+          ],
+          "bonus_ranking": [
+            "sit_age_teasing",
+            "proc_age_reaction"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "proc_age_reaction"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_age_teasing"
+          ],
+          "bonus_ranking": [
+            "sem_carole",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "proc_age_reaction",
+            "sem_carole"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_age_teasing",
+        "sem_carole",
+        "sem_self"
+      ],
+      "bonus_combined_ranking": [
+        "sem_carole",
+        "proc_age_reaction",
+        "sem_self",
+        "sit_age_teasing"
+      ],
+      "expected_actions": [
+        "proc_age_reaction"
+      ]
     }
   ]
 }

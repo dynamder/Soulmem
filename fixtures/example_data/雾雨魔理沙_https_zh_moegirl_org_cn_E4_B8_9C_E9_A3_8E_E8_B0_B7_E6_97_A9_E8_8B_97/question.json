@@ -19,14 +19,428 @@
         {
           "priority": 9,
           "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "红白衣服的巫女",
+                "description": "博丽神社那位灵力很强的巫女，和我是亦敌亦友的关系"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_reimu"
+          ],
+          "bonus_ranking": [
+            "sit_with_reimu",
+            "sit_visit_shrine"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_reimu"
+      ],
+      "bonus_combined_ranking": [
+        "sit_with_reimu",
+        "sit_visit_shrine"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_1",
+      "description": "atomic query 1",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "亲友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "香霖堂那个老好人",
+                "description": "雾雨家的旧雇员，我做魔法使后一直照顾我的男人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_rinno"
+          ],
+          "bonus_ranking": [
+            "sem_kourindou",
+            "sem_mini_hakkero"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_rinno"
+      ],
+      "bonus_combined_ranking": [
+        "sem_kourindou",
+        "sem_mini_hakkero"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_2",
+      "description": "atomic query 2",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "好友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "森林里那个玩人偶的姑娘",
+                "description": "我的邻居，嘴硬心软，一起打过永夜异变还给了魔导书"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_alice"
+          ],
+          "bonus_ranking": [
+            "sit_eientei_team",
+            "sem_magic_forest",
+            "sem_patchouli"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_alice"
+      ],
+      "bonus_combined_ranking": [
+        "sit_eientei_team",
+        "sem_magic_forest",
+        "sem_patchouli"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "红魔馆大图书馆的魔女",
+                "description": "总骂我不吉利的紫发魔女，其实借书给我很慷慨"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_patchouli"
+          ],
+          "bonus_ranking": [
+            "sem_magic_ability",
+            "sem_water_attribute",
+            "sem_alice"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_patchouli"
+      ],
+      "bonus_combined_ranking": [
+        "sem_magic_ability",
+        "sem_water_attribute",
+        "sem_alice"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "同行"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "守矢神社那位风祝",
+                "description": "从外界来的现人神，刚来就被我和灵梦收拾了一顿"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_sanae"
+          ],
+          "bonus_ranking": [
+            "sit_beat_sanae",
+            "sem_danmaku_rules"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_sanae"
+      ],
+      "bonus_combined_ranking": [
+        "sit_beat_sanae",
+        "sem_danmaku_rules"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "家人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "断绝关系的雾雨家家主",
+                "description": "亲生父亲但已经不来往，离家后连村落都不愿回"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_father"
+          ],
+          "bonus_ranking": [
+            "sit_leave_home",
+            "sem_rinno",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_father"
+      ],
+      "bonus_combined_ranking": [
+        "sit_leave_home",
+        "sem_rinno",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "概念",
+            "称号"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "普通魔法使",
+                "description": "我自己用的称号，听起来普通其实火力超强"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_ordinary_magician"
+          ],
+          "bonus_ranking": [
+            "sem_magic_ability"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_ordinary_magician"
+      ],
+      "bonus_combined_ranking": [
+        "sem_magic_ability"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "概念",
+            "规则"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "符卡规则",
+                "description": "幻想乡解决纷争的弹幕对决规则"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_danmaku_rules"
+          ],
+          "bonus_ranking": [
+            "sem_gensokyo",
+            "sem_reimu"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_danmaku_rules"
+      ],
+      "bonus_combined_ranking": [
+        "sem_gensokyo",
+        "sem_reimu"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "概念",
+            "属性"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "五行水属性",
+                "description": "我明明是水属性，战斗方式却净是光炮火柱"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_water_attribute"
+          ],
+          "bonus_ranking": [
+            "sem_magic_ability"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_water_attribute"
+      ],
+      "bonus_combined_ranking": [
+        "sem_magic_ability"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "物品",
+            "法宝"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "迷你八卦炉",
+                "description": "霖之助送我的魔法道具，放招全靠它"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_mini_hakkero"
+          ],
+          "bonus_ranking": [
+            "sem_rinno",
+            "sem_master_spark",
+            "sem_magic_forest"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_mini_hakkero"
+      ],
+      "bonus_combined_ranking": [
+        "sem_rinno",
+        "sem_master_spark",
+        "sem_magic_forest"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
             "技能",
             "必杀技"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "超级大炮",
-                "description": "她用八卦炉释放的那个能把山都烧穿的大招"
+                "concept_identifier": "极限火花",
+                "description": "用八卦炉轰出巨大光柱的大招，和旧作花妖战斗学的"
               }
             ]
           }
@@ -54,20 +468,20 @@
       "expected_actions": []
     },
     {
-      "name": "query_1",
-      "description": "atomic query 1",
+      "name": "query_11",
+      "description": "atomic query 11",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 5,
           "tag": [
-            "习惯",
-            "口癖"
+            "能力",
+            "魔法"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "口头禅魔法使",
-                "description": "说话结尾总带Da☆Ze的那个黑白魔法师"
+                "concept_identifier": "光与热的使用魔法能力",
+                "description": "我的主要力量，重火力、缺点少，对妖怪也有效"
               }
             ]
           }
@@ -77,62 +491,27 @@
         {
           "q": 0,
           "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_self"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_2",
-      "description": "atomic query 2",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "亲友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "送她八卦炉的人",
-                "description": "那个担心她离家出走亲手做了魔法道具送她的旧识"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_rinno"
+            "sem_magic_ability"
           ],
           "bonus_ranking": [
-            "sem_mini_hakkero"
+            "sem_ordinary_magician"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_rinno"
+        "sem_magic_ability"
       ],
       "bonus_combined_ranking": [
-        "sem_mini_hakkero"
+        "sem_ordinary_magician"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_3",
-      "description": "atomic query 3",
+      "name": "query_12",
+      "description": "atomic query 12",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 5,
           "tag": [
             "地点",
             "住所"
@@ -140,8 +519,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "长满蘑菇的森林",
-                "description": "她独自搬到那个没人打扰的地方住"
+                "concept_identifier": "那片长满蘑菇的森林",
+                "description": "我住的地方，魔法研究采蘑菇都在这"
               }
             ]
           }
@@ -154,7 +533,8 @@
             "sem_magic_forest"
           ],
           "bonus_ranking": [
-            "sem_gensokyo"
+            "sit_mushroom_gathering",
+            "sem_magic_shop"
           ]
         }
       ],
@@ -162,25 +542,26 @@
         "sem_magic_forest"
       ],
       "bonus_combined_ranking": [
-        "sem_gensokyo"
+        "sit_mushroom_gathering",
+        "sem_magic_shop"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_4",
-      "description": "atomic query 4",
+      "name": "query_13",
+      "description": "atomic query 13",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 4,
           "tag": [
-            "人物",
-            "搭档"
+            "地点",
+            "店铺"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "人偶使邻居",
-                "description": "表面水火不容但一起组队解决异变的金发人形使"
+                "concept_identifier": "香霖的杂货店",
+                "description": "老是去白拿东西的那家店，店主对我很无奈"
               }
             ]
           }
@@ -190,112 +571,148 @@
         {
           "q": 0,
           "ranking": [
-            "sem_alice"
+            "sem_kourindou"
           ],
           "bonus_ranking": [
-            "sem_patchouli"
+            "sem_rinno"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_alice"
+        "sem_kourindou"
       ],
       "bonus_combined_ranking": [
-        "sem_patchouli"
+        "sem_rinno"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_collect"
+      ]
     },
     {
-      "name": "query_5",
-      "description": "atomic query 5",
+      "name": "query_14",
+      "description": "atomic query 14",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 7,
           "tag": [
-            "规则"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "符卡对决",
-                "description": "幻想乡用这种不杀人的方式解决纠纷"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_danmaku_rules"
-          ],
-          "bonus_ranking": [
-            "sem_gensokyo"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_danmaku_rules"
-      ],
-      "bonus_combined_ranking": [
-        "sem_gensokyo"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_6",
-      "description": "atomic query 6",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "能力",
-            "属性"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "水属性却用火",
-                "description": "明明五行属水却非要玩超高火力魔法的矛盾"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_water_attribute"
-          ],
-          "bonus_ranking": [
-            "sem_patchouli"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_water_attribute"
-      ],
-      "bonus_combined_ranking": [
-        "sem_patchouli"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_7",
-      "description": "atomic query 7",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "技能习得"
+            "日常",
+            "地点"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她跟那个向日葵妖怪打架时学到了放大招的技巧",
+                "narrative": "有事没事就往博丽神社跑，找灵梦喝茶蹭饭斗嘴",
+                "location": [
+                  {
+                    "name": "博丽神社",
+                    "coordinates": "幻想乡东部博丽神社"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_visit_shrine"
+          ],
+          "bonus_ranking": [
+            "sem_reimu",
+            "sit_with_reimu"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_visit_shrine"
+      ],
+      "bonus_combined_ranking": [
+        "sem_reimu",
+        "sit_with_reimu"
+      ],
+      "expected_actions": [
+        "proc_speak_daze"
+      ]
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "异变"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "永夜异变里和爱丽丝搭档一路打到永远亭，她给了魔导书当报酬",
+                "location": [
+                  {
+                    "name": "永远亭",
+                    "coordinates": "迷途竹林"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "爱丽丝·玛格特罗依德",
+                    "role": "搭档"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_eientei_team"
+          ],
+          "bonus_ranking": [
+            "sem_alice",
+            "sem_magic_ability",
+            "sem_mini_hakkero"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_eientei_team"
+      ],
+      "bonus_combined_ranking": [
+        "sem_alice",
+        "sem_magic_ability",
+        "sem_mini_hakkero"
+      ],
+      "expected_actions": [
+        "proc_record_experiment"
+      ]
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "技能"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和旧作那位花之妖怪打了一架，把巨大魔力光柱的释放方法学到手了",
                 "location": null,
                 "participants": [
                   {
@@ -305,11 +722,7 @@
                 ],
                 "time_span": null,
                 "environment": null,
-                "event": [
-                  {
-                    "action": "学习释放巨大魔力光柱"
-                  }
-                ]
+                "event": null
               }
             ]
           }
@@ -334,36 +747,34 @@
         "sem_master_spark",
         "sem_magic_ability"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_hide_effort"
+      ]
     },
     {
-      "name": "query_8",
-      "description": "atomic query 8",
+      "name": "query_17",
+      "description": "atomic query 17",
       "sub_queries": [
         {
           "priority": 8,
           "tag": [
             "事件",
-            "重要物品"
+            "人生转折"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她离家出走后那个一直很担心她的人亲手做了件礼物送给她",
-                "location": null,
-                "participants": [
+                "narrative": "从人类村落的老家跑出来，舍弃雾雨家的身份在魔法森林自立门户",
+                "location": [
                   {
-                    "name": "森近霖之助",
-                    "role": "制作人"
+                    "name": "人类村落",
+                    "coordinates": "幻想乡人类村落"
                   }
                 ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": [
-                  {
-                    "action": "赠送迷你八卦炉"
-                  }
-                ]
+                "event": null
               }
             ]
           }
@@ -373,29 +784,33 @@
         {
           "q": 0,
           "ranking": [
-            "sit_receive_hakkero"
+            "sit_leave_home"
           ],
           "bonus_ranking": [
-            "sem_rinno",
-            "sem_mini_hakkero"
+            "sem_magic_forest",
+            "sem_father",
+            "sem_magic_shop"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_receive_hakkero"
+        "sit_leave_home"
       ],
       "bonus_combined_ranking": [
-        "sem_rinno",
-        "sem_mini_hakkero"
+        "sem_magic_forest",
+        "sem_father",
+        "sem_magic_shop"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_ride_broom"
+      ]
     },
     {
-      "name": "query_9",
-      "description": "atomic query 9",
+      "name": "query_18",
+      "description": "atomic query 18",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 8,
           "tag": [
             "事件",
             "战斗"
@@ -403,21 +818,12 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "她和巫女一起给那个从外界来的嚣张风祝下马威",
-                "location": [
-                  {
-                    "name": "妖怪之山",
-                    "coordinates": "守矢神社附近"
-                  }
-                ],
+                "narrative": "初次见面的早苗还挺狂，和灵梦一起用弹幕把她打服了",
+                "location": null,
                 "participants": [
                   {
                     "name": "东风谷早苗",
                     "role": "对手"
-                  },
-                  {
-                    "name": "博丽灵梦",
-                    "role": "盟友"
                   }
                 ],
                 "time_span": null,
@@ -449,115 +855,39 @@
         "sem_reimu",
         "sem_danmaku_rules"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_smell_blood"
+      ]
     },
     {
-      "name": "query_10",
-      "description": "atomic query 10",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "朋友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "大图书馆魔女",
-                "description": "那个总说她不吉利但借书给她看的病弱魔女"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_patchouli"
-          ],
-          "bonus_ranking": [
-            "sem_alice"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_patchouli"
-      ],
-      "bonus_combined_ranking": [
-        "sem_alice"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_11",
-      "description": "atomic query 11",
+      "name": "query_19",
+      "description": "atomic query 19",
       "sub_queries": [
         {
           "priority": 6,
           "tag": [
-            "人物",
-            "旧作"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "旧作里教她星弹的师傅",
-                "description": "在旧作设定中算是她老师的那个幽灵般的存在"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_mima"
-          ],
-          "bonus_ranking": [
-            "sem_gensokyo"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_mima"
-      ],
-      "bonus_combined_ranking": [
-        "sem_gensokyo"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_12",
-      "description": "atomic query 12",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
             "事件",
-            "人生转折"
+            "重要物品"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她抛弃了自己的本家一个人搬到森林里住",
+                "narrative": "刚搬到魔法森林那时，霖之助担心我，亲手做了八卦炉送过来",
                 "location": [
                   {
-                    "name": "人类村落",
-                    "coordinates": "幻想乡人类村落"
+                    "name": "魔法森林",
+                    "coordinates": ""
                   }
                 ],
-                "participants": null,
+                "participants": [
+                  {
+                    "name": "森近霖之助",
+                    "role": "制作人"
+                  }
+                ],
                 "time_span": null,
                 "environment": null,
-                "event": [
-                  {
-                    "action": "离家出走",
-                    "initiator": "雾雨魔理沙"
-                  }
-                ]
+                "event": null
               }
             ]
           }
@@ -567,130 +897,51 @@
         {
           "q": 0,
           "ranking": [
-            "sit_leave_home"
+            "sit_receive_hakkero"
           ],
           "bonus_ranking": [
-            "sem_father",
+            "sem_rinno",
+            "sem_mini_hakkero",
             "sem_magic_forest"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_leave_home"
+        "sit_receive_hakkero"
       ],
       "bonus_combined_ranking": [
-        "sem_father",
+        "sem_rinno",
+        "sem_mini_hakkero",
         "sem_magic_forest"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_collect"
+      ]
     },
     {
-      "name": "query_13",
-      "description": "atomic query 13",
+      "name": "query_20",
+      "description": "atomic query 20",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 5,
           "tag": [
-            "地点",
-            "店铺"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "老去的杂货店",
-                "description": "她经常去白拿东西的那个店，店主是她最信任的人"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_kourindou"
-          ],
-          "bonus_ranking": [
-            "sem_rinno"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_kourindou"
-      ],
-      "bonus_combined_ranking": [
-        "sem_rinno"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "地点",
-            "产业"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的委托事务所",
-                "description": "开在森林里接受各种委托的生意"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_magic_shop"
-          ],
-          "bonus_ranking": [
-            "sem_magic_forest"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_magic_shop"
-      ],
-      "bonus_combined_ranking": [
-        "sem_magic_forest"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_15",
-      "description": "atomic query 15",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "异变"
+            "习惯",
+            "口癖"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她去地底解决那场异变时觉得一切都超乎常理",
-                "location": [
+                "narrative": "说话总带着Da☆Ze尾音，连灵梦都学我",
+                "location": null,
+                "participants": [
                   {
-                    "name": "地灵殿",
-                    "coordinates": "地底"
+                    "name": "博丽灵梦",
+                    "role": "聊天对象"
                   }
                 ],
-                "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": [
-                  {
-                    "action": "探索",
-                    "initiator": "雾雨魔理沙"
-                  }
-                ]
+                "event": null
               }
             ]
           }
@@ -700,26 +951,28 @@
         {
           "q": 0,
           "ranking": [
-            "sit_chireiden"
+            "sit_with_reimu"
           ],
           "bonus_ranking": [
-            "sem_gensokyo",
-            "sem_danmaku_rules"
+            "sem_self",
+            "proc_speak_daze"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_chireiden"
+        "sit_with_reimu"
       ],
       "bonus_combined_ranking": [
-        "sem_gensokyo",
-        "sem_danmaku_rules"
+        "sem_self",
+        "proc_speak_daze"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_speak_daze"
+      ]
     },
     {
-      "name": "query_16",
-      "description": "atomic query 16",
+      "name": "query_21",
+      "description": "atomic query 21",
       "sub_queries": [
         {
           "priority": 6,
@@ -730,11 +983,11 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "她每天在森林里采那些奇特的蘑菇当素材",
+                "narrative": "在魔法森林里采蘑菇，顺便把看上的东西捡回家，屋里越堆越乱",
                 "location": [
                   {
                     "name": "魔法森林",
-                    "coordinates": "幻想乡"
+                    "coordinates": ""
                   }
                 ],
                 "participants": null,
@@ -760,7 +1013,7 @@
           ],
           "bonus_ranking": [
             "sem_magic_forest",
-            "proc_collect"
+            "proc_never_organize"
           ]
         }
       ],
@@ -769,24 +1022,27 @@
       ],
       "bonus_combined_ranking": [
         "sem_magic_forest",
-        "proc_collect"
+        "proc_never_organize"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_collect"
+      ]
     },
     {
-      "name": "query_17",
-      "description": "atomic query 17",
+      "name": "query_22",
+      "description": "atomic query 22",
       "sub_queries": [
         {
           "priority": 4,
           "tag": [
-            "纪念日"
+            "习惯",
+            "飞行"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "5月16日那个日子",
-                "description": "那天被大家当成她的专属纪念日，谐音很有趣"
+                "concept_identifier": "骑扫帚飞行的习惯",
+                "description": "就算自己能飞也坚持骑扫帚，这才像魔法使"
               }
             ]
           }
@@ -796,36 +1052,83 @@
         {
           "q": 0,
           "ranking": [
-            "sem_love_color_day"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_reimu"
+            "sem_magic_ability",
+            "proc_ride_broom"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_love_color_day"
+        "sem_self"
       ],
       "bonus_combined_ranking": [
-        "sem_reimu"
+        "sem_magic_ability",
+        "proc_ride_broom"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_ride_broom"
+      ]
     },
     {
-      "name": "query_18",
-      "description": "atomic query 18",
+      "name": "query_23",
+      "description": "atomic query 23",
       "sub_queries": [
         {
           "priority": 5,
           "tag": [
-            "习惯",
-            "飞行"
+            "性格",
+            "习惯"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "骑扫帚的魔法使",
-                "description": "明明能自己飞却偏要拿扫帚装模作样的习惯"
+                "concept_identifier": "偷偷练功不给人看的性格",
+                "description": "看起来整天闲逛，其实私下每天都在磨炼魔法"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "sem_ordinary_magician",
+            "sit_learn_master_spark"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_self"
+      ],
+      "bonus_combined_ranking": [
+        "sem_ordinary_magician",
+        "sit_learn_master_spark"
+      ],
+      "expected_actions": [
+        "proc_hide_effort"
+      ]
+    },
+    {
+      "name": "query_24",
+      "description": "atomic query 24",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "记录"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "魔法实验记录",
+                "description": "做魔法研究时会把结果记到魔导书上"
               }
             ]
           }
@@ -848,22 +1151,115 @@
       "bonus_combined_ranking": [
         "sem_self"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_record_experiment"
+      ]
     },
     {
-      "name": "query_19",
-      "description": "atomic query 19",
+      "name": "set_rinno_gift",
+      "description": "查询霖之助与迷你八卦炉的赠予关系",
       "sub_queries": [
         {
-          "priority": 5,
+          "priority": 9,
           "tag": [
-            "性格"
+            "人物",
+            "亲友"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "假装不努力的家伙",
-                "description": "表面上大大咧咧其实每天偷偷修行的傲娇性格"
+                "concept_identifier": "送我八卦炉的那个人",
+                "description": "以前在雾雨家做事，我离家后他担心我所以做了个魔法道具给我"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "地点"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "香霖堂的掌柜",
+                "description": "经营一家杂货店的半人半妖，和我关系很亲"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "雾雨家出去的旧雇员",
+                "description": "从我家出去后自己开了店，但依然像家人一样照顾我"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "物品"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "迷你八卦炉的制作者",
+                "description": "那个八边形的小炉子是他特意为我做的"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "关系",
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "我最爱顺他东西的老好人",
+                "description": "我老去他店里白拿，他嘴上抱怨但从没拒绝过"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "物品"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "用绯绯色金给我升级装备的人",
+                "description": "后来还找来稀有金属把八卦炉强化过"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "没有血缘却比亲人还亲的人",
+                "description": "和我没有血缘关系但在我心里分量很重的男人"
               }
             ]
           }
@@ -873,27 +1269,120 @@
         {
           "q": 0,
           "ranking": [
-            "sem_self"
+            "sem_rinno"
           ],
           "bonus_ranking": [
-            "proc_hide_effort"
+            "sem_mini_hakkero",
+            "sit_receive_hakkero"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_rinno"
+          ],
+          "bonus_ranking": [
+            "sem_kourindou"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_rinno"
+          ],
+          "bonus_ranking": [
+            "sem_father",
+            "sem_kourindou"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_rinno"
+          ],
+          "bonus_ranking": [
+            "sem_mini_hakkero"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_rinno"
+          ],
+          "bonus_ranking": [
+            "sem_kourindou",
+            "proc_collect"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_rinno"
+          ],
+          "bonus_ranking": [
+            "sem_mini_hakkero"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_rinno"
+          ],
+          "bonus_ranking": [
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_self"
+        "sem_rinno"
       ],
       "bonus_combined_ranking": [
-        "proc_hide_effort"
+        "sem_mini_hakkero",
+        "sit_receive_hakkero",
+        "sem_kourindou",
+        "sem_father",
+        "proc_collect",
+        "sem_self"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_collect"
+      ]
     },
     {
-      "name": "query_20",
-      "description": "atomic query 20",
+      "name": "set_reimu_relationship",
+      "description": "查询与博丽灵梦亦敌亦友的关系",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 9,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "红白的巫女",
+                "description": "博丽神社的巫女，我最大的竞争对手"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "总穿红白衣服的神社女",
+                "description": "灵力超强，解决异变比谁都轻松的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
           "tag": [
             "日常",
             "地点"
@@ -901,19 +1390,280 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "她老是跑去那个红色巫女的神社蹭茶喝",
+                "narrative": "三天两头跑去神社，和她喝茶聊天打发时间",
                 "location": [
                   {
                     "name": "博丽神社",
-                    "coordinates": "幻想乡东部"
+                    "coordinates": ""
                   }
                 ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那次和她联手把新来的早苗打得服服帖帖",
+                "location": null,
                 "participants": [
                   {
                     "name": "博丽灵梦",
-                    "role": "神社主人"
+                    "role": "盟友"
                   }
                 ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "关系",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在神社和她互相较劲斗嘴，谁都不肯认输",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "博丽灵梦",
+                    "role": "挚友兼对手"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "守护幻想乡的巫女",
+                "description": "和幻想乡绑定很深的红白巫女，同时也是我的好友"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_reimu"
+          ],
+          "bonus_ranking": [
+            "sit_with_reimu"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_reimu"
+          ],
+          "bonus_ranking": [
+            "sem_gensokyo"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_visit_shrine"
+          ],
+          "bonus_ranking": [
+            "sem_reimu"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_beat_sanae"
+          ],
+          "bonus_ranking": [
+            "sem_reimu",
+            "sem_sanae"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_with_reimu"
+          ],
+          "bonus_ranking": [
+            "sem_reimu"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_reimu"
+          ],
+          "bonus_ranking": [
+            "sem_gensokyo",
+            "sit_with_reimu"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_reimu",
+        "sit_visit_shrine",
+        "sit_beat_sanae",
+        "sit_with_reimu"
+      ],
+      "bonus_combined_ranking": [
+        "sit_with_reimu",
+        "sem_gensokyo",
+        "sem_reimu",
+        "sem_sanae"
+      ],
+      "expected_actions": [
+        "proc_speak_daze",
+        "proc_smell_blood"
+      ]
+    },
+    {
+      "name": "set_master_spark_origin",
+      "description": "查询必杀技 Master Spark 的习得事件",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "技能"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "旧作里和强大的花妖战斗后学到的光柱大招",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "风见幽香",
+                    "role": "对手/老师"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "能力"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那一战打完我就掌握了把魔力一口气轰出去的方法",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "技能"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "我招牌技能的由来，听说和某个妖气冲天的女人有关",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "技能"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "用八卦炉放出极限火花之前，先和幽香干了一架学会的",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "风见幽香",
+                    "role": "对手"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "当年在那场旧作战斗里领悟出的夸张魔炮起源",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "技能"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "从一场旧作战斗里悟出的毁灭性打法，后来成了我的招牌",
+                "location": null,
+                "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -926,51 +1676,407 @@
         {
           "q": 0,
           "ranking": [
-            "sit_visit_shrine"
+            "sit_learn_master_spark"
           ],
           "bonus_ranking": [
-            "sem_reimu",
-            "sem_gensokyo"
+            "sem_master_spark"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_learn_master_spark"
+          ],
+          "bonus_ranking": [
+            "sem_magic_ability"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_learn_master_spark"
+          ],
+          "bonus_ranking": [
+            "sem_master_spark"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_learn_master_spark"
+          ],
+          "bonus_ranking": [
+            "sem_mini_hakkero",
+            "sem_master_spark"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_learn_master_spark"
+          ],
+          "bonus_ranking": [
+            "sem_master_spark",
+            "sem_magic_ability"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_learn_master_spark"
+          ],
+          "bonus_ranking": [
+            "sem_magic_ability",
+            "sem_master_spark"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_visit_shrine"
+        "sit_learn_master_spark"
       ],
       "bonus_combined_ranking": [
-        "sem_reimu",
-        "sem_gensokyo"
+        "sem_master_spark",
+        "sem_magic_ability",
+        "sem_mini_hakkero"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_hide_effort"
+      ]
     },
     {
-      "name": "query_21",
-      "description": "atomic query 21",
+      "name": "set_leave_home_father",
+      "description": "查询离家出走与雾雨家断绝关系的事",
       "sub_queries": [
         {
-          "priority": 5,
+          "priority": 9,
           "tag": [
-            "日常",
-            "人物关系"
+            "事件",
+            "人生转折"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她和那个巫女一起喝喝茶打打闹的悠闲时光",
+                "narrative": "从人类村落的老家跑路，一个人住进魔法森林当魔法使",
+                "location": [
+                  {
+                    "name": "人类村落",
+                    "coordinates": ""
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "家人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "和我断绝关系的亲爹",
+                "description": "雾雨家现在的当家，我见都不想见"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "产业"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "舍弃了本家和家族，在森林里开了家店凭本事吃饭",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "家人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "不认我这个女儿的家主",
+                "description": "明明有血缘关系却老死不相往来的父亲"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "人生转折"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "为了自由选择离开那个家，也告别了村落里安稳的生活",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "概念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "雾雨家的旧日身份",
+                "description": "提起家族就心烦，我现在只是住在魔法森林的普通魔法使"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "丢下雾雨这个姓氏，带着扫帚飞向森林深处",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_leave_home"
+          ],
+          "bonus_ranking": [
+            "sem_magic_forest",
+            "sem_ordinary_magician"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_father"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_leave_home"
+          ],
+          "bonus_ranking": [
+            "sem_magic_shop"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_father"
+          ],
+          "bonus_ranking": [
+            "sit_leave_home"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_leave_home"
+          ],
+          "bonus_ranking": [
+            "sem_gensokyo"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_father"
+          ],
+          "bonus_ranking": [
+            "sem_ordinary_magician"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_leave_home"
+          ],
+          "bonus_ranking": [
+            "sem_magic_forest",
+            "proc_ride_broom"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_leave_home",
+        "sem_father"
+      ],
+      "bonus_combined_ranking": [
+        "sem_magic_forest",
+        "sem_ordinary_magician",
+        "sem_self",
+        "sem_magic_shop",
+        "sit_leave_home",
+        "sem_gensokyo",
+        "proc_ride_broom"
+      ],
+      "expected_actions": [
+        "proc_ride_broom"
+      ]
+    },
+    {
+      "name": "set_daze_habit",
+      "description": "查询 Da☆Ze 口癖",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "口癖"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "句尾带着Da☆Ze说话已经成了改不掉的习惯",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "习惯",
+            "人物"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和灵梦在一块时，总是一口一个Da☆Ze",
                 "location": null,
                 "participants": [
                   {
                     "name": "博丽灵梦",
-                    "role": "挚友兼对手"
+                    "role": "对话对象"
                   }
                 ],
                 "time_span": null,
                 "environment": null,
-                "event": [
-                  {
-                    "action": "斗嘴"
-                  }
-                ]
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "去神社找人玩也带着那股标志性的语气词",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "连灵梦都开始学我的口头禅了",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "口癖"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "大大咧咧的语调里那个Da☆Ze就是我的标志",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "口癖"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "一说顺嘴就蹦出的口头禅，想改都改不了",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -983,804 +2089,95 @@
             "sit_with_reimu"
           ],
           "bonus_ranking": [
-            "sem_reimu"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_with_reimu"
-      ],
-      "bonus_combined_ranking": [
-        "sem_reimu"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_22",
-      "description": "atomic query 22",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "事件",
-            "异变"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她和人偶使搭档去永远亭那边解决异变还赚了几本魔导书",
-                "location": [
-                  {
-                    "name": "永远亭",
-                    "coordinates": "迷途竹林"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "爱丽丝·玛格特罗依德",
-                    "role": "搭档"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_eientei_team"
-          ],
-          "bonus_ranking": [
-            "sem_alice",
-            "sem_mini_hakkero"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_eientei_team"
-      ],
-      "bonus_combined_ranking": [
-        "sem_alice",
-        "sem_mini_hakkero"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_rinno",
-      "description": "查询魔理沙最重要的亲友森近霖之助",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "亲友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她最信任的人",
-                "description": "那个从小照顾她、给她做魔法道具的旧雾雨家雇员"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "亲友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "香霖堂的老板",
-                "description": "虽然经常被她白拿东西但还是温柔对待她的那个男人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "亲友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "比父亲还亲的人",
-                "description": "她离家后唯一真正关心她的那个人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "亲友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "迷你八卦炉的赠予者",
-                "description": "亲手做了那个八边形魔法道具送她的人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "亲友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "银发的旧识",
-                "description": "那个总是叹着气收拾她烂摊子的杂货店店主"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "亲友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "绯绯色金升级者",
-                "description": "后来还用特殊金属帮她强化了八卦炉的那个人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "亲友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "老好人店主",
-                "description": "她小时候常去他店里玩，现在也经常去白嫖的那个男人"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_rinno"
-          ],
-          "bonus_ranking": [
-            "sem_mini_hakkero",
-            "sem_kourindou"
+            "sem_self",
+            "proc_speak_daze"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_rinno"
+            "sit_with_reimu"
           ],
           "bonus_ranking": [
-            "sem_mini_hakkero"
+            "sem_reimu",
+            "sem_self"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_rinno"
+            "sit_visit_shrine"
           ],
           "bonus_ranking": [
-            "sem_father"
+            "sem_self"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_rinno"
+            "sit_with_reimu"
           ],
           "bonus_ranking": [
-            "sem_mini_hakkero",
-            "proc_collect"
+            "sem_reimu",
+            "sem_self"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_rinno"
+            "sit_with_reimu"
           ],
           "bonus_ranking": [
-            "sem_kourindou"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_rinno"
-          ],
-          "bonus_ranking": [
-            "sem_mini_hakkero",
-            "sem_magic_forest"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_rinno"
-          ],
-          "bonus_ranking": [
-            "sem_kourindou",
-            "sem_gensokyo"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_rinno"
-      ],
-      "bonus_combined_ranking": [
-        "sem_mini_hakkero",
-        "sem_kourindou",
-        "sem_father",
-        "proc_collect",
-        "sem_magic_forest",
-        "sem_gensokyo"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_leave_home",
-      "description": "查询魔理沙离家出走事件",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "人生转折"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她抛弃了本家一个人搬到魔法森林住",
-                "location": [
-                  {
-                    "name": "人类村落",
-                    "coordinates": "幻想乡"
-                  }
-                ],
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "离家出走"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "人生转折"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她为了当魔法使和家里断了关系",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "雾雨魔理沙",
-                    "role": "主角"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "断绝关系"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "人生转折"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她离开村落独自开创魔法店的起点",
-                "location": [
-                  {
-                    "name": "魔法森林",
-                    "coordinates": "幻想乡"
-                  }
-                ],
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "搬迁"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "人生转折"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她再也不想回那个家了",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "雾雨父亲",
-                    "role": "断绝关系的对象"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "出走"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "人生转折"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她按照自己的方式生活的开始——离开人类村落",
-                "location": [
-                  {
-                    "name": "人类村落",
-                    "coordinates": "幻想乡"
-                  }
-                ],
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "离家"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "人生转折"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她离开后唯一还关心她的人就是那个旧雇员",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "森近霖之助",
-                    "role": "担心她的人"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "离家"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "人生转折"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她决心成为魔法使后就从家里消失了",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "决意"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_leave_home"
-          ],
-          "bonus_ranking": [
-            "sem_father",
-            "sem_magic_forest"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_leave_home"
-          ],
-          "bonus_ranking": [
-            "sem_father",
-            "sem_ordinary_magician"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_leave_home"
-          ],
-          "bonus_ranking": [
-            "sem_magic_shop"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_leave_home"
-          ],
-          "bonus_ranking": [
-            "sem_father"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_leave_home"
-          ],
-          "bonus_ranking": [
-            "sem_magic_forest",
             "sem_self"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sit_leave_home"
+            "sit_with_reimu"
           ],
           "bonus_ranking": [
-            "sem_rinno"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_leave_home"
-          ],
-          "bonus_ranking": [
-            "sem_father",
-            "sem_magic_forest"
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_leave_home"
+        "sit_with_reimu",
+        "sit_visit_shrine"
       ],
       "bonus_combined_ranking": [
-        "sem_father",
-        "sem_magic_forest",
-        "sem_ordinary_magician",
-        "sem_magic_shop",
         "sem_self",
-        "sem_rinno"
+        "proc_speak_daze",
+        "sem_reimu"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_speak_daze"
+      ]
     },
     {
-      "name": "set_magic_ability",
-      "description": "查询魔理沙的魔法能力和招牌技能",
+      "name": "set_forest_life_collect",
+      "description": "查询魔法森林的日常与收集习惯",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 7,
           "tag": [
-            "能力",
-            "技能"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "光与热的魔法",
-                "description": "她擅长的那种破坏力超强的魔法"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "能力",
-            "技能"
+            "日常",
+            "活动"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她跟向日葵妖怪战斗后学会了释放巨大光柱",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "风见幽香",
-                    "role": "老师"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "学会必杀技"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "能力",
-            "技能"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "恋符极限火花",
-                "description": "通过八卦炉释放的巨大魔力光柱，她的代表性招式"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "能力",
-            "技能"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "水属性却玩火",
-                "description": "她明明属水却专攻高火力魔法，跟自己的属性过不去"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "能力",
-            "技能"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "普通的魔法使",
-                "description": "她自称普通但其实一点都不普通的魔法能力"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "能力",
-            "技能"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她靠蘑菇和实验提升自己的魔法",
+                "narrative": "在魔法森林里采蘑菇做研究材料的日常",
                 "location": [
                   {
                     "name": "魔法森林",
-                    "coordinates": "幻想乡"
+                    "coordinates": ""
                   }
                 ],
                 "participants": null,
                 "time_span": null,
                 "environment": null,
-                "event": [
-                  {
-                    "action": "魔法实验"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "能力",
-            "技能"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她通过那个八边形道具释放出毁天灭地的光柱",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "释放Master Spark"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [],
-          "bonus_ranking": [
-            "sem_magic_ability",
-            "sem_master_spark",
-            "sem_mini_hakkero"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [],
-          "bonus_ranking": [
-            "sem_magic_ability",
-            "sem_master_spark",
-            "sit_learn_master_spark"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [],
-          "bonus_ranking": [
-            "sem_master_spark",
-            "sem_mini_hakkero"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [],
-          "bonus_ranking": [
-            "sem_magic_ability",
-            "sem_water_attribute"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [],
-          "bonus_ranking": [
-            "sem_magic_ability",
-            "sem_ordinary_magician"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [],
-          "bonus_ranking": [
-            "sem_magic_ability",
-            "sem_magic_forest"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [],
-          "bonus_ranking": [
-            "sem_master_spark",
-            "sem_mini_hakkero"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [],
-      "bonus_combined_ranking": [
-        "sem_magic_ability",
-        "sem_master_spark",
-        "sem_mini_hakkero",
-        "sit_learn_master_spark",
-        "sem_water_attribute",
-        "sem_ordinary_magician",
-        "sem_magic_forest"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_friends",
-      "description": "查询魔理沙的主要人际关系（朋友和对手）",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "友人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "红白巫女",
-                "description": "她最大的竞争对手和好朋友，博丽神社的巫女"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "朋友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "七色人形使",
-                "description": "她的邻居，表面上水火不容但其实经常一起睡觉的傲娇"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "朋友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "大图书馆的魔女",
-                "description": "经常去借书的老病弱魔女，虽然叫她黑白但其实是朋友"
+                "event": null
               }
             ]
           }
@@ -1788,14 +2185,33 @@
         {
           "priority": 6,
           "tag": [
-            "人物",
-            "同行"
+            "地点",
+            "住所"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "外来的风祝",
-                "description": "从外界来的现人神，初次见面被她和巫女教训了一顿"
+                "concept_identifier": "我住的魔法森林",
+                "description": "人迹罕至长满蘑菇，既是家也是魔法原料库"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "收集"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "出门采蘑菇总顺便把看到的新鲜玩意搂回家",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -1803,44 +2219,48 @@
         {
           "priority": 5,
           "tag": [
-            "人物",
-            "旧作"
+            "习惯",
+            "性格"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "旧作师傅",
-                "description": "在旧作中算是她老师的存在，教了她星形弹幕"
+                "concept_identifier": "看到好东西就手痒的收集癖",
+                "description": "不管是不是自己的都想往家里拿，摆得乱七八糟"
               }
             ]
           }
         },
         {
-          "priority": 6,
+          "priority": 4,
           "tag": [
-            "人物",
-            "家人"
+            "习惯",
+            "日常"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "断绝关系的父亲",
-                "description": "雾雨家的家主，她已经离家出走不再来往"
+                "narrative": "屋子里堆满收集品，从来不收拾",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
         },
         {
-          "priority": 8,
+          "priority": 5,
           "tag": [
-            "人物",
-            "亲友"
+            "习惯",
+            "地点"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "香霖堂的掌柜",
-                "description": "她最信任的人，从小照顾她的那个银发男人"
+                "concept_identifier": "香霖堂进货式的蹭东西",
+                "description": "连店里展示品都想搬回家，霖之助都懒得说我了"
               }
             ]
           }
@@ -1850,342 +2270,77 @@
         {
           "q": 0,
           "ranking": [
-            "sem_reimu"
+            "sit_mushroom_gathering"
           ],
           "bonus_ranking": [
-            "sem_sanae"
+            "sem_magic_forest"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_alice"
+            "sem_magic_forest"
           ],
           "bonus_ranking": [
-            "sem_patchouli"
+            "sit_mushroom_gathering"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_patchouli"
+            "sit_mushroom_gathering"
           ],
           "bonus_ranking": [
-            "sem_alice"
+            "proc_collect"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_sanae"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_reimu"
+            "sem_magic_shop",
+            "proc_never_organize"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_mima"
-          ],
-          "bonus_ranking": [
-            "sem_gensokyo"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_father"
+            "sit_mushroom_gathering"
           ],
           "bonus_ranking": [
             "sem_magic_shop"
           ]
         },
         {
-          "q": 6,
-          "ranking": [
-            "sem_rinno"
-          ],
-          "bonus_ranking": [
-            "sem_kourindou"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_reimu",
-        "sem_alice",
-        "sem_patchouli",
-        "sem_sanae",
-        "sem_mima",
-        "sem_father",
-        "sem_rinno"
-      ],
-      "bonus_combined_ranking": [
-        "sem_sanae",
-        "sem_patchouli",
-        "sem_alice",
-        "sem_reimu",
-        "sem_gensokyo",
-        "sem_magic_shop",
-        "sem_kourindou"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_incidents",
-      "description": "查询魔理沙参与过的异变和重要事件",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "异变"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她和人偶使一起组队去永远亭解决那场月光异变",
-                "location": [
-                  {
-                    "name": "永远亭",
-                    "coordinates": "迷途竹林"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "爱丽丝·玛格特罗依德",
-                    "role": "搭档"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "异变"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她联合巫女狠狠教训了那个刚来幻想乡还很嚣张的绿发风祝",
-                "location": [
-                  {
-                    "name": "妖怪之山",
-                    "coordinates": "守矢神社附近"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "东风谷早苗",
-                    "role": "对手"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "异变"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她跑到地底解决那场超乎常理的异变",
-                "location": [
-                  {
-                    "name": "地灵殿",
-                    "coordinates": "地底"
-                  }
-                ],
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "解决异变"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "重要物品"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她离家后收到那个最重要的礼物——迷你八卦炉",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "森近霖之助",
-                    "role": "赠予者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "赠送"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "技能习得"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她在一场生死战中从对手那里学到了大绝招",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "风见幽香",
-                    "role": "对手/老师"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "学得必杀技"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "人生转折"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她放弃家族独自搬到魔法森林生活的转折",
-                "location": [
-                  {
-                    "name": "人类村落",
-                    "coordinates": "幻想乡"
-                  }
-                ],
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "离家"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_eientei_team"
-          ],
-          "bonus_ranking": [
-            "sem_alice",
-            "sem_mini_hakkero"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_beat_sanae"
-          ],
-          "bonus_ranking": [
-            "sem_sanae",
-            "sem_reimu"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_chireiden"
-          ],
-          "bonus_ranking": [
-            "sem_gensokyo",
-            "sem_danmaku_rules"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_receive_hakkero"
-          ],
-          "bonus_ranking": [
-            "sem_rinno",
-            "sem_mini_hakkero"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_learn_master_spark"
-          ],
-          "bonus_ranking": [
-            "sem_master_spark"
-          ]
-        },
-        {
           "q": 5,
           "ranking": [
-            "sit_leave_home"
+            "sem_kourindou"
           ],
           "bonus_ranking": [
-            "sem_magic_forest"
+            "proc_collect"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_eientei_team",
-        "sit_beat_sanae",
-        "sit_chireiden",
-        "sit_receive_hakkero",
-        "sit_learn_master_spark",
-        "sit_leave_home"
+        "sit_mushroom_gathering",
+        "sem_magic_forest",
+        "sem_self",
+        "sem_kourindou"
       ],
       "bonus_combined_ranking": [
-        "sem_alice",
-        "sem_mini_hakkero",
-        "sem_sanae",
-        "sem_reimu",
-        "sem_gensokyo",
-        "sem_danmaku_rules",
-        "sem_rinno",
-        "sem_master_spark",
-        "sem_magic_forest"
+        "sem_magic_forest",
+        "sit_mushroom_gathering",
+        "proc_collect",
+        "sem_magic_shop",
+        "proc_never_organize"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_collect",
+        "proc_record_experiment",
+        "proc_never_organize"
+      ]
     }
   ]
 }

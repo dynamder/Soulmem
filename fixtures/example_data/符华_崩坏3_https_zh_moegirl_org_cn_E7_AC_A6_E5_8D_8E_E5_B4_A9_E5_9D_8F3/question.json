@@ -17,16 +17,15 @@
       "description": "atomic query 0",
       "sub_queries": [
         {
-          "priority": 5,
+          "priority": 9,
           "tag": [
-            "角色",
-            "别称"
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "被学生叫做老古董的仙人",
-                "description": "那个活了五万年还被琪亚娜她们称作老古董的女武神"
+                "concept_identifier": "活了五万年的仙人",
+                "description": "拥有不死之身、守护神州五千年的古老战士"
               }
             ]
           }
@@ -39,7 +38,8 @@
             "sem_self"
           ],
           "bonus_ranking": [
-            "proc_old_fashioned"
+            "sem_immortal",
+            "sem_fusion_warrior"
           ]
         }
       ],
@@ -47,7 +47,8 @@
         "sem_self"
       ],
       "bonus_combined_ranking": [
-        "proc_old_fashioned"
+        "sem_immortal",
+        "sem_fusion_warrior"
       ],
       "expected_actions": []
     },
@@ -58,18 +59,14 @@
         {
           "priority": 8,
           "tag": [
-            "事件",
-            "背叛"
+            "人物",
+            "学生"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "奥托主教用拟态天火圣裁枪击她头部的事件",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "那个白发的学生",
+                "description": "教过太虚剑气、后来把她从封印中救出来的姑娘"
               }
             ]
           }
@@ -79,19 +76,17 @@
         {
           "q": 0,
           "ranking": [
-            "sit_otto_shot"
+            "sem_kiana"
           ],
           "bonus_ranking": [
-            "sem_otto",
             "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_otto_shot"
+        "sem_kiana"
       ],
       "bonus_combined_ranking": [
-        "sem_otto",
         "sem_self"
       ],
       "expected_actions": []
@@ -101,16 +96,16 @@
       "description": "atomic query 2",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 8,
           "tag": [
             "人物",
-            "律者"
+            "羁绊"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "从她身体里诞生的那个又狂又可爱的律者",
-                "description": "拥有她完整记忆但性格张扬的第八律者"
+                "concept_identifier": "从她身体里诞生的律者",
+                "description": "和她截然不同却最终和解的那个张扬存在，后来依附羽毛而活"
               }
             ]
           }
@@ -123,7 +118,8 @@
             "sem_herrscher_of_sentience"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_self",
+            "sem_yuandu_chen"
           ]
         }
       ],
@@ -131,7 +127,8 @@
         "sem_herrscher_of_sentience"
       ],
       "bonus_combined_ranking": [
-        "sem_self"
+        "sem_self",
+        "sem_yuandu_chen"
       ],
       "expected_actions": []
     },
@@ -142,13 +139,462 @@
         {
           "priority": 9,
           "tag": [
+            "人物",
+            "前文明",
+            "队长"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "把她从低谷中拉出来的那位队长",
+                "description": "前文明第五小队队长，后来成为炎之律者被讨伐的人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_himeko_ancient"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_himeko_modern"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_himeko_ancient"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_himeko_modern"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "概念",
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个发饰形状的神之键",
+                "description": "能操纵意识、以燃烧记忆为代价使用的古老武器"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_yuandu_chen"
+          ],
+          "bonus_ranking": [
+            "sem_taixu_god_sword"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_yuandu_chen"
+      ],
+      "bonus_combined_ranking": [
+        "sem_taixu_god_sword"
+      ],
+      "expected_actions": [
+        "proc_use_yuandu"
+      ]
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "概念",
+            "武学"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她创立的剑术体系",
+                "description": "分心形意魂神五蕴、最高境界是剑神的那套武学"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_taixu"
+          ],
+          "bonus_ranking": [
+            "sem_taixu_god_sword"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_taixu"
+      ],
+      "bonus_combined_ranking": [
+        "sem_taixu_god_sword"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "前文明",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "和女娲一起执行火种计划的同伴",
+                "description": "前文明科学家，在讨伐蚩尤时牺牲的沉稳女性"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_cangxuan"
+          ],
+          "bonus_ranking": [
+            "sem_danzhu",
+            "sem_fire_seed_plan"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_cangxuan"
+      ],
+      "bonus_combined_ranking": [
+        "sem_danzhu",
+        "sem_fire_seed_plan"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "徒弟"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "最小的徒弟",
+                "description": "剑心达到无尘境界、为守护失去记忆的她而死的寒霜剑客"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_cheng_lixue"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_taixu_swords"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_cheng_lixue"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_taixu_swords"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "背叛者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "夜袭师父的那群徒弟",
+                "description": "五百年前在拂云观对她动手、还放火烧山的七个人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_taixu_swords"
+          ],
+          "bonus_ranking": [
+            "sem_mount_taixu"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_taixu_swords"
+      ],
+      "bonus_combined_ranking": [
+        "sem_mount_taixu"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "敌人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个开枪打过她的主教",
+                "description": "五百年来为复活心爱之人不择手段的天命领导者"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_otto"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_otto"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "前文明",
+            "战友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "逐火十三英桀最强的第一席",
+                "description": "曾被她怨恨后来终于理解的前文明最强者"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_kevin"
+          ],
+          "bonus_ranking": [
+            "sem_su",
+            "sem_mei"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kevin"
+      ],
+      "bonus_combined_ranking": [
+        "sem_su",
+        "sem_mei"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "概念",
+            "使命"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她坚守五万年的那个任务",
+                "description": "前文明委托她向下一代文明传授知识的计划"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fire_seed_plan"
+          ],
+          "bonus_ranking": [
+            "sem_mei",
+            "sem_cangxuan"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fire_seed_plan"
+      ],
+      "bonus_combined_ranking": [
+        "sem_mei",
+        "sem_cangxuan"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "概念",
+            "信念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她战斗的理由",
+                "description": "愿意为世界上所有的美好而战的信念"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_guardian"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_self_sacrifice"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_guardian"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_self_sacrifice"
+      ],
+      "expected_actions": [
+        "proc_protect_companions"
+      ]
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "地点",
+            "守护对象"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她守护了五千年的土地",
+                "description": "见证无数王朝兴衰、送走无数挚友的地方"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_shenzhou"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_shenzhou"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
             "事件",
-            "战斗"
+            "战斗",
+            "牺牲"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "第二次崩坏中燃烧记忆发动羽渡尘第一额定功率斩断崩坏意志与西琳连接",
+                "narrative": "为了斩断崩坏意志和律者的连接，她烧掉了很多记忆，连眼前徒弟的名字都记不起来了",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -167,7 +613,8 @@
           ],
           "bonus_ranking": [
             "sem_yuandu_chen",
-            "sem_taixu_god_sword"
+            "sem_self_sacrifice",
+            "sem_cheng_lixue"
           ]
         }
       ],
@@ -176,62 +623,28 @@
       ],
       "bonus_combined_ranking": [
         "sem_yuandu_chen",
-        "sem_taixu_god_sword"
+        "sem_self_sacrifice",
+        "sem_cheng_lixue"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_use_yuandu",
+        "proc_protect_companions"
+      ]
     },
     {
-      "name": "query_4",
-      "description": "atomic query 4",
+      "name": "query_15",
+      "description": "atomic query 15",
       "sub_queries": [
         {
           "priority": 9,
           "tag": [
-            "人物",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "前文明第一席和他的恋人",
-                "description": "逐火十三英桀第一席救世凯文和梅博士的羁绊"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_kevin",
-            "sem_mei"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_kevin",
-        "sem_mei"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_5",
-      "description": "atomic query 5",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
             "事件",
-            "背叛",
-            "转折点"
+            "背叛"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "五百年前的某个夜晚被七个徒弟袭击几乎身死并失去不死身",
+                "narrative": "五百年前的一个夜晚，她收的几个徒弟突然反目，在道观里围攻她，还放了火",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -249,8 +662,8 @@
             "sit_taixu_incident"
           ],
           "bonus_ranking": [
-            "sem_immortal",
-            "sem_taixu_swords"
+            "sem_taixu_swords",
+            "sem_mount_taixu"
           ]
         }
       ],
@@ -258,64 +671,25 @@
         "sit_taixu_incident"
       ],
       "bonus_combined_ranking": [
-        "sem_immortal",
-        "sem_taixu_swords"
+        "sem_taixu_swords",
+        "sem_mount_taixu"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_6",
-      "description": "atomic query 6",
+      "name": "query_16",
+      "description": "atomic query 16",
       "sub_queries": [
         {
-          "priority": 4,
-          "tag": [
-            "习惯",
-            "技能"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "做得一手好中国菜的那位班长",
-                "description": "厨艺精湛擅长神州风味的面食"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": [
-            "proc_cooking"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_self"
-      ],
-      "bonus_combined_ranking": [
-        "proc_cooking"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_7",
-      "description": "atomic query 7",
-      "sub_queries": [
-        {
-          "priority": 6,
+          "priority": 8,
           "tag": [
             "事件",
-            "学校"
+            "转折点"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "作为A级女武神兼班长进入圣芙蕾雅学园任教的日子",
+                "narrative": "被那个主教用枪打中后，她的灵魂附在羽毛上，一直陪在一个白发女孩身边",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -330,118 +704,40 @@
         {
           "q": 0,
           "ranking": [
-            "sit_enter_st_freya"
+            "sit_otto_shot"
           ],
           "bonus_ranking": [
-            "sem_st_freya",
-            "sem_kiana"
+            "sem_otto",
+            "sem_kiana",
+            "sem_yuandu_chen"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_enter_st_freya"
+        "sit_otto_shot"
       ],
       "bonus_combined_ranking": [
-        "sem_st_freya",
-        "sem_kiana"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_8",
-      "description": "atomic query 8",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "能力",
-            "神之键"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的精卫发饰其实是第八神之键",
-                "description": "能够操纵大脑信号、主掌意识的神之键羽渡尘"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_yuandu_chen"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
+        "sem_otto",
+        "sem_kiana",
         "sem_yuandu_chen"
       ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
       "expected_actions": []
     },
     {
-      "name": "query_9",
-      "description": "atomic query 9",
+      "name": "query_17",
+      "description": "atomic query 17",
       "sub_queries": [
         {
-          "priority": 9,
-          "tag": [
-            "角色",
-            "守护",
-            "地点"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "守护了神州五千年的那位仙人",
-                "description": "见证了华夏数千年历史变迁的神州守护者"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_shenzhou",
-            "sem_self"
-          ],
-          "bonus_ranking": [
-            "sem_guardian"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_shenzhou",
-        "sem_self"
-      ],
-      "bonus_combined_ranking": [
-        "sem_guardian"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_10",
-      "description": "atomic query 10",
-      "sub_queries": [
-        {
-          "priority": 7,
+          "priority": 8,
           "tag": [
             "事件",
+            "战斗",
             "和解"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "与一个从她体内诞生的律者大战之后最终和解",
+                "narrative": "和一个从自己身体里醒来的律者打了一架，最后握手言和，那律者带走权能住进了羽毛里",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -472,20 +768,20 @@
       "expected_actions": []
     },
     {
-      "name": "query_11",
-      "description": "atomic query 11",
+      "name": "query_18",
+      "description": "atomic query 18",
       "sub_queries": [
         {
           "priority": 8,
           "tag": [
             "事件",
             "前文明",
-            "实验"
+            "转变"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在澳大利亚废墟与帝王级崩坏兽基因融合成为融合战士的实验",
+                "narrative": "在一场可怕的人体实验中活了下来，从此头发变白眼珠变红，身体永远停在十七岁",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -518,49 +814,8 @@
       "expected_actions": []
     },
     {
-      "name": "query_12",
-      "description": "atomic query 12",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "人物",
-            "战友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "和现代姬子是战友但容貌和古代队长一样的火焰女",
-                "description": "圣芙蕾雅第五小队队长与卑弥呼相同的面容"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_himeko_modern",
-            "sem_himeko_ancient"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_himeko_modern",
-        "sem_himeko_ancient"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_13",
-      "description": "atomic query 13",
+      "name": "query_19",
+      "description": "atomic query 19",
       "sub_queries": [
         {
           "priority": 7,
@@ -571,7 +826,7 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "明朝在钦察草原以一己之力击退卡莲卡斯兰娜率领的天命远征军",
+                "narrative": "在草原上一个人击退了来犯的天命大军，还被画成了一幅图",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -589,7 +844,8 @@
             "sit_kalpas_battle"
           ],
           "bonus_ranking": [
-            "sem_shenzhou"
+            "sem_shenzhou",
+            "sem_self"
           ]
         }
       ],
@@ -597,356 +853,27 @@
         "sit_kalpas_battle"
       ],
       "bonus_combined_ranking": [
-        "sem_shenzhou"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "武学",
-            "概念"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她创立的包含心形意魂神五蕴的武学",
-                "description": "源自前文明神音实验的太虚剑气体系"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_taixu"
-          ],
-          "bonus_ranking": [
-            "sem_taixu_god_sword"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_taixu"
-      ],
-      "bonus_combined_ranking": [
-        "sem_taixu_god_sword"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_15",
-      "description": "atomic query 15",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她最小的徒弟程立雪在第二次崩坏中为了保护昏迷的她被西琳杀死",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_second_houkai"
-          ],
-          "bonus_ranking": [
-            "sem_cheng_lixue"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_second_houkai"
-      ],
-      "bonus_combined_ranking": [
-        "sem_cheng_lixue"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_16",
-      "description": "atomic query 16",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "能力",
-            "概念"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "十七岁后身体就不再长大的特性",
-                "description": "融合战士实验带来的身体定格与快速恢复的不死之身"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_immortal"
-          ],
-          "bonus_ranking": [
-            "sem_fusion_warrior"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_immortal"
-      ],
-      "bonus_combined_ranking": [
-        "sem_fusion_warrior"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_17",
-      "description": "atomic query 17",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "敌人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "与她交易最终又背叛她的天命主教",
-                "description": "五百年间利用她作为棋子并在最后用拟态天火圣裁枪击她的男人"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_otto"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sit_otto_shot"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_otto"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sit_otto_shot"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_18",
-      "description": "atomic query 18",
-      "sub_queries": [
-        {
-          "priority": 3,
-          "tag": [
-            "装备",
-            "习惯"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她经常佩戴的红框眼镜",
-                "description": "奥托给她的通讯设备和装甲接驳接口"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": [
-            "proc_wear_glasses",
-            "sem_otto"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
+        "sem_shenzhou",
         "sem_self"
       ],
-      "bonus_combined_ranking": [
-        "proc_wear_glasses",
-        "sem_otto"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_19",
-      "description": "atomic query 19",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "社交",
-            "互动"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "被学生和识之律者叫做老古董的那些调侃互动",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_event_teasing"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "proc_old_fashioned"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_event_teasing"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "proc_old_fashioned"
-      ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_combat_style"
+      ]
     },
     {
       "name": "query_20",
       "description": "atomic query 20",
       "sub_queries": [
         {
-          "priority": 8,
-          "tag": [
-            "概念",
-            "使命"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "前文明毁灭前梅博士托付给她的知识传承计划",
-                "description": "与苍玄丹朱一同执行的向下世代传授知识的火种计划"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_fire_seed_plan",
-            "sem_mei"
-          ],
-          "bonus_ranking": [
-            "sem_cangxuan",
-            "sem_danzhu"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_fire_seed_plan",
-        "sem_mei"
-      ],
-      "bonus_combined_ranking": [
-        "sem_cangxuan",
-        "sem_danzhu"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_21",
-      "description": "atomic query 21",
-      "sub_queries": [
-        {
           "priority": 7,
           "tag": [
-            "人物",
-            "挚友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那两位执行火种计划的牺牲挚友",
-                "description": "前文明科学家苍玄与丹朱，在讨伐蚩尤时双双牺牲"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_cangxuan",
-            "sem_danzhu"
-          ],
-          "bonus_ranking": [
-            "sem_fire_seed_plan"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_cangxuan",
-        "sem_danzhu"
-      ],
-      "bonus_combined_ranking": [
-        "sem_fire_seed_plan"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_22",
-      "description": "atomic query 22",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
             "事件",
-            "日常"
+            "学校生活"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在圣芙蕾雅学园以班长身份教导琪亚娜三人组的日常",
+                "narrative": "以A级女武神的身份混进女武神学院当班长，本来是当眼线，结果被学生们感染了",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -981,56 +908,11 @@
       "expected_actions": []
     },
     {
-      "name": "query_23",
-      "description": "atomic query 23",
+      "name": "query_21",
+      "description": "atomic query 21",
       "sub_queries": [
         {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "转折"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "被奥托枪击后灵魂附着在羽毛上与琪亚娜绑定同行的时期",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_otto_shot"
-          ],
-          "bonus_ranking": [
-            "sem_kiana",
-            "sem_yuandu_chen"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_otto_shot"
-      ],
-      "bonus_combined_ranking": [
-        "sem_kiana",
-        "sem_yuandu_chen"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_24",
-      "description": "atomic query 24",
-      "sub_queries": [
-        {
-          "priority": 5,
+          "priority": 7,
           "tag": [
             "人物",
             "战友"
@@ -1038,8 +920,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "送过他一本诗集的那位逆熵盟主",
-                "description": "1955年在英国邵森德相遇时赠送诗集的现任第一律者"
+                "concept_identifier": "和她前队长长得一模一样的女武神",
+                "description": "圣芙蕾雅学园的第五小队队长，牺牲自己对抗空之律者的人"
               }
             ]
           }
@@ -1049,111 +931,38 @@
         {
           "q": 0,
           "ranking": [
-            "sem_walter_yang"
+            "sem_himeko_modern"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_himeko_ancient",
+            "sem_st_freya"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_walter_yang"
+        "sem_himeko_modern"
       ],
       "bonus_combined_ranking": [
-        "sem_self"
+        "sem_himeko_ancient",
+        "sem_st_freya"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_herrscher_sentience",
-      "description": "查询识之律者",
+      "name": "query_22",
+      "description": "atomic query 22",
       "sub_queries": [
         {
           "priority": 7,
           "tag": [
             "人物",
-            "律者"
+            "后辈"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "从符华身体中诞生的第八律者",
-                "description": "继承了她全部记忆但性格截然不同的律者"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "律者"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "小识",
-                "description": "她们习惯这样叫她，那个又狂又傲的识之律者"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "律者"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "识宝",
-                "description": "粉丝对她的爱称，也是从班长体内分离出来的律者"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "律者"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她最后和解的那个律者",
-                "description": "大战后带走权能以羽毛形式独立存在的那位"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "律者"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "拥有符华记忆却性格狂放的意识体",
-                "description": "从她身体里新生又选择独立的律者"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "律者"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个自称符华但其实是律者的家伙",
-                "description": "起初冒用身份后来与本体和解的第八律者"
+                "concept_identifier": "秦素衣的女儿",
+                "description": "太虚剑气隔代传人，曾要求以符华之名和她一战"
               }
             ]
           }
@@ -1163,183 +972,38 @@
         {
           "q": 0,
           "ranking": [
-            "sem_herrscher_of_sentience"
+            "sem_li_sushang"
           ],
           "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_herrscher_of_sentience"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_herrscher_of_sentience"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_herrscher_of_sentience"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sit_sentience_battle"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_herrscher_of_sentience"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_herrscher_of_sentience"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sit_sentience_battle"
+            "sem_taixu",
+            "sem_taixu_swords"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_herrscher_of_sentience"
+        "sem_li_sushang"
       ],
       "bonus_combined_ranking": [
-        "sem_self",
-        "sit_sentience_battle"
+        "sem_taixu",
+        "sem_taixu_swords"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_second_houkai",
-      "description": "查询第二次崩坏中太虚剑神斩崩坏意志的事件",
+      "name": "query_23",
+      "description": "atomic query 23",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 6,
           "tag": [
-            "事件",
-            "战斗"
+            "概念",
+            "技能"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "第二次崩坏中为了斩断西琳和崩坏意志联系而燃烧记忆的那一战",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她发动羽渡尘第一额定功率的战场",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "用太虚剑神直接攻击崩坏意志的壮举",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "唯一一次对神做出的直接干涉",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "崩坏史上第一次也是唯一一次攻击崩坏意志本身的战斗",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "为了救西琳？不对，是为了斩断控制而燃烧记忆的大事件",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "不可被防御的那一剑",
+                "description": "直接攻击敌人意识、连神都无法防御的终极招式"
               }
             ]
           }
@@ -1349,194 +1013,93 @@
         {
           "q": 0,
           "ranking": [
-            "sit_second_houkai"
+            "sem_taixu_god_sword"
           ],
           "bonus_ranking": [
             "sem_yuandu_chen",
-            "sem_taixu_god_sword"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
             "sit_second_houkai"
-          ],
-          "bonus_ranking": [
-            "sem_yuandu_chen"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_second_houkai"
-          ],
-          "bonus_ranking": [
-            "sem_taixu_god_sword",
-            "sem_houkai"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_second_houkai"
-          ],
-          "bonus_ranking": [
-            "sem_taixu_god_sword"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_second_houkai"
-          ],
-          "bonus_ranking": [
-            "sem_self_sacrifice",
-            "sem_yuandu_chen"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_second_houkai"
-          ],
-          "bonus_ranking": [
-            "sem_cheng_lixue"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_second_houkai"
+        "sem_taixu_god_sword"
       ],
       "bonus_combined_ranking": [
         "sem_yuandu_chen",
-        "sem_taixu_god_sword",
-        "sem_houkai",
-        "sem_self_sacrifice",
-        "sem_cheng_lixue"
+        "sit_second_houkai"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_taixu_incident",
-      "description": "查询1476年太虚山被徒弟背叛的事件",
+      "name": "set_fu_hua",
+      "description": "查询符华这个角色本身",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
-            "事件",
-            "背叛"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "被七个徒弟同时背叛的那个夜晚",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "背叛"
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "夜袭拂云观的太虚七剑",
-                "description": "她五百年前收的七个徒弟，因不明原因联合袭击了她"
+                "concept_identifier": "活了五万年的仙人",
+                "description": "拥有不死之身、守护神州五千年的古老战士"
               }
             ]
           }
         },
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
-            "事件",
-            "背叛"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "1476年发生在太虚山的悲剧",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "背叛"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她的七个徒弟因不明原因对她挥剑",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "背叛"
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "背叛她的那些徒弟",
-                "description": "林朝雨、苏湄、江婉兮、江婉如、程凌霜、马非马、秦素衣"
+                "concept_identifier": "赤鸢仙人",
+                "description": "创建太虚剑派、经历太虚事变的那个人"
               }
             ]
           }
         },
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
-            "事件",
-            "背叛"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她被最信任的人围攻差点身死的那一夜",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "背叛"
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "太虚七剑叛变",
-                "description": "导致她沉睡二十年并失去不死身的重大事件"
+                "concept_identifier": "圣芙蕾雅的班长",
+                "description": "平时戴着红框眼镜、看起来很冷淡的前辈"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "老古董",
+                "description": "五万年前前文明的融合战士，逐火十三英桀第十二席"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "守护神州五千年的那位",
+                "description": "以守护为信念、身体永远十七岁的女战士"
               }
             ]
           }
@@ -1546,179 +1109,23 @@
         {
           "q": 0,
           "ranking": [
-            "sit_taixu_incident",
-            "sem_taixu_swords"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_mount_taixu",
             "sem_immortal"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_taixu_swords",
-            "sit_taixu_incident"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_mount_taixu"
+            "sem_fusion_warrior"
           ]
         },
         {
           "q": 2,
-          "ranking": [
-            "sit_taixu_incident",
-            "sem_taixu_swords"
-          ],
-          "bonus_ranking": [
-            "sem_mount_taixu"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_taixu_incident",
-            "sem_taixu_swords"
-          ],
-          "bonus_ranking": [
-            "sem_taixu"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_taixu_swords",
-            "sit_taixu_incident"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_taixu_incident",
-            "sem_taixu_swords"
-          ],
-          "bonus_ranking": [
-            "sem_immortal"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_taixu_swords",
-            "sit_taixu_incident"
-          ],
-          "bonus_ranking": [
-            "sem_mount_taixu"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_taixu_incident",
-        "sem_taixu_swords"
-      ],
-      "bonus_combined_ranking": [
-        "sem_mount_taixu",
-        "sem_immortal",
-        "sem_taixu",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_self_info",
-      "description": "查询符华自身的基本信息与别名",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "角色"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个被称作赤鸢仙人的女武神",
-                "description": "守护神州五千年的融合战士，曾任圣芙蕾雅班长"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "角色"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "班长",
-                "description": "圣芙蕾雅学园里那个冷静严肃的班长"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "角色"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "五万年前的融合战士",
-                "description": "从前文明存活至今，逐火十三英桀第十二席"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "角色"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个身体永远十七岁的仙人",
-                "description": "拥有不死之身，发白眼红，背生双翼的战士"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "角色"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她平时在圣芙蕾雅学园戴着红框眼镜上课的场景",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": [
-            "sem_fusion_warrior",
-            "sem_shenzhou"
-          ]
-        },
-        {
-          "q": 1,
           "ranking": [
             "sem_self"
           ],
@@ -1727,110 +1134,65 @@
           ]
         },
         {
-          "q": 2,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": [
-            "sem_fusion_warrior",
-            "sem_kevin"
-          ]
-        },
-        {
           "q": 3,
           "ranking": [
             "sem_self"
           ],
           "bonus_ranking": [
-            "sem_immortal",
-            "sem_fusion_warrior"
+            "sem_taixu"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sit_enter_st_freya"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "proc_wear_glasses"
+            "sem_guardian"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_self",
-        "sit_enter_st_freya"
+        "sem_self"
       ],
       "bonus_combined_ranking": [
-        "sem_fusion_warrior",
-        "sem_shenzhou",
-        "sem_st_freya",
-        "sem_kevin",
         "sem_immortal",
-        "sem_self",
-        "proc_wear_glasses"
+        "sem_fusion_warrior",
+        "sem_st_freya",
+        "sem_taixu",
+        "sem_guardian"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_yuandu_chen",
-      "description": "查询羽渡尘的能力与特点",
+      "name": "set_kiana",
+      "description": "查询琪亚娜与符华的关联",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
-            "能力",
-            "神之键"
+            "人物",
+            "学生"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "意识之键羽渡尘",
-                "description": "第八神之键，可以操纵大脑信号主掌意识的精卫发饰"
+                "concept_identifier": "她的学生琪亚娜",
+                "description": "那个总是叫她班长的白发女孩"
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
-            "能力",
-            "神之键"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "燃烧记忆使用的神器",
-                "description": "她习惯用燃烧记忆的方式发动羽渡尘保护他人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "能力",
-            "神之键"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "可以转移灵魂的神之键",
-                "description": "第零额定功率能够将灵魂转移到羽毛上"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "能力",
-            "神之键"
+            "人物",
+            "学生"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她曾经用这个东西进入布洛妮娅的梦境引导她找回记忆",
+                "narrative": "灵魂附在羽毛上之后，一直陪着的那个白发姑娘成了她的徒弟，教了她太虚剑气",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1841,219 +1203,50 @@
           }
         },
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
-            "能力",
-            "神之键"
+            "人物",
+            "学生"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "第八神之键的发饰形态",
-                "description": "她一直戴在头上的精卫发饰就是羽渡尘的本体"
+                "concept_identifier": "草履虫",
+                "description": "大家这么叫她，但她其实有着纯粹的心，还把她从识之律者手里救了出来"
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
-            "能力",
-            "神之键"
+            "人物",
+            "学生"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "卡斯兰娜家的女儿",
+                "description": "最珍视的学生之一，她的成长改变了班长和许多人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "学生"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "太虚剑神其实就是羽渡尘第一额定功率",
+                "narrative": "被奥托开枪后灵魂与她绑定，一路守护她长大、教她剑术的那个人",
                 "location": null,
                 "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_yuandu_chen"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_yuandu_chen"
-          ],
-          "bonus_ranking": [
-            "sem_self_sacrifice",
-            "proc_use_yuandu"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_yuandu_chen"
-          ],
-          "bonus_ranking": [
-            "sit_otto_shot"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_yuandu_chen"
-          ],
-          "bonus_ranking": [
-            "sem_bronya"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_yuandu_chen"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_yuandu_chen"
-          ],
-          "bonus_ranking": [
-            "sem_taixu_god_sword"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_yuandu_chen"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_self_sacrifice",
-        "proc_use_yuandu",
-        "sit_otto_shot",
-        "sem_bronya",
-        "sem_taixu_god_sword"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_companions",
-      "description": "查询符华的重要同伴与学生",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "学生"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她最珍视的那个草履虫学生",
-                "description": "被她教授太虚剑气，后来从封印中救出她的白发少女"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "学生"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "雷电家的千金剑术高手",
-                "description": "内敛坚韧，第三律者，琪亚娜的守护者"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "学生"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个曾被她在梦境中引导的天才少女",
-                "description": "逆熵出身，以流石贤者身份帮助她找回记忆"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "战友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "和古代队长容貌一样的现代战友",
-                "description": "圣芙蕾雅学园同僚，牺牲自己对抗空之律者"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "战友"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她们曾经一起执行护火种计划最终双双被蚩尤夺走生命",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "后辈"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "秦素衣之女太虚传人",
-                "description": "在科洛斯滕要求以符华之名与之一战后辈"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "战友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "1955年在英国送过诗集的那位盟主",
-                "description": "逆熵现任盟主，第一律者律者继承者"
               }
             ]
           }
@@ -2072,16 +1265,16 @@
         {
           "q": 1,
           "ranking": [
-            "sem_raiden"
+            "sem_kiana"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sit_otto_shot"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_bronya"
+            "sem_kiana"
           ],
           "bonus_ranking": [
             "sem_self"
@@ -2090,8 +1283,7 @@
         {
           "q": 3,
           "ranking": [
-            "sem_himeko_modern",
-            "sem_himeko_ancient"
+            "sem_kiana"
           ],
           "bonus_ranking": [
             "sem_self"
@@ -2100,48 +1292,717 @@
         {
           "q": 4,
           "ranking": [
-            "sem_cangxuan",
-            "sem_danzhu"
+            "sem_kiana"
           ],
           "bonus_ranking": [
-            "sem_fire_seed_plan"
+            "sem_self",
+            "sit_otto_shot"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kiana"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_otto_shot"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_himeko",
+      "description": "查询两个姬子的关联",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "前文明",
+            "队长"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "前文明的炎之律者",
+                "description": "曾经救过她的队长，后来被崩坏侵蚀遭讨伐"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "战友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "圣芙蕾雅的姬子老师",
+                "description": "和卑弥呼长得一模一样、同样投身火海的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "让她无法释怀的那位火焰般的人",
+                "description": "想找到她成为律者的原因，这成了她变强的原动力"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "战友"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在学园里和她一起任教的女队长，后来为了对抗空之律者牺牲了",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "前文明"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在那场实验中活下来的执念，源头就是想要弄清她为什么变成了律者",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_himeko_ancient"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_himeko_modern"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_himeko_modern"
+          ],
+          "bonus_ranking": [
+            "sem_himeko_ancient"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_himeko_ancient"
+          ],
+          "bonus_ranking": [
+            "sem_himeko_modern",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_himeko_modern"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_st_freya"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_himeko_ancient"
+          ],
+          "bonus_ranking": [
+            "sem_fusion_warrior",
+            "sem_mei"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_himeko_ancient",
+        "sem_himeko_modern"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_himeko_modern",
+        "sem_himeko_ancient",
+        "sem_st_freya",
+        "sem_fusion_warrior",
+        "sem_mei"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_protect_behavior",
+      "description": "查询符华保护他人时的行为模式",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "习惯",
+            "本能"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她看到同伴陷入危险时会怎么做",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "战斗的紧张与肃杀",
+                  "tone": "激烈"
+                },
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "习惯",
+            "性格"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "面对那些把她当靠山的后辈们时，她习惯一个人扛下所有事情",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "学生们",
+                    "role": "后辈与同伴"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "被小识或琪亚娜叫老古董的时候，她一般是什么反应",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "识之律者或琪亚娜",
+                    "role": "调侃者"
+                  },
+                  {
+                    "name": "我",
+                    "role": "被调侃对象"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "习惯",
+            "能力"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "为了救别人连自己的记忆都可以烧掉，她每次动用那股力量时都在想什么",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "习惯",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "战斗时她惯用的打法和招式套路",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "战斗中的紧张与肃杀",
+                  "tone": "激烈"
+                },
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "习惯",
+            "技能"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在学院里的日常，她平时喜欢做些什么或者擅长什么",
+                "location": [
+                  {
+                    "name": "圣芙蕾雅学园的教室和训练场"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_environment_battle"
+          ],
+          "bonus_ranking": [
+            "sem_self_sacrifice",
+            "sem_guardian"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_participant_students"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_event_teasing"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_second_houkai"
+          ],
+          "bonus_ranking": [
+            "sem_yuandu_chen"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_environment_battle"
+          ],
+          "bonus_ranking": [
+            "sem_taixu"
           ]
         },
         {
           "q": 5,
           "ranking": [
+            "sit_location_daily"
+          ],
+          "bonus_ranking": [
+            "sem_st_freya"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_environment_battle",
+        "sit_participant_students",
+        "sit_event_teasing",
+        "sit_second_houkai",
+        "sit_location_daily"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self_sacrifice",
+        "sem_guardian",
+        "sem_self",
+        "sem_yuandu_chen",
+        "sem_taixu",
+        "sem_st_freya"
+      ],
+      "expected_actions": [
+        "proc_protect_companions",
+        "proc_use_yuandu",
+        "proc_self_reliance",
+        "proc_calm_approach",
+        "proc_old_fashioned",
+        "proc_combat_style",
+        "proc_cooking"
+      ]
+    },
+    {
+      "name": "set_taixu_incident_and_students",
+      "description": "查询太虚事变与徒弟们的关联",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "背叛"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她收过的七个徒弟后来对她做了一件很过分的事",
+                "location": [
+                  {
+                    "name": "太虚山拂云观"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "背叛者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那七个背叛的弟子",
+                "description": "曾经寄予厚望、最后却夜袭她还放火烧山的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "背叛",
+            "转折点"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那场火灾之后她失去了大部分力量，睡了二十年才醒过来",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "徒弟"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "当年背叛者的后代",
+                "description": "秦素衣的女儿，太虚剑气的隔代传人，和她有过一场师徒之间的战斗"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "背叛"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "太虚山上的道观一夜之间被她的徒弟们血洗的场景",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_taixu_incident"
+          ],
+          "bonus_ranking": [
+            "sem_taixu_swords"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_taixu_swords"
+          ],
+          "bonus_ranking": [
+            "sit_taixu_incident"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_taixu_incident"
+          ],
+          "bonus_ranking": [
+            "sem_immortal",
+            "sem_mount_taixu"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
             "sem_li_sushang"
           ],
           "bonus_ranking": [
-            "sem_self",
+            "sem_taixu_swords",
             "sem_taixu"
           ]
         },
         {
-          "q": 6,
+          "q": 4,
           "ranking": [
-            "sem_walter_yang"
+            "sit_taixu_incident"
           ],
           "bonus_ranking": [
+            "sem_taixu_swords",
+            "sem_mount_taixu"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_taixu_incident",
+        "sem_taixu_swords",
+        "sem_li_sushang"
+      ],
+      "bonus_combined_ranking": [
+        "sem_taixu_swords",
+        "sit_taixu_incident",
+        "sem_immortal",
+        "sem_mount_taixu",
+        "sem_taixu"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_sentience_and_yuandu",
+      "description": "查询识之律者与羽渡尘的关联",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "律者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "第八律者",
+                "description": "从她的记忆和身体里诞生的意识，最终住在羽毛里"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "和解"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和那个自称是她自己的意识大打出手，最后对方带着权能消失在她的羽毛里",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "羁绊"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "小识",
+                "description": "拥有她全部记忆、性格却张扬狂放的另一面，两人之间的羁绊"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "战斗",
+            "和解"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和她打了一架后又互相理解、最后决定分开生活的那段经历",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "我",
+                    "role": "战斗者"
+                  },
+                  {
+                    "name": "识之律者",
+                    "role": "战斗者/和解对象"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "律者",
+            "羁绊"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "住在羽毛里的那个性格张扬的家伙",
+                "description": "明明继承了她的记忆和力量，却总爱和她对着干的人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_herrscher_of_sentience"
+          ],
+          "bonus_ranking": [
+            "sem_yuandu_chen"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_sentience_battle"
+          ],
+          "bonus_ranking": [
+            "sem_yuandu_chen"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_herrscher_of_sentience"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_sentience_battle"
+          ],
+          "bonus_ranking": [
+            "sem_herrscher_of_sentience",
+            "sem_yuandu_chen"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_herrscher_of_sentience"
+          ],
+          "bonus_ranking": [
+            "sem_yuandu_chen",
             "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_kiana",
-        "sem_raiden",
-        "sem_bronya",
-        "sem_himeko_modern",
-        "sem_himeko_ancient",
-        "sem_cangxuan",
-        "sem_danzhu",
-        "sem_li_sushang",
-        "sem_walter_yang"
+        "sem_herrscher_of_sentience",
+        "sit_sentience_battle"
       ],
       "bonus_combined_ranking": [
+        "sem_yuandu_chen",
         "sem_self",
-        "sem_fire_seed_plan",
-        "sem_taixu"
+        "sem_herrscher_of_sentience"
       ],
       "expected_actions": []
     }

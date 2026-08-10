@@ -17,32 +17,16 @@
       "description": "atomic query 0",
       "sub_queries": [
         {
-          "priority": 3,
+          "priority": 10,
           "tag": [
-            "事件"
+            "自身",
+            "角色"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "水仙十字院被洪水淹没的那一天",
-                "location": [
-                  {
-                    "name": "水仙十字院"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "贝瑟·埃尔顿",
-                    "role": "托付者"
-                  },
-                  {
-                    "name": "阿兰",
-                    "role": "被托付者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "阿兰·吉约丹",
+                "description": "我的自我认知"
               }
             ]
           }
@@ -52,21 +36,15 @@
         {
           "q": 0,
           "ranking": [
-            "sit_flood_cross"
+            "sem_self"
           ],
-          "bonus_ranking": [
-            "sem_besser",
-            "sem_emmanuel"
-          ]
+          "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
-        "sit_flood_cross"
+        "sem_self"
       ],
-      "bonus_combined_ranking": [
-        "sem_besser",
-        "sem_emmanuel"
-      ],
+      "bonus_combined_ranking": [],
       "expected_actions": []
     },
     {
@@ -74,15 +52,586 @@
       "description": "atomic query 1",
       "sub_queries": [
         {
-          "priority": 3,
+          "priority": 9,
           "tag": [
-            "童年",
-            "事件"
+            "人物",
+            "妹妹"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "玛丽安·吉约丹",
+                "description": "我的义妹"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_marianne"
+          ],
+          "bonus_ranking": [
+            "sem_little_marianne"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_marianne"
+      ],
+      "bonus_combined_ranking": [
+        "sem_little_marianne"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_2",
+      "description": "atomic query 2",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "雷内·德·佩特莉可",
+                "description": "曾经的挚友"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_rene"
+          ],
+          "bonus_ranking": [
+            "sem_jacob"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_rene"
+      ],
+      "bonus_combined_ranking": [
+        "sem_jacob"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "养父"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "埃马纽艾尔·吉约丹",
+                "description": "我的养父"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_emmanuel"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_marianne"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_emmanuel"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_marianne"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "助手"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "卡特·谢尔比乌斯",
+                "description": "我的助手和朋友"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_carter"
+          ],
+          "bonus_ranking": [
+            "sit_carter_monster"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_carter"
+      ],
+      "bonus_combined_ranking": [
+        "sit_carter_monster"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "概念",
+            "能源",
+            "发明"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "始基力（芒荒能量体系）",
+                "description": "我发明的能源体系"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_pneuma_ousia"
+          ],
+          "bonus_ranking": [
+            "sem_clockwork",
+            "sem_institute_nature",
+            "sem_academy_fontaine"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_pneuma_ousia"
+      ],
+      "bonus_combined_ranking": [
+        "sem_clockwork",
+        "sem_institute_nature",
+        "sem_academy_fontaine"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "概念",
+            "机械"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "发条机关智能系统",
+                "description": "我改革的技术"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_clockwork"
+          ],
+          "bonus_ranking": [
+            "sem_pneuma_ousia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_clockwork"
+      ],
+      "bonus_combined_ranking": [
+        "sem_pneuma_ousia"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "组织",
+            "敌对"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "水仙十字结社",
+                "description": "雷内创立的秘密组织"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_covenant"
+          ],
+          "bonus_ranking": [
+            "sem_rene",
+            "sem_jacob",
+            "sem_format",
+            "sem_neuvillette"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_covenant"
+      ],
+      "bonus_combined_ranking": [
+        "sem_rene",
+        "sem_jacob",
+        "sem_format",
+        "sem_neuvillette"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "地点",
+            "机构"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "枫丹动能工程科学研究院",
+                "description": "我创立的科学院"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_academy_fontaine"
+          ],
+          "bonus_ranking": [
+            "sem_dwright",
+            "sem_institute_nature"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_academy_fontaine"
+      ],
+      "bonus_combined_ranking": [
+        "sem_dwright",
+        "sem_institute_nature"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "价值观",
+            "信念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "相信可验证的真理",
+                "description": "我的核心信念"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_value_truth"
+          ],
+          "bonus_ranking": [
+            "sem_value_self_save",
+            "sem_value_accept_end"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_value_truth"
+      ],
+      "bonus_combined_ranking": [
+        "sem_value_self_save",
+        "sem_value_accept_end"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "价值观",
+            "口头禅"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "很遗憾，但这就是结局",
+                "description": "我的口头禅和哲学"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_value_accept_end"
+          ],
+          "bonus_ranking": [
+            "proc_phrase_regret"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_value_accept_end"
+      ],
+      "bonus_combined_ranking": [
+        "proc_phrase_regret"
+      ],
+      "expected_actions": [
+        "proc_phrase_regret"
+      ]
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "物品",
+            "造物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "西摩尔（原型机4ACV07）",
+                "description": "我制作的机器狗"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_westmor"
+          ],
+          "bonus_ranking": [
+            "proc_answer_westmor",
+            "sem_carter",
+            "sem_marianne"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_westmor"
+      ],
+      "bonus_combined_ranking": [
+        "proc_answer_westmor",
+        "sem_carter",
+        "sem_marianne"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "物品",
+            "造物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "普隆尼亚",
+                "description": "我创造的机关"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_promion"
+          ],
+          "bonus_ranking": [
+            "sem_little_marianne"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_promion"
+      ],
+      "bonus_combined_ranking": [
+        "sem_little_marianne"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "恩人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "贝瑟·埃尔顿",
+                "description": "我的救命恩人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_besser"
+          ],
+          "bonus_ranking": [
+            "sem_narcissus_cross",
+            "sem_emmanuel"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_besser"
+      ],
+      "bonus_combined_ranking": [
+        "sem_narcissus_cross",
+        "sem_emmanuel"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "合作者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那维莱特",
+                "description": "合作过的最高审判官"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_neuvillette"
+          ],
+          "bonus_ranking": [
+            "sem_covenant"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_neuvillette"
+      ],
+      "bonus_combined_ranking": [
+        "sem_covenant"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "地点",
+            "童年"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在水仙十字院里和伙伴们玩勇者恶龙公主的游戏",
+                "narrative": "在水仙十字院的院子里，我和玛丽安、雷内、雅各布一起玩角色扮演游戏。",
                 "location": [
                   {
                     "name": "水仙十字院"
@@ -108,7 +657,13 @@
                 ],
                 "time_span": null,
                 "environment": null,
-                "event": null
+                "event": [
+                  {
+                    "action": "扮演与玩耍",
+                    "initiator": "我",
+                    "target": "玩伴们"
+                  }
+                ]
               }
             ]
           }
@@ -121,6 +676,7 @@
             "sit_childhood_play"
           ],
           "bonus_ranking": [
+            "sem_self",
             "sem_marianne",
             "sem_rene",
             "sem_jacob"
@@ -131,6 +687,7 @@
         "sit_childhood_play"
       ],
       "bonus_combined_ranking": [
+        "sem_self",
         "sem_marianne",
         "sem_rene",
         "sem_jacob"
@@ -138,173 +695,19 @@
       "expected_actions": []
     },
     {
-      "name": "query_2",
-      "description": "atomic query 2",
+      "name": "query_16",
+      "description": "atomic query 16",
       "sub_queries": [
         {
-          "priority": 3,
+          "priority": 8,
           "tag": [
-            "价值观",
-            "口头禅"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "遗憾结局",
-                "description": "阿兰常挂在嘴边的那句话"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_value_accept_end"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_value_accept_end"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_3",
-      "description": "atomic query 3",
-      "sub_queries": [
-        {
-          "priority": 3,
-          "tag": [
-            "自身",
-            "机构"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "护国的白骑士",
-                "description": "创立科学院的发明家"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": [
-            "sem_academy_fontaine"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_self"
-      ],
-      "bonus_combined_ranking": [
-        "sem_academy_fontaine"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_4",
-      "description": "atomic query 4",
-      "sub_queries": [
-        {
-          "priority": 3,
-          "tag": [
-            "组织",
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "水仙十字结社",
-                "description": "雷内创立的秘密组织"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_covenant"
-          ],
-          "bonus_ranking": [
-            "sem_rene"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_covenant"
-      ],
-      "bonus_combined_ranking": [
-        "sem_rene"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_5",
-      "description": "atomic query 5",
-      "sub_queries": [
-        {
-          "priority": 3,
-          "tag": [
-            "人物",
-            "机构"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "自然哲学学院长",
-                "description": "收养阿兰进入学院的人"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_dwright"
-          ],
-          "bonus_ranking": [
-            "sem_institute_nature",
-            "sem_emmanuel"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_dwright"
-      ],
-      "bonus_combined_ranking": [
-        "sem_institute_nature",
-        "sem_emmanuel"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_6",
-      "description": "atomic query 6",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "事件",
-            "悲剧"
+            "悲剧",
+            "决裂"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "卡特被深渊力量变成怪物的惨剧",
+                "narrative": "卡特病危时，雷内和雅各布试图用深渊力量救他，结果他变成了怪物。",
                 "location": null,
                 "participants": [
                   {
@@ -316,13 +719,26 @@
                     "role": "施行者"
                   },
                   {
-                    "name": "阿兰",
+                    "name": "雅各布",
+                    "role": "协助者"
+                  },
+                  {
+                    "name": "我",
                     "role": "见证者"
                   }
                 ],
                 "time_span": null,
-                "environment": null,
-                "event": null
+                "environment": {
+                  "atmosphere": "恐怖与绝望",
+                  "tone": "黑暗"
+                },
+                "event": [
+                  {
+                    "action": "深渊改造",
+                    "initiator": "雷内",
+                    "target": "卡特"
+                  }
+                ]
               }
             ]
           }
@@ -337,7 +753,7 @@
           "bonus_ranking": [
             "sem_carter",
             "sem_rene",
-            "sem_self"
+            "sem_jacob"
           ]
         }
       ],
@@ -347,24 +763,260 @@
       "bonus_combined_ranking": [
         "sem_carter",
         "sem_rene",
-        "sem_self"
+        "sem_jacob"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_7",
-      "description": "atomic query 7",
+      "name": "query_17",
+      "description": "atomic query 17",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 9,
           "tag": [
-            "发明",
-            "事件"
+            "决战",
+            "离别"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在自然哲学学院实验室里点亮第一盏芒荒灯泡",
+                "narrative": "在厄里那斯体内，水仙十字结社和逐影庭决战，玛丽安与纯水精灵融合，雷内投身原始胎海。",
+                "location": [
+                  {
+                    "name": "厄里那斯体内"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "我",
+                    "role": "逐影庭成员"
+                  },
+                  {
+                    "name": "玛丽安",
+                    "role": "融合者"
+                  },
+                  {
+                    "name": "雷内",
+                    "role": "结社首领"
+                  },
+                  {
+                    "name": "雅各布",
+                    "role": "结社成员"
+                  },
+                  {
+                    "name": "西摩尔",
+                    "role": "机器狗"
+                  },
+                  {
+                    "name": "莉利丝",
+                    "role": "纯水精灵"
+                  }
+                ],
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "压抑与终结",
+                  "tone": "阴郁"
+                },
+                "event": [
+                  {
+                    "action": "融合",
+                    "initiator": "玛丽安",
+                    "target": "莉利丝"
+                  },
+                  {
+                    "action": "投身原始胎海",
+                    "initiator": "雷内",
+                    "target": "格式塔"
+                  },
+                  {
+                    "action": "离开",
+                    "initiator": "我",
+                    "target": "战场"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_erinyes_battle"
+          ],
+          "bonus_ranking": [
+            "sem_marianne",
+            "sem_westmor",
+            "sem_rene",
+            "sem_jacob",
+            "sem_covenant",
+            "sem_format"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_erinyes_battle"
+      ],
+      "bonus_combined_ranking": [
+        "sem_marianne",
+        "sem_westmor",
+        "sem_rene",
+        "sem_jacob",
+        "sem_covenant",
+        "sem_format"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "创造",
+            "人偶",
+            "生日"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "我六十五岁生日时，在私人工坊完成了以妹妹玛莉安为原型的发条人偶小玛丽安。",
+                "location": [
+                  {
+                    "name": "私人工坊"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "我",
+                    "role": "创造者"
+                  },
+                  {
+                    "name": "小玛丽安",
+                    "role": "造物"
+                  }
+                ],
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "安静与专注",
+                  "tone": "温暖"
+                },
+                "event": [
+                  {
+                    "action": "创造发条人偶",
+                    "initiator": "我",
+                    "target": "小玛丽安"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_create_little_marianne"
+          ],
+          "bonus_ranking": [
+            "sem_little_marianne",
+            "sem_marianne"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_create_little_marianne"
+      ],
+      "bonus_combined_ranking": [
+        "sem_little_marianne",
+        "sem_marianne"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "临终",
+            "嘱托"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "临终前，我把普隆尼亚交给小玛丽安，委托她销毁手稿，并对她说这个世界很美。",
+                "location": [
+                  {
+                    "name": "私人工坊"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "我",
+                    "role": "临终者"
+                  },
+                  {
+                    "name": "小玛丽安",
+                    "role": "继承者"
+                  }
+                ],
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "静谧与告别",
+                  "tone": "庄重"
+                },
+                "event": [
+                  {
+                    "action": "嘱托",
+                    "initiator": "我",
+                    "target": "小玛丽安"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_last_words"
+          ],
+          "bonus_ranking": [
+            "sem_promion",
+            "sem_little_marianne"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_last_words"
+      ],
+      "bonus_combined_ranking": [
+        "sem_promion",
+        "sem_little_marianne"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "发明",
+            "实验室"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在自然哲学学院的实验室里，我点亮了第一盏芒荒能量灯泡。",
                 "location": [
                   {
                     "name": "自然哲学学院实验室"
@@ -372,7 +1024,7 @@
                 ],
                 "participants": [
                   {
-                    "name": "阿兰",
+                    "name": "我",
                     "role": "发明者"
                   },
                   {
@@ -382,7 +1034,13 @@
                 ],
                 "time_span": null,
                 "environment": null,
-                "event": null
+                "event": [
+                  {
+                    "action": "点亮灯泡",
+                    "initiator": "我",
+                    "target": "灯泡"
+                  }
+                ]
               }
             ]
           }
@@ -412,19 +1070,491 @@
       "expected_actions": []
     },
     {
-      "name": "query_8",
-      "description": "atomic query 8",
+      "name": "set_marianne",
+      "description": "查询我的妹妹玛丽安",
       "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "妹妹"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "玛丽安·吉约丹",
+                "description": "全名"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "妹妹"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "玛丽安",
+                "description": "常用名"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "家人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "义妹",
+                "description": "她的身份"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_marianne"
+          ],
+          "bonus_ranking": [
+            "sem_little_marianne"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_marianne"
+          ],
+          "bonus_ranking": []
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_marianne"
+          ],
+          "bonus_ranking": [
+            "sem_little_marianne"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_marianne"
+      ],
+      "bonus_combined_ranking": [
+        "sem_little_marianne"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_friends",
+      "description": "查询我的童年挚友雷内",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "雷内·德·佩特莉可",
+                "description": "全名"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "雷内",
+                "description": "常用名"
+              }
+            ]
+          }
+        },
         {
           "priority": 6,
           "tag": [
-            "事件",
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "佩特莉可",
+                "description": "姓氏"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_rene"
+          ],
+          "bonus_ranking": [
+            "sem_jacob"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_rene"
+          ],
+          "bonus_ranking": [
+            "sem_covenant"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_rene"
+          ],
+          "bonus_ranking": []
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_rene"
+      ],
+      "bonus_combined_ranking": [
+        "sem_jacob",
+        "sem_covenant"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_inventions",
+      "description": "查询我的重要造物和发明",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "概念",
+            "能源"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "始基力（芒荒能量体系）",
+                "description": "核心发明"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "概念",
+            "机械"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "发条机关智能系统",
+                "description": "技术改革"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "造物",
+            "人偶"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "小玛丽安·吉约丹（桑多涅）",
+                "description": "发条人偶"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "造物",
+            "机器狗"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "西摩尔（原型机4ACV07）",
+                "description": "机器狗"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "造物",
+            "机关"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "普隆尼亚",
+                "description": "计算机关"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_pneuma_ousia"
+          ],
+          "bonus_ranking": [
+            "sem_clockwork"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_clockwork"
+          ],
+          "bonus_ranking": [
+            "sem_pneuma_ousia"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_little_marianne"
+          ],
+          "bonus_ranking": [
+            "sem_marianne",
+            "sem_promion"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_westmor"
+          ],
+          "bonus_ranking": [
+            "sem_carter",
+            "sem_marianne"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_promion"
+          ],
+          "bonus_ranking": [
+            "sem_little_marianne"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_pneuma_ousia",
+        "sem_clockwork",
+        "sem_little_marianne",
+        "sem_westmor",
+        "sem_promion"
+      ],
+      "bonus_combined_ranking": [
+        "sem_clockwork",
+        "sem_pneuma_ousia",
+        "sem_marianne",
+        "sem_promion",
+        "sem_carter",
+        "sem_little_marianne"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_values",
+      "description": "查询我的核心信念与价值观",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "价值观",
+            "信念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "相信可验证的真理",
+                "description": "实证主义"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "价值观",
+            "性格"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "不在意世俗认可",
+                "description": "淡泊名利"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "价值观",
+            "哲学"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "自救就足以成为救世的理由",
+                "description": "自救救世"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "价值观",
+            "口头禅"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "很遗憾，但这就是结局",
+                "description": "我的口头禅"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_value_truth"
+          ],
+          "bonus_ranking": [
+            "sem_value_self_save"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_value_indifference"
+          ],
+          "bonus_ranking": []
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_value_self_save"
+          ],
+          "bonus_ranking": [
+            "sem_value_truth"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_value_accept_end"
+          ],
+          "bonus_ranking": [
+            "proc_phrase_regret"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_value_truth",
+        "sem_value_indifference",
+        "sem_value_self_save",
+        "sem_value_accept_end"
+      ],
+      "bonus_combined_ranking": [
+        "sem_value_self_save",
+        "sem_value_truth",
+        "proc_phrase_regret"
+      ],
+      "expected_actions": [
+        "proc_phrase_regret"
+      ]
+    },
+    {
+      "name": "set_covenant",
+      "description": "查询水仙十字结社相关信息",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "组织"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "水仙十字结社",
+                "description": "正式名称"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "组织"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "十字结社",
+                "description": "简称"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "组织",
+            "首领"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "雷内·德·佩特莉可",
+                "description": "结社首领"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
             "决战"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "厄里那斯体内逐影庭与水仙十字结社的最终对决",
+                "narrative": "在厄里那斯体内与逐影庭决战",
                 "location": [
                   {
                     "name": "厄里那斯体内"
@@ -432,12 +1562,12 @@
                 ],
                 "participants": [
                   {
-                    "name": "阿兰",
-                    "role": "逐影庭"
+                    "name": "我",
+                    "role": "逐影庭成员"
                   },
                   {
                     "name": "玛丽安",
-                    "role": "融合者"
+                    "role": "逐影庭成员"
                   },
                   {
                     "name": "雷内",
@@ -449,8 +1579,17 @@
                   }
                 ],
                 "time_span": null,
-                "environment": null,
-                "event": null
+                "environment": {
+                  "atmosphere": "压抑",
+                  "tone": "阴郁"
+                },
+                "event": [
+                  {
+                    "action": "决战",
+                    "initiator": "逐影庭",
+                    "target": "水仙十字结社"
+                  }
+                ]
               }
             ]
           }
@@ -460,126 +1599,102 @@
         {
           "q": 0,
           "ranking": [
+            "sem_covenant"
+          ],
+          "bonus_ranking": [
+            "sem_rene",
+            "sem_jacob",
+            "sem_format"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_covenant"
+          ],
+          "bonus_ranking": [
+            "sem_rene"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_rene",
+            "sem_covenant"
+          ],
+          "bonus_ranking": [
+            "sem_jacob"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
             "sit_erinyes_battle"
           ],
           "bonus_ranking": [
-            "sem_marianne",
+            "sem_covenant",
             "sem_rene",
-            "sem_covenant"
+            "sem_jacob"
           ]
         }
       ],
       "expected_combined_ranking": [
+        "sem_covenant",
+        "sem_rene",
         "sit_erinyes_battle"
       ],
       "bonus_combined_ranking": [
-        "sem_marianne",
         "sem_rene",
+        "sem_jacob",
+        "sem_format",
         "sem_covenant"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_9",
-      "description": "atomic query 9",
+      "name": "set_father",
+      "description": "查询我的养父埃马纽艾尔·吉约丹",
       "sub_queries": [
         {
-          "priority": 6,
-          "tag": [
-            "状态",
-            "晚年"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "阿兰晚年独自在工坊中专注研究的状态",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_workshop_state"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_myself_research"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_workshop_state"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_myself_research"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_10",
-      "description": "atomic query 10",
-      "sub_queries": [
-        {
-          "priority": 6,
+          "priority": 8,
           "tag": [
             "人物",
-            "恩人"
+            "养父"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "贝瑟副院长",
-                "description": "水仙十字院的副院长，把阿兰托付给养父的救命恩人"
+                "concept_identifier": "埃马纽艾尔·吉约丹",
+                "description": "全名"
               }
             ]
           }
-        }
-      ],
-      "expected_per_query": [
+        },
         {
-          "q": 0,
-          "ranking": [
-            "sem_besser"
+          "priority": 7,
+          "tag": [
+            "人物",
+            "养父"
           ],
-          "bonus_ranking": [
-            "sem_narcissus_cross",
-            "sem_emmanuel"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_besser"
-      ],
-      "bonus_combined_ranking": [
-        "sem_narcissus_cross",
-        "sem_emmanuel"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_11",
-      "description": "atomic query 11",
-      "sub_queries": [
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "养父",
+                "description": "身份称谓"
+              }
+            ]
+          }
+        },
         {
           "priority": 6,
           "tag": [
-            "价值观",
-            "哲学"
+            "人物"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "自救救世",
-                "description": "阿兰认为自救就是救世的理论"
+                "concept_identifier": "面具男人",
+                "description": "外号"
               }
             ]
           }
@@ -589,32 +1704,106 @@
         {
           "q": 0,
           "ranking": [
-            "sem_value_self_save"
+            "sem_emmanuel"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_emmanuel"
+          ],
+          "bonus_ranking": []
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_emmanuel"
           ],
           "bonus_ranking": []
         }
       ],
       "expected_combined_ranking": [
-        "sem_value_self_save"
+        "sem_emmanuel"
       ],
-      "bonus_combined_ranking": [],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_12",
-      "description": "atomic query 12",
+      "name": "set_carter",
+      "description": "查询关于卡特助手和悲剧的事件",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 7,
           "tag": [
-            "地点",
-            "据点"
+            "人物",
+            "助手"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "格式塔",
-                "description": "水仙十字结社下方的原始胎海据点"
+                "concept_identifier": "卡特·谢尔比乌斯",
+                "description": "全名"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "悲剧",
+            "深渊"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "卡特被雷内和雅各布用深渊力量救成怪物",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "卡特",
+                    "role": "受害者"
+                  },
+                  {
+                    "name": "雷内",
+                    "role": "施行者"
+                  },
+                  {
+                    "name": "雅各布",
+                    "role": "协助者"
+                  }
+                ],
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "绝望",
+                  "tone": "黑暗"
+                },
+                "event": [
+                  {
+                    "action": "深渊改造",
+                    "initiator": "雷内",
+                    "target": "卡特"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "概念",
+            "灵感"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "有思考能力的留影机",
+                "description": "卡特提出的构想"
               }
             ]
           }
@@ -624,42 +1813,102 @@
         {
           "q": 0,
           "ranking": [
-            "sem_format"
+            "sem_carter"
           ],
           "bonus_ranking": [
-            "sem_covenant",
-            "sem_rene"
+            "sit_carter_monster"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_carter_monster"
+          ],
+          "bonus_ranking": [
+            "sem_carter",
+            "sem_rene",
+            "sem_jacob"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_carter"
+          ],
+          "bonus_ranking": [
+            "sem_westmor"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_format"
+        "sem_carter",
+        "sit_carter_monster"
       ],
       "bonus_combined_ranking": [
-        "sem_covenant",
-        "sem_rene"
+        "sit_carter_monster",
+        "sem_carter",
+        "sem_rene",
+        "sem_jacob",
+        "sem_westmor"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_13",
-      "description": "atomic query 13",
+      "name": "set_last_words",
+      "description": "查询我临终时的嘱托",
       "sub_queries": [
         {
           "priority": 9,
           "tag": [
             "临终",
-            "事件"
+            "嘱托"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "阿兰临终前在小玛丽安面前嘱托销毁手稿并说出那番话",
-                "location": null,
-                "participants": null,
+                "narrative": "临终前把普隆尼亚交给小玛丽安，委托她销毁手稿，并告诉她世界很美。",
+                "location": [
+                  {
+                    "name": "私人工坊"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "我",
+                    "role": "临终者"
+                  },
+                  {
+                    "name": "小玛丽安",
+                    "role": "继承者"
+                  }
+                ],
                 "time_span": null,
-                "environment": null,
-                "event": null
+                "environment": {
+                  "atmosphere": "静谧",
+                  "tone": "庄重"
+                },
+                "event": [
+                  {
+                    "action": "嘱托",
+                    "initiator": "我",
+                    "target": "小玛丽安"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "物品",
+            "交付"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "普隆尼亚",
+                "description": "临终交付的机关"
               }
             ]
           }
@@ -672,1706 +1921,29 @@
             "sit_last_words"
           ],
           "bonus_ranking": [
+            "sem_promion",
+            "sem_little_marianne"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_promion"
+          ],
+          "bonus_ranking": [
             "sem_little_marianne",
-            "sem_self"
+            "sit_last_words"
           ]
         }
       ],
       "expected_combined_ranking": [
+        "sit_last_words",
+        "sem_promion"
+      ],
+      "bonus_combined_ranking": [
+        "sem_promion",
+        "sem_little_marianne",
         "sit_last_words"
-      ],
-      "bonus_combined_ranking": [
-        "sem_little_marianne",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "创造",
-            "生日"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "阿兰六十五岁生日时在私人工坊完成了发条人偶小玛丽安",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_create_little_marianne"
-          ],
-          "bonus_ranking": [
-            "sem_little_marianne",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_create_little_marianne"
-      ],
-      "bonus_combined_ranking": [
-        "sem_little_marianne",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_15",
-      "description": "atomic query 15",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "关系",
-            "事件"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "决裂",
-                "description": "导致阿兰与雷内彻底分道扬镳的卡特事件"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_rene",
-            "sem_carter"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_rene",
-        "sem_carter"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_16",
-      "description": "atomic query 16",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "关系",
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "原型与造物",
-                "description": "小玛丽安的外貌和性格来自谁的复制"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_little_marianne",
-            "sem_marianne"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_little_marianne",
-        "sem_marianne"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_17",
-      "description": "atomic query 17",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "造物",
-            "灵感"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "思考留影机",
-                "description": "西摩尔机器狗的创意来源于哪位助手"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_westmor",
-            "sem_carter"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_westmor",
-        "sem_carter"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_18",
-      "description": "atomic query 18",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "价值观",
-            "行为"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "不申请专利",
-                "description": "阿兰发明了始基力却没有申请专利的淡泊态度"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_value_indifference",
-            "sem_pneuma_ousia"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_value_indifference",
-        "sem_pneuma_ousia"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_19",
-      "description": "atomic query 19",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "关系"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "敌对组织",
-                "description": "那维莱特认定水仙十字结社为非法的合作关系"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_neuvillette",
-            "sem_covenant"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_neuvillette",
-        "sem_covenant"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "set_marianne",
-      "description": "查询阿兰的妹妹玛丽安",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "我的义妹",
-                "description": "在水仙十字院一起长大的坚强女孩"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "玛丽安",
-                "description": "后来与纯水精灵莉利丝融合的人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "妹妹",
-                "description": "经常责备阿兰太沉迷研究的家人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "莉利丝融合者",
-                "description": "厄里那斯决战中变成纯水精灵的那个女士"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "青梅竹马",
-                "description": "阿兰童年最重要的人之一"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "小玛丽安的原型",
-                "description": "发条人偶小玛丽安复制的外貌和性格来源"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "逐影庭女猎人",
-                "description": "和阿兰一起加入逐影庭的义妹"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "吉约丹家的女儿",
-                "description": "被养父收养的孤儿女孩"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_marianne"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_little_marianne"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_marianne"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_little_marianne"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_marianne"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_little_marianne"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_marianne"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_little_marianne"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_marianne"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_little_marianne"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_marianne"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_little_marianne"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_marianne"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_little_marianne"
-          ]
-        },
-        {
-          "q": 7,
-          "ranking": [
-            "sem_marianne"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_little_marianne"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_marianne"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_little_marianne"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_carter_event",
-      "description": "查询卡特被深渊力量变成怪物的事件",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "悲剧"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "卡特病危时被雷内和雅各布用深渊力量救治，结果变成了怪物",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "悲剧"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "导致阿兰与雷内彻底决裂的那场悲剧",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "卡特",
-                    "role": "受害者"
-                  },
-                  {
-                    "name": "雷内",
-                    "role": "施行者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "悲剧"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "雷内闯下的祸：用深渊力量救好友却酿成大错",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "悲剧"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "卡特从绝症病人变成不可名状怪物的可怕经历",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "悲剧"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "阿兰亲眼目睹助手被改造的恐怖场景",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "悲剧"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "那件事之后阿兰再也没和雷内说过话",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "悲剧"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在自然哲学学院发生的深渊力量事故",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "悲剧"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "一个关于朋友、深渊和怪物的悲伤故事",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_carter_monster"
-          ],
-          "bonus_ranking": [
-            "sem_carter",
-            "sem_rene",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_carter_monster"
-          ],
-          "bonus_ranking": [
-            "sem_carter",
-            "sem_rene",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_carter_monster"
-          ],
-          "bonus_ranking": [
-            "sem_carter",
-            "sem_rene",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_carter_monster"
-          ],
-          "bonus_ranking": [
-            "sem_carter",
-            "sem_rene",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_carter_monster"
-          ],
-          "bonus_ranking": [
-            "sem_carter",
-            "sem_rene",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_carter_monster"
-          ],
-          "bonus_ranking": [
-            "sem_carter",
-            "sem_rene",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_carter_monster"
-          ],
-          "bonus_ranking": [
-            "sem_carter",
-            "sem_rene",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 7,
-          "ranking": [
-            "sit_carter_monster"
-          ],
-          "bonus_ranking": [
-            "sem_carter",
-            "sem_rene",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_carter_monster"
-      ],
-      "bonus_combined_ranking": [
-        "sem_carter",
-        "sem_rene",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_pneuma_ousia",
-      "description": "查询始基力（芒荒能量）的发明和相关事件",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "发明",
-            "能源"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "芒荒能量体系",
-                "description": "驱动枫丹发条机关的核心能源"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "发明",
-            "能源"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在自然哲学学院实验室点亮第一盏芒荒灯泡的那一幕",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "发明",
-            "能源"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "始基力",
-                "description": "阿兰发明但没有申请专利的湮灭能源"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "发明",
-            "能源"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "卡特打翻墨水瓶时阿兰刚好点亮了灯泡",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "发明",
-            "能源"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "Pneuma-Ousia",
-                "description": "阿兰研究并命名的能量体系"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "发明",
-            "能源"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "阿兰向卡特展示可控芒荒湮灭的成功实验",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "发明",
-            "能源"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那盏具有历史意义的灯泡",
-                "description": "始基力发明的标志性成果"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "发明",
-            "能源"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "自然哲学学院拨款支持的研究项目，最终点亮了灯",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_pneuma_ousia"
-          ],
-          "bonus_ranking": [
-            "sit_lamp_invention",
-            "sem_institute_nature"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_lamp_invention"
-          ],
-          "bonus_ranking": [
-            "sem_pneuma_ousia",
-            "sem_carter",
-            "sem_institute_nature"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_pneuma_ousia"
-          ],
-          "bonus_ranking": [
-            "sit_lamp_invention",
-            "sem_value_indifference"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_lamp_invention"
-          ],
-          "bonus_ranking": [
-            "sem_pneuma_ousia",
-            "sem_carter"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_pneuma_ousia"
-          ],
-          "bonus_ranking": [
-            "sit_lamp_invention"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_lamp_invention"
-          ],
-          "bonus_ranking": [
-            "sem_pneuma_ousia",
-            "sem_carter"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_pneuma_ousia"
-          ],
-          "bonus_ranking": [
-            "sit_lamp_invention"
-          ]
-        },
-        {
-          "q": 7,
-          "ranking": [
-            "sit_lamp_invention"
-          ],
-          "bonus_ranking": [
-            "sem_pneuma_ousia",
-            "sem_institute_nature"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_pneuma_ousia",
-        "sit_lamp_invention"
-      ],
-      "bonus_combined_ranking": [
-        "sit_lamp_invention",
-        "sem_institute_nature",
-        "sem_pneuma_ousia",
-        "sem_carter",
-        "sem_value_indifference"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_childhood",
-      "description": "查询阿兰在水仙十字院的童年经历",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "童年",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在十字院院子里扮演勇者和恶龙的游戏",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "童年",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "阿兰、玛丽安、雷内和雅各布四人一起玩耍的快乐时光",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "童年",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "阿兰扮演勇者对抗雷内扮演的恶龙",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "童年",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "水仙十字院最后的孤儿们在一起的日常",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "童年",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "童年时玩的角色扮演，玛丽安总是公主",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "童年",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "洪水来临前无忧无虑的日子",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "童年",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在孤儿院里和妹妹及两个朋友扭打在一起的回忆",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "童年",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "阿兰最怀念的童年场景",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_childhood_play"
-          ],
-          "bonus_ranking": [
-            "sem_narcissus_cross",
-            "sem_marianne",
-            "sem_rene",
-            "sem_jacob"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_childhood_play"
-          ],
-          "bonus_ranking": [
-            "sem_narcissus_cross",
-            "sem_marianne",
-            "sem_rene",
-            "sem_jacob"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_childhood_play"
-          ],
-          "bonus_ranking": [
-            "sem_narcissus_cross",
-            "sem_marianne",
-            "sem_rene",
-            "sem_jacob"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_childhood_play"
-          ],
-          "bonus_ranking": [
-            "sem_narcissus_cross",
-            "sem_marianne",
-            "sem_rene",
-            "sem_jacob"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_childhood_play"
-          ],
-          "bonus_ranking": [
-            "sem_narcissus_cross",
-            "sem_marianne",
-            "sem_rene",
-            "sem_jacob"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_childhood_play"
-          ],
-          "bonus_ranking": [
-            "sem_narcissus_cross",
-            "sem_marianne",
-            "sem_rene",
-            "sem_jacob"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_childhood_play"
-          ],
-          "bonus_ranking": [
-            "sem_narcissus_cross",
-            "sem_marianne",
-            "sem_rene",
-            "sem_jacob"
-          ]
-        },
-        {
-          "q": 7,
-          "ranking": [
-            "sit_childhood_play"
-          ],
-          "bonus_ranking": [
-            "sem_narcissus_cross",
-            "sem_marianne",
-            "sem_rene",
-            "sem_jacob"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_childhood_play"
-      ],
-      "bonus_combined_ranking": [
-        "sem_narcissus_cross",
-        "sem_marianne",
-        "sem_rene",
-        "sem_jacob"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_emmanuel",
-      "description": "查询阿兰的养父埃马纽艾尔·吉约丹",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "面具男人",
-                "description": "在白淞之围受伤后戴面具度日的养父"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "埃马纽艾尔·吉约丹",
-                "description": "收养了阿兰和玛丽安的孤僻男人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "吉约丹家的家主",
-                "description": "因重伤不能说话的面具男人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "养父",
-                "description": "弥留之际流露出不舍之情的亲人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "曾经想送回孩子的养父",
-                "description": "最初答应贝瑟暂时收养后来却永远留下的人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "伤残战士",
-                "description": "在战争中受伤致残的退役军人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "沉默的监护人",
-                "description": "不会说话但用行动保护阿兰和玛丽安的人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "家人"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "吉约丹",
-                "description": "阿兰姓氏的来源"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_emmanuel"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_marianne",
-            "sem_besser"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_emmanuel"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_marianne",
-            "sem_besser"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_emmanuel"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_marianne",
-            "sem_besser"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_emmanuel"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_marianne",
-            "sem_besser"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_emmanuel"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_marianne",
-            "sem_besser"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_emmanuel"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_marianne",
-            "sem_besser"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_emmanuel"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_marianne",
-            "sem_besser"
-          ]
-        },
-        {
-          "q": 7,
-          "ranking": [
-            "sem_emmanuel"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_marianne",
-            "sem_besser"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_emmanuel"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_marianne",
-        "sem_besser"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_create_little_marianne",
-      "description": "查询阿兰创造发条人偶小玛丽安的事件",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "创造",
-            "生日"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "六十五岁生日那天在工坊完成了以妹妹为原型的发条人偶",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "创造",
-            "生日"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "阿兰最后一件重要作品，一个会说话的人偶",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "创造",
-            "生日"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "给妹妹的纪念品：小玛丽安的诞生",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "创造",
-            "生日"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在私人工坊里独自完成了这个人偶",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "创造",
-            "生日"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "小玛丽安",
-                "description": "六十五岁生日完成的发条人偶"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "创造",
-            "生日"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "桑多涅",
-                "description": "后来成为愚人众执行官第七席的那个造物"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "创造",
-            "生日"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "木偶",
-                "description": "阿兰创造的发条人偶，后来成为愚人众执行官"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "创造",
-            "生日"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "妹妹的复制品",
-                "description": "以玛丽安为原型创造的机器人"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_create_little_marianne"
-          ],
-          "bonus_ranking": [
-            "sem_little_marianne",
-            "sem_self",
-            "sem_marianne"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_create_little_marianne"
-          ],
-          "bonus_ranking": [
-            "sem_little_marianne",
-            "sem_self",
-            "sem_marianne"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_create_little_marianne"
-          ],
-          "bonus_ranking": [
-            "sem_little_marianne",
-            "sem_self",
-            "sem_marianne"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_create_little_marianne"
-          ],
-          "bonus_ranking": [
-            "sem_little_marianne",
-            "sem_self",
-            "sem_marianne"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_little_marianne"
-          ],
-          "bonus_ranking": [
-            "sit_create_little_marianne",
-            "sem_self",
-            "sem_marianne"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_little_marianne"
-          ],
-          "bonus_ranking": [
-            "sit_create_little_marianne",
-            "sem_self",
-            "sem_marianne"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_little_marianne"
-          ],
-          "bonus_ranking": [
-            "sit_create_little_marianne",
-            "sem_self",
-            "sem_marianne"
-          ]
-        },
-        {
-          "q": 7,
-          "ranking": [
-            "sem_little_marianne"
-          ],
-          "bonus_ranking": [
-            "sit_create_little_marianne",
-            "sem_self",
-            "sem_marianne"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_create_little_marianne",
-        "sem_little_marianne"
-      ],
-      "bonus_combined_ranking": [
-        "sem_little_marianne",
-        "sem_self",
-        "sem_marianne",
-        "sit_create_little_marianne"
       ],
       "expected_actions": []
     }

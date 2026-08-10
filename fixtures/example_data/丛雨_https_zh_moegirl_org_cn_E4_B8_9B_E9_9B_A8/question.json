@@ -17,16 +17,16 @@
       "description": "atomic query 0",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
-            "角色",
+            "人物",
             "自身"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "剑灵的名字",
-                "description": "活了数百年的神刀剑灵"
+                "concept_identifier": "守护穗织的剑灵少女",
+                "description": "自称我辈的活泼存在，从人类少女变成灵体后守护了这片土地数百年"
               }
             ]
           }
@@ -38,29 +38,38 @@
           "ranking": [
             "sem_self"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_murasamemaru",
+            "sem_human_body"
+          ]
         }
       ],
       "expected_combined_ranking": [
         "sem_self"
       ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
+      "bonus_combined_ranking": [
+        "sem_murasamemaru",
+        "sem_human_body"
+      ],
+      "expected_actions": [
+        "proc_speech_style"
+      ]
     },
     {
       "name": "query_1",
       "description": "atomic query 1",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
-            "人物"
+            "人物",
+            "家人"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她的丈夫",
-                "description": "将丛雨丸从岩石上拔出的人，后来成了她的丈夫"
+                "concept_identifier": "将她从漫长岁月中带出来的人",
+                "description": "从神岩上拔出丛雨丸、让她重获幸福与肉身的温柔男子"
               }
             ]
           }
@@ -72,13 +81,19 @@
           "ranking": [
             "sem_masamune"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_self",
+            "sem_murasamemaru"
+          ]
         }
       ],
       "expected_combined_ranking": [
         "sem_masamune"
       ],
-      "bonus_combined_ranking": [],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_murasamemaru"
+      ],
       "expected_actions": []
     },
     {
@@ -86,7 +101,7 @@
       "description": "atomic query 2",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 8,
           "tag": [
             "物体",
             "神刀"
@@ -94,8 +109,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她寄宿的神刀",
-                "description": "穗织的御神体之一，丛雨寄宿在这把刀里"
+                "concept_identifier": "她寄宿了数百年的那柄刀",
+                "description": "穗织供奉的圣物，能辟邪治妖的传说之刃"
               }
             ]
           }
@@ -107,13 +122,19 @@
           "ranking": [
             "sem_murasamemaru"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_self",
+            "sem_hiori"
+          ]
         }
       ],
       "expected_combined_ranking": [
         "sem_murasamemaru"
       ],
-      "bonus_combined_ranking": [],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_hiori"
+      ],
       "expected_actions": []
     },
     {
@@ -121,76 +142,7 @@
       "description": "atomic query 3",
       "sub_queries": [
         {
-          "priority": 6,
-          "tag": [
-            "地点"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她守护的小镇",
-                "description": "有温泉和神社的宁静小镇"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_hiori"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_hiori"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_4",
-      "description": "atomic query 4",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "人物",
-            "朋友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "朝武家的巫女",
-                "description": "能看到丛雨，并把丛雨当作大人的女生"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_fumino"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_fumino"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_5",
-      "description": "atomic query 5",
-      "sub_queries": [
-        {
-          "priority": 7,
+          "priority": 8,
           "tag": [
             "存在",
             "敌人"
@@ -198,8 +150,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "一直威胁穗织的邪恶存在",
-                "description": "通过碎片污染接触者"
+                "concept_identifier": "一直威胁小镇的邪恶存在",
+                "description": "通过碎片污染接触者、不断引发异常现象的恐怖敌人"
               }
             ]
           }
@@ -212,7 +164,8 @@
             "sem_tatarigami"
           ],
           "bonus_ranking": [
-            "sem_fragment"
+            "sem_fragment",
+            "sem_hiori"
           ]
         }
       ],
@@ -220,55 +173,30 @@
         "sem_tatarigami"
       ],
       "bonus_combined_ranking": [
-        "sem_fragment"
+        "sem_fragment",
+        "sem_hiori"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_6",
-      "description": "atomic query 6",
+      "name": "query_4",
+      "description": "atomic query 4",
       "sub_queries": [
         {
           "priority": 9,
           "tag": [
             "事件",
-            "表白"
+            "重要时刻"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "丛雨在芳乃和茉子的怂恿下，在一个夜晚袭击了将臣并表白",
+                "narrative": "深夜突袭将臣的房间向他表明心意的那件事",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "有地将臣",
-                    "role": "表白对象"
-                  },
-                  {
-                    "name": "丛雨",
-                    "role": "表白者"
-                  },
-                  {
-                    "name": "朝武芳乃",
-                    "role": "怂恿者"
-                  },
-                  {
-                    "name": "常陆茉子",
-                    "role": "怂恿者"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
-                "environment": {
-                  "atmosphere": "暧昧",
-                  "tone": "浪漫"
-                },
-                "event": [
-                  {
-                    "action": "表白",
-                    "initiator": "丛雨",
-                    "target": "有地将臣"
-                  }
-                ]
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -281,8 +209,9 @@
             "sit_night_raid_confession"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "sem_masamune"
+            "sem_masamune",
+            "sem_fumino",
+            "sem_matsuko"
           ]
         }
       ],
@@ -290,185 +219,15 @@
         "sit_night_raid_confession"
       ],
       "bonus_combined_ranking": [
-        "sem_self",
-        "sem_masamune"
+        "sem_masamune",
+        "sem_fumino",
+        "sem_matsuko"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_7",
-      "description": "atomic query 7",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "日常",
-            "互动"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "将臣有时摸丛雨的头让她感到幸福，但也会故意逗她",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "有地将臣",
-                    "role": "摸头者"
-                  },
-                  {
-                    "name": "丛雨",
-                    "role": "被摸头者"
-                  }
-                ],
-                "time_span": null,
-                "environment": {
-                  "atmosphere": "温馨",
-                  "tone": "愉快"
-                },
-                "event": [
-                  {
-                    "action": "摸头",
-                    "initiator": "有地将臣",
-                    "target": "丛雨"
-                  },
-                  {
-                    "action": "逗弄",
-                    "initiator": "有地将臣",
-                    "target": "丛雨"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_head_pat_tease"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_masamune"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_head_pat_tease"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_masamune"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_8",
-      "description": "atomic query 8",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "弱点",
-            "性格"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "丛雨最害怕的东西",
-                "description": "她自己虽然是灵体但却非常害怕幽灵和黑暗"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_fear_ghosts"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_fear_ghosts"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_9",
-      "description": "atomic query 9",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "性格"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的口是心非",
-                "description": "容易吃醋的傲娇性格"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_tsundere"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_tsundere"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_10",
-      "description": "atomic query 10",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "能力"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她作为灵体的特殊之力",
-                "description": "能感受灵力，普通人无法看见她"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_spirit_ability"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_spirit_ability"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_11",
-      "description": "atomic query 11",
+      "name": "query_5",
+      "description": "atomic query 5",
       "sub_queries": [
         {
           "priority": 9,
@@ -479,39 +238,12 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "将臣在父母面前向丛雨求婚，丛雨答应了",
+                "narrative": "在将臣父母面前被俯身求婚的那一刻",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "有地将臣",
-                    "role": "求婚者"
-                  },
-                  {
-                    "name": "丛雨",
-                    "role": "被求婚者"
-                  },
-                  {
-                    "name": "有地将臣的父母",
-                    "role": "见证者"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
-                "environment": {
-                  "atmosphere": "温馨",
-                  "tone": "浪漫"
-                },
-                "event": [
-                  {
-                    "action": "求婚",
-                    "initiator": "有地将臣",
-                    "target": "丛雨"
-                  },
-                  {
-                    "action": "答应",
-                    "initiator": "丛雨",
-                    "target": "有地将臣"
-                  }
-                ]
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -524,7 +256,6 @@
             "sit_wedding_proposal"
           ],
           "bonus_ranking": [
-            "sem_self",
             "sem_masamune"
           ]
         }
@@ -533,112 +264,33 @@
         "sit_wedding_proposal"
       ],
       "bonus_combined_ranking": [
-        "sem_self",
         "sem_masamune"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_12",
-      "description": "atomic query 12",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "将臣等人在神社密室发现了保存完好的丛雨的人类身体",
-                "location": [
-                  {
-                    "name": "神社密室"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "有地将臣",
-                    "role": "发现者"
-                  },
-                  {
-                    "name": "丛雨",
-                    "role": "惊讶者"
-                  }
-                ],
-                "time_span": null,
-                "environment": {
-                  "atmosphere": "神秘",
-                  "tone": "庄严"
-                },
-                "event": [
-                  {
-                    "action": "发现",
-                    "initiator": "有地将臣",
-                    "target": "御神体"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_discover_human_body"
-          ],
-          "bonus_ranking": [
-            "sem_human_body"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_discover_human_body"
-      ],
-      "bonus_combined_ranking": [
-        "sem_human_body"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_13",
-      "description": "atomic query 13",
+      "name": "query_6",
+      "description": "atomic query 6",
       "sub_queries": [
         {
           "priority": 8,
           "tag": [
             "事件",
-            "恐惧"
+            "恐惧",
+            "习惯"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "去祓除的路上太黑，丛雨害怕得紧贴将臣背后唱老歌谣壮胆",
+                "narrative": "黑漆漆的除妖路上紧紧贴着将臣还唱起老歌谣",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "有地将臣",
-                    "role": "同行者"
-                  },
-                  {
-                    "name": "丛雨",
-                    "role": "害怕者"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": {
                   "atmosphere": "黑暗阴森",
                   "tone": "恐怖"
                 },
-                "event": [
-                  {
-                    "action": "唱歌",
-                    "initiator": "丛雨",
-                    "target": "自己"
-                  }
-                ]
+                "event": null
               }
             ]
           }
@@ -651,7 +303,8 @@
             "sit_exorcism_road"
           ],
           "bonus_ranking": [
-            "sem_fear_ghosts"
+            "sem_fear_ghosts",
+            "sem_tatarigami"
           ]
         }
       ],
@@ -659,198 +312,29 @@
         "sit_exorcism_road"
       ],
       "bonus_combined_ranking": [
-        "sem_fear_ghosts"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "日常"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "丛雨经常在午餐时间跑去学校探望将臣，然后被喂饭",
-                "location": [
-                  {
-                    "name": "穗织学校"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "有地将臣",
-                    "role": "喂饭者"
-                  },
-                  {
-                    "name": "丛雨",
-                    "role": "探望者"
-                  }
-                ],
-                "time_span": null,
-                "environment": {
-                  "atmosphere": "温馨",
-                  "tone": "愉快"
-                },
-                "event": [
-                  {
-                    "action": "喂饭",
-                    "initiator": "有地将臣",
-                    "target": "丛雨"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_lunch_visit"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_masamune"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_lunch_visit"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_masamune"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_15",
-      "description": "atomic query 15",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "价值观"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她认为重要的事",
-                "description": "守护穗织是使命，幸福需要争取，真挚的感情值得珍视"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_values"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_values"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_16",
-      "description": "atomic query 16",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "概念",
-            "血脉"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "能看到丛雨的关键",
-                "description": "拥有朝武家血脉的人可以看到丛雨"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_chouke_blood"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_chouke_blood"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_17",
-      "description": "atomic query 17",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "物体"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "祟神留下的碎片",
-                "description": "拥有奇怪力量，导致将臣能看到丛雨"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_fragment"
-          ],
-          "bonus_ranking": [
-            "sem_tatarigami"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_fragment"
-      ],
-      "bonus_combined_ranking": [
+        "sem_fear_ghosts",
         "sem_tatarigami"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_fear_dark",
+        "proc_speech_style"
+      ]
     },
     {
-      "name": "query_18",
-      "description": "atomic query 18",
+      "name": "query_7",
+      "description": "atomic query 7",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 8,
           "tag": [
-            "人物",
-            "关系"
+            "能力",
+            "灵体"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "巫女和护卫",
-                "description": "芳乃和茉子之间如同同伴的关系"
+                "concept_identifier": "普通人看不见她的原因",
+                "description": "作为灵体，只有特定血脉或长期接触碎片的人才能感知到她的存在"
               }
             ]
           }
@@ -860,73 +344,41 @@
         {
           "q": 0,
           "ranking": [
-            "sem_fumino",
-            "sem_matsuko"
+            "sem_spirit_ability"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_chouke_blood",
+            "sem_fragment"
+          ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_fumino",
-        "sem_matsuko"
+        "sem_spirit_ability"
       ],
-      "bonus_combined_ranking": [],
+      "bonus_combined_ranking": [
+        "sem_chouke_blood",
+        "sem_fragment"
+      ],
       "expected_actions": []
     },
     {
-      "name": "query_19",
-      "description": "atomic query 19",
+      "name": "query_8",
+      "description": "atomic query 8",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 8,
           "tag": [
-            "关系",
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "丛雨和芳乃的姐妹情谊",
-                "description": "芳乃把丛雨当作大人敬重，后来丛雨成为朝武家养女"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_self",
-            "sem_fumino"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_self",
-        "sem_fumino"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "query_20",
-      "description": "atomic query 20",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "地点",
-            "日常"
+            "事件",
+            "发现",
+            "御神体"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "丛雨在穗织小镇的日常生活和互动",
+                "narrative": "在神社密室里找到她几百年前的人类身体的那一刻",
                 "location": [
                   {
-                    "name": "穗织"
+                    "name": "神社密室"
                   }
                 ],
                 "participants": null,
@@ -942,44 +394,287 @@
         {
           "q": 0,
           "ranking": [
-            "sit_abstract_location_hiori"
+            "sit_discover_human_body"
           ],
           "bonus_ranking": [
-            "sit_lunch_visit",
-            "sit_head_pat_tease"
+            "sem_human_body",
+            "sem_masamune",
+            "sem_fumino"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_abstract_location_hiori"
+        "sit_discover_human_body"
       ],
       "bonus_combined_ranking": [
-        "sit_lunch_visit",
-        "sit_head_pat_tease"
+        "sem_human_body",
+        "sem_masamune",
+        "sem_fumino"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_21",
-      "description": "atomic query 21",
+      "name": "query_9",
+      "description": "atomic query 9",
       "sub_queries": [
         {
           "priority": 6,
           "tag": [
             "人物",
-            "事件"
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "朝武家的现任巫女",
+                "description": "认真温柔、称呼她为丛雨大人后来成为她姐妹的女孩"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fumino"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_matsuko"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fumino"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_matsuko"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "巫女身边一本正经的护卫",
+                "description": "表面正经私下爱偷看她与将臣互动的女孩"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_matsuko"
+          ],
+          "bonus_ranking": [
+            "sem_fumino",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_matsuko"
+      ],
+      "bonus_combined_ranking": [
+        "sem_fumino",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "金发的异国姑娘",
+                "description": "因为长期接触碎片而能看见她，充满活力又有点天然呆的女孩"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_reina"
+          ],
+          "bonus_ranking": [
+            "sem_fragment",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_reina"
+      ],
+      "bonus_combined_ranking": [
+        "sem_fragment",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "地点",
+            "家园"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她守护了数百年的小镇",
+                "description": "有温泉、神社和拔刀文化象征的宁静土地"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_hiori"
+          ],
+          "bonus_ranking": [
+            "sem_murasamemaru"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_hiori"
+      ],
+      "bonus_combined_ranking": [
+        "sem_murasamemaru"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "物体",
+            "祟神"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "污染人心的奇怪碎片",
+                "description": "祟神留下的东西，蕾娜和将臣身上都带着，也是她能被人看见的原因之一"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fragment"
+          ],
+          "bonus_ranking": [
+            "sem_tatarigami",
+            "sem_reina",
+            "sem_masamune"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fragment"
+      ],
+      "bonus_combined_ranking": [
+        "sem_tatarigami",
+        "sem_reina",
+        "sem_masamune"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "性格",
+            "弱点"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她最大的反差弱点",
+                "description": "明明是灵体却对鬼怪怕得不行，天黑就胆怯"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fear_ghosts"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fear_ghosts"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_fear_dark"
+      ]
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "日常",
+            "互动"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "丛雨和将臣之间发生的各种重要和日常事件",
+                "narrative": "被摸头时心里暖暖的，对方却故意抬手又放手逗她",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "有地将臣",
-                    "role": "主人/丈夫"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -992,36 +687,295 @@
         {
           "q": 0,
           "ranking": [
-            "sit_abstract_participant_masamune"
+            "sit_head_pat_tease"
           ],
           "bonus_ranking": [
-            "sit_night_raid_confession",
-            "sit_wedding_proposal"
+            "sem_masamune"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_abstract_participant_masamune"
+        "sit_head_pat_tease"
       ],
       "bonus_combined_ranking": [
-        "sit_night_raid_confession",
-        "sit_wedding_proposal"
+        "sem_masamune"
+      ],
+      "expected_actions": [
+        "proc_head_pat"
+      ]
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "日常",
+            "学校"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "中午特意跑去学校探望他，反倒被逮住喂饭",
+                "location": [
+                  {
+                    "name": "穗织学校"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_lunch_visit"
+          ],
+          "bonus_ranking": [
+            "sem_masamune"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_lunch_visit"
+      ],
+      "bonus_combined_ranking": [
+        "sem_masamune"
+      ],
+      "expected_actions": [
+        "proc_lunch_visit"
+      ]
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "长辈"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "将臣的外公兼剑术师父",
+                "description": "外表凶悍内心热情，一见到她就紧张激动的老人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_genjuro"
+          ],
+          "bonus_ranking": [
+            "sem_masamune"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_genjuro"
+      ],
+      "bonus_combined_ranking": [
+        "sem_masamune"
       ],
       "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "性格",
+            "傲娇"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "爱闹别扭又小心眼的性格",
+                "description": "看到将臣与别的女生亲近就心里莫名烦躁"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_tsundere"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_tsundere"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_jealous"
+      ]
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "价值观",
+            "信念"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她认定的人生信条",
+                "description": "守护穗织是使命，但幸福也要自己争取，真挚感情值得珍惜"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_values"
+          ],
+          "bonus_ranking": [
+            "sem_hiori"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_values"
+      ],
+      "bonus_combined_ranking": [
+        "sem_hiori"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "概念",
+            "血脉"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "看得见灵体的那支血脉",
+                "description": "朝武家世代守护穗织，拥有这份血脉的人才能看见她"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_chouke_blood"
+          ],
+          "bonus_ranking": [
+            "sem_fumino",
+            "sem_spirit_ability"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_chouke_blood"
+      ],
+      "bonus_combined_ranking": [
+        "sem_fumino",
+        "sem_spirit_ability"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "环境",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "漆黑阴森的场合下她会出现什么样的反应",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "黑暗",
+                  "tone": "阴森"
+                },
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_abstract_environment_dark"
+          ],
+          "bonus_ranking": [
+            "sit_exorcism_road"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_abstract_environment_dark"
+      ],
+      "bonus_combined_ranking": [
+        "sit_exorcism_road"
+      ],
+      "expected_actions": [
+        "proc_fear_dark",
+        "proc_speech_style"
+      ]
     },
     {
       "name": "query_22",
       "description": "atomic query 22",
       "sub_queries": [
         {
-          "priority": 5,
+          "priority": 4,
           "tag": [
-            "事件"
+            "事件",
+            "祓除"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "丛雨和将臣一起进行祓除祟神的仪式",
+                "narrative": "和将臣搭档执行除魔任务的经历",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1045,7 +999,8 @@
             "sit_abstract_event_exorcism"
           ],
           "bonus_ranking": [
-            "sit_exorcism_road"
+            "sit_exorcism_road",
+            "sem_tatarigami"
           ]
         }
       ],
@@ -1053,9 +1008,12 @@
         "sit_abstract_event_exorcism"
       ],
       "bonus_combined_ranking": [
-        "sit_exorcism_road"
+        "sit_exorcism_road",
+        "sem_tatarigami"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_fear_dark"
+      ]
     },
     {
       "name": "query_23",
@@ -1064,19 +1022,22 @@
         {
           "priority": 5,
           "tag": [
-            "环境"
+            "人物",
+            "关系"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在黑暗阴森的环境下丛雨感到害怕",
+                "narrative": "围绕那个最重要的人展开的种种相处时光",
                 "location": null,
-                "participants": null,
+                "participants": [
+                  {
+                    "name": "有地将臣",
+                    "role": "主人/丈夫"
+                  }
+                ],
                 "time_span": null,
-                "environment": {
-                  "atmosphere": "黑暗",
-                  "tone": "阴森"
-                },
+                "environment": null,
                 "event": null
               }
             ]
@@ -1087,22 +1048,25 @@
         {
           "q": 0,
           "ranking": [
-            "sit_abstract_environment_dark"
+            "sit_abstract_participant_masamune"
           ],
           "bonus_ranking": [
-            "sit_exorcism_road",
-            "sit_night_raid_confession"
+            "sem_masamune",
+            "sit_head_pat_tease"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_abstract_environment_dark"
+        "sit_abstract_participant_masamune"
       ],
       "bonus_combined_ranking": [
-        "sit_exorcism_road",
-        "sit_night_raid_confession"
+        "sem_masamune",
+        "sit_head_pat_tease"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_head_pat",
+        "proc_jealous"
+      ]
     },
     {
       "name": "query_24",
@@ -1111,35 +1075,22 @@
         {
           "priority": 5,
           "tag": [
-            "事件"
+            "地点",
+            "日常"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "丛雨在祓除的路上唱歌壮胆，虽然她自己害怕黑暗",
-                "location": null,
-                "participants": [
+                "narrative": "在这座温泉小镇上生活的点点滴滴",
+                "location": [
                   {
-                    "name": "有地将臣",
-                    "role": "同行者"
-                  },
-                  {
-                    "name": "丛雨",
-                    "role": "唱歌者"
+                    "name": "穗织"
                   }
                 ],
+                "participants": null,
                 "time_span": null,
-                "environment": {
-                  "atmosphere": "黑暗",
-                  "tone": "紧张"
-                },
-                "event": [
-                  {
-                    "action": "唱歌",
-                    "initiator": "丛雨",
-                    "target": "自己"
-                  }
-                ]
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -1149,36 +1100,56 @@
         {
           "q": 0,
           "ranking": [
-            "sit_exorcism_road"
+            "sit_abstract_location_hiori"
           ],
           "bonus_ranking": [
-            "sem_fear_ghosts"
+            "sem_hiori",
+            "sit_lunch_visit"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_exorcism_road"
+        "sit_abstract_location_hiori"
       ],
       "bonus_combined_ranking": [
-        "sem_fear_ghosts"
+        "sem_hiori",
+        "sit_lunch_visit"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_lunch_visit",
+        "proc_head_pat"
+      ]
     },
     {
-      "name": "self",
-      "description": "查询丛雨的身份和基本属性",
+      "name": "set_masamune_love",
+      "description": "查询丛雨的伴侣与主人——有地将臣",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
-            "角色",
-            "自身"
+            "人物",
+            "关系"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "剑灵的名字",
-                "description": ""
+                "concept_identifier": "把她从神岩上解放出来的人",
+                "description": "拔出丛雨丸并成为她命中归宿的温柔男子"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "家人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她深爱的夫君",
+                "description": "在父母面前向她求婚、如今与她共度一生的人"
               }
             ]
           }
@@ -1186,14 +1157,14 @@
         {
           "priority": 8,
           "tag": [
-            "角色",
-            "自身"
+            "人物",
+            "关系"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "丛雨",
-                "description": "神刀丛雨丸的管理者"
+                "concept_identifier": "让她重获肉身的人",
+                "description": "因为遇见他，她才能从灵体重回人间生活"
               }
             ]
           }
@@ -1201,14 +1172,44 @@
         {
           "priority": 8,
           "tag": [
-            "角色",
-            "自身"
+            "人物",
+            "能力"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "将臣的妻子",
-                "description": "那位被将臣从神岩上拔出来的剑灵"
+                "concept_identifier": "唯一能碰到她的存在",
+                "description": "普通人碰不到灵体的她，唯独他能做到"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "那个让她不再孤单的人",
+                "description": "让她在漫长守护岁月后终于找到归宿的主人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "互动"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "爱逗她玩的青年",
+                "description": "摸头摸到一半故意收手，看她表情变化取乐"
               }
             ]
           }
@@ -1216,219 +1217,14 @@
         {
           "priority": 8,
           "tag": [
-            "角色",
-            "自身"
+            "人物",
+            "事件"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "活了数百年的灵体",
-                "description": "自称我辈的傲娇少女"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "角色",
-            "自身"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "有地丛雨",
-                "description": "原本是人类少女绫，被献祭后成为剑灵，后恢复肉身并与将臣结婚"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "角色",
-            "自身"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她是谁",
-                "description": "那个总是怕鬼的灵体女孩"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "角色",
-            "自身"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "我",
-                "description": "我是守护穗织的灵体"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_self"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_self"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "masamune",
-      "description": "查询有地将臣的身份和关系",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的主人",
-                "description": "将丛雨丸从岩石上拔出的人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "将臣",
-                "description": "后来成为她丈夫的那个人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个男人",
-                "description": "温柔可靠的能触碰她的唯一男性"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "丛雨的丈夫",
-                "description": "她最爱的银发少年"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "拔出神刀的人",
-                "description": "穗织的救世主"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "摸她头的那个人",
-                "description": "经常在学校喂她饭的男生"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "将臣君",
-                "description": "她的恋人"
+                "concept_identifier": "引发小镇风波的男人",
+                "description": "拔出神刀后让观光客流下降，还收获了一个剑灵的芳心"
               }
             ]
           }
@@ -1440,71 +1236,98 @@
           "ranking": [
             "sem_masamune"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_murasamemaru",
+            "sem_self"
+          ]
         },
         {
           "q": 1,
           "ranking": [
             "sem_masamune"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_self"
+          ]
         },
         {
           "q": 2,
           "ranking": [
             "sem_masamune"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_human_body",
+            "sem_self"
+          ]
         },
         {
           "q": 3,
           "ranking": [
             "sem_masamune"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_fragment",
+            "sem_spirit_ability"
+          ]
         },
         {
           "q": 4,
           "ranking": [
             "sem_masamune"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_self"
+          ]
         },
         {
           "q": 5,
           "ranking": [
             "sem_masamune"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sit_head_pat_tease"
+          ]
         },
         {
           "q": 6,
           "ranking": [
             "sem_masamune"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_hiori"
+          ]
         }
       ],
       "expected_combined_ranking": [
         "sem_masamune"
       ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
+      "bonus_combined_ranking": [
+        "sem_murasamemaru",
+        "sem_self",
+        "sem_human_body",
+        "sem_fragment",
+        "sem_spirit_ability",
+        "sit_head_pat_tease",
+        "sem_hiori"
+      ],
+      "expected_actions": [
+        "proc_head_pat"
+      ]
     },
     {
-      "name": "confession",
-      "description": "查询丛雨向将臣夜晚表白的事件",
+      "name": "set_confession",
+      "description": "查询丛雨向将臣表白的那次夜袭",
       "sub_queries": [
         {
           "priority": 9,
           "tag": [
             "事件",
-            "表白"
+            "重要时刻"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "丛雨在一个夜晚主动向将臣表白",
+                "narrative": "深夜摸进将臣房间说出心意的那一刻",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1515,19 +1338,42 @@
           }
         },
         {
-          "priority": 9,
+          "priority": 8,
           "tag": [
             "事件",
-            "表白"
+            "关系"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她鼓足勇气在晚上袭击了将臣并告白",
+                "narrative": "她鼓起勇气主动出击的告白夜",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "朋友"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "被两个好友怂恿着去表白的夜晚",
                 "location": null,
                 "participants": [
                   {
                     "name": "朝武芳乃",
+                    "role": "怂恿者"
+                  },
+                  {
+                    "name": "常陆茉子",
                     "role": "怂恿者"
                   }
                 ],
@@ -1539,15 +1385,52 @@
           }
         },
         {
-          "priority": 9,
+          "priority": 4,
           "tag": [
-            "事件",
-            "表白"
+            "事件"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在芳乃和茉子的鼓励下，丛雨在夜晚向主人表白",
+                "narrative": "那次让她紧张又害羞的行动",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "关系"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她和他从主从关系到恋人的转折点",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "重要时刻"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "带着暧昧气息的夜袭告白，背后还有两个推手",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1561,88 +1444,12 @@
           "priority": 9,
           "tag": [
             "事件",
-            "表白"
+            "关系"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "那次夜袭表白，她紧张得要死",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "表白"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "丛雨如何向将臣表白的",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "表白"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "夜晚的告白事件，丛雨害羞极了",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "表白"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "丛雨终于鼓起勇气在晚上对将臣说出心意",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "事件",
-            "表白"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "芳乃和茉子助攻下的夜袭表白",
+                "narrative": "她第一次主动向他迈出那一步的场景",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1660,8 +1467,8 @@
             "sit_night_raid_confession"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "sem_masamune"
+            "sem_masamune",
+            "sem_self"
           ]
         },
         {
@@ -1670,7 +1477,6 @@
             "sit_night_raid_confession"
           ],
           "bonus_ranking": [
-            "sem_self",
             "sem_masamune"
           ]
         },
@@ -1680,8 +1486,9 @@
             "sit_night_raid_confession"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "sem_masamune"
+            "sem_fumino",
+            "sem_matsuko",
+            "sem_self"
           ]
         },
         {
@@ -1690,7 +1497,6 @@
             "sit_night_raid_confession"
           ],
           "bonus_ranking": [
-            "sem_self",
             "sem_masamune"
           ]
         },
@@ -1710,8 +1516,8 @@
             "sit_night_raid_confession"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "sem_masamune"
+            "sem_fumino",
+            "sem_matsuko"
           ]
         },
         {
@@ -1720,17 +1526,6 @@
             "sit_night_raid_confession"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "sem_masamune"
-          ]
-        },
-        {
-          "q": 7,
-          "ranking": [
-            "sit_night_raid_confession"
-          ],
-          "bonus_ranking": [
-            "sem_self",
             "sem_masamune"
           ]
         }
@@ -1739,26 +1534,43 @@
         "sit_night_raid_confession"
       ],
       "bonus_combined_ranking": [
+        "sem_masamune",
         "sem_self",
-        "sem_masamune"
+        "sem_fumino",
+        "sem_matsuko"
       ],
       "expected_actions": []
     },
     {
-      "name": "fear_ghosts",
-      "description": "查询丛雨怕鬼的性格弱点",
+      "name": "set_fear_dark",
+      "description": "查询丛雨怕鬼以及黑暗环境中的应激反应",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
-            "弱点",
-            "性格"
+            "性格",
+            "弱点"
           ],
           "variant": {
             "Semantic": [
               {
                 "concept_identifier": "她最害怕的东西",
-                "description": "明明是灵体却害怕黑暗和幽灵"
+                "description": "身为灵体却对鬼怪怕得要命的反差点"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "弱点",
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "一入夜就胆怯的毛病",
+                "description": "黑暗让她腿软，只能紧贴别人壮胆"
               }
             ]
           }
@@ -1766,219 +1578,48 @@
         {
           "priority": 7,
           "tag": [
-            "弱点",
             "性格"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "丛雨的弱点",
-                "description": "怕鬼怪，去祓除时会唱歌壮胆"
+                "concept_identifier": "怕到要唱歌壮胆的女孩",
+                "description": "用老歌谣给自己打气却越唱越阴森的真实经历"
               }
             ]
           }
         },
         {
-          "priority": 7,
+          "priority": 6,
           "tag": [
-            "弱点",
-            "性格"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她害怕的事物",
-                "description": "黑暗和幽灵让她紧张"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "弱点",
-            "性格"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "灵体怕鬼",
-                "description": "作为灵体却害怕超自然存在，需要紧贴将臣"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "弱点",
-            "性格"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "恐惧黑暗",
-                "description": "在黑暗环境中她会害怕"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "弱点",
-            "性格"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "怕鬼的剑灵",
-                "description": "最大的软肋"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_fear_ghosts"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_fear_ghosts"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_fear_ghosts"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_fear_ghosts"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_fear_ghosts"
-          ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_fear_ghosts"
-          ],
-          "bonus_ranking": []
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_fear_ghosts"
-      ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
-    },
-    {
-      "name": "interaction",
-      "description": "查询丛雨与将臣的关系及相关事件",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "关系",
+            "性格",
             "事件"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "剑灵丛雨",
-                "description": "她是神刀的管理者"
+                "concept_identifier": "明明很怕还是硬着头皮除魔的她",
+                "description": "怕鬼却不得不面对祟神的矛盾日常"
               }
             ]
           }
         },
         {
-          "priority": 9,
+          "priority": 8,
           "tag": [
-            "关系",
-            "事件"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "表白的灵体",
-                "description": "那个在夜晚主动向将臣表白的少女"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "关系",
-            "事件"
+            "事件",
+            "恐惧"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "丛雨在夜晚向将臣表白",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "表白",
-                    "initiator": "丛雨",
-                    "target": "有地将臣"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "关系",
-            "事件"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "丛雨",
-                "description": "自称我辈的傲娇"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "关系",
-            "事件"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "那晚的夜袭告白",
+                "narrative": "除魔路上黑得吓人，她整个人贴在将臣背后还唱起恐怖童谣",
                 "location": null,
                 "participants": null,
                 "time_span": null,
                 "environment": {
-                  "atmosphere": "暧昧",
-                  "tone": "浪漫"
+                  "atmosphere": "黑暗阴森",
+                  "tone": "恐怖"
                 },
                 "event": null
               }
@@ -1986,16 +1627,219 @@
           }
         },
         {
-          "priority": 9,
+          "priority": 7,
           "tag": [
-            "关系",
+            "习惯",
+            "环境"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "一旦身处黑暗阴森的场合就会被触发的反应模式",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "黑暗",
+                  "tone": "阴森"
+                },
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "因为怕黑，执行任务时她几乎要钻到同伴的后背里",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fear_ghosts"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_fear_ghosts"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_fear_ghosts"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_fear_ghosts"
+          ],
+          "bonus_ranking": [
+            "sit_exorcism_road"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_exorcism_road"
+          ],
+          "bonus_ranking": [
+            "sem_fear_ghosts",
+            "sem_masamune"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_abstract_environment_dark"
+          ],
+          "bonus_ranking": [
+            "sit_exorcism_road"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_exorcism_road"
+          ],
+          "bonus_ranking": [
+            "sem_masamune"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fear_ghosts",
+        "sit_exorcism_road",
+        "sit_abstract_environment_dark"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_exorcism_road",
+        "sem_fear_ghosts",
+        "sem_masamune"
+      ],
+      "expected_actions": [
+        "proc_fear_dark",
+        "proc_speech_style"
+      ]
+    },
+    {
+      "name": "set_murasamemaru_legend",
+      "description": "查询神刀丛雨丸的来历与传说",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "物体",
+            "神刀"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她寄宿了数百年的刀",
+                "description": "既是她的栖身之所，也是穗织供奉的圣物"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "物体",
+            "神刀"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "辟邪治妖的传说之刃",
+                "description": "名字出自《里见八犬传》的护国神刀"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "物体",
+            "地点"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "穗织供奉祭拜的那把刀",
+                "description": "完成奉纳仪式时会献上祝福的神刀"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "物体",
             "事件"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "她的身份",
-                "description": "剑灵和将臣的妻子"
+                "concept_identifier": "被从神岩上拔出的那把刀",
+                "description": "它的出土让小镇客流骤减引发财政危机"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "物体",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "和她名字相连的神刀",
+                "description": "剑灵与刀本为一体，她守着它也被它守护"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "物体",
+            "事件"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "历代祓除仪式中的主角",
+                "description": "多年来历代主人挥舞着它对抗祟神"
               }
             ]
           }
@@ -2005,18 +1849,17 @@
         {
           "q": 0,
           "ranking": [
-            "sem_self",
-            "sit_night_raid_confession"
+            "sem_murasamemaru"
           ],
           "bonus_ranking": [
-            "sem_masamune"
+            "sem_self",
+            "sem_hiori"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_self",
-            "sit_night_raid_confession"
+            "sem_murasamemaru"
           ],
           "bonus_ranking": [
             "sem_masamune"
@@ -2025,67 +1868,130 @@
         {
           "q": 2,
           "ranking": [
-            "sem_self",
-            "sit_night_raid_confession"
+            "sem_murasamemaru"
           ],
           "bonus_ranking": [
-            "sem_masamune"
+            "sem_hiori",
+            "sem_self"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_self",
-            "sit_night_raid_confession"
+            "sem_murasamemaru"
           ],
           "bonus_ranking": [
+            "sem_hiori",
             "sem_masamune"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_self",
-            "sit_night_raid_confession"
+            "sem_murasamemaru"
           ],
           "bonus_ranking": [
-            "sem_masamune"
+            "sem_self"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sem_self",
-            "sit_night_raid_confession"
+            "sem_murasamemaru"
           ],
           "bonus_ranking": [
-            "sem_masamune"
+            "sem_tatarigami",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_self",
-        "sit_night_raid_confession"
+        "sem_murasamemaru"
       ],
       "bonus_combined_ranking": [
-        "sem_masamune"
+        "sem_self",
+        "sem_hiori",
+        "sem_masamune",
+        "sem_tatarigami"
       ],
       "expected_actions": []
     },
     {
-      "name": "hiori",
-      "description": "查询穗织小镇的相关信息",
+      "name": "set_head_pat",
+      "description": "查询丛雨被将臣摸头逗弄时的反应",
       "sub_queries": [
         {
-          "priority": 6,
+          "priority": 8,
           "tag": [
-            "地点"
+            "日常",
+            "互动"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "她守护的小镇",
-                "description": "有温泉和神社"
+                "narrative": "他摸她的头时她舒服得眯眼，他却故意抽手看她着急",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "互动",
+            "情绪"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "摸头时幸福得冒泡，被捉弄后却又气鼓鼓的样子",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "日常",
+            "互动"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "抬手又放下的逗人把戏，专治她的小表情",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "互动",
+            "性格"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在喜欢的人面前被摸头的反应，明明开心却要闹别扭",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -2093,83 +1999,36 @@
         {
           "priority": 6,
           "tag": [
-            "地点"
+            "日常"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "穗织",
-                "description": "宁静的乡下小镇"
+                "narrative": "被摸头时心里那份又暖又羞的熟悉感",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
         },
         {
-          "priority": 6,
+          "priority": 4,
           "tag": [
-            "地点"
+            "互动",
+            "习惯"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "那个地方",
-                "description": "以拔刀活动为文化象征"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "地点"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "丛雨的家",
-                "description": "她守护了数百年的地方"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "地点"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "穗织镇",
-                "description": "因将臣拔出刀导致客流下降"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "地点"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "小镇",
-                "description": "丛雨深深眷恋的地方"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "地点"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "有地家所在的小镇",
-                "description": "穗织"
+                "narrative": "两个人之间最常见的亲密小互动，带着打打闹闹的甜意",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -2179,58 +2038,262 @@
         {
           "q": 0,
           "ranking": [
-            "sem_hiori"
+            "sit_head_pat_tease"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_masamune"
+          ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_hiori"
+            "sit_head_pat_tease"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_tsundere"
+          ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_hiori"
+            "sit_head_pat_tease"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_masamune",
+            "sem_self"
+          ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_hiori"
+            "sit_head_pat_tease"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_tsundere"
+          ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_hiori"
+            "sit_head_pat_tease"
           ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_masamune"
+          ]
         },
         {
           "q": 5,
           "ranking": [
-            "sem_hiori"
+            "sit_head_pat_tease"
           ],
-          "bonus_ranking": []
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_hiori"
-          ],
-          "bonus_ranking": []
+          "bonus_ranking": [
+            "sem_self"
+          ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_hiori"
+        "sit_head_pat_tease"
       ],
-      "bonus_combined_ranking": [],
-      "expected_actions": []
+      "bonus_combined_ranking": [
+        "sem_masamune",
+        "sem_tsundere",
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_head_pat",
+        "proc_facial_expressions"
+      ]
+    },
+    {
+      "name": "set_masamune_interactions",
+      "description": "查询丛雨与将臣日常互动的方方面面",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "互动"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "中午会在学校碰头的人",
+                "description": "她总在午休时跑去看他，结果反而被喂饭的那个人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "互动"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "爱用摸头逗她的人",
+                "description": "摸头到一半停手看她表情的坏心眼"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "让她吃醋的源头",
+                "description": "只要他靠近别的女孩子，她心里就酸溜溜的"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "抽象"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "围绕那个最重要的人展开的种种时光",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "有地将臣",
+                    "role": "主人/丈夫"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "日常",
+            "学校"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "午休跑去学校探望他，结果被抓住亲手喂饭",
+                "location": [
+                  {
+                    "name": "穗织学校"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "重要时刻"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在他父母见证下单膝跪地求婚的场景",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_masamune"
+          ],
+          "bonus_ranking": [
+            "sit_lunch_visit"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_masamune"
+          ],
+          "bonus_ranking": [
+            "sit_head_pat_tease"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_masamune"
+          ],
+          "bonus_ranking": [
+            "sem_tsundere"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_abstract_participant_masamune"
+          ],
+          "bonus_ranking": [
+            "sem_masamune",
+            "sit_head_pat_tease"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_lunch_visit"
+          ],
+          "bonus_ranking": [
+            "sem_masamune"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_wedding_proposal"
+          ],
+          "bonus_ranking": [
+            "sem_masamune"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_masamune",
+        "sit_abstract_participant_masamune",
+        "sit_lunch_visit",
+        "sit_wedding_proposal"
+      ],
+      "bonus_combined_ranking": [
+        "sit_lunch_visit",
+        "sit_head_pat_tease",
+        "sem_tsundere",
+        "sem_masamune"
+      ],
+      "expected_actions": [
+        "proc_lunch_visit",
+        "proc_head_pat",
+        "proc_jealous"
+      ]
     }
   ]
 }

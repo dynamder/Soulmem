@@ -19,14 +19,14 @@
         {
           "priority": 9,
           "tag": [
-            "自身",
-            "角色"
+            "人物",
+            "身份"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "地底那只蜘蛛精",
-                "description": "住在幻想风穴的土蜘蛛妖怪的名字和身份"
+                "concept_identifier": "地底偶像",
+                "description": "在地下妖怪中间很有人气的蜘蛛妖怪"
               }
             ]
           }
@@ -56,15 +56,16 @@
       "description": "atomic query 1",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
-            "能力"
+            "能力",
+            "关系"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "让人发烧的传染病能力",
-                "description": "她的疾病操纵能力具体能引发什么症状"
+                "concept_identifier": "染病像调味一样的能力",
+                "description": "阿求注解里说的土蜘蛛让猎物染病的意义"
               }
             ]
           }
@@ -77,7 +78,8 @@
             "sem_disease_ability"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_self",
+            "sem_akyuu"
           ]
         }
       ],
@@ -85,7 +87,8 @@
         "sem_disease_ability"
       ],
       "bonus_combined_ranking": [
-        "sem_self"
+        "sem_self",
+        "sem_akyuu"
       ],
       "expected_actions": []
     },
@@ -94,16 +97,98 @@
       "description": "atomic query 2",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 6,
           "tag": [
-            "人物",
-            "关系"
+            "地点",
+            "住所"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "桥姬暗恋的那个鬼族",
-                "description": "她如何作为朋友看待帕露西对勇仪的感情"
+                "concept_identifier": "山脚下的洞穴",
+                "description": "风很大、阴暗潮湿、住着地下妖怪的那个风穴"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fantasy_wind_cave"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_kisume"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fantasy_wind_cave"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_kisume"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "邻居"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "钓瓶落小妹妹",
+                "description": "总是待在吊桶里的内向邻居，虽然安静但其实凶暴"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_kisume"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_fantasy_wind_cave"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kisume"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_fantasy_wind_cave"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "爱嫉妒的桥姬",
+                "description": "旧地狱里和她特别合得来的傲娇好友"
               }
             ]
           }
@@ -117,7 +202,7 @@
           ],
           "bonus_ranking": [
             "sem_self",
-            "sem_satori"
+            "sem_kisume"
           ]
         }
       ],
@@ -126,64 +211,25 @@
       ],
       "bonus_combined_ranking": [
         "sem_self",
-        "sem_satori"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_3",
-      "description": "atomic query 3",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "邻居"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "躲在吊桶里的内向女孩",
-                "description": "与她同住幻想风穴的邻居琪斯美是什么样的妖怪"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_kisume"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
         "sem_kisume"
       ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
       "expected_actions": []
     },
     {
-      "name": "query_4",
-      "description": "atomic query 4",
+      "name": "query_5",
+      "description": "atomic query 5",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 6,
           "tag": [
             "人物",
-            "对手"
+            "潜在对手"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "地上世界的虫妖怪",
-                "description": "莉格露和她之间同人中常见的对抗关系"
+                "concept_identifier": "能操控虫子的妖怪",
+                "description": "因为蜘蛛吃虫的关系跟她凑成CP的地上虫妖怪"
               }
             ]
           }
@@ -196,7 +242,8 @@
             "sem_wriggle"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_self",
+            "proc_fight"
           ]
         }
       ],
@@ -204,38 +251,26 @@
         "sem_wriggle"
       ],
       "bonus_combined_ranking": [
-        "sem_self"
+        "sem_self",
+        "proc_fight"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_5",
-      "description": "atomic query 5",
+      "name": "query_6",
+      "description": "atomic query 6",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 5,
           "tag": [
-            "事件",
-            "拒绝"
+            "人物",
+            "领主"
           ],
           "variant": {
-            "Situation": [
+            "Semantic": [
               {
-                "narrative": "她曾经想去命莲寺当和尚结果被拒绝了",
-                "location": [
-                  {
-                    "name": "命莲寺"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "圣白莲",
-                    "role": "拒绝者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
+                "concept_identifier": "地灵殿的主人",
+                "description": "拥有读心能力、值得地下居民敬重的领主"
               }
             ]
           }
@@ -245,46 +280,286 @@
         {
           "q": 0,
           "ranking": [
-            "sit_rejected_by_myourenji"
+            "sem_satori"
           ],
           "bonus_ranking": [
-            "sem_byakuren",
+            "sem_self",
+            "sit_underground_social_participant"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_satori"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_underground_social_participant"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "技能",
+            "工作"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "一夜盖好房子的本事",
+                "description": "她引以为豪的土木工程效率"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_construction_skill"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_youkai_employers"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_construction_skill"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_youkai_employers"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "符卡",
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "蜘蛛网弹幕",
+                "description": "以蜘蛛网为主题的陷阱符卡"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_capture_web"
+          ],
+          "bonus_ranking": [
             "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_rejected_by_myourenji"
+        "sem_capture_web"
       ],
       "bonus_combined_ranking": [
-        "sem_byakuren",
         "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_6",
-      "description": "atomic query 6",
+      "name": "query_9",
+      "description": "atomic query 9",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 6,
+          "tag": [
+            "人物群体",
+            "雇主"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "妖怪施工委托方",
+                "description": "经常找她盖房子的鬼族河童和天狗们"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_youkai_employers"
+          ],
+          "bonus_ranking": [
+            "sem_construction_skill",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_youkai_employers"
+      ],
+      "bonus_combined_ranking": [
+        "sem_construction_skill",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "音乐",
+            "身份"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被封印的妖怪那首曲子",
+                "description": "很符合她被遗忘却顽强活着气质的主题曲"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_lost_place"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_lost_place"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "种族",
+            "背景"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被大和政权讨伐的种族",
+                "description": "古代被驱逐到地下、擅长土木建筑的蜘蛛妖怪一族"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_tsuchigumo"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_construction_skill"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_tsuchigumo"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_construction_skill"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "人物",
+            "记录者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "记录她的人类学者",
+                "description": "给土蜘蛛染病吃人做法写注解的历史记录者"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_akyuu"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sit_eat_with_disease_event"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_akyuu"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_eat_with_disease_event"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 9,
           "tag": [
             "事件",
-            "战斗",
-            "关系"
+            "战斗"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在地灵殿入口拦住灵梦她们然后打了一架",
-                "location": null,
+                "narrative": "在幻想风穴入口拦住灵梦她们，以为对方是来参加祭典结果打了一架",
+                "location": [
+                  {
+                    "name": "幻想风穴入口"
+                  }
+                ],
                 "participants": [
                   {
-                    "name": "我",
-                    "role": "拦路者"
-                  },
-                  {
-                    "name": "灵梦",
                     "role": "挑战者"
                   }
                 ],
@@ -313,27 +588,81 @@
       "bonus_combined_ranking": [
         "sem_self"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_fight"
+      ]
     },
     {
-      "name": "query_7",
-      "description": "atomic query 7",
+      "name": "query_14",
+      "description": "atomic query 14",
       "sub_queries": [
         {
-          "priority": 5,
+          "priority": 8,
           "tag": [
-            "地点",
-            "居住"
+            "事件",
+            "被拒绝"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "住在妖怪之山脚下一个风很大的洞穴里",
+                "narrative": "去命莲寺申请皈依，因为寺里烦恼的人类看起来好吃，结果被住持拒绝",
                 "location": [
                   {
-                    "name": "幻想风穴"
+                    "name": "命莲寺"
                   }
                 ],
+                "participants": [
+                  {
+                    "name": "圣白莲",
+                    "role": "拒绝者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_rejected_by_myourenji"
+          ],
+          "bonus_ranking": [
+            "sem_byakuren",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_rejected_by_myourenji"
+      ],
+      "bonus_combined_ranking": [
+        "sem_byakuren",
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_not_abuse_disease"
+      ]
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "事件",
+            "觅食"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在东方刚欲异闻里出场时只是在找吃的",
+                "location": null,
                 "participants": null,
                 "time_span": null,
                 "environment": null,
@@ -347,26 +676,71 @@
         {
           "q": 0,
           "ranking": [
-            "sit_living_cave_location"
+            "sit_hunting_for_food_gouyoku"
           ],
           "bonus_ranking": [
-            "sem_fantasy_wind_cave",
             "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sit_living_cave_location"
+        "sit_hunting_for_food_gouyoku"
       ],
       "bonus_combined_ranking": [
-        "sem_fantasy_wind_cave",
         "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_8",
-      "description": "atomic query 8",
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "事件",
+            "夜间活动"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "夜间在妖怪之山周边出没，可能碰上人类的地方转悠",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_nocturnal_activity_event"
+          ],
+          "bonus_ranking": [
+            "sit_nocturnal_activity_location",
+            "proc_fight"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_nocturnal_activity_event"
+      ],
+      "bonus_combined_ranking": [
+        "sit_nocturnal_activity_location",
+        "proc_fight"
+      ],
+      "expected_actions": [
+        "proc_fight"
+      ]
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
       "sub_queries": [
         {
           "priority": 7,
@@ -377,9 +751,14 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "为鬼和河童他们建造房子而且一夜就能盖好",
+                "narrative": "接了鬼族河童天狗的委托，一个晚上就把建筑盖完",
                 "location": null,
-                "participants": null,
+                "participants": [
+                  {
+                    "name": "鬼族河童天狗",
+                    "role": "雇主"
+                  }
+                ],
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -395,9 +774,8 @@
             "sit_building_work_event"
           ],
           "bonus_ranking": [
-            "sem_construction_skill",
-            "sem_youkai_employers",
-            "sem_self"
+            "sit_building_work_participant",
+            "sem_construction_skill"
           ]
         }
       ],
@@ -405,26 +783,28 @@
         "sit_building_work_event"
       ],
       "bonus_combined_ranking": [
-        "sem_construction_skill",
-        "sem_youkai_employers",
-        "sem_self"
+        "sit_building_work_participant",
+        "sem_construction_skill"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_construction"
+      ]
     },
     {
-      "name": "query_9",
-      "description": "atomic query 9",
+      "name": "query_18",
+      "description": "atomic query 18",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 8,
           "tag": [
             "事件",
-            "战斗"
+            "战斗",
+            "习惯"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "享受战斗时的愉快氛围而不是单纯厮杀",
+                "narrative": "遇到战斗会兴冲冲加入，觉得打架就该开心而不是厮杀",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -443,7 +823,7 @@
           ],
           "bonus_ranking": [
             "sit_fight_enjoyment_environment",
-            "sem_self"
+            "proc_fight"
           ]
         }
       ],
@@ -452,24 +832,26 @@
       ],
       "bonus_combined_ranking": [
         "sit_fight_enjoyment_environment",
-        "sem_self"
+        "proc_fight"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_fight"
+      ]
     },
     {
-      "name": "query_10",
-      "description": "atomic query 10",
+      "name": "query_19",
+      "description": "atomic query 19",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 6,
           "tag": [
-            "社交",
-            "地下"
+            "环境",
+            "社交"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在地下妖怪中很受欢迎因为她开朗活泼",
+                "narrative": "在地下妖怪们中间气氛欢乐热闹，她混得很开",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -487,8 +869,8 @@
             "sit_underground_social_environment"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "sem_mizuhashi_parsee"
+            "sit_underground_social_participant",
+            "sem_satori"
           ]
         }
       ],
@@ -496,25 +878,28 @@
         "sit_underground_social_environment"
       ],
       "bonus_combined_ranking": [
-        "sem_self",
-        "sem_mizuhashi_parsee"
+        "sit_underground_social_participant",
+        "sem_satori"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_social_cheerful"
+      ]
     },
     {
-      "name": "query_11",
-      "description": "atomic query 11",
+      "name": "query_20",
+      "description": "atomic query 20",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 8,
           "tag": [
+            "事件",
             "饮食",
             "疾病"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "她习惯先把猎物弄生病再吃因为这样更有味道",
+                "narrative": "吃人类猎物之前先让对方染上疾病，像撒调味料一样",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -532,8 +917,8 @@
             "sit_eat_with_disease_event"
           ],
           "bonus_ranking": [
-            "sem_disease_ability",
-            "sem_self"
+            "sit_eat_with_disease_environment",
+            "sem_disease_ability"
           ]
         }
       ],
@@ -541,194 +926,31 @@
         "sit_eat_with_disease_event"
       ],
       "bonus_combined_ranking": [
-        "sem_disease_ability",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_12",
-      "description": "atomic query 12",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "种族",
-            "历史"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "被大和政权视为异族的蜘蛛种族",
-                "description": "黑谷山女所属的土蜘蛛种族在古代被讨伐的历史和现状"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_tsuchigumo"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_kyuuto"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_tsuchigumo"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_kyuuto"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_13",
-      "description": "atomic query 13",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "雇主",
-            "技能"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "鬼族河童和天狗这些妖怪雇主",
-                "description": "委托她建造建筑的雇主群体都是谁"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_youkai_employers"
-          ],
-          "bonus_ranking": [
-            "sem_construction_skill",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_youkai_employers"
-      ],
-      "bonus_combined_ranking": [
-        "sem_construction_skill",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "领主"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "地灵殿那位能读心的主人",
-                "description": "她对古明地觉的看法和关系"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_satori"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_satori"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_15",
-      "description": "atomic query 15",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "能力",
-            "克制"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她不想随便让人生病的疾病能力",
-                "description": "她对自己疾病能力的自我限制和不滥用"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_disease_ability"
-          ],
-          "bonus_ranking": [
-            "proc_not_abuse_disease",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
+        "sit_eat_with_disease_environment",
         "sem_disease_ability"
       ],
-      "bonus_combined_ranking": [
-        "proc_not_abuse_disease",
-        "sem_self"
-      ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_eat_with_disease"
+      ]
     },
     {
-      "name": "query_16",
-      "description": "atomic query 16",
+      "name": "query_21",
+      "description": "atomic query 21",
       "sub_queries": [
         {
           "priority": 5,
           "tag": [
             "环境",
-            "住所"
+            "居住"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "幻想风穴内部阴暗潮湿的环境",
+                "narrative": "她住的洞穴阴暗潮湿又安静，风大得听不清旁边人说话",
                 "location": null,
                 "participants": null,
                 "time_span": null,
-                "environment": {
-                  "atmosphere": "阴暗潮湿",
-                  "tone": "静谧神秘"
-                },
+                "environment": null,
                 "event": null
               }
             ]
@@ -742,8 +964,8 @@
             "sit_living_cave_environment"
           ],
           "bonus_ranking": [
-            "sem_fantasy_wind_cave",
-            "sem_self"
+            "sit_living_cave_location",
+            "sem_fantasy_wind_cave"
           ]
         }
       ],
@@ -751,26 +973,164 @@
         "sit_living_cave_environment"
       ],
       "bonus_combined_ranking": [
-        "sem_fantasy_wind_cave",
-        "sem_self"
+        "sit_living_cave_location",
+        "sem_fantasy_wind_cave"
+      ],
+      "expected_actions": [
+        "proc_handstand"
+      ]
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "地点",
+            "活动区域"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "旧地狱都市",
+                "description": "过去是地狱现在住着放逐妖怪的地下城市，也是她活动的地方"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_kyuuto"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sit_living_cave_location"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kyuuto"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_living_cave_location"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_17",
-      "description": "atomic query 17",
+      "name": "set_identity",
+      "description": "查询黑谷山女的身份与种族",
       "sub_queries": [
         {
-          "priority": 7,
+          "priority": 9,
           "tag": [
             "人物",
-            "记录"
+            "身份"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "写《求闻史记》的人类阿求",
-                "description": "稗田阿求是如何记录她的吃人习惯的"
+                "concept_identifier": "地下的人气偶像",
+                "description": "在地下妖怪之间很受欢迎的开朗蜘蛛"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "身份",
+            "技能"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "会造房子的蜘蛛妖怪",
+                "description": "古代被赶到地底、擅长土木工程的那一族里的女孩"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "身份"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "黑谷家的蜘蛛姑娘",
+                "description": "住在妖怪之山脚洞穴里的那位"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "身份",
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "能让人生病的妖怪",
+                "description": "操纵传染病的那只蜘蛛"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "身份",
+            "地点"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被放逐到洞里的妖怪",
+                "description": "在幻想风穴里安家的地下种族成员"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "身份",
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "有危险能力却安分的妖怪",
+                "description": "掌握传染病能力却不会随便害人的地底住民"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "身份",
+            "社交"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "地底社交圈的开心果",
+                "description": "在旧地狱妖怪们中间人缘很好的存在"
               }
             ]
           }
@@ -780,120 +1140,205 @@
         {
           "q": 0,
           "ranking": [
-            "sem_akyuu"
+            "sem_self"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "proc_eat_with_disease"
+            "sem_tsuchigumo"
           ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_akyuu"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "proc_eat_with_disease"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_18",
-      "description": "atomic query 18",
-      "sub_queries": [
+        },
         {
-          "priority": 8,
-          "tag": [
-            "关系",
-            "对手"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "蜘蛛吃虫的天敌关系",
-                "description": "她与莉格露之间天生的捕食关系"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
+          "q": 1,
           "ranking": [
-            "sem_wriggle"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "proc_fight"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_wriggle"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "proc_fight"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_19",
-      "description": "atomic query 19",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "技能",
-            "工作"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "一个晚上就能盖好房子的建筑本领",
-                "description": "她擅长的土木工程技能的具体表现"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_construction_skill"
+            "sem_self"
           ],
           "bonus_ranking": [
             "sem_tsuchigumo",
+            "sem_construction_skill"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
             "sem_self"
+          ],
+          "bonus_ranking": [
+            "sem_fantasy_wind_cave"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "sem_disease_ability"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "sem_fantasy_wind_cave",
+            "sem_tsuchigumo"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "sem_disease_ability",
+            "sem_akyuu"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "sem_mizuhashi_parsee",
+            "sit_underground_social_participant"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_construction_skill"
+        "sem_self"
       ],
       "bonus_combined_ranking": [
         "sem_tsuchigumo",
-        "sem_self"
+        "sem_construction_skill",
+        "sem_fantasy_wind_cave",
+        "sem_disease_ability",
+        "sem_akyuu",
+        "sem_mizuhashi_parsee",
+        "sit_underground_social_participant"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_not_abuse_disease"
+      ]
     },
     {
-      "name": "query_20",
-      "description": "atomic query 20",
+      "name": "set_disease_ability",
+      "description": "查询黑谷山女操纵疾病的能力及染病进食的习惯",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 9,
           "tag": [
-            "能力",
-            "危险"
+            "能力"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "人类友好度极低的危险妖怪",
-                "description": "为什么她的疾病能力被认为对人类很危险"
+                "concept_identifier": "让人发高烧的病",
+                "description": "她能引发高烧和传染病的力量"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "能力",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "疾病当调味品的说法",
+                "description": "稗田阿求注解里关于土蜘蛛染病吃人的解释"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "能力",
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "让猎物更好吃的能力",
+                "description": "吃人前先让猎物染病，精神疾病是辣味很带劲"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "饮食",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "进食之前先把猎物弄出病来再悠哉享用",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "能力"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "危险的传染源",
+                "description": "患者会高烧、食欲减退甚至衰弱而死的病"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "环境",
+            "饮食",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "染病的人类吃起来像加了调味料一样让人享受",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "能力",
+            "饮食",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "每年症状不同但都发高烧的病，和她吃人的习惯连在一起",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -906,119 +1351,644 @@
             "sem_disease_ability"
           ],
           "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_disease_ability"
+          ],
+          "bonus_ranking": [
             "sem_self",
             "sem_akyuu"
           ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_disease_ability"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_akyuu"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_21",
-      "description": "atomic query 21",
-      "sub_queries": [
+        },
         {
-          "priority": 8,
-          "tag": [
-            "社交",
-            "领主"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "地下世界的领主和社交圈",
-                "description": "她如何与地灵殿主人以及地下妖怪们相处"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
+          "q": 2,
           "ranking": [
-            "sem_satori"
+            "sem_disease_ability"
           ],
           "bonus_ranking": [
-            "sit_underground_social_environment",
-            "sem_self",
-            "sem_mizuhashi_parsee"
+            "sit_eat_with_disease_event",
+            "proc_eat_with_disease"
           ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_satori"
-      ],
-      "bonus_combined_ranking": [
-        "sit_underground_social_environment",
-        "sem_self",
-        "sem_mizuhashi_parsee"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_22",
-      "description": "atomic query 22",
-      "sub_queries": [
+        },
         {
-          "priority": 8,
-          "tag": [
-            "种族",
-            "技能"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "土蜘蛛种族为何擅长建筑",
-                "description": "土蜘蛛种族的历史与土木工程特长的关联"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
+          "q": 3,
           "ranking": [
-            "sem_tsuchigumo"
+            "sit_eat_with_disease_event"
           ],
           "bonus_ranking": [
-            "sem_construction_skill",
+            "sem_disease_ability",
+            "proc_eat_with_disease"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_disease_ability"
+          ],
+          "bonus_ranking": [
             "sem_self"
           ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_eat_with_disease_event"
+          ],
+          "bonus_ranking": [
+            "sit_eat_with_disease_environment",
+            "sem_disease_ability"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_eat_with_disease_event"
+          ],
+          "bonus_ranking": [
+            "sem_disease_ability",
+            "proc_eat_with_disease"
+          ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_tsuchigumo"
+        "sem_disease_ability",
+        "sit_eat_with_disease_event"
       ],
       "bonus_combined_ranking": [
-        "sem_construction_skill",
-        "sem_self"
+        "sem_self",
+        "sem_akyuu",
+        "sit_eat_with_disease_event",
+        "proc_eat_with_disease",
+        "sem_disease_ability",
+        "sit_eat_with_disease_environment"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_eat_with_disease"
+      ]
     },
     {
-      "name": "query_23",
-      "description": "atomic query 23",
+      "name": "set_kisume",
+      "description": "查询住在幻想风穴的邻居琪斯美",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "邻居"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "吊桶里的妖怪",
+                "description": "整天缩在吊桶里的内向邻居"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "邻居",
+            "地点"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "住在风穴里的小妖怪",
+                "description": "那个和她同住幻想风穴的安静女孩"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "邻居"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "表面内向其实凶暴的孩子",
+                "description": "她眼中需要照顾的小妹妹"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "居住",
+            "邻居"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "幻想风穴里除了她还住着别的被放逐的妖怪",
+                "location": [
+                  {
+                    "name": "幻想风穴"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "社交",
+            "邻居"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和同住一个洞穴的小妖怪一起生活的日常",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "邻居",
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "和桥姬也相识的住户",
+                "description": "那个跟帕露西也是朋友的吊桶妖怪"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "邻居",
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "常被照顾的邻居小孩",
+                "description": "对待她像对待小妹妹一样，平时开朗地和她相处"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_kisume"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_kisume"
+          ],
+          "bonus_ranking": [
+            "sem_fantasy_wind_cave",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_kisume"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_living_cave_location"
+          ],
+          "bonus_ranking": [
+            "sem_kisume",
+            "sem_fantasy_wind_cave"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_living_cave_location"
+          ],
+          "bonus_ranking": [
+            "sem_kisume",
+            "proc_social_cheerful"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_kisume"
+          ],
+          "bonus_ranking": [
+            "sem_mizuhashi_parsee",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_kisume"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "proc_social_cheerful"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_kisume",
+        "sit_living_cave_location"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_fantasy_wind_cave",
+        "sem_kisume",
+        "proc_social_cheerful",
+        "sem_mizuhashi_parsee"
+      ],
+      "expected_actions": [
+        "proc_social_cheerful"
+      ]
+    },
+    {
+      "name": "set_boss_fight",
+      "description": "查询她在东方地灵殿作为一面BOSS拦路战斗的经历",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在幻想风穴入口拦住要去地底的人，还问对方是不是来参加祭典",
+                "location": [
+                  {
+                    "name": "幻想风穴入口"
+                  }
+                ],
+                "participants": [
+                  {
+                    "role": "挑战者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "地灵殿里第一个冒出来拦路的BOSS战",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "站在洞口笑脸迎客结果变成打了一架的场面",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "拦住红白巫女和黑白魔法使后干脆打了起来",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "战斗",
+            "符卡"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "打起来的时候放出蜘蛛网一样的弹幕",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "接待来地下的人结果打成一片的经历",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "战斗",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "一面关卡那场架打得还挺愉快",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_boss_fight_in_chireiden"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_boss_fight_in_chireiden"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_boss_fight_in_chireiden"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_fantasy_wind_cave"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_boss_fight_in_chireiden"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_boss_fight_in_chireiden"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_capture_web"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_boss_fight_in_chireiden"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_boss_fight_in_chireiden"
+          ],
+          "bonus_ranking": [
+            "proc_fight",
+            "sit_fight_enjoyment_environment"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_boss_fight_in_chireiden"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_fantasy_wind_cave",
+        "sem_capture_web",
+        "proc_fight",
+        "sit_fight_enjoyment_environment"
+      ],
+      "expected_actions": [
+        "proc_fight"
+      ]
+    },
+    {
+      "name": "set_rejected",
+      "description": "查询她想皈依命莲寺却被圣白莲拒绝的经历",
       "sub_queries": [
         {
           "priority": 7,
           "tag": [
             "人物",
-            "宗教"
+            "拒绝者"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "命莲寺那个拒绝她的僧侣",
-                "description": "圣白莲拒绝她皈依的原因和经过"
+                "concept_identifier": "命莲寺里的僧侣",
+                "description": "拒绝收她入寺的那位住持"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "被拒绝"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在命莲寺申请皈依结果被请了出去",
+                "location": [
+                  {
+                    "name": "命莲寺"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "圣白莲",
+                    "role": "拒绝者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "被拒绝",
+            "饮食"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "想入寺的理由是寺里烦恼的人类看起来很好吃",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "被拒绝",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "被拒绝之后也没闹事，继续在地下安分生活",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "拒绝者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "让她碰壁的住持",
+                "description": "那个严肃拒绝她皈依请求的僧侣"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "被拒绝"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "带着期待去寺里，结果失望而归的那趟经历",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -1031,396 +2001,8 @@
             "sem_byakuren"
           ],
           "bonus_ranking": [
-            "sit_rejected_by_myourenji",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_byakuren"
-      ],
-      "bonus_combined_ranking": [
-        "sit_rejected_by_myourenji",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_24",
-      "description": "atomic query 24",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "日常",
-            "邻居"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她和琪斯美一起住在风穴里的日常生活",
-                "location": [
-                  {
-                    "name": "幻想风穴"
-                  }
-                ],
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_living_cave_location"
-          ],
-          "bonus_ranking": [
-            "sem_kisume",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_living_cave_location"
-      ],
-      "bonus_combined_ranking": [
-        "sem_kisume",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_friend_parsee",
-      "description": "查询黑谷山女最重要的朋友水桥帕露西",
-      "sub_queries": [
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "朋友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "她的好姐妹桥姬",
-                "description": "那个嫉妒又傲娇的旧地狱朋友"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "朋友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "水桥帕露西",
-                "description": "和她性格互补的最佳友人"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "朋友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个总是嫉妒别人的妖怪",
-                "description": "直率开朗的她的好友是谁"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "朋友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "旧地狱的桥姬",
-                "description": "她最常和哪个妖怪一起玩"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "朋友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "帕露西",
-                "description": "知道她心底暗恋勇仪的那个朋友"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物",
-            "朋友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个嫉妒的傲娇",
-                "description": "在地下世界和她走得最近的女性妖怪"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_mizuhashi_parsee"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_mizuhashi_parsee"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_mizuhashi_parsee"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_mizuhashi_parsee"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_mizuhashi_parsee"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_mizuhashi_parsee"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_mizuhashi_parsee"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_rejected_by_myourenji",
-      "description": "查询黑谷山女被命莲寺拒绝的事件",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "拒绝"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她想加入命莲寺但被白莲赶了出来",
-                "location": [
-                  {
-                    "name": "命莲寺"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "圣白莲",
-                    "role": "拒绝者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "拒绝"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "曾经去寺庙申请皈依结果被拒之门外",
-                "location": [
-                  {
-                    "name": "命莲寺"
-                  }
-                ],
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "拒绝"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她被圣白莲拒绝收留的那次经历",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "圣白莲",
-                    "role": "拒绝者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "拒绝"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "因为想吃来寺庙的人类所以想皈依结果被识破",
-                "location": [
-                  {
-                    "name": "命莲寺"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "申请者"
-                  },
-                  {
-                    "name": "圣白莲",
-                    "role": "僧侣"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "拒绝"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "被命莲寺拒之门外",
-                "location": [
-                  {
-                    "name": "命莲寺"
-                  }
-                ],
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "拒绝"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "妖怪想皈依佛门结果碰了一鼻子灰",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "圣白莲",
-                    "role": "拒绝者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
+            "sem_self",
             "sit_rejected_by_myourenji"
-          ],
-          "bonus_ranking": [
-            "sem_byakuren",
-            "sem_self"
           ]
         },
         {
@@ -1440,7 +2022,7 @@
           ],
           "bonus_ranking": [
             "sem_byakuren",
-            "sem_self"
+            "sem_disease_ability"
           ]
         },
         {
@@ -1450,17 +2032,16 @@
           ],
           "bonus_ranking": [
             "sem_byakuren",
-            "sem_self"
+            "proc_not_abuse_disease"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sit_rejected_by_myourenji"
+            "sem_byakuren"
           ],
           "bonus_ranking": [
-            "sem_byakuren",
-            "sem_self"
+            "sit_rejected_by_myourenji"
           ]
         },
         {
@@ -1469,123 +2050,80 @@
             "sit_rejected_by_myourenji"
           ],
           "bonus_ranking": [
-            "sem_byakuren",
-            "sem_self"
+            "sem_self",
+            "sem_byakuren"
           ]
         }
       ],
       "expected_combined_ranking": [
+        "sem_byakuren",
         "sit_rejected_by_myourenji"
       ],
       "bonus_combined_ranking": [
+        "sem_self",
+        "sit_rejected_by_myourenji",
         "sem_byakuren",
-        "sem_self"
+        "sem_disease_ability",
+        "proc_not_abuse_disease"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_not_abuse_disease"
+      ]
     },
     {
-      "name": "set_disease_ability",
-      "description": "查询黑谷山女的疾病操纵能力",
+      "name": "set_construction",
+      "description": "查询她的土木工程技能与妖怪雇主",
       "sub_queries": [
         {
-          "priority": 8,
+          "priority": 7,
           "tag": [
-            "能力",
-            "疾病"
+            "技能",
+            "工作"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "让人发烧的病菌操控",
-                "description": "她操纵传染病的能力具体能做什么"
+                "concept_identifier": "一个晚上建好一栋楼的本事",
+                "description": "她接妖怪委托盖房用的土木工程技艺"
               }
             ]
           }
         },
         {
-          "priority": 8,
+          "priority": 7,
           "tag": [
-            "能力",
-            "疾病"
+            "事件",
+            "工作"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "每次吃人前先把猎物弄发烧",
+                "narrative": "鬼、河童、天狗找她帮忙建造房子",
                 "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "能力",
-            "疾病"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "地底偶像的危险本领",
-                "description": "她为什么被称为危险的妖怪"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "能力",
-            "疾病"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在战斗中她会让人染上什么病",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": [
+                "participants": [
                   {
-                    "action": "生病",
-                    "initiator": "她",
-                    "target": "对手"
+                    "name": "鬼族河童天狗",
+                    "role": "雇主"
                   }
-                ]
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
         },
         {
-          "priority": 8,
+          "priority": 7,
           "tag": [
-            "能力",
-            "疾病"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "疾病调味品",
-                "description": "她觉得疾病就像调味品一样能增加食物风味"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "能力",
-            "疾病"
+            "事件",
+            "工作",
+            "习惯"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "把染病的人类当做美味佳肴",
+                "narrative": "接到委托后通宵赶工，一晚上就把房子盖完",
                 "location": null,
                 "participants": null,
                 "time_span": null,
@@ -1596,16 +2134,77 @@
           }
         },
         {
-          "priority": 8,
+          "priority": 7,
           "tag": [
-            "能力",
-            "疾病"
+            "技能",
+            "雇主"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "传染病操纵程度的能力",
-                "description": "她的标志性能力介绍"
+                "concept_identifier": "被妖怪客户看中的手艺",
+                "description": "让鬼族、河童、天狗都愿意找她施工的原因"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "技能",
+            "种族",
+            "工作"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "蜘蛛妖怪的看家本领",
+                "description": "土木和建筑是她那一族代代相传的擅长"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "工作",
+            "参与者"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在工地上和委托方妖怪们打交道的现场",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "妖怪们",
+                    "role": "客户"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "工作",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "一边和雇主闲聊一边麻利赶工的建筑现场",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -1615,680 +2214,90 @@
         {
           "q": 0,
           "ranking": [
-            "sem_disease_ability"
+            "sem_construction_skill"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_self",
+            "sem_youkai_employers"
           ]
         },
         {
           "q": 1,
           "ranking": [
-            "sem_disease_ability"
+            "sit_building_work_event"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sit_building_work_participant",
+            "sem_youkai_employers"
           ]
         },
         {
           "q": 2,
           "ranking": [
-            "sem_disease_ability"
+            "sit_building_work_event"
           ],
           "bonus_ranking": [
+            "sem_construction_skill",
             "sem_self"
           ]
         },
         {
           "q": 3,
           "ranking": [
-            "sem_disease_ability"
+            "sem_construction_skill"
           ],
           "bonus_ranking": [
+            "sem_youkai_employers",
             "sem_self"
           ]
         },
         {
           "q": 4,
           "ranking": [
-            "sem_disease_ability"
+            "sem_construction_skill"
           ],
           "bonus_ranking": [
+            "sem_tsuchigumo",
             "sem_self"
           ]
         },
         {
           "q": 5,
           "ranking": [
-            "sem_disease_ability"
+            "sit_building_work_event"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "proc_eat_with_disease"
+            "sit_building_work_participant",
+            "sem_youkai_employers",
+            "proc_construction"
           ]
         },
         {
           "q": 6,
           "ranking": [
-            "sem_disease_ability"
+            "sit_building_work_event"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "proc_construction",
+            "sem_youkai_employers"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_disease_ability"
+        "sem_construction_skill",
+        "sit_building_work_event"
       ],
       "bonus_combined_ranking": [
         "sem_self",
-        "proc_eat_with_disease"
+        "sem_youkai_employers",
+        "sit_building_work_participant",
+        "sem_construction_skill",
+        "sem_tsuchigumo",
+        "proc_construction"
       ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_living_cave",
-      "description": "查询黑谷山女的住所幻想风穴",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "地点",
-            "居住"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她住在妖怪之山脚下的一个洞穴里",
-                "location": [
-                  {
-                    "name": "幻想风穴"
-                  }
-                ],
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "地点",
-            "居住"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "幻想风穴",
-                "description": "她居住的风很大的洞穴"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "地点",
-            "居住"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她地下生活的据点是一个阴暗潮湿的洞穴",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": {
-                  "atmosphere": "阴暗潮湿",
-                  "tone": "静谧"
-                },
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "地点",
-            "居住"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "妖怪之山脚下的风穴",
-                "description": "她从小住到大的家"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "地点",
-            "居住"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她和琪斯美一起合住的洞穴",
-                "location": [
-                  {
-                    "name": "幻想风穴"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "琪斯美",
-                    "role": "邻居"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "地点",
-            "居住"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "通往地底的入口那个风穴就是她的地盘",
-                "location": [
-                  {
-                    "name": "幻想风穴"
-                  }
-                ],
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_living_cave_location"
-          ],
-          "bonus_ranking": [
-            "sem_fantasy_wind_cave",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_living_cave_location"
-          ],
-          "bonus_ranking": [
-            "sem_fantasy_wind_cave",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_living_cave_location"
-          ],
-          "bonus_ranking": [
-            "sem_fantasy_wind_cave",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_living_cave_location"
-          ],
-          "bonus_ranking": [
-            "sem_fantasy_wind_cave",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_living_cave_location"
-          ],
-          "bonus_ranking": [
-            "sem_fantasy_wind_cave",
-            "sem_self",
-            "sem_kisume"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_living_cave_location"
-          ],
-          "bonus_ranking": [
-            "sem_fantasy_wind_cave",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_living_cave_location"
-      ],
-      "bonus_combined_ranking": [
-        "sem_fantasy_wind_cave",
-        "sem_self",
-        "sem_kisume"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_construction_skill",
-      "description": "查询黑谷山女的建筑技能",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "技能",
-            "工作"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "一夜盖房子的本事",
-                "description": "她擅长土木工程的能力"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "技能",
-            "工作"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "接受鬼和河童的委托一晚上盖好一栋楼",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "技能",
-            "工作"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "优秀工程师山女",
-                "description": "她怎么成为妖怪们的建筑工程师的"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "技能",
-            "工作"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "天狗和河童找她帮忙造房子",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "天狗",
-                    "role": "雇主"
-                  },
-                  {
-                    "name": "河童",
-                    "role": "雇主"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "技能",
-            "工作"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "高速建造能力",
-                "description": "她可以在一个晚上完成别人一个月的工程量"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "技能",
-            "工作"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在地下世界当建筑工赚钱",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "鬼族",
-                    "role": "雇主"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "技能",
-            "工作"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "土蜘蛛的祖传手艺",
-                "description": "她种族遗传的建筑天赋"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_construction_skill"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_youkai_employers"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_construction_skill"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_youkai_employers"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_construction_skill"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_youkai_employers"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_construction_skill"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_youkai_employers"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_construction_skill"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_youkai_employers"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_construction_skill"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_youkai_employers"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_construction_skill"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_youkai_employers"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_construction_skill"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_youkai_employers"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_fight_style",
-      "description": "查询黑谷山女的战斗风格和喜好",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她喜欢热血的战斗氛围",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": {
-                  "atmosphere": "愉快而兴奋",
-                  "tone": "热血"
-                },
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "战斗狂蜘蛛",
-                "description": "她很喜欢打架时的快乐感觉"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "面对战斗她会毫不犹豫加入享受乐趣",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "愉快的战斗者",
-                "description": "她认为战斗应该是愉快的而不是死斗"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在战斗中一边笑一边放弹幕",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": {
-                  "atmosphere": "愉快"
-                },
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "享受战斗的妖怪",
-                "description": "她打架时的心态和风格"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_fight_enjoyment_event"
-          ],
-          "bonus_ranking": [
-            "sit_fight_enjoyment_environment",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_fight_enjoyment_event"
-          ],
-          "bonus_ranking": [
-            "sit_fight_enjoyment_environment",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_fight_enjoyment_event"
-          ],
-          "bonus_ranking": [
-            "sit_fight_enjoyment_environment",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_fight_enjoyment_event"
-          ],
-          "bonus_ranking": [
-            "sit_fight_enjoyment_environment",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_fight_enjoyment_event"
-          ],
-          "bonus_ranking": [
-            "sit_fight_enjoyment_environment",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_fight_enjoyment_event"
-          ],
-          "bonus_ranking": [
-            "sit_fight_enjoyment_environment",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_fight_enjoyment_event"
-      ],
-      "bonus_combined_ranking": [
-        "sit_fight_enjoyment_environment",
-        "sem_self"
-      ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_construction"
+      ]
     }
   ]
 }

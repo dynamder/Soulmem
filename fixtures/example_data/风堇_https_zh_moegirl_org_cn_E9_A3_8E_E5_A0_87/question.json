@@ -17,15 +17,16 @@
       "description": "atomic query 0",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 8,
           "tag": [
-            "人物"
+            "人物",
+            "伙伴"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个天外来客",
-                "description": "我称之为灰宝的伙伴，来自星空的旅人"
+                "concept_identifier": "天外来客",
+                "description": "来自天外、和她并肩作战多次的旅人，她叫他灰宝"
               }
             ]
           }
@@ -38,7 +39,8 @@
             "sem_gray_baby"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_self",
+            "sit_give_pendant"
           ]
         }
       ],
@@ -46,7 +48,8 @@
         "sem_gray_baby"
       ],
       "bonus_combined_ranking": [
-        "sem_self"
+        "sem_self",
+        "sit_give_pendant"
       ],
       "expected_actions": []
     },
@@ -57,71 +60,15 @@
         {
           "priority": 9,
           "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在晨昏之眼和被黑潮侵蚀的天空泰坦的战斗",
-                "location": [
-                  {
-                    "name": "晨昏之眼"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "黄金裔医师"
-                  },
-                  {
-                    "name": "艾格勒",
-                    "role": "天空之神"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_achilles_eye_battle"
-          ],
-          "bonus_ranking": [
-            "sem_aigele",
-            "sem_xiao_yi_ka"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_achilles_eye_battle"
-      ],
-      "bonus_combined_ranking": [
-        "sem_aigele",
-        "sem_xiao_yi_ka"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_2",
-      "description": "atomic query 2",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
+            "人物",
+            "忆灵",
+            "伙伴"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那只白色小天马",
-                "description": "最好的伙伴忆灵，洒落虹光救过一座城"
+                "concept_identifier": "白色小天马",
+                "description": "胖嘟嘟像棉花糖的忆灵伙伴，不会说话只会发出嘟嘟声"
               }
             ]
           }
@@ -149,401 +96,11 @@
       "expected_actions": []
     },
     {
-      "name": "query_3",
-      "description": "atomic query 3",
+      "name": "query_2",
+      "description": "atomic query 2",
       "sub_queries": [
         {
           "priority": 8,
-          "tag": [
-            "事件",
-            "牺牲"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在重渊里为救大家耗尽神力的缇安，我们没能把她带回来",
-                "location": [
-                  {
-                    "name": "重渊"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "医师"
-                  },
-                  {
-                    "name": "丹恒",
-                    "role": "同伴"
-                  },
-                  {
-                    "name": "缇安",
-                    "role": "被困者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_chongyuan_rescue"
-          ],
-          "bonus_ranking": [
-            "sem_tibao",
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_chongyuan_rescue"
-      ],
-      "bonus_combined_ranking": [
-        "sem_tibao",
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_4",
-      "description": "atomic query 4",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "传承"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "喜欢星星的后继者",
-                "description": "我在嵌入画壁后把接力棒交给了她，她叫涟宝"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_xi_lian"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_xi_lian"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_5",
-      "description": "atomic query 5",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "证明"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在晨昏之眼向先祖证明自己，告诉她人性光辉依然闪耀",
-                "location": [
-                  {
-                    "name": "晨昏之眼"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "后裔"
-                  },
-                  {
-                    "name": "塞涅俄丝",
-                    "role": "先祖"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_self_prove_selene"
-          ],
-          "bonus_ranking": [
-            "sem_sai_ne_ai_si"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_self_prove_selene"
-      ],
-      "bonus_combined_ranking": [
-        "sem_sai_ne_ai_si"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_6",
-      "description": "atomic query 6",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "朋友"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那位死亡之力缠身的女子",
-                "description": "蝶宝经常远远看我的小花园，她笑的时候很温暖"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_xiadie"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_xiadie"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_7",
-      "description": "atomic query 7",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "离别"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "把小伊卡挂坠送给灰宝，希望他感受到天空的温暖",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "赠予者"
-                  },
-                  {
-                    "name": "灰宝",
-                    "role": "受赠者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "赠送",
-                    "initiator": "我",
-                    "target": "灰宝"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_give_pendant"
-          ],
-          "bonus_ranking": [
-            "sem_gray_baby",
-            "sem_aim_gua"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_give_pendant"
-      ],
-      "bonus_combined_ranking": [
-        "sem_gray_baby",
-        "sem_aim_gua"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_8",
-      "description": "atomic query 8",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "导师"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个不划重点的老师",
-                "description": "智种学派贤人，爱喝气泡山葵醋的那刻夏老师"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_nate"
-          ],
-          "bonus_ranking": [
-            "sem_shen_wu_shu_ting"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_nate"
-      ],
-      "bonus_combined_ranking": [
-        "sem_shen_wu_shu_ting"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_9",
-      "description": "atomic query 9",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "地点",
-            "故乡"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "我从小长大的地方",
-                "description": "神悟树庭，在那里体弱多病却学会医术"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_shen_wu_shu_ting"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_shen_wu_shu_ting"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_10",
-      "description": "atomic query 10",
-      "sub_queries": [
-        {
-          "priority": 6,
-          "tag": [
-            "事件",
-            "交接"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "嵌入天象画壁前把最后的接力棒交给了昔涟",
-                "location": [
-                  {
-                    "name": "天象画壁"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "交接者"
-                  },
-                  {
-                    "name": "昔涟",
-                    "role": "后继者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_embedded_painting"
-          ],
-          "bonus_ranking": [
-            "sem_xi_lian"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_embedded_painting"
-      ],
-      "bonus_combined_ranking": [
-        "sem_xi_lian"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_11",
-      "description": "atomic query 11",
-      "sub_queries": [
-        {
-          "priority": 6,
           "tag": [
             "人物",
             "领袖"
@@ -551,8 +108,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那位织者领袖",
-                "description": "话语华丽但内心温暖，爱喝燕麦粥，最后救我们坠入黄金池"
+                "concept_identifier": "织者领袖",
+                "description": "话语华丽但内心温暖的黄金裔领袖，最爱喝她准备的燕麦粥"
               }
             ]
           }
@@ -578,113 +135,20 @@
       "expected_actions": []
     },
     {
-      "name": "query_12",
-      "description": "atomic query 12",
+      "name": "query_3",
+      "description": "atomic query 3",
       "sub_queries": [
         {
-          "priority": 5,
-          "tag": [
-            "习惯",
-            "说话方式"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "称呼别人时喜欢加‘宝’字，比如灰宝、丹宝",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "说话者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "称呼",
-                    "initiator": "我",
-                    "target": "伙伴"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_participant_patients"
-          ],
-          "bonus_ranking": [
-            "proc_add_bao"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_participant_patients"
-      ],
-      "bonus_combined_ranking": [
-        "proc_add_bao"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_13",
-      "description": "atomic query 13",
-      "sub_queries": [
-        {
-          "priority": 5,
-          "tag": [
-            "能力",
-            "概念"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "我守望的火种",
-                "description": "天空泰坦的力量象征，逐火之旅的一部分"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_tian_kong_huo_zhong"
-          ],
-          "bonus_ranking": [
-            "sem_zhu_huo_zhi_lv"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_tian_kong_huo_zhong"
-      ],
-      "bonus_combined_ranking": [
-        "sem_zhu_huo_zhi_lv"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_14",
-      "description": "atomic query 14",
-      "sub_queries": [
-        {
-          "priority": 5,
+          "priority": 8,
           "tag": [
             "人物",
-            "战友"
+            "同伴"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个温柔却带着痛苦笑意的同伴",
-                "description": "白厄阁下，后来变成卡厄斯兰那，我在轮回中为他点亮过微光"
+                "concept_identifier": "卡厄斯兰那",
+                "description": "笑意中带着痛苦的金血同伴，后来在晨昏之眼变成卡厄斯兰那"
               }
             ]
           }
@@ -698,7 +162,7 @@
           ],
           "bonus_ranking": [
             "sem_self",
-            "sem_wan_di"
+            "sit_achilles_eye_battle"
           ]
         }
       ],
@@ -707,24 +171,66 @@
       ],
       "bonus_combined_ranking": [
         "sem_self",
-        "sem_wan_di"
+        "sit_achilles_eye_battle"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_15",
-      "description": "atomic query 15",
+      "name": "query_4",
+      "description": "atomic query 4",
       "sub_queries": [
         {
-          "priority": 5,
+          "priority": 8,
           "tag": [
-            "事件",
-            "战斗"
+            "人物",
+            "后继者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "喜欢星星的接班者",
+                "description": "她最后把接力棒交给的那位爱笑女孩，等待是她最擅长的事"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_xi_lian"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sit_embedded_painting"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_xi_lian"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_embedded_painting"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "情境",
+            "战斗",
+            "关键事件"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在晨昏之眼用泰坦之躯为白厄点燃希望，并向塞涅俄丝证明人性",
+                "narrative": "在晨昏之眼与被黑潮侵蚀的天空泰坦展开的决战，她和白色小天马并肩作战，为白厄点燃希望微光",
                 "location": [
                   {
                     "name": "晨昏之眼"
@@ -732,16 +238,8 @@
                 ],
                 "participants": [
                   {
-                    "name": "我",
-                    "role": "天空后裔"
-                  },
-                  {
-                    "name": "白厄",
-                    "role": "战友"
-                  },
-                  {
-                    "name": "塞涅俄丝",
-                    "role": "先祖"
+                    "name": "艾格勒",
+                    "role": "被侵蚀的天空泰坦"
                   }
                 ],
                 "time_span": null,
@@ -759,8 +257,9 @@
             "sit_achilles_eye_battle"
           ],
           "bonus_ranking": [
-            "sem_bai_e",
-            "sem_sai_ne_ai_si"
+            "sem_aigele",
+            "sem_xiao_yi_ka",
+            "sem_bai_e"
           ]
         }
       ],
@@ -768,45 +267,41 @@
         "sit_achilles_eye_battle"
       ],
       "bonus_combined_ranking": [
-        "sem_bai_e",
-        "sem_sai_ne_ai_si"
+        "sem_aigele",
+        "sem_xiao_yi_ka",
+        "sem_bai_e"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_16",
-      "description": "atomic query 16",
+      "name": "query_6",
+      "description": "atomic query 6",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 9,
           "tag": [
-            "习惯",
-            "治疗"
+            "情境",
+            "救援",
+            "失去"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "包扎打针时和患者聊天分散注意力，聊家乡和美好回忆",
-                "location": null,
+                "narrative": "在重渊奋力搜寻因救大家耗尽神力的缇安，最终没能挽回她的生命",
+                "location": [
+                  {
+                    "name": "重渊"
+                  }
+                ],
                 "participants": [
                   {
-                    "name": "我",
-                    "role": "医师"
-                  },
-                  {
-                    "name": "患者",
-                    "role": "被治疗者"
+                    "name": "缇安",
+                    "role": "被困者"
                   }
                 ],
                 "time_span": null,
                 "environment": null,
-                "event": [
-                  {
-                    "action": "聊天",
-                    "initiator": "我",
-                    "target": "患者"
-                  }
-                ]
+                "event": null
               }
             ]
           }
@@ -816,66 +311,358 @@
         {
           "q": 0,
           "ranking": [
-            "sit_participant_patients"
+            "sit_chongyuan_rescue"
           ],
           "bonus_ranking": [
-            "proc_chat_with_patient"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_participant_patients"
-      ],
-      "bonus_combined_ranking": [
-        "proc_chat_with_patient"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "query_17",
-      "description": "atomic query 17",
-      "sub_queries": [
-        {
-          "priority": 4,
-          "tag": [
-            "人物",
-            "先祖"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "我的血脉源头",
-                "description": "天空之神继承者塞涅俄丝，曾因子民纷争饱受折磨"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_sai_ne_ai_si"
-          ],
-          "bonus_ranking": [
+            "sem_tibao",
+            "sem_danheng",
             "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_sai_ne_ai_si"
+        "sit_chongyuan_rescue"
       ],
       "bonus_combined_ranking": [
+        "sem_tibao",
+        "sem_danheng",
         "sem_self"
       ],
       "expected_actions": []
     },
     {
-      "name": "query_18",
-      "description": "atomic query 18",
+      "name": "query_7",
+      "description": "atomic query 7",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 8,
+          "tag": [
+            "情境",
+            "离别",
+            "礼物"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "临别前把一直别在腰间的小马挂坠送给那位天外来客，愿他无论走到哪里都能感受天空的温暖",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "灰宝",
+                    "role": "受赠者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_give_pendant"
+          ],
+          "bonus_ranking": [
+            "sem_gray_baby",
+            "sem_aim_gua",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_give_pendant"
+      ],
+      "bonus_combined_ranking": [
+        "sem_gray_baby",
+        "sem_aim_gua",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "情境",
+            "交接",
+            "牺牲"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "不得不嵌入天象画壁后，把最后的接力棒交给那个爱看星星的女孩",
+                "location": [
+                  {
+                    "name": "天象画壁"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "昔涟",
+                    "role": "后继者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_embedded_painting"
+          ],
+          "bonus_ranking": [
+            "sem_xi_lian",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_embedded_painting"
+      ],
+      "bonus_combined_ranking": [
+        "sem_xi_lian",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "概念",
+            "火种"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "天空的泰坦之火",
+                "description": "她守望的那枚黄金裔火种，象征天空泰坦的力量"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_tian_kong_huo_zhong"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_huang_jin_yi"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_tian_kong_huo_zhong"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_huang_jin_yi"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "导师"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "智种学派的贤人",
+                "description": "她在神悟树庭的老师，考试从不划重点，爱喝气泡山葵醋"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_nate"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_shen_wu_shu_ting"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_nate"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_shen_wu_shu_ting"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "朋友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "绕着庭院看花的女孩",
+                "description": "担心自己死亡之力会波及他人、被她温柔宽慰的好友蝶宝"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_xiadie"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_hun_guang_ting_yuan"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_xiadie"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_hun_guang_ting_yuan"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "情境",
+            "证明",
+            "传承"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在晨昏之眼向先祖塞涅俄丝证明千年以后人性的光辉依然闪耀",
+                "location": [
+                  {
+                    "name": "晨昏之眼"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "塞涅俄丝",
+                    "role": "先祖"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_self_prove_selene"
+          ],
+          "bonus_ranking": [
+            "sem_sai_ne_ai_si",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_self_prove_selene"
+      ],
+      "bonus_combined_ranking": [
+        "sem_sai_ne_ai_si",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "地点",
+            "故乡"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她长大的树庭",
+                "description": "从小体弱多病在那里练习医术、后来成为那刻夏老师助教的地方"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_shen_wu_shu_ting"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_nate"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_shen_wu_shu_ting"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_nate"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 7,
           "tag": [
             "地点",
             "组织"
@@ -883,8 +670,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "我重建的疗愈之所",
-                "description": "昏光庭院，为永夜带来微光，人们在此放下心结"
+                "concept_identifier": "重建的疗愈之所",
+                "description": "为永夜带来微光、让人放下心结畅所欲言的天空后裔庭院"
               }
             ]
           }
@@ -912,11 +699,134 @@
       "expected_actions": []
     },
     {
-      "name": "query_19",
-      "description": "atomic query 19",
+      "name": "query_15",
+      "description": "atomic query 15",
       "sub_queries": [
         {
-          "priority": 4,
+          "priority": 7,
+          "tag": [
+            "身份",
+            "族群"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "背负火种的适格者",
+                "description": "继承神明力量、肩负逐猎火种使命的族群，她也是其中一员"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_huang_jin_yi"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_zhu_huo_zhi_lv"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_huang_jin_yi"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_zhu_huo_zhi_lv"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "使命"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "再创世使命",
+                "description": "黄金裔为拯救被黑潮笼罩的翁法罗斯而踏上猎取泰坦火种的旅程"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_zhu_huo_zhi_lv"
+          ],
+          "bonus_ranking": [
+            "sem_weng_fa_luo_si",
+            "sem_huang_jin_yi"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_zhu_huo_zhi_lv"
+      ],
+      "bonus_combined_ranking": [
+        "sem_weng_fa_luo_si",
+        "sem_huang_jin_yi"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "世界",
+            "设定"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被永夜笼罩的世界",
+                "description": "诸神陨落、黑潮侵蚀、黄金裔逐猎火种的舞台"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_weng_fa_luo_si"
+          ],
+          "bonus_ranking": [
+            "sem_zhu_huo_zhi_lv",
+            "sem_ao_he_ma"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_weng_fa_luo_si"
+      ],
+      "bonus_combined_ranking": [
+        "sem_zhu_huo_zhi_lv",
+        "sem_ao_he_ma"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 6,
           "tag": [
             "概念",
             "循环"
@@ -924,8 +834,8 @@
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "无限轮回的世界",
-                "description": "翁法罗斯陷入三千多万次循环，直到天外英雄降临"
+                "concept_identifier": "无限轮回",
+                "description": "翁法罗斯陷入三千多万次重复轮回，黄金裔反复战斗牺牲直到天外英雄降临"
               }
             ]
           }
@@ -938,7 +848,8 @@
             "sem_yong_jie_hui_gui"
           ],
           "bonus_ranking": [
-            "sem_weng_fa_luo_si"
+            "sem_weng_fa_luo_si",
+            "sem_bai_e"
           ]
         }
       ],
@@ -946,16 +857,69 @@
         "sem_yong_jie_hui_gui"
       ],
       "bonus_combined_ranking": [
-        "sem_weng_fa_luo_si"
+        "sem_weng_fa_luo_si",
+        "sem_bai_e"
       ],
       "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "治疗行为"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "给患者包扎打针时会和他们聊天，聊家乡和美好回忆来分散注意力",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "患者",
+                    "role": "寻求医治者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_participant_patients"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_hun_guang_ting_yuan"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_participant_patients"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_hun_guang_ting_yuan"
+      ],
+      "expected_actions": [
+        "proc_chat_with_patient"
+      ]
     },
     {
       "name": "query_20",
       "description": "atomic query 20",
       "sub_queries": [
         {
-          "priority": 3,
+          "priority": 4,
           "tag": [
             "习惯",
             "日常"
@@ -963,14 +927,11 @@
           "variant": {
             "Situation": [
               {
-                "narrative": "睡前泡温水澡喝羊奶花茶安神",
+                "narrative": "睡前泡温水澡、喝羊奶花茶等安神饮品让自己睡个好觉",
                 "location": null,
                 "participants": null,
                 "time_span": null,
-                "environment": {
-                  "atmosphere": "温暖疗愈",
-                  "tone": "柔和"
-                },
+                "environment": null,
                 "event": null
               }
             ]
@@ -984,7 +945,7 @@
             "sit_environment_healing"
           ],
           "bonus_ranking": [
-            "proc_drink_milk_tea"
+            "sem_self"
           ]
         }
       ],
@@ -992,25 +953,31 @@
         "sit_environment_healing"
       ],
       "bonus_combined_ranking": [
-        "proc_drink_milk_tea"
+        "sem_self"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_drink_milk_tea"
+      ]
     },
     {
       "name": "query_21",
       "description": "atomic query 21",
       "sub_queries": [
         {
-          "priority": 3,
+          "priority": 5,
           "tag": [
-            "人物",
-            "家人"
+            "习惯",
+            "说话方式"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "教我爱世界的祖母",
-                "description": "雅辛缇娅，教会我医术和天空的智慧"
+                "narrative": "她习惯在亲近的人名字后面加一个宝字来称呼对方",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -1020,36 +987,44 @@
         {
           "q": 0,
           "ranking": [
-            "sem_yaxinti"
+            "sit_event_chatting"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_self",
+            "sem_gray_baby"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_yaxinti"
+        "sit_event_chatting"
       ],
       "bonus_combined_ranking": [
-        "sem_self"
+        "sem_self",
+        "sem_gray_baby"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_add_bao"
+      ]
     },
     {
       "name": "query_22",
       "description": "atomic query 22",
       "sub_queries": [
         {
-          "priority": 3,
+          "priority": 4,
           "tag": [
-            "概念",
-            "使命"
+            "习惯",
+            "园艺"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "拯救世界的旅程",
-                "description": "黄金裔逐猎火种再创世的使命"
+                "narrative": "在自家庭院里播种石榴麦草、开辟花海，让来访者放下心结",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -1059,36 +1034,44 @@
         {
           "q": 0,
           "ranking": [
-            "sem_zhu_huo_zhi_lv"
+            "sit_location_garden"
           ],
           "bonus_ranking": [
-            "sem_huang_jin_yi"
+            "sem_hun_guang_ting_yuan",
+            "sem_self"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_zhu_huo_zhi_lv"
+        "sit_location_garden"
       ],
       "bonus_combined_ranking": [
-        "sem_huang_jin_yi"
+        "sem_hun_guang_ting_yuan",
+        "sem_self"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_plant_flowers"
+      ]
     },
     {
       "name": "query_23",
       "description": "atomic query 23",
       "sub_queries": [
         {
-          "priority": 3,
+          "priority": 4,
           "tag": [
-            "人物",
-            "朋友"
+            "习惯",
+            "手工"
           ],
           "variant": {
-            "Semantic": [
+            "Situation": [
               {
-                "concept_identifier": "叫我小医师鱼的人",
-                "description": "琴声甜美浪漫的海瑟音，约定失眠时配上她的歌声"
+                "narrative": "用旧衣、罐子等材料改造软椅和风铃，七夕时还会缝制挂件送朋友",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
               }
             ]
           }
@@ -1098,63 +1081,87 @@
         {
           "q": 0,
           "ranking": [
-            "sem_hai_se"
+            "sit_location_garden"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_self",
+            "sem_xi_lian"
           ]
         }
       ],
       "expected_combined_ranking": [
-        "sem_hai_se"
+        "sit_location_garden"
       ],
       "bonus_combined_ranking": [
-        "sem_self"
+        "sem_self",
+        "sem_xi_lian"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_handicraft"
+      ]
+    },
+    {
+      "name": "query_24",
+      "description": "atomic query 24",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "爱好"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "用留影石机记录翁法罗斯的鸟儿、积攒相册，还和学者讨论天空之神与法吉娜不合的缘由",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_event_chatting"
+          ],
+          "bonus_ranking": [
+            "sem_aigele",
+            "sem_weng_fa_luo_si"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_event_chatting"
+      ],
+      "bonus_combined_ranking": [
+        "sem_aigele",
+        "sem_weng_fa_luo_si"
+      ],
+      "expected_actions": [
+        "proc_observe_birds"
+      ]
     },
     {
       "name": "set_gray_baby",
-      "description": "查询灰宝（开拓者）的身份和关系",
+      "description": "查询灰宝（开拓者）的相关记忆",
       "sub_queries": [
         {
-          "priority": 9,
+          "priority": 8,
           "tag": [
-            "人物"
+            "人物",
+            "伙伴"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个天外来客",
-                "description": "我称之为灰宝的伙伴"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "清晨天空中柔和灰色的旅人",
-                "description": "在树庭和晨昏之眼并肩作战过的开拓者"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 9,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "收到小伊卡挂坠的人",
-                "description": "最后我把自己最珍贵的挂坠送给了他"
+                "concept_identifier": "天外来客",
+                "description": "来自天外、和她并肩作战多次的旅人"
               }
             ]
           }
@@ -1162,41 +1169,30 @@
         {
           "priority": 8,
           "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "灰宝",
-                "description": "我给他取的昵称，像天空的一抹灰色"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个让涟宝也认同的伙伴",
-                "description": "天外来的旅人，我们的重要同伴"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物"
+            "人物",
+            "伙伴",
+            "习惯"
           ],
           "variant": {
             "Semantic": [
               {
                 "concept_identifier": "开拓者",
-                "description": "来自其他世界的英雄，我给他起了个可爱的名字"
+                "description": "列车组的那位，她给他起了一个带宝字的称呼"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "伙伴"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "小马挂饰的受赠者",
+                "description": "她把随身小伊卡挂坠托付给的那个人"
               }
             ]
           }
@@ -1204,27 +1200,45 @@
         {
           "priority": 7,
           "tag": [
-            "人物"
+            "人物",
+            "伙伴"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "和我们在重渊一起寻找缇安的人",
-                "description": "那时丹恒也在，我们一起经历了失去"
+                "concept_identifier": "清晨天空颜色的朋友",
+                "description": "像早晨天际一抹柔和灰，蕴藏着无限可能的旅人"
               }
             ]
           }
         },
         {
-          "priority": 6,
+          "priority": 8,
           "tag": [
-            "人物"
+            "人物",
+            "伙伴",
+            "习惯"
           ],
           "variant": {
             "Semantic": [
               {
-                "concept_identifier": "那个让我挂念的灰色身影",
-                "description": "不知道他现在在哪里，是否感受到天空的温暖"
+                "concept_identifier": "灰宝",
+                "description": "她带着爱称呼的天外来客，在树庭和晨昏之眼并肩作战过"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "伙伴"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "小伊卡挂坠的归属",
+                "description": "最后收到她临别礼物、带着天空温度的旅人"
               }
             ]
           }
@@ -1237,7 +1251,8 @@
             "sem_gray_baby"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_self",
+            "sit_give_pendant"
           ]
         },
         {
@@ -1255,8 +1270,8 @@
             "sem_gray_baby"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "sem_aim_gua"
+            "sem_aim_gua",
+            "sit_give_pendant"
           ]
         },
         {
@@ -1265,8 +1280,7 @@
             "sem_gray_baby"
           ],
           "bonus_ranking": [
-            "sem_self",
-            "sem_xiao_yi_ka"
+            "sem_self"
           ]
         },
         {
@@ -1275,7 +1289,8 @@
             "sem_gray_baby"
           ],
           "bonus_ranking": [
-            "sem_self"
+            "sem_self",
+            "sit_achilles_eye_battle"
           ]
         },
         {
@@ -1284,27 +1299,8 @@
             "sem_gray_baby"
           ],
           "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_gray_baby"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_xi_lian"
-          ]
-        },
-        {
-          "q": 7,
-          "ranking": [
-            "sem_gray_baby"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_xiao_yi_ka"
+            "sit_give_pendant",
+            "sem_aim_gua"
           ]
         }
       ],
@@ -1313,26 +1309,29 @@
       ],
       "bonus_combined_ranking": [
         "sem_self",
+        "sit_give_pendant",
         "sem_aim_gua",
-        "sem_xiao_yi_ka",
-        "sem_xi_lian"
+        "sit_achilles_eye_battle"
       ],
-      "expected_actions": []
+      "expected_actions": [
+        "proc_add_bao"
+      ]
     },
     {
       "name": "set_achilles_battle",
-      "description": "查询在晨昏之眼与艾格勒的战斗",
+      "description": "查询晨昏之眼与天空泰坦的对决经历",
       "sub_queries": [
         {
           "priority": 9,
           "tag": [
-            "事件",
-            "战斗"
+            "情境",
+            "战斗",
+            "关键事件"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在晨昏之眼和被黑潮侵蚀的天空泰坦对决",
+                "narrative": "在晨昏之眼与被黑潮侵蚀的天空泰坦决战的经历",
                 "location": [
                   {
                     "name": "晨昏之眼"
@@ -1340,12 +1339,8 @@
                 ],
                 "participants": [
                   {
-                    "name": "我",
-                    "role": "黄金裔医师"
-                  },
-                  {
                     "name": "艾格勒",
-                    "role": "天空之神"
+                    "role": "被侵蚀的天空泰坦"
                   }
                 ],
                 "time_span": null,
@@ -1358,27 +1353,64 @@
         {
           "priority": 9,
           "tag": [
-            "事件",
+            "情境",
             "战斗"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "用泰坦之躯为白厄点燃希望，向先祖证明人性的光辉",
-                "location": [
-                  {
-                    "name": "晨昏之眼"
-                  }
-                ],
+                "narrative": "和白色小天马一起对抗被侵蚀的泰坦神明的战斗",
+                "location": null,
                 "participants": [
                   {
-                    "name": "我",
-                    "role": "后裔"
-                  },
+                    "name": "小伊卡",
+                    "role": "并肩作战者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "情境",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "用泰坦之躯为金血同伴点燃希望微光的那一战",
+                "location": null,
+                "participants": [
                   {
                     "name": "白厄",
-                    "role": "战友"
-                  },
+                    "role": "被点亮希望的人"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "情境",
+            "战斗",
+            "传承"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在晨昏之眼向血脉先祖证明人性光辉的时刻",
+                "location": null,
+                "participants": [
                   {
                     "name": "塞涅俄丝",
                     "role": "先祖"
@@ -1394,174 +1426,37 @@
         {
           "priority": 8,
           "tag": [
-            "事件",
+            "情境",
             "战斗"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "狂风呼啸中与小伊卡并肩对抗艾格勒",
+                "narrative": "狂风呼啸、虹光闪烁的那场激烈对决",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "情境",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "面对成为敌人的天空之神时拼上一切的最终战",
                 "location": null,
                 "participants": [
-                  {
-                    "name": "我",
-                    "role": "战士"
-                  },
-                  {
-                    "name": "小伊卡",
-                    "role": "忆灵"
-                  },
                   {
                     "name": "艾格勒",
                     "role": "敌人"
-                  }
-                ],
-                "time_span": null,
-                "environment": {
-                  "atmosphere": "激烈对决",
-                  "tone": "紧迫"
-                },
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "虹光闪烁中我在晨昏之眼击败了被侵蚀的天空泰坦",
-                "location": [
-                  {
-                    "name": "晨昏之眼"
-                  }
-                ],
-                "participants": null,
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "对决",
-                    "initiator": "我",
-                    "target": "艾格勒"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在晨昏之眼我证明了千年后人性的光辉仍然闪耀",
-                "location": [
-                  {
-                    "name": "晨昏之眼"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "证明者"
-                  },
-                  {
-                    "name": "塞涅俄丝",
-                    "role": "见证者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "那场在晨昏之眼与天空之神的生死决战",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "黄金裔"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "战斗",
-                    "initiator": "我",
-                    "target": "艾格勒"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "晨昏之眼的彩虹光芒，那是我和艾格勒的最后对决",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": {
-                  "atmosphere": "悲壮",
-                  "tone": "激昂"
-                },
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "事件",
-            "战斗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "向塞涅俄丝证明自己不是软弱后裔的那场战斗",
-                "location": [
-                  {
-                    "name": "晨昏之眼"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "后裔"
-                  },
-                  {
-                    "name": "塞涅俄丝",
-                    "role": "审判者"
                   }
                 ],
                 "time_span": null,
@@ -1589,8 +1484,8 @@
             "sit_achilles_eye_battle"
           ],
           "bonus_ranking": [
-            "sem_bai_e",
-            "sem_sai_ne_ai_si"
+            "sem_xiao_yi_ka",
+            "sem_aigele"
           ]
         },
         {
@@ -1599,7 +1494,7 @@
             "sit_achilles_eye_battle"
           ],
           "bonus_ranking": [
-            "sem_aigele",
+            "sem_bai_e",
             "sem_self"
           ]
         },
@@ -1609,33 +1504,12 @@
             "sit_achilles_eye_battle"
           ],
           "bonus_ranking": [
-            "sem_aigele",
-            "sem_xiao_yi_ka",
-            "sem_sai_ne_ai_si"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_achilles_eye_battle"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_bai_e"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_achilles_eye_battle"
-          ],
-          "bonus_ranking": [
-            "sem_aigele",
+            "sem_sai_ne_ai_si",
             "sem_self"
           ]
         },
         {
-          "q": 6,
+          "q": 4,
           "ranking": [
             "sit_achilles_eye_battle"
           ],
@@ -1645,13 +1519,14 @@
           ]
         },
         {
-          "q": 7,
+          "q": 5,
           "ranking": [
             "sit_achilles_eye_battle"
           ],
           "bonus_ranking": [
-            "sem_sai_ne_ai_si",
-            "sem_self"
+            "sem_aigele",
+            "sem_bai_e",
+            "sem_tian_kong_huo_zhong"
           ]
         }
       ],
@@ -1662,616 +1537,103 @@
         "sem_aigele",
         "sem_xiao_yi_ka",
         "sem_bai_e",
+        "sem_self",
         "sem_sai_ne_ai_si",
-        "sem_self"
+        "sem_tian_kong_huo_zhong"
       ],
       "expected_actions": []
     },
     {
-      "name": "set_xi_lian",
-      "description": "查询昔涟（涟宝）——我的传承者",
+      "name": "set_tian_rescue",
+      "description": "查询在重渊救援缇安的经历",
       "sub_queries": [
         {
           "priority": 9,
           "tag": [
-            "人物",
-            "传承"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "喜欢星星的后继者",
-                "description": "我把接力棒交给了她，她说等待是她最擅长的事"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "传承"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "涟宝",
-                "description": "我叫她涟宝，她喜欢亮晶晶的事物，总望着星星"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 8,
-          "tag": [
-            "人物",
-            "传承"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "在我嵌入画壁后接过命运的人",
-                "description": "她笑着说多久都没有关系，等待是她最擅长的"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "传承"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个在星光下接过最后一棒的女孩",
-                "description": "她也是黄金裔，是我的传承者"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "人物",
-            "传承"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "昔涟",
-                "description": "我的后继者，未来的希望"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "人物",
-            "传承"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "等待我最擅长的小家伙",
-                "description": "她这么说过，然后笑着接过了我的一切"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "人物",
-            "传承"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "逐火之旅的继承者",
-                "description": "在我之后继续守望天空火种的黄金裔"
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "人物",
-            "传承"
-          ],
-          "variant": {
-            "Semantic": [
-              {
-                "concept_identifier": "那个在永恒中等待的人",
-                "description": "她和我一样是天空的后裔吗？不，她有她的命运"
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sem_xi_lian"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sem_xi_lian"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sem_xi_lian"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_huang_jin_yi"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sem_xi_lian"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sit_embedded_painting"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sem_xi_lian"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sem_xi_lian"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_huang_jin_yi"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sem_xi_lian"
-          ],
-          "bonus_ranking": [
-            "sem_self",
-            "sem_zhu_huo_zhi_lv"
-          ]
-        },
-        {
-          "q": 7,
-          "ranking": [
-            "sem_xi_lian"
-          ],
-          "bonus_ranking": [
-            "sem_self"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sem_xi_lian"
-      ],
-      "bonus_combined_ranking": [
-        "sem_self",
-        "sem_huang_jin_yi",
-        "sit_embedded_painting",
-        "sem_zhu_huo_zhi_lv"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_healing",
-      "description": "查询风堇的治疗习惯和聊天疗法",
-      "sub_queries": [
-        {
-          "priority": 7,
-          "tag": [
-            "习惯",
-            "治疗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "治疗时和患者聊天分散注意力，聊家乡和美好回忆",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "医师"
-                  },
-                  {
-                    "name": "患者",
-                    "role": "病人"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "聊天",
-                    "initiator": "我",
-                    "target": "患者"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "习惯",
-            "治疗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "给患者包扎、打针时和他们聊天",
-                "location": null,
-                "participants": null,
-                "time_span": null,
-                "environment": {
-                  "atmosphere": "温暖疗愈",
-                  "tone": "柔和"
-                },
-                "event": [
-                  {
-                    "action": "包扎",
-                    "initiator": "我",
-                    "target": "患者"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "习惯",
-            "治疗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "安抚患者时用聊家乡和美好画面的方式",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "医师"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "安抚",
-                    "initiator": "我",
-                    "target": "患者"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "习惯",
-            "治疗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "怎么让患者放松？我总会跟他们聊聊快乐的事",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "患者",
-                    "role": "被治疗者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "习惯",
-            "治疗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在昏光庭院里，一边种花一边和来访者聊天",
-                "location": [
-                  {
-                    "name": "昏光庭院"
-                  }
-                ],
-                "participants": null,
-                "time_span": null,
-                "environment": {
-                  "atmosphere": "温暖疗愈",
-                  "tone": "柔和"
-                },
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 4,
-          "tag": [
-            "习惯",
-            "治疗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "医术有限但希望无限，所以要多和患者说话",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "医师"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "治疗",
-                    "initiator": "我",
-                    "target": "患者"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 4,
-          "tag": [
-            "习惯",
-            "治疗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "和患者聊天的习惯",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "医师"
-                  },
-                  {
-                    "name": "患者",
-                    "role": "听众"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 3,
-          "tag": [
-            "习惯",
-            "治疗"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在花园里和病人聊天，把药做成花瓣的样子",
-                "location": [
-                  {
-                    "name": "昏光庭院"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "医师"
-                  },
-                  {
-                    "name": "患者",
-                    "role": "访客"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        }
-      ],
-      "expected_per_query": [
-        {
-          "q": 0,
-          "ranking": [
-            "sit_participant_patients"
-          ],
-          "bonus_ranking": [
-            "proc_chat_with_patient"
-          ]
-        },
-        {
-          "q": 1,
-          "ranking": [
-            "sit_participant_patients"
-          ],
-          "bonus_ranking": [
-            "proc_chat_with_patient"
-          ]
-        },
-        {
-          "q": 2,
-          "ranking": [
-            "sit_participant_patients"
-          ],
-          "bonus_ranking": [
-            "proc_chat_with_patient",
-            "proc_drink_milk_tea"
-          ]
-        },
-        {
-          "q": 3,
-          "ranking": [
-            "sit_participant_patients"
-          ],
-          "bonus_ranking": [
-            "proc_chat_with_patient"
-          ]
-        },
-        {
-          "q": 4,
-          "ranking": [
-            "sit_participant_patients"
-          ],
-          "bonus_ranking": [
-            "proc_chat_with_patient",
-            "sit_environment_healing"
-          ]
-        },
-        {
-          "q": 5,
-          "ranking": [
-            "sit_participant_patients"
-          ],
-          "bonus_ranking": [
-            "proc_chat_with_patient"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_participant_patients"
-          ],
-          "bonus_ranking": [
-            "proc_chat_with_patient"
-          ]
-        },
-        {
-          "q": 7,
-          "ranking": [
-            "sit_participant_patients"
-          ],
-          "bonus_ranking": [
-            "proc_chat_with_patient",
-            "proc_plant_flowers"
-          ]
-        }
-      ],
-      "expected_combined_ranking": [
-        "sit_participant_patients"
-      ],
-      "bonus_combined_ranking": [
-        "proc_chat_with_patient",
-        "proc_drink_milk_tea",
-        "sit_environment_healing",
-        "proc_plant_flowers"
-      ],
-      "expected_actions": []
-    },
-    {
-      "name": "set_chongyuan",
-      "description": "查询重渊救援——失去缇安的记忆",
-      "sub_queries": [
-        {
-          "priority": 8,
-          "tag": [
-            "事件",
+            "情境",
+            "救援",
             "失去"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "在重渊寻找为救大家耗尽神力的缇安，最终没能把她带回来",
+                "narrative": "在重渊深处寻找耗尽神力消失的缇安",
                 "location": [
                   {
                     "name": "重渊"
                   }
                 ],
                 "participants": [
-                  {
-                    "name": "我",
-                    "role": "搜索者"
-                  },
-                  {
-                    "name": "丹恒",
-                    "role": "同伴"
-                  },
-                  {
-                    "name": "缇安",
-                    "role": "遇难者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 7,
-          "tag": [
-            "事件",
-            "失去"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "黑暗深渊中，我们拼命寻找缇安，但神力已经耗尽",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "医师"
-                  },
                   {
                     "name": "缇安",
                     "role": "被困者"
                   }
                 ],
                 "time_span": null,
-                "environment": {
-                  "atmosphere": "沉重危机",
-                  "tone": "阴郁"
-                },
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "情境",
+            "救援",
+            "失去"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "黑暗深渊里那场未能完成的救援行动",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "情境",
+            "救援"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和丹恒一起在重渊搜救那位像孩子一样勇敢的前辈",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "丹恒",
+                    "role": "同伴"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "情境",
+            "失去"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "缇安为了救大家耗尽神力而逝去的记忆",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
                 "event": null
               }
             ]
@@ -2280,58 +1642,15 @@
         {
           "priority": 7,
           "tag": [
-            "事件",
-            "失去"
+            "情境",
+            "回忆"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "记得在重渊失去一位重要的朋友，她叫缇安",
+                "narrative": "曾经乘坐缇宝们的火筒在云石天宫穿梭，后来却没能留住她的遗憾",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "幸存者"
-                  },
-                  {
-                    "name": "缇安",
-                    "role": "牺牲者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "寻找",
-                    "initiator": "我们",
-                    "target": "缇安"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 6,
-          "tag": [
-            "事件",
-            "失去"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "重渊那次的救援，我永远忘不了那份焦急和悲伤",
-                "location": [
-                  {
-                    "name": "重渊"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "医师"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -2340,122 +1659,17 @@
           }
         },
         {
-          "priority": 6,
+          "priority": 8,
           "tag": [
-            "事件",
+            "情境",
             "失去"
           ],
           "variant": {
             "Situation": [
               {
-                "narrative": "多亏丹恒的灵水术我们才能快速到达，但还是没能救回缇安",
+                "narrative": "在重渊搜寻无果、最终失去那位缇安的时刻",
                 "location": null,
-                "participants": [
-                  {
-                    "name": "丹恒",
-                    "role": "帮手"
-                  },
-                  {
-                    "name": "缇安",
-                    "role": "牺牲者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "救援",
-                    "initiator": "我们",
-                    "target": "缇安"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "事件",
-            "失去"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "在重渊让我痛心的事",
-                "location": [
-                  {
-                    "name": "重渊"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "经历者"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": null
-              }
-            ]
-          }
-        },
-        {
-          "priority": 5,
-          "tag": [
-            "事件",
-            "失去"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "她耗尽神力救了大家，我们却只能眼睁睁看着她消逝",
-                "location": null,
-                "participants": [
-                  {
-                    "name": "缇安",
-                    "role": "救赎者"
-                  },
-                  {
-                    "name": "我",
-                    "role": "悲伤的同伴"
-                  }
-                ],
-                "time_span": null,
-                "environment": null,
-                "event": [
-                  {
-                    "action": "牺牲",
-                    "initiator": "缇安",
-                    "target": "大家"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "priority": 4,
-          "tag": [
-            "事件",
-            "失去"
-          ],
-          "variant": {
-            "Situation": [
-              {
-                "narrative": "重渊的记忆里满是遗憾，但也提醒我要珍惜活着的每一刻",
-                "location": [
-                  {
-                    "name": "重渊"
-                  }
-                ],
-                "participants": [
-                  {
-                    "name": "我",
-                    "role": "医师"
-                  }
-                ],
+                "participants": null,
                 "time_span": null,
                 "environment": null,
                 "event": null
@@ -2472,7 +1686,8 @@
           ],
           "bonus_ranking": [
             "sem_tibao",
-            "sem_self"
+            "sem_self",
+            "sem_danheng"
           ]
         },
         {
@@ -2491,8 +1706,8 @@
             "sit_chongyuan_rescue"
           ],
           "bonus_ranking": [
-            "sem_tibao",
-            "sem_danheng"
+            "sem_danheng",
+            "sem_tibao"
           ]
         },
         {
@@ -2512,8 +1727,7 @@
           ],
           "bonus_ranking": [
             "sem_tibao",
-            "sem_self",
-            "sem_danheng"
+            "sem_self"
           ]
         },
         {
@@ -2524,27 +1738,6 @@
           "bonus_ranking": [
             "sem_tibao",
             "sem_self"
-          ]
-        },
-        {
-          "q": 6,
-          "ranking": [
-            "sit_chongyuan_rescue"
-          ],
-          "bonus_ranking": [
-            "sem_tibao",
-            "sem_self"
-          ]
-        },
-        {
-          "q": 7,
-          "ranking": [
-            "sit_chongyuan_rescue"
-          ],
-          "bonus_ranking": [
-            "sem_tibao",
-            "sem_self",
-            "proc_chat_with_patient"
           ]
         }
       ],
@@ -2554,10 +1747,688 @@
       "bonus_combined_ranking": [
         "sem_tibao",
         "sem_self",
-        "sem_danheng",
-        "proc_chat_with_patient"
+        "sem_danheng"
       ],
       "expected_actions": []
+    },
+    {
+      "name": "set_patient_care",
+      "description": "查询她照顾患者时的互动方式与安抚习惯",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "习惯",
+            "治疗行为"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "给换药的病人讲故事、聊家乡，让他忘掉疼痛",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "患者",
+                    "role": "寻求医治者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "治疗行为"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "打针时用聊天分散注意力的看诊方式",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "习惯",
+            "治疗行为"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "治疗时说起美好画面和回忆来安抚患者的情绪",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "习惯",
+            "治疗行为"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "面对紧张的患者，她轻柔的安抚话术",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "说话方式"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "看诊时的昵称习惯",
+                "description": "那位总是用宝贝般的昵称安抚伤者的医师"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "说话方式"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和患者闲聊到忘了疼，她称呼对方时总带着宝字",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "说话方式"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "病床边亲昵称呼患者的日常",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "习惯",
+            "治疗行为"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "温柔包扎的医者",
+                "description": "总是边处理伤口边陪人聊天的白衣医师"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_participant_patients"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_hun_guang_ting_yuan"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_participant_patients"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_participant_patients"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_participant_patients"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_tibao"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "sit_participant_patients"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_event_chatting"
+          ],
+          "bonus_ranking": [
+            "sit_participant_patients"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_event_chatting"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 7,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "sem_hun_guang_ting_yuan"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_participant_patients",
+        "sem_self",
+        "sit_event_chatting"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_hun_guang_ting_yuan",
+        "sem_tibao",
+        "sit_participant_patients"
+      ],
+      "expected_actions": [
+        "proc_chat_with_patient",
+        "proc_add_bao"
+      ]
+    },
+    {
+      "name": "set_hun_guang_garden",
+      "description": "查询昏光庭院及其中的疗愈日常",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "地点",
+            "组织"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "重建的疗愈之所",
+                "description": "她为永夜带来微光的医疗庭院"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "地点",
+            "组织"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "天空后裔的族群",
+                "description": "因战争和黑潮解离消逝、由她继承管理的庭院族人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "地点",
+            "组织"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "让人放下心结的地方",
+                "description": "位于圣城奥赫玛、人们能畅所欲言的疗愈族地"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "地点",
+            "治疗行为"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在庭院接待患者时，边处理伤口边聊家乡和美好记忆",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "地点",
+            "园艺"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在庭院里播种石榴麦草、开辟花海迎接来访者",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "地点",
+            "手工"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在庭院中用旧衣和罐子改造软椅、风铃",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "地点",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "温暖柔和的庭院氛围里，泡花茶帮人安神助眠",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_hun_guang_ting_yuan"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_ao_he_ma"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_hun_guang_ting_yuan"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_hun_guang_ting_yuan"
+          ],
+          "bonus_ranking": [
+            "sem_ao_he_ma"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_participant_patients"
+          ],
+          "bonus_ranking": [
+            "sem_hun_guang_ting_yuan",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_location_garden"
+          ],
+          "bonus_ranking": [
+            "sem_hun_guang_ting_yuan"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_location_garden"
+          ],
+          "bonus_ranking": [
+            "sem_hun_guang_ting_yuan",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_environment_healing"
+          ],
+          "bonus_ranking": [
+            "sem_hun_guang_ting_yuan"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_hun_guang_ting_yuan",
+        "sit_participant_patients",
+        "sit_location_garden",
+        "sit_environment_healing"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_ao_he_ma",
+        "sem_hun_guang_ting_yuan"
+      ],
+      "expected_actions": [
+        "proc_chat_with_patient",
+        "proc_plant_flowers",
+        "proc_handicraft",
+        "proc_drink_milk_tea"
+      ]
+    },
+    {
+      "name": "set_leisure_habits",
+      "description": "查询她的日常放松与生活爱好",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "睡前的温水澡和羊奶花茶，让自己安稳入眠",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "夜里安神助眠的花茶配方",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "园艺"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在庭院里晒太阳、播种花草的悠闲时光",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "手工"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "把旧罐子改成花盆、旧衣改成软椅的巧思",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "手工"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "七夕时缝制挂件送给朋友的手作习惯",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "爱好"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "用留影石机追着翁法罗斯的鸟儿拍摄",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "爱好"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "爱观鸟的医师",
+                "description": "有一个用留影石机攒鸟儿相册的爱好，还会研究天空之神的传说"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_environment_healing"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_environment_healing"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_location_garden"
+          ],
+          "bonus_ranking": [
+            "sem_hun_guang_ting_yuan"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_location_garden"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_location_garden"
+          ],
+          "bonus_ranking": [
+            "sem_xi_lian"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_event_chatting"
+          ],
+          "bonus_ranking": [
+            "sem_aigele",
+            "sem_weng_fa_luo_si"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "sit_event_chatting"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_environment_healing",
+        "sit_location_garden",
+        "sit_event_chatting",
+        "sem_self"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_hun_guang_ting_yuan",
+        "sem_xi_lian",
+        "sem_aigele",
+        "sem_weng_fa_luo_si",
+        "sit_event_chatting"
+      ],
+      "expected_actions": [
+        "proc_drink_milk_tea",
+        "proc_plant_flowers",
+        "proc_handicraft",
+        "proc_observe_birds"
+      ]
     }
   ]
 }
