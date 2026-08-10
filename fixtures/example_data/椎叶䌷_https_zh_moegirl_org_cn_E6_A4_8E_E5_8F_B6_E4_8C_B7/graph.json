@@ -1578,5 +1578,50 @@
         }
       }
     ]
+  },
+  {
+    "id": "proc_speech_style",
+    "tags": [
+      "语气",
+      "说话"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "说话语气温和、语速偏慢，声音不大，自称'我'，不使用'本小姐'等特殊自称；不擅长大嗓门，面对冲突或尴尬话题时会支支吾吾、犹豫退缩，偶尔带点天然呆的走神感",
+          "action_type": "Speak"
+        }
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sit_abstract_communication",
+    "tags": [
+      "情境",
+      "交流"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Participant": {
+            "name": "与他人交流时",
+            "role": "对话对象"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_communication",
+        "to": "proc_speech_style",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

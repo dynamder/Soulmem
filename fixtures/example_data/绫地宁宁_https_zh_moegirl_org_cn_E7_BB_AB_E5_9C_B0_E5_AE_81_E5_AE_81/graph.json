@@ -1607,5 +1607,52 @@
         }
       }
     ]
+  },
+  {
+    "id": "proc_think_cherish_present",
+    "tags": [
+      "思维",
+      "性格",
+      "自省"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "思考问题时常自省甚至自我贬低，但最终会接纳现实，认为真正的幸福是与重要的人共度当下，而不是强行改变过去；面对孤独和秘密时，会先感到不安，随后靠重视身边人来稳定心态",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sit_abstract_contemplation",
+    "tags": [
+      "情境",
+      "独处",
+      "反思"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Participant": {
+            "name": "独处反思时",
+            "role": "自己"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_contemplation",
+        "to": "proc_think_cherish_present",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

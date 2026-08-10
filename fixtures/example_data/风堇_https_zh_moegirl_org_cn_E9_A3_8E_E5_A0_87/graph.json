@@ -2394,5 +2394,53 @@
         }
       }
     ]
+  },
+  {
+    "id": "proc_think_gentle_optimism",
+    "tags": [
+      "思维",
+      "性格",
+      "乐观",
+      "温柔"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "思考时常怀温和乐观：先安抚情绪、给予希望，认为善意与微笑能治愈心病；遇苦难不畏惧，愿以微光守护他人，相信不同的色彩能共存",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sit_abstract_facing_others",
+    "tags": [
+      "情境",
+      "交流",
+      "日常"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Participant": {
+            "name": "面对他人或病患时",
+            "role": "倾听者与疗愈者"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_facing_others",
+        "to": "proc_think_gentle_optimism",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
   }
 ]

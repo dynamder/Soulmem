@@ -1,25 +1,25 @@
 {
-  "node_count": 38,
-  "edge_count": 54,
+  "node_count": 40,
+  "edge_count": 55,
   "node_types": {
     "semantic": 18,
-    "situation": 15,
-    "procedure": 5
+    "situation": 16,
+    "procedure": 6
   },
   "link_types": {
     "sem": 38,
-    "proc": 11,
+    "proc": 12,
     "situation": 5
   },
-  "connected_components": 1,
+  "connected_components": 2,
   "largest_component": 38,
   "isolated_nodes": 0,
-  "mst_forest_edges": 37,
-  "global_redundancy": 0.45945945945945943,
+  "mst_forest_edges": 38,
+  "global_redundancy": 0.44736842105263164,
   "avg_clustering": 0.18489819004524885,
-  "community_modularity": 0.4070644718792868,
+  "community_modularity": 0.410330578512397,
   "intra_community_ratio": 1.0,
-  "gini_coefficient": 0.37914230019493167,
+  "gini_coefficient": 0.3854545454545455,
   "has_self_node": true,
   "self_description_ok": true,
   "illegal_edges": [],
@@ -28,10 +28,11 @@
   "failures": [],
   "warnings": [
     "avg_clustering 0.185 < 0.20（仅观察）",
-    "global_redundancy 0.46 < 0.50（仅观察）"
+    "global_redundancy 0.45 < 0.50（仅观察）",
+    "min_component_redundancy 0.46 < 0.50（仅观察）"
   ],
   "has_proc_none": true,
-  "abstract_sit_type_count": 3,
+  "abstract_sit_type_count": 4,
   "proc_without_incoming_proc": [],
   "abs_sit_without_proc": [
     "sit_abs_location_clubroom"
