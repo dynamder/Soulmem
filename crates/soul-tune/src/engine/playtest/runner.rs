@@ -756,11 +756,11 @@ impl PlayTestRunner {
     /// - 同一概念用多个不同描述覆盖不同角度，提升召回
     /// - 只基于记忆线索与对话内容回想，不编造记忆片段中不存在的事实要素
     fn build_query_prompt(&self, user_message: &str, entities: &[String], hints: &[String]) -> String {
-        let scene = self
+        let partner_line = self
             .human_role
             .as_ref()
-            .map(|r| format!("{}正在与你对话。", r))
-            .unwrap_or_else(|| "有人正在与你对话。".to_string());
+            .map(|r| format!("与你对话的人（对方身份）: {}\n", r))
+            .unwrap_or_default();
 
         let entities_text = if entities.is_empty() {
             String::new()
@@ -780,7 +780,8 @@ impl PlayTestRunner {
         };
 
         format!(
-            "当前场景：{}\n\
+            "当前场景：有人正在与你对话。\n\
+             {}\
              对方说: \"{}\"{}\n\n\
              {}请以角色自身的视角，回想回应这句话所需的相关记忆，输出一个 JSON 数组，4-8 条，每条代表一个回忆方向。\n\n\
              【每条查询的字段】\n\
@@ -800,12 +801,13 @@ impl PlayTestRunner {
              ]\n\n\
              【要点】\n\
              - 同一概念可以用多个不同描述的查询覆盖不同角度，提升召回\n\
+             - 注意与你对话的人是谁：优先回想与对方的关系、共同经历和对方相关的人物记忆（除非对话内容明显无关）\n\
              - Situation 只填 narrative，不要填其他子字段\n\
              - 只基于记忆线索与对话内容回想，不要编造线索中不存在的人物、事件、细节或关系\n\
              - Situation 的 narrative 必须是真实记忆的转述：可以换措辞，但事实要素必须来自记忆线索\n\
              - 如果当前对话没有任何对应记忆，只输出 1-3 条实体/概念查询，或输出空数组 []\n\
              只输出 JSON 数组，不要其他内容。",
-            scene, user_message, entities_text, clues_section
+            partner_line, user_message, entities_text, clues_section
         )
     }
 

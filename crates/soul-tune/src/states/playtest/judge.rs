@@ -577,6 +577,18 @@ impl PlayTestJudgeState {
                     n.score, n.name, stage_mark
                 ))));
             }
+            if !full_trace.action_nodes.is_empty() {
+                let actions = full_trace
+                    .action_nodes
+                    .iter()
+                    .map(|n| n.content.as_str())
+                    .collect::<Vec<_>>()
+                    .join("; ");
+                lines.push(Line::from(Span::styled(
+                    format!("  行为倾向: {}", actions),
+                    Style::new().yellow(),
+                )));
+            }
         }
 
         let line_count = lines.len();
