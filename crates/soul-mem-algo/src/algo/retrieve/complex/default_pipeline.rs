@@ -253,6 +253,7 @@ mod tests {
             assoc_with_action: AssociateWithActionConfig {
                 association: Default::default(),
                 action_top_k: 3,
+                ..Default::default()
             },
         }
     }
@@ -471,6 +472,7 @@ mod tests {
             assoc_with_action: AssociateWithActionConfig {
                 association: Default::default(),
                 action_top_k: 3,
+                ..Default::default()
             },
         };
         let request = config.into_request(Arc::new(wm), embedded_query, 1);
