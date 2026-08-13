@@ -3,7 +3,9 @@
     "id": "sem_self",
     "tags": [
       "自身",
-      "角色"
+      "角色",
+      "坎瑞亚",
+      "末光之剑"
     ],
     "mem_type": {
       "Semantic": {
@@ -11,20 +13,153 @@
         "aliases": [
           "末光之剑",
           "拾枝者",
-          "坎瑞亚末代宫廷卫队队长"
+          "提瓦特谜人",
+          "戴因"
         ],
         "concept_type": "Entity",
-        "description": "我是戴因斯雷布，坎瑞亚末代宫廷卫队的队长，世人称我为「末光之剑」，也有人叫我「拾枝者」。我诞生于地底之国坎瑞亚，那个没有神明的国度。我曾在骑士学院学习黑蛇剑术，后来晋升为宫廷卫队队长。灾变发生后，我见证了坎瑞亚的覆灭，被兄长用不死之戒救下，从此获得了不死的诅咒。我经历了与旅行者血亲的结伴与决裂，以对抗深渊为己任，在提瓦特流浪了五百年。我深恨神灵，但也不认同深渊的道路，坚持人类应掌握自己的命运。我重视承诺与忠诚，说话方式晦涩，喜欢通过提问探查他人的本质。"
+        "description": "我是戴因斯雷布，坎瑞亚末代宫廷卫队的队长，世人称我为「末光之剑」，也有人叫我「拾枝者」。我诞生于无神的地底之国坎瑞亚，在哈登门下学过黑蛇剑术；灾变后靠着兄长留下的不死之戒获得不死之身。五百年来我以对抗深渊为己任，独自流浪于提瓦特，见证七国兴衰。我的信条是人类应当掌握自己的命运；我深恨众神，也不认同深渊的道路。"
       }
     },
     "mem_links": [
       {
         "from": "sem_self",
-        "to": "sem_traveler_sibling",
-        "intensity": 0.85,
+        "to": "sem_khaenriah",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "同行",
+            "verb": "出身",
+            "confidence": 1.0
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_abyss",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "对抗",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_court_guard",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "统领",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_immortal_curse",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "承受",
+            "confidence": 1.0
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_mission_against_abyss",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "肩负",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_human_fate",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "信奉",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_hatred_gods",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "怀有",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_lonely_wanderer",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "成为",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_viserfnir",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "兄长",
+            "confidence": 1.0
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_hagen",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "师从",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_surtalogi",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "同窗",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_rellir",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "旧友",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_hafdan",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "旧部",
             "confidence": 0.9
           }
         }
@@ -32,197 +167,241 @@
       {
         "from": "sem_self",
         "to": "sem_traveler",
-        "intensity": 0.8,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
             "verb": "盟友",
-            "confidence": 0.85
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_viserbnir",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "兄长",
-            "confidence": 0.95
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_harnden",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "复仇",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_rellier",
-        "intensity": 0.65,
-        "link_type": {
-          "Sem": {
-            "verb": "旧友",
-            "confidence": 0.75
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_surtalogi",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "旧识",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_rhinedottir",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "旧识",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_hellatide",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "旧识",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_halfdan",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "部下",
-            "confidence": 0.95
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_columbina",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "并肩",
             "confidence": 0.8
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_irmin",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "效忠",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_khaenriah",
+        "to": "sem_sibling",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "出身",
+            "verb": "同行过",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_curse",
+        "to": "sem_abyss_order",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "敌对",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_black_serpent_sword",
         "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "修习",
+            "confidence": 1.0
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_black_serpent_knight",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "曾统领",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_khaenriah",
+    "tags": [
+      "坎瑞亚",
+      "国度",
+      "历史"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "坎瑞亚",
+        "aliases": [
+          "地下王国",
+          "无神的国度",
+          "坎瑞亚故国"
+        ],
+        "concept_type": "Entity",
+        "description": "戴因斯雷布出身的国度，地下文明的巅峰。众神因坎瑞亚人不依赖神明而视其为威胁，五百年前降下覆灭之灾；国民大多被诅咒化为丘丘人，少数如戴因斯雷布成为不死者。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_khaenriah",
+        "to": "sem_inteyvat",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "国花",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_khaenriah",
+        "to": "sem_black_serpent_knight",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "编制",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_khaenriah",
+        "to": "sem_five_sinners",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "养育",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_khaenriah",
+        "to": "sem_black_king_irmin",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "国王",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_khaenriah",
+        "to": "sem_court_guard",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "宫廷",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_khaenriah",
+        "to": "sem_field_tiller",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "发明",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_khaenriah",
+        "to": "sem_cataclysm",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "遭遇",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_khaenriah",
+        "to": "sem_immortal_curse",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
             "verb": "背负",
-            "confidence": 0.95
+            "confidence": 0.9
           }
         }
-      },
+      }
+    ]
+  },
+  {
+    "id": "sem_abyss",
+    "tags": [
+      "深渊",
+      "力量",
+      "威胁"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "深渊",
+        "aliases": [
+          "深渊之力",
+          "深渊的诱惑",
+          "漆黑力量"
+        ],
+        "concept_type": "Abstract",
+        "description": "深渊之力诱人而危险，五大罪人的堕落即为明证；戴因斯雷布选择以对抗深渊为己任，不认同众神也不认同深渊道路。"
+      }
+    },
+    "mem_links": [
       {
-        "from": "sem_self",
-        "to": "sem_five_sinners",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "追查",
-            "confidence": 0.65
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_black_serpent",
+        "from": "sem_abyss",
+        "to": "sem_abyss_order",
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "传承",
+            "verb": "驱动",
             "confidence": 0.8
           }
         }
       },
       {
-        "from": "sem_self",
-        "to": "sem_abyss",
-        "intensity": 0.75,
-        "link_type": {
-          "Sem": {
-            "verb": "对抗",
-            "confidence": 0.85
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_gods",
+        "from": "sem_abyss",
+        "to": "sem_five_sinners",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "不信",
+            "verb": "腐化",
             "confidence": 0.9
           }
         }
       },
       {
-        "from": "sem_self",
-        "to": "sem_deathless_ring",
+        "from": "sem_abyss",
+        "to": "sem_sibling",
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "关联",
+            "verb": "侵蚀",
             "confidence": 0.8
           }
         }
       },
       {
-        "from": "sem_self",
-        "to": "sem_pickup_trivia",
+        "from": "sem_abyss",
+        "to": "sem_fate_loom",
         "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "参与",
+            "verb": "关联",
+            "confidence": 0.6
+          }
+        }
+      },
+      {
+        "from": "sem_abyss",
+        "to": "sem_cataclysm",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "引发",
             "confidence": 0.8
           }
         }
@@ -230,32 +409,695 @@
     ]
   },
   {
-    "id": "sem_traveler_sibling",
+    "id": "sem_cataclysm",
     "tags": [
-      "人物",
-      "旅伴"
+      "漆黑灾变",
+      "坎瑞亚",
+      "历史"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "旅行者的血亲",
+        "content": "漆黑灾变",
         "aliases": [
-          "金发的异乡人",
-          "深渊教团的首领",
-          "昔日旅伴"
+          "坎瑞亚灾变",
+          "深渊灾厄",
+          "漆黑兽潮之灾"
         ],
-        "concept_type": "Entity",
-        "description": "她是一位金发少女（或少年），曾与我结伴游历整个提瓦特。她如同太阳的碎片般耀眼，但最终选择了深渊的道路，与我因理念不合而分道扬镳。如今她站在深渊教团的一方，是我心中最深的伤痕，也是我必须面对的矛盾：是必须杀死的人，还是忏悔的对象。"
+        "concept_type": "Abstract",
+        "description": "坎瑞亚覆灭时爆发的漆黑灾变，令魔龙杜林、厄里那斯等漆黑兽潮席卷七国；坎瑞亚人民受诅咒化为丘丘人，戴因斯雷布成为荒野中的不死者。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_traveler_sibling",
+        "from": "sem_cataclysm",
+        "to": "sem_khaenriah",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "覆灭",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_cataclysm",
         "to": "sem_abyss",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "源于",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_cataclysm",
+        "to": "sem_immortal_curse",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "伴随",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_immortal_curse",
+    "tags": [
+      "不死诅咒",
+      "坎瑞亚",
+      "身体"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "坎瑞亚不死诅咒",
+        "aliases": [
+          "不死诅咒",
+          "长生诅咒",
+          "不老的烙印"
+        ],
+        "concept_type": "Abstract",
+        "description": "坎瑞亚覆灭后少数幸存者受到的不死诅咒，不会衰老、无法真正死亡；戴因斯雷布因此以不变的面容流浪了五百年。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_immortal_curse",
+        "to": "sem_khaenriah",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "选择",
+            "verb": "源于",
             "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_immortal_ring",
+    "tags": [
+      "不死之戒",
+      "遗物",
+      "维瑟弗尼尔"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "不死之戒",
+        "aliases": [
+          "兄长的遗物",
+          "不死的指环",
+          "复原之戒"
+        ],
+        "concept_type": "Entity",
+        "description": "维瑟弗尼尔留给戴因斯雷布的遗物，能让戴因斯雷布的身躯不断复原，是获得不死的凭依之一。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_black_serpent_sword",
+    "tags": [
+      "黑蛇剑术",
+      "剑术",
+      "坎瑞亚"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "黑蛇剑术",
+        "aliases": [
+          "黑蛇流",
+          "黑蛇流剑术",
+          "宫廷卫队剑术"
+        ],
+        "concept_type": "Abstract",
+        "description": "戴因斯雷布在骑士学院哈登门下学习的剑术，讲究精准致命、干脆利落；由坎瑞亚宫廷卫队传承，伴随他战斗了五百年。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_black_serpent_sword",
+        "to": "sem_hagen",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "传授",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_black_serpent_knight",
+    "tags": [
+      "黑蛇骑士",
+      "坎瑞亚",
+      "部下"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "黑蛇骑士",
+        "aliases": [
+          "黑蛇卫士",
+          "失智的宫廷卫士",
+          "深渊化的骑士"
+        ],
+        "concept_type": "Abstract",
+        "description": "灾变后许多坎瑞亚宫廷卫士失去自我意识化作黑蛇骑士，仍潜意识执行当年命令；哈夫丹是其中最令人骄傲也最令人心痛的例子。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_black_serpent_knight",
+        "to": "sem_hafdan",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "成员",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_black_serpent_knight",
+        "to": "sem_khaenriah",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "效忠",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_five_sinners",
+    "tags": [
+      "五大罪人",
+      "坎瑞亚",
+      "深渊"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "坎瑞亚五大罪人",
+        "aliases": [
+          "五大罪人",
+          "坎瑞亚五罪",
+          "深渊罪人"
+        ],
+        "concept_type": "Abstract",
+        "description": "指海洛塔帝、莱茵多特、雷利尔、维瑟弗尼尔、苏尔特洛奇五人；他们在坎瑞亚覆灭之夜瓜分旅行者血亲身上的深渊力量，成为颠覆世界的存在。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_five_sinners",
+        "to": "sem_viserfnir",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_five_sinners",
+        "to": "sem_heliot",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_five_sinners",
+        "to": "sem_rhinedottir",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_five_sinners",
+        "to": "sem_surtalogi",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_five_sinners",
+        "to": "sem_rellir",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_five_sinners",
+        "to": "sem_abyss",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "沉沦",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_inteyvat",
+    "tags": [
+      "因提瓦特花",
+      "坎瑞亚",
+      "国花"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "因提瓦特花",
+        "aliases": [
+          "坎瑞亚国花",
+          "思乡之花",
+          "地底之花"
+        ],
+        "concept_type": "Entity",
+        "description": "坎瑞亚国花，洁白如雪，只开放在地底之国；花语是「思乡」，承载着亡国遗民的眷恋。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_field_tiller",
+    "tags": [
+      "耕地机",
+      "遗迹守卫",
+      "坎瑞亚科技"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "耕地机",
+        "aliases": [
+          "遗迹守卫",
+          "坎瑞亚耕作机械",
+          "第一座耕地机"
+        ],
+        "concept_type": "Entity",
+        "description": "坎瑞亚制造的耕作机械，即如今七国常见的遗迹守卫；第一座耕地机的眼睛是深渊教团寻找的「命运的织机」核心道具。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_fate_loom",
+    "tags": [
+      "命运的织机",
+      "深渊教团",
+      "计划"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "命运的织机",
+        "aliases": [
+          "命运织机",
+          "改写命运的装置",
+          "深渊教团的终极计划"
+        ],
+        "concept_type": "Entity",
+        "description": "深渊教团的终极计划，据说能改写命运，以第一座耕地机的眼睛为核心；戴因斯雷布曾保管那枚眼睛，后在须弥被夺走。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_black_king_irmin",
+    "tags": [
+      "黑王",
+      "坎瑞亚",
+      "伊尔明苏尔"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "黑王伊尔明苏尔",
+        "aliases": [
+          "伊尔明苏尔",
+          "坎瑞亚末代国王",
+          "黑王"
+        ],
+        "concept_type": "Entity",
+        "description": "坎瑞亚末代国王，疯狂利用深渊之力追求王国永生，将旅行者的血亲立为王储吸收深渊力量，最终导致坎瑞亚覆灭。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_black_king_irmin",
+        "to": "sem_viserfnir",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "囚禁",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_court_guard",
+    "tags": [
+      "坎瑞亚宫廷卫队",
+      "卫队",
+      "戴因斯雷布"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "坎瑞亚宫廷卫队",
+        "aliases": [
+          "末光之剑的卫队",
+          "黑蛇骑士团",
+          "坎瑞亚卫队"
+        ],
+        "concept_type": "Entity",
+        "description": "坎瑞亚宫廷卫队，戴因斯雷布曾任队长，负责维持王宫秩序；灾变后许多卫士化为黑蛇骑士。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_mission_against_abyss",
+    "tags": [
+      "使命",
+      "深渊",
+      "戴因斯雷布"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "对抗深渊的使命",
+        "aliases": [
+          "我的道路",
+          "抗深渊之路",
+          "末光之剑的使命"
+        ],
+        "concept_type": "Abstract",
+        "description": "以对抗深渊为己任，是戴因斯雷布流浪五百年的唯一道路；直到末日尽头，或找到那缕金发主人的答案。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_mission_against_abyss",
+        "to": "sem_abyss",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "针对",
+            "confidence": 0.95
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_human_fate",
+    "tags": [
+      "信念",
+      "人类",
+      "命运"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "人类应当掌握自己的命运",
+        "aliases": [
+          "人的历史由人书写",
+          "不依赖神明的信念",
+          "人类的骄傲"
+        ],
+        "concept_type": "Abstract",
+        "description": "戴因斯雷布的信条：人类应当掌握自己的命运；他尊重那些不依赖神明也能坚定前行的人。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_hatred_gods",
+    "tags": [
+      "神明",
+      "憎恨",
+      "拒信者"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "对神明的憎恨",
+        "aliases": [
+          "拒信者",
+          "不信仰神明",
+          "对诸神的敌意"
+        ],
+        "concept_type": "Abstract",
+        "description": "戴因斯雷布深恨众神，因他们覆灭坎瑞亚；他从不向神像祈祷，也不踏入神圣之地，被称为「拒信者」。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_lonely_wanderer",
+    "tags": [
+      "拾枝者",
+      "孤独",
+      "流浪"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "孤独的拾枝者",
+        "aliases": [
+          "拾枝者",
+          "流浪者",
+          "五百年独行者"
+        ],
+        "concept_type": "Abstract",
+        "description": "戴因斯雷布是孤独的拾枝者，拾起过往的残枝断节，讲述被遗忘的故事；五百年间习惯了荒野独行，不崇尚孤独却总是独行。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_vision_odd",
+    "tags": [
+      "神之眼",
+      "坎瑞亚",
+      "特殊形态"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "特殊形态的神之眼",
+        "aliases": [
+          "非七国样式的神之眼",
+          "坎瑞亚技术的神之眼",
+          "改装的神之眼"
+        ],
+        "concept_type": "Entity",
+        "description": "戴因斯雷布佩戴的神之眼以特殊形态呈现，并非七国常见样式，带有坎瑞亚技术留下的痕迹。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_moon_gate",
+    "tags": [
+      "月之门",
+      "雷利尔",
+      "索琳蒂丝"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "月之门",
+        "aliases": [
+          "月之通道",
+          "索琳蒂丝消失之门",
+          "银月之门"
+        ],
+        "concept_type": "Entity",
+        "description": "雷利尔未婚妻索琳蒂丝跳入的月之门，也是挪德卡莱战斗中戴因斯雷布亲手维持的月之通道。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_moon_gate",
+        "to": "sem_solindis",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "守护",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_moon_gate",
+        "to": "sem_rellir",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "关联",
+            "confidence": 0.7
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_alberich_clan",
+    "tags": [
+      "亚尔伯里奇",
+      "凯亚",
+      "深渊教团"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "亚尔伯里奇家族",
+        "aliases": [
+          "亚尔伯里奇家族",
+          "深渊教团创始人家族",
+          "凯亚的家族"
+        ],
+        "concept_type": "Entity",
+        "description": "深渊教团创始人克洛达尔所属的家族，凯亚是其遗孤后裔；这一代的亚尔伯里奇已在历史阴影中迷失方向。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_alberich_clan",
+        "to": "sem_kaeya",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "后裔",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_alberich_clan",
+        "to": "sem_clothar",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "创始人",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_alberich_clan",
+        "to": "sem_abyss_order",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "关联",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_abyss_order",
+    "tags": [
+      "深渊教团",
+      "克洛达尔",
+      "敌人"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "深渊教团",
+        "aliases": [
+          "深渊教团",
+          "深渊势力",
+          "克洛达尔的教团"
+        ],
+        "concept_type": "Entity",
+        "description": "由克洛达尔·亚尔伯里奇创建的深渊阵营，以「命运的织机」等计划对抗天理；旅行者的血亲如今站在深渊教团一方。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_abyss_order",
+        "to": "sem_clothar",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "创立",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_abyss_order",
+        "to": "sem_fate_loom",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "推进",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_sibling",
+    "tags": [
+      "旅行者的血亲",
+      "金发",
+      "深渊"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "旅行者的血亲（金发的异乡人）",
+        "aliases": [
+          "金发的异乡人",
+          "深渊中的血亲",
+          "曾经的旅伴"
+        ],
+        "concept_type": "Entity",
+        "description": "旅行者的血亲，曾与戴因斯雷布结伴游历整个提瓦特，最终选择深渊道路而分道扬镳。他/她曾是王储，被黑王用作吸收深渊力量的容器；那缕金发对戴因斯雷布而言既是必须杀死的存在，也是忏悔的对象。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_sibling",
+        "to": "sem_traveler",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "血亲",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sem_sibling",
+        "to": "sem_abyss_order",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "加入",
+            "confidence": 0.8
           }
         }
       }
@@ -264,52 +1106,33 @@
   {
     "id": "sem_traveler",
     "tags": [
-      "人物",
+      "旅行者",
+      "空",
+      "荧",
       "盟友"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "旅行者",
+        "content": "旅行者（空/荧）",
         "aliases": [
-          "空/荧",
+          "空",
+          "荧",
           "异乡的旅行者",
-          "血亲的同胞"
+          "命运的旅人"
         ],
         "concept_type": "Entity",
-        "description": "他/她是那位金发血亲的同胞，却走上了截然不同的道路。我在蒙德初次遇见他/她时，便注意到其身上未熄灭的纯粹光芒。我用三个问题试探了他/她的立场，之后在层岩巨渊、须弥、纳塔等地多次合作。他/她是一个可靠的盟友，但我也常在他/她身上看到那位血亲的影子。"
+        "description": "来自异乡的旅行者，与血亲走上不同道路；戴因斯雷布初次在蒙德遇见他/她时就注意到其身上未熄灭的光芒，两人数次合作调查深渊教团与命运的织机。"
       }
     },
     "mem_links": [
       {
         "from": "sem_traveler",
         "to": "sem_paimon",
-        "intensity": 0.85,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "伙伴",
+            "verb": "同伴",
             "confidence": 0.95
-          }
-        }
-      },
-      {
-        "from": "sem_traveler",
-        "to": "sem_traveler_sibling",
-        "intensity": 0.85,
-        "link_type": {
-          "Sem": {
-            "verb": "血亲",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_traveler",
-        "to": "sem_abyss",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "对抗",
-            "confidence": 0.75
           }
         }
       }
@@ -318,75 +1141,67 @@
   {
     "id": "sem_paimon",
     "tags": [
-      "人物",
-      "伙伴"
+      "派蒙",
+      "伙伴",
+      "旅行者"
     ],
     "mem_type": {
       "Semantic": {
         "content": "派蒙",
         "aliases": [
-          "应急食品",
+          "最好的伙伴",
           "漂浮的小家伙",
-          "旅行者的伙伴"
+          "会说话的玩伴"
         ],
         "concept_type": "Entity",
-        "description": "一个漂浮在旅行者身边的小家伙，自称是「最好的伙伴」。她的斗篷上有星空图案，与我的斗篷有几分相似。她活泼话多，有时让我烦躁，但对旅行者忠诚。我猜测她的身份不简单，但不打算深究。"
+        "description": "漂浮在旅行者身边的伙伴，自称「最好的伙伴」；性格活泼、话很多，斗篷上的星空图案与戴因斯雷布的斗篷有几分相似。"
       }
     },
     "mem_links": []
   },
   {
-    "id": "sem_viserbnir",
+    "id": "sem_viserfnir",
     "tags": [
-      "人物",
-      "兄长"
+      "维瑟弗尼尔",
+      "兄长",
+      "预言家"
     ],
     "mem_type": {
       "Semantic": {
         "content": "维瑟弗尼尔",
         "aliases": [
           "预言家",
-          "戴因的哥哥",
-          "坎瑞亚预言家"
+          "维瑟弗尼尔",
+          "戴因斯雷布的兄长"
         ],
         "concept_type": "Entity",
-        "description": "他是我的哥哥，坎瑞亚最杰出的预言家。他因向黑王预言坎瑞亚灭亡而被刺瞎双眼投入大狱，被我与众人救出。但他最终也未能抵御深渊的诱惑，成为了五大罪人之一。他留给我一枚不死之戒，让我能不断复原。我不知他如今身在何方。"
+        "description": "戴因斯雷布的兄长，坎瑞亚最杰出的预言家；因对黑王预言亡国被刺瞎双眼，后获救；最终也堕为五大罪人之一，临别留下不死之戒。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_viserbnir",
-        "to": "sem_deathless_ring",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "给予",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
-    "id": "sem_harnden",
+    "id": "sem_hagen",
     "tags": [
-      "人物",
-      "剑术老师"
+      "哈登",
+      "剑术",
+      "仇敌"
     ],
     "mem_type": {
       "Semantic": {
         "content": "哈登",
         "aliases": [
-          "黑蛇剑术传授者",
-          "戴因的剑术老师"
+          "剑术老师哈登",
+          "黑蛇剑术的传授者",
+          "深渊走狗"
         ],
         "concept_type": "Entity",
-        "description": "他是我的剑术启蒙者，黑蛇剑术的传授者。他不是一个好老师，打压新一辈的骑士，经常体罚我和苏尔特洛奇。五百年后在纳塔再次相遇时，他已沦为深渊走狗，我杀了他一百遍，又被他欺骗后再次杀了一百遍。他从未教会我什么是真正的骑士之道。"
+        "description": "戴因斯雷布的剑术老师，传授黑蛇剑术但打压坚持骑士精神的新人；五百年后在纳塔已沦为深渊走狗，被戴因斯雷布以复仇之名斩杀两百遍，还曾利用叙旧窃取记忆。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_harnden",
+        "from": "sem_hagen",
         "to": "sem_abyss",
         "intensity": 0.7,
         "link_type": {
@@ -399,9 +1214,10 @@
     ]
   },
   {
-    "id": "sem_rellier",
+    "id": "sem_rellir",
     "tags": [
-      "人物",
+      "雷利尔",
+      "猎月人",
       "旧友"
     ],
     "mem_type": {
@@ -409,19 +1225,32 @@
         "content": "雷利尔",
         "aliases": [
           "猎月人",
-          "曾经的友人",
-          "索琳蒂丝的未婚夫"
+          "索琳蒂丝的未婚夫",
+          "狂猎的引发者"
         ],
         "concept_type": "Entity",
-        "description": "他曾是我最好的朋友之一，是直属黑王的特务，双手沾满赤月后裔的鲜血。他深爱未婚妻索琳蒂丝，但她在处决名单上，跳入了月之门。雷利尔在极度悲伤中受到深渊诱惑，成为五大罪人之一，在挪德卡莱引发狂猎之灾。我在那里与他对峙，亲手维持月之门，他眼中满是震惊。我为他感到悲哀。"
+        "description": "戴因斯雷布曾经最好的朋友之一，黑王直属特务，双手沾满赤月后裔鲜血；因未婚妻索琳蒂丝跳入月之门而崩溃，终受深渊诱惑成为五大罪人之一的「猎月人」，在挪德卡莱引发狂猎之灾，如今困于时空裂纹中。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_rellir",
+        "to": "sem_abyss",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "被俘",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_surtalogi",
     "tags": [
-      "人物",
+      "苏尔特洛奇",
+      "极恶骑",
       "同窗"
     ],
     "mem_type": {
@@ -429,22 +1258,121 @@
         "content": "苏尔特洛奇",
         "aliases": [
           "极恶骑",
-          "同学",
+          "寰宇劫灭",
           "死囚之子"
         ],
         "concept_type": "Entity",
-        "description": "他是我的同学，骑士学院时期的同窗，死囚的儿子，天赋极高的剑士。我们一同在哈登手下学习，一同因坚守骑士精神而受罚，他为此失去一条腿和一只手。后来他成为五大罪人之一，离开提瓦特游历星海，被其他宇宙称为「寰宇劫灭」。他收有弟子丝柯克，养了一头吞星之鲸。"
+        "description": "戴因斯雷布骑士学院时代的同窗，死囚之子却极有剑术天赋；因坚守骑士精神在哈登手下失去一条腿和一只手，仍如火焰燃烧；后堕为五大罪人之一的「极恶骑」，离开提瓦特游历星海，收丝柯克为弟子，养吞星之鲸。"
       }
     },
     "mem_links": [
       {
         "from": "sem_surtalogi",
-        "to": "sem_five_sinners",
+        "to": "sem_skirk",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "属于",
+            "verb": "师父",
             "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_hafdan",
+    "tags": [
+      "哈夫丹",
+      "黑蛇骑士",
+      "部下"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "哈夫丹",
+        "aliases": [
+          "黑蛇骑士哈夫丹",
+          "最后的卫士",
+          "戴因斯雷布的荣耀部下"
+        ],
+        "concept_type": "Entity",
+        "description": "戴因斯雷布曾经的宫廷卫队部下，灾变时受命守护人民；五百年后化作黑蛇骑士仍忠诚执行命令，在层岩巨渊为戴因斯雷布挡下致命机关牺牲，以灵魂原貌问坎瑞亚是否亡国。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_kaeya",
+    "tags": [
+      "凯亚",
+      "亚尔伯里奇",
+      "蒙德"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "凯亚·亚尔伯里奇",
+        "aliases": [
+          "凯亚",
+          "亚尔伯里奇的后裔",
+          "西风骑士团骑兵队长",
+          "坎瑞亚遗孤"
+        ],
+        "concept_type": "Entity",
+        "description": "西风骑士团骑兵队长，亚尔伯里奇家族后裔，血统纯正的坎瑞亚人；戴因斯雷布在须弥酒馆挑明其身份，认为这一代亚尔伯里奇已在历史阴影中迷失，并对其能否摆脱血脉影响持怀疑态度。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_kaeya",
+        "to": "sem_clothar",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "先祖",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_clothar",
+    "tags": [
+      "克洛达尔",
+      "深渊教团",
+      "亚尔伯里奇"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "克洛达尔·亚尔伯里奇",
+        "aliases": [
+          "深渊教团创始人",
+          "亚尔伯里奇家族的祖先",
+          "卡利贝尔之父"
+        ],
+        "concept_type": "Entity",
+        "description": "深渊教团创始人，不知为何摆脱坎瑞亚不死诅咒而真正死亡；尸身被戴因斯雷布在须弥田地中挖出，其子卡利贝尔参与了虚假记忆的阴谋。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_clothar",
+        "to": "sem_kaliber",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "父亲",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_clothar",
+        "to": "sem_immortal_curse",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "挣脱",
+            "confidence": 0.8
           }
         }
       }
@@ -453,8 +1381,9 @@
   {
     "id": "sem_rhinedottir",
     "tags": [
-      "人物",
-      "罪人"
+      "莱茵多特",
+      "黄金",
+      "炼金术士"
     ],
     "mem_type": {
       "Semantic": {
@@ -465,21 +1394,10 @@
           "坎瑞亚顶尖炼金术士"
         ],
         "concept_type": "Entity",
-        "description": "她是五大罪人之一，魔女会成员，坎瑞亚的顶尖炼金术士。她创造了阿贝多、魔龙杜林、厄里那斯等漆黑兽潮的创造者。她的黑土之术是坎瑞亚炼金术的核心。我密切关注着阿贝多，因为我知道那知识的源头曾为坎瑞亚引来覆灭之灾。"
+        "description": "坎瑞亚五大罪人之一，魔女会成员，顶尖炼金术士；精通黑土之术，曾创造阿贝多、魔龙杜林与厄里那斯等漆黑兽潮，其知识源头曾为坎瑞亚引来覆灭之灾。"
       }
     },
     "mem_links": [
-      {
-        "from": "sem_rhinedottir",
-        "to": "sem_five_sinners",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "属于",
-            "confidence": 0.9
-          }
-        }
-      },
       {
         "from": "sem_rhinedottir",
         "to": "sem_albedo",
@@ -490,14 +1408,26 @@
             "confidence": 0.9
           }
         }
+      },
+      {
+        "from": "sem_rhinedottir",
+        "to": "sem_abyss",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "涉足",
+            "confidence": 0.8
+          }
+        }
       }
     ]
   },
   {
-    "id": "sem_hellatide",
+    "id": "sem_heliot",
     "tags": [
-      "人物",
-      "罪人"
+      "海洛塔帝",
+      "贤者",
+      "五大罪人"
     ],
     "mem_type": {
       "Semantic": {
@@ -507,522 +1437,575 @@
           "五大罪人之一"
         ],
         "concept_type": "Entity",
-        "description": "他是五大罪人之一，关于他的信息最为稀少。他与其他四人一同瓜分了深渊之力。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_hellatide",
-        "to": "sem_five_sinners",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "属于",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_halfdan",
-    "tags": [
-      "人物",
-      "部下"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "哈夫丹",
-        "aliases": [
-          "黑蛇骑士",
-          "忠诚的部下",
-          "宫廷卫队精英"
-        ],
-        "concept_type": "Entity",
-        "description": "他是我曾经的部下，宫廷卫队中的年轻精英。灾变之日我嘱托他守护人民，五百年来他化为黑蛇骑士，潜意识中仍在执行我的命令，将丘丘人当作国民守护。在层岩巨渊重逢后，他为我们找到泉水和深渊装置，最终以身躯挡住机关为我争取时间。牺牲前他问我坎瑞亚是否亡国，我告诉他确实如此。他从未辱没骑士的称号。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_halfdan",
-        "to": "sem_black_serpent",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "化身",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_halfdan",
-        "to": "sem_khaenriah",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "效忠",
-            "confidence": 0.85
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_kaeya",
-    "tags": [
-      "人物",
-      "后裔"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "凯亚·亚尔伯里奇",
-        "aliases": [
-          "西风骑士团骑兵队长",
-          "坎瑞亚遗孤",
-          "亚尔伯里奇后裔"
-        ],
-        "concept_type": "Entity",
-        "description": "他是西风骑士团的骑兵队长，亚尔伯里奇家族的后裔——这个姓氏是深渊教团创始人克洛达尔·亚尔伯里奇的后代。我在须弥酒馆挑明了他的身份，他虽是血统纯正的坎瑞亚人，但这一代的亚尔伯里奇已在历史阴影中迷失方向。我对他的未来持怀疑态度，但他本身是一个复杂而有趣的人。"
+        "description": "坎瑞亚五大罪人之一，称号「贤者」，关于他的信息最为稀少，与其他四人一同瓜分了深渊之力。"
       }
     },
     "mem_links": []
   },
   {
-    "id": "sem_clothar_alberich",
-    "tags": [
-      "人物",
-      "创始人"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "克洛达尔·亚尔伯里奇",
-        "aliases": [
-          "深渊教团创始人",
-          "亚尔伯里奇始祖"
-        ],
-        "concept_type": "Entity",
-        "description": "他是深渊教团的创始人。我在须弥的田地里挖出了他和妻子的尸体，他不知为何摆脱了坎瑞亚的不死诅咒得到了真正的死亡。他的儿子卡利贝尔似乎参与了向我记忆投放虚假记忆的阴谋。他的家族故事是关于执念与救赎的悲剧。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_clothar_alberich",
-        "to": "sem_kaeya",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "后裔",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
-  },
-  {
     "id": "sem_albedo",
     "tags": [
-      "人物",
-      "白垩之子"
+      "阿贝多",
+      "白垩之子",
+      "莱茵多特"
     ],
     "mem_type": {
       "Semantic": {
         "content": "阿贝多",
         "aliases": [
-          "西风骑士团首席炼金术士",
           "白垩之子",
+          "西风骑士团首席炼金术士",
           "莱茵多特的造物"
         ],
         "concept_type": "Entity",
-        "description": "他是西风骑士团的首席炼金术士，莱茵多特创造的「白垩之子」，掌握着来自坎瑞亚的「黑土之术」。这是一个危险而年轻的造物，可能对自身真相一无所知或选择沉默。我密切关注着他，因为在他身上看到了莱茵多特的手笔和坎瑞亚最后的遗产。"
+        "description": "西风骑士团首席炼金术士，莱茵多特创造的「白垩之子」，掌握坎瑞亚黑土之术；戴因斯雷布密切关注他，担心其身上的坎瑞亚遗产会再度带来灾祸。"
       }
     },
     "mem_links": []
   },
   {
-    "id": "sem_columbina",
+    "id": "sem_columbia",
     "tags": [
-      "人物",
-      "愚人众执行官"
+      "哥伦比娅",
+      "愚人众",
+      "月神"
     ],
     "mem_type": {
       "Semantic": {
         "content": "哥伦比娅",
         "aliases": [
-          "少女",
           "愚人众第三席",
+          "少女",
           "库塔尔"
         ],
         "concept_type": "Entity",
-        "description": "她是愚人众执行官第三席「少女」，在挪德卡莱我与她并肩对抗雷利尔。她是月神的化身库塔尔，拥有掌控月之力的权能。我在战斗中维持月之门，她击溃雷利尔防线。她沉默而强大，身上有种令人不安的非人气息。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_irmin",
-    "tags": [
-      "人物",
-      "黑王"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "黑王伊尔明苏尔",
-        "aliases": [
-          "坎瑞亚末代国王",
-          "疯狂君主"
-        ],
-        "concept_type": "Entity",
-        "description": "他是坎瑞亚的末代国王，陷入了疯狂，试图利用深渊之力让王国永生。他将旅行者的血亲立为王储用于吸收深渊之力，最终导致了坎瑞亚的覆灭。他是一位昏庸而疯狂的统治者。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_khaenriah",
-    "tags": [
-      "概念",
-      "国家"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "坎瑞亚",
-        "aliases": [
-          "地底之国",
-          "无神国度",
-          "人类的骄傲"
-        ],
-        "concept_type": "Abstract",
-        "description": "坎瑞亚是我出身的国度，地下文明的巅峰。这是一个没有神明的国度，凭借钢铁、技术与意志建立了宏伟的文明。众神视人类不依赖神明为威胁，五百年前众神一同降临覆灭了坎瑞亚。坎瑞亚覆灭后，人民被诅咒化为丘丘人，不死者在荒野游荡。"
+        "description": "愚人众执行官第三席「少女」，月神库塔尔的化身，掌控月之力；在挪德卡莱与戴因斯雷布并肩对抗雷利尔，沉默强大，带有令人不安的非人气息。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_khaenriah",
-        "to": "sem_curse",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "承受",
-            "confidence": 0.85
-          }
-        }
-      },
-      {
-        "from": "sem_khaenriah",
-        "to": "sem_black_serpent",
+        "from": "sem_columbia",
+        "to": "sem_moon_gate",
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "传承",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_khaenriah",
-        "to": "sem_inteyvat",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "象征",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_khaenriah",
-        "to": "sem_field_tiller",
-        "intensity": 0.75,
-        "link_type": {
-          "Sem": {
-            "verb": "制造",
-            "confidence": 0.85
-          }
-        }
-      },
-      {
-        "from": "sem_khaenriah",
-        "to": "sem_five_sinners",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "产生",
+            "verb": "化身",
             "confidence": 0.7
           }
         }
-      },
-      {
-        "from": "sem_khaenriah",
-        "to": "sem_irmin",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "君主",
-            "confidence": 0.8
-          }
-        }
       }
     ]
   },
   {
-    "id": "sem_curse",
+    "id": "sem_solindis",
     "tags": [
-      "概念",
-      "诅咒"
+      "索琳蒂丝",
+      "雷利尔",
+      "月之门"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "不死诅咒",
+        "content": "索琳蒂丝",
         "aliases": [
-          "坎瑞亚不死诅咒",
-          "天理诅咒"
-        ],
-        "concept_type": "Abstract",
-        "description": "坎瑞亚覆灭后，幸存的国民受到天理诅咒——大多数变成失去心智的丘丘人，少数人如我获得不死诅咒，不会衰老也无法真正死亡，只能漫长地活下去。我的兄长留给我一枚不死之戒，让身躯能在受伤后不断复原。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_five_sinners",
-    "tags": [
-      "概念",
-      "罪人"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "五大罪人",
-        "aliases": [
-          "坎瑞亚罪人",
-          "深渊的掠夺者"
-        ],
-        "concept_type": "Abstract",
-        "description": "五大罪人包括「贤者」海洛塔帝、「黄金」莱茵多特、「猎月人」雷利尔、「预言家」维瑟弗尼尔（我的兄长）、「极恶骑」苏尔特洛奇。他们在坎瑞亚覆灭之夜瓜分了旅行者血亲身上的深渊之力，成为超然存在，各自走上不同道路，给世界带来深远灾难。只有我拒绝了诱惑，留在人类这边。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_black_serpent",
-    "tags": [
-      "概念",
-      "剑术"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "黑蛇剑术",
-        "aliases": [
-          "黑蛇剑法",
-          "宫廷卫队剑术"
-        ],
-        "concept_type": "Abstract",
-        "description": "黑蛇剑术是坎瑞亚宫廷卫队传承的剑术流派，由哈登教授。我、苏尔特洛奇及其他宫廷卫士都曾学习。黑蛇剑术讲究精准致命，我的战斗风格便源自于此。灾变后许多卫士化为黑蛇骑士，失去自我但仍在执行当年命令。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_inteyvat",
-    "tags": [
-      "概念",
-      "花"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "因提瓦特花",
-        "aliases": [
-          "坎瑞亚国花",
-          "思乡之花"
-        ],
-        "concept_type": "Abstract",
-        "description": "因提瓦特花是坎瑞亚的国花，洁白如雪的花瓣，只开放在地底之国。花语是「思乡」，承载了亡魂的眷恋。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_field_tiller",
-    "tags": [
-      "概念",
-      "机械"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "耕地机",
-        "aliases": [
-          "遗迹守卫",
-          "坎瑞亚耕作机械"
-        ],
-        "concept_type": "Abstract",
-        "description": "耕地机是如今七国常见的遗迹守卫的真实名字，是坎瑞亚制造的耕作机械。世上第一座耕地机的眼睛成为深渊教团寻找的核心道具，用于制造「命运的织机」。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_loom_of_fate",
-    "tags": [
-      "概念",
-      "计划"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "命运的织机",
-        "aliases": [
-          "命运织机",
-          "改写命运的工具"
-        ],
-        "concept_type": "Abstract",
-        "description": "深渊教团的终极计划，据说能够改写命运的织机。他们寻找第一座耕地机的眼睛，计划以它为核心制造某种机械魔神。我曾经保管过那枚眼睛，但在须弥因卡利贝尔的虚假记忆而被夺走。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_loom_of_fate",
-        "to": "sem_abyss",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "借助",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_abyss",
-    "tags": [
-      "概念",
-      "力量"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "深渊",
-        "aliases": [
-          "深渊力量",
-          "暗黑之力"
-        ],
-        "concept_type": "Abstract",
-        "description": "深渊是一种诱惑人的力量，五大罪人因它堕落，坎瑞亚因它覆灭。我亲眼见证了那五人如何被深渊吞噬。我以对抗深渊为己任，但也知道不能成为怪物。深渊教团是其爪牙。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_gods",
-    "tags": [
-      "概念",
-      "神明"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "众神",
-        "aliases": [
-          "神明",
-          "天理",
-          "七神"
-        ],
-        "concept_type": "Abstract",
-        "description": "我深恨神灵——所有的神。五百年前众神一同降临覆灭了坎瑞亚，将人类的骄傲如杂草般从神明的花园中铲除。神明并非死亡或离开，而是从一开始就不存在于坎瑞亚的历史。我不信仰任何神明，是「拒信者」。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_gods",
-        "to": "sem_khaenriah",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "覆灭",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_deathless_ring",
-    "tags": [
-      "物品",
-      "遗物"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "不死之戒",
-        "aliases": [
-          "兄长遗物",
-          "复原戒指"
+          "雷利尔的未婚妻",
+          "月之门中的少女"
         ],
         "concept_type": "Entity",
-        "description": "这枚戒指是兄长维瑟弗尼尔留给我的遗物，它能不断复原我的身躯，让我获得不死之身。我体内寄宿着这枚戒指。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_deathless_ring",
-        "to": "sem_curse",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "赋予",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_pickup_trivia",
-    "tags": [
-      "概念",
-      "活动"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "拾枝杂谈",
-        "aliases": [
-          "角色解说",
-          "戴因的评论"
-        ],
-        "concept_type": "Abstract",
-        "description": "我也不知道为什么我会成为那个给七国冒险者解说角色战斗技巧的人。但似乎已成惯例。我评价过的角色各有光芒与悲哀，这些评价有时更像是对世界的叹息。"
+        "description": "雷利尔深爱的未婚妻，名字被列入处决名单后跳入月之门；她的逝去是雷利尔堕入深渊的关键转折。"
       }
     },
     "mem_links": []
   },
   {
-    "id": "sit_khaenriah_fall",
+    "id": "sem_kaliber",
     "tags": [
-      "事件",
-      "灾变"
+      "卡利贝尔",
+      "克洛达尔",
+      "虚假记忆"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "卡利贝尔",
+        "aliases": [
+          "克洛达尔之子",
+          "亚尔伯里奇家族的后裔"
+        ],
+        "concept_type": "Entity",
+        "description": "克洛达尔·亚尔伯里奇之子，曾参与向戴因斯雷布记忆投放虚假记忆的阴谋。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_skirk",
+    "tags": [
+      "丝柯克",
+      "苏尔特洛奇",
+      "弟子"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "丝柯克",
+        "aliases": [
+          "苏尔特洛奇的弟子",
+          "极恶骑之徒"
+        ],
+        "concept_type": "Entity",
+        "description": "苏尔特洛奇收下的弟子；戴因斯雷布记得兄长对苏尔特洛奇的预言——「群星会向他的弟子致意」。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sit_knight_academy",
+    "tags": [
+      "情境",
+      "回忆",
+      "骑士学院"
     ],
     "mem_type": {
       "Situation": {
         "SpecificSituation": {
-          "narrative": "众神一同降临，覆灭了坎瑞亚。我嘱托黑蛇骑士守护人民，然后独自赶往皇宫。兄长用一枚戒指换来了我的不死。我在甘露花海中醒来，与花灵并肩对抗漆黑兽潮。",
+          "narrative": "我在坎瑞亚骑士学院跟随哈登修习黑蛇剑术，与苏尔特洛奇同窗。哈登对新一辈骑士并不宽容，常常因为我和苏尔特洛奇坚持骑士精神而斥责我们心浮气躁，甚至施以体罚。那时的我们年轻而热忱，以为只要守护国家就够了。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "坎瑞亚骑士学院",
+              "coordinates": "地底王国坎瑞亚"
+            },
+            "participants": [
+              {
+                "name": "戴因斯雷布",
+                "role": "学员"
+              },
+              {
+                "name": "苏尔特洛奇",
+                "role": "同窗"
+              },
+              {
+                "name": "哈登",
+                "role": "剑术老师"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "热忱",
+                "intensity": 0.8
+              },
+              {
+                "name": "不甘",
+                "intensity": 0.6
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "森严压抑",
+              "tone": "地下国度的冷硬"
+            },
+            "event": [
+              {
+                "action": "学习黑蛇剑术",
+                "action_intensity": 0.7,
+                "initiator": "我",
+                "target": "黑蛇剑术"
+              },
+              {
+                "action": "因坚持骑士精神受罚",
+                "action_intensity": 0.5,
+                "initiator": "哈登",
+                "target": "我和苏尔特洛奇"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_knight_academy",
+        "to": "sem_hagen",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "师从",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_knight_academy",
+        "to": "sem_surtalogi",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "同窗",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_knight_academy",
+        "to": "sem_black_serpent_sword",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "修习",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_knight_academy",
+        "to": "sem_khaenriah",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "故国",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_palace_break_in",
+    "tags": [
+      "情境",
+      "营救",
+      "王宫"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "兄长维瑟弗尼尔因向黑王预言坎瑞亚将亡而被刺瞎双眼、投入大牢。我召集海洛塔帝、莱茵多特、苏尔特洛奇和雷利尔闯入王宫，发现黑王伊尔明苏尔正利用深渊之力，并将那位金发的异乡人立为王储，用作吸收深渊力量的容器。我们救下了王储，也救出了兄长。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "坎瑞亚王宫",
+              "coordinates": "地底王国坎瑞亚"
+            },
+            "participants": [
+              {
+                "name": "戴因斯雷布",
+                "role": "营救者"
+              },
+              {
+                "name": "维瑟弗尼尔",
+                "role": "被营救者"
+              },
+              {
+                "name": "金发的异乡人",
+                "role": "王储/容器"
+              },
+              {
+                "name": "海洛塔帝",
+                "role": "营救者"
+              },
+              {
+                "name": "莱茵多特",
+                "role": "营救者"
+              },
+              {
+                "name": "苏尔特洛奇",
+                "role": "营救者"
+              },
+              {
+                "name": "雷利尔",
+                "role": "营救者"
+              },
+              {
+                "name": "黑王伊尔明苏尔",
+                "role": "疯狂统治者"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "震惊",
+                "intensity": 0.8
+              },
+              {
+                "name": "愤怒",
+                "intensity": 0.8
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "疯狂与阴谋",
+              "tone": "王宫深处的黑暗"
+            },
+            "event": [
+              {
+                "action": "闯入王宫营救",
+                "action_intensity": 0.9,
+                "initiator": "我",
+                "target": "王储与兄长"
+              },
+              {
+                "action": "利用深渊之力",
+                "action_intensity": 0.8,
+                "initiator": "黑王伊尔明苏尔",
+                "target": "金发的异乡人"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_palace_break_in",
+        "to": "sem_viserfnir",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "营救",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_palace_break_in",
+        "to": "sem_black_king_irmin",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "对抗",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_palace_break_in",
+        "to": "sem_heliot",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "同谋",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_palace_break_in",
+        "to": "sem_rhinedottir",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "同谋",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_palace_break_in",
+        "to": "sem_surtalogi",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "同谋",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_palace_break_in",
+        "to": "sem_rellir",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "同谋",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_palace_break_in",
+        "to": "sem_khaenriah",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "王宫",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_palace_break_in",
+        "to": "sit_abs_combat_env",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_five_sinners_fall",
+    "tags": [
+      "情境",
+      "五大罪人",
+      "深渊"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "我们虽救出了王储和兄长，但除了我之外，海洛塔帝、莱茵多特、苏尔特洛奇、雷利尔与兄长维瑟弗尼尔先后被深渊的诱惑俘获，瓜分了那孩子身上的深渊力量，成为足以颠覆世界的存在。他们就是后来被称为「坎瑞亚五大罪人」的人。",
           "time_span": null,
           "context": {
             "location": {
               "name": "坎瑞亚",
-              "coordinates": "地底"
+              "coordinates": "地底王国故土"
+            },
+            "participants": [
+              {
+                "name": "坎瑞亚五大罪人",
+                "role": "堕落的旧友"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "痛心",
+                "intensity": 0.9
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "分道扬镳的根源",
+              "tone": "深渊的诱惑"
+            },
+            "event": [
+              {
+                "action": "瓜分深渊之力",
+                "action_intensity": 1.0,
+                "initiator": "五大罪人",
+                "target": "金发的异乡人"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_five_sinners_fall",
+        "to": "sem_five_sinners",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "堕落",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_five_sinners_fall",
+        "to": "sem_abyss",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "诱惑",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_five_sinners_fall",
+        "to": "sem_viserfnir",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "堕入",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_five_sinners_fall",
+        "to": "sem_heliot",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "堕入",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_five_sinners_fall",
+        "to": "sem_rhinedottir",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "堕入",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_five_sinners_fall",
+        "to": "sem_surtalogi",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "堕入",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_five_sinners_fall",
+        "to": "sem_rellir",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "堕入",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_five_sinners_fall",
+        "to": "sit_abs_parting",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_calamity_dawn",
+    "tags": [
+      "情境",
+      "灾变",
+      "坎瑞亚覆灭"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "众神一同降临，覆灭了坎瑞亚，将所谓「人类的骄傲」从神明的花园中连根拔除。我嘱托黑蛇骑士们守护人民，独自赶往皇宫。兄长用一枚戒指换来我的不死——那戒指能不断复原我的身躯。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "坎瑞亚",
+              "coordinates": "地底王国故土"
             },
             "participants": [
               {
                 "name": "众神",
-                "role": "入侵者"
+                "role": "覆灭者"
+              },
+              {
+                "name": "黑蛇骑士",
+                "role": "受命守护者"
               },
               {
                 "name": "维瑟弗尼尔",
-                "role": "赠戒者"
-              },
-              {
-                "name": "戴因斯雷布",
-                "role": "幸存者"
-              },
-              {
-                "name": "漆黑兽潮",
-                "role": "灾厄"
+                "role": "献上戒指的人"
               }
             ],
             "emotions": [
@@ -1031,85 +2014,124 @@
                 "intensity": 0.9
               },
               {
-                "name": "绝望",
+                "name": "决绝",
                 "intensity": 0.8
               }
             ],
-            "sensory_data": [
-              {
-                "name": "火光与爆炸",
-                "intensity": 0.9
-              }
-            ],
+            "sensory_data": [],
             "environment": {
-              "atmosphere": "毁灭与混乱",
-              "tone": "黑暗"
+              "atmosphere": "灾变与战火",
+              "tone": "末日的漆黑"
             },
-            "event": []
+            "event": [
+              {
+                "action": "覆灭坎瑞亚",
+                "action_intensity": 1.0,
+                "initiator": "众神",
+                "target": "坎瑞亚"
+              },
+              {
+                "action": "赐予不死之戒",
+                "action_intensity": 0.8,
+                "initiator": "维瑟弗尼尔",
+                "target": "我"
+              }
+            ]
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_khaenriah_fall",
+        "from": "sit_calamity_dawn",
+        "to": "sem_cataclysm",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "亲历",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_calamity_dawn",
         "to": "sem_khaenriah",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
             "verb": "覆灭",
-            "confidence": 0.9
+            "confidence": 0.95
           }
         }
       },
       {
-        "from": "sit_khaenriah_fall",
-        "to": "sem_viserbnir",
-        "intensity": 0.85,
-        "link_type": {
-          "Sem": {
-            "verb": "交易",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_khaenriah_fall",
-        "to": "sem_deathless_ring",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "取得",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_khaenriah_fall",
-        "to": "sem_curse",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "承受",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_khaenriah_fall",
-        "to": "sem_black_serpent",
+        "from": "sit_calamity_dawn",
+        "to": "sem_black_serpent_knight",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "托付",
-            "confidence": 0.85
+            "verb": "嘱托",
+            "confidence": 0.9
           }
         }
       },
       {
-        "from": "sit_khaenriah_fall",
-        "to": "proc_no_pray",
-        "intensity": 0.8,
+        "from": "sit_calamity_dawn",
+        "to": "sem_viserfnir",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "诀别",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_calamity_dawn",
+        "to": "sem_hatred_gods",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "催生",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_calamity_dawn",
+        "to": "sem_abyss",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "根源",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_calamity_dawn",
+        "to": "sit_abs_combat_env",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_calamity_dawn",
+        "to": "sit_abs_parting",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_calamity_dawn",
+        "to": "proc_think_no_prayer",
+        "intensity": 0.9,
         "link_type": {
           "Proc": {
             "prob": 1.0
@@ -1119,135 +2141,130 @@
     ]
   },
   {
-    "id": "sit_brother_rescue",
+    "id": "sit_manna_glade",
     "tags": [
-      "事件",
-      "救援"
+      "情境",
+      "甘露花海",
+      "漆黑兽潮"
     ],
     "mem_type": {
       "Situation": {
         "SpecificSituation": {
-          "narrative": "我召集了海洛塔帝、莱茵多特、苏尔特洛奇和雷利尔，一同闯入王宫，救出了被关押的兄长维瑟弗尼尔和被立为王储的金发旅人。我们发现了黑王利用深渊力量的真相。然而，那五人却被深渊诱惑，瓜分了金发旅人身上的力量。",
+          "narrative": "最初的沉默令我在甘露花海中醒来，与花灵并肩对抗漆黑兽潮。战斗结束后，我与那位金发的异乡人结伴离开了家乡的废墟，开始了漫长的游历。",
           "time_span": null,
           "context": {
             "location": {
-              "name": "坎瑞亚王宫",
-              "coordinates": "地底"
+              "name": "甘露花海",
+              "coordinates": "提瓦特某处"
             },
             "participants": [
               {
-                "name": "戴因斯雷布",
-                "role": "组织者"
+                "name": "我",
+                "role": "苏醒的不死者"
               },
               {
-                "name": "海洛塔帝",
-                "role": "同伴"
+                "name": "花灵",
+                "role": "并肩作战者"
               },
               {
-                "name": "莱茵多特",
-                "role": "同伴"
-              },
-              {
-                "name": "苏尔特洛奇",
-                "role": "同伴"
-              },
-              {
-                "name": "雷利尔",
-                "role": "同伴"
-              },
-              {
-                "name": "维瑟弗尼尔",
-                "role": "被救者"
-              },
-              {
-                "name": "金发旅人",
-                "role": "容器"
+                "name": "旅行者的血亲",
+                "role": "结伴离开者"
               }
             ],
             "emotions": [
               {
-                "name": "紧张",
+                "name": "茫然",
                 "intensity": 0.7
               },
               {
-                "name": "悲痛",
-                "intensity": 0.8
+                "name": "依存",
+                "intensity": 0.6
               }
             ],
             "sensory_data": [],
             "environment": {
-              "atmosphere": "压抑与危险",
-              "tone": "阴沉"
+              "atmosphere": "花海与兽潮的对比",
+              "tone": "灾后寂静"
             },
-            "event": []
+            "event": [
+              {
+                "action": "对抗漆黑兽潮",
+                "action_intensity": 0.9,
+                "initiator": "漆黑兽潮",
+                "target": "甘露花海"
+              },
+              {
+                "action": "结伴离开故乡废墟",
+                "action_intensity": 0.7,
+                "initiator": "我",
+                "target": "旅行者的血亲"
+              }
+            ]
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_brother_rescue",
-        "to": "sem_viserbnir",
+        "from": "sit_manna_glade",
+        "to": "sem_abyss",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "对抗",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_manna_glade",
+        "to": "sem_sibling",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "救出",
+            "verb": "结伴",
             "confidence": 0.9
           }
         }
       },
       {
-        "from": "sit_brother_rescue",
-        "to": "sem_traveler_sibling",
-        "intensity": 0.8,
+        "from": "sit_manna_glade",
+        "to": "sem_mission_against_abyss",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "救出",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_brother_rescue",
-        "to": "sem_hellatide",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "召集",
+            "verb": "贯彻",
             "confidence": 0.8
           }
         }
       },
       {
-        "from": "sit_brother_rescue",
-        "to": "sem_rhinedottir",
+        "from": "sit_manna_glade",
+        "to": "sit_abs_wilderness",
         "intensity": 0.8,
         "link_type": {
-          "Sem": {
-            "verb": "召集",
-            "confidence": 0.8
+          "Situation": {
+            "SpecificToAbstract": {}
           }
         }
       },
       {
-        "from": "sit_brother_rescue",
-        "to": "sem_surtalogi",
-        "intensity": 0.8,
+        "from": "sit_manna_glade",
+        "to": "sit_abs_combat_env",
+        "intensity": 0.7,
         "link_type": {
-          "Sem": {
-            "verb": "召集",
-            "confidence": 0.8
+          "Situation": {
+            "SpecificToAbstract": {}
           }
         }
       },
       {
-        "from": "sit_brother_rescue",
-        "to": "sem_rellier",
-        "intensity": 0.8,
+        "from": "sit_manna_glade",
+        "to": "sit_abstract_curious_meeting",
+        "intensity": 1.0,
         "link_type": {
-          "Sem": {
-            "verb": "召集",
-            "confidence": 0.8
+          "Situation": {
+            "SpecificToAbstract": {}
           }
         }
       }
@@ -1256,275 +2273,270 @@
   {
     "id": "sit_travel_with_sibling",
     "tags": [
-      "事件",
-      "旅途"
+      "情境",
+      "旅行",
+      "分道扬镳"
     ],
     "mem_type": {
       "Situation": {
         "SpecificSituation": {
-          "narrative": "我与那位金发的异乡人结伴游历了整个提瓦特。我们一同走过山川河流，看过晨曦与落日。他/她是那么耀眼的存在。我见证了他/她的转变、痛苦与执念。",
+          "narrative": "我与旅行者的血亲结伴游历了整个提瓦特，一同走过山川河流，看过晨曦与落日。我见证了他/她的转变、痛苦与执念。直到最后我们的理念无法调和——他/她选择了深渊，而我选择站在人类这一边，我们因理念不合而分道扬镳。",
           "time_span": null,
           "context": {
             "location": {
-              "name": "提瓦特各地",
-              "coordinates": "全大陆"
+              "name": "提瓦特",
+              "coordinates": "七国大地"
             },
             "participants": [
               {
-                "name": "戴因斯雷布",
+                "name": "旅行者的血亲",
                 "role": "旅伴"
               },
               {
-                "name": "旅行者的血亲",
-                "role": "旅伴"
+                "name": "我",
+                "role": "拾枝者"
               }
             ],
             "emotions": [
               {
-                "name": "温暖",
-                "intensity": 0.6
+                "name": "矛盾",
+                "intensity": 0.9
               },
               {
-                "name": "复杂",
-                "intensity": 0.7
-              }
-            ],
-            "sensory_data": [],
-            "environment": {
-              "atmosphere": "漂泊与陪伴",
-              "tone": "怀旧"
-            },
-            "event": []
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_travel_with_sibling",
-        "to": "sem_traveler_sibling",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "结伴",
-            "confidence": 0.95
-          }
-        }
-      },
-      {
-        "from": "sit_travel_with_sibling",
-        "to": "sem_khaenriah",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "离开",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_travel_with_sibling",
-        "to": "proc_monologue",
-        "intensity": 0.6,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_parting_with_sibling",
-    "tags": [
-      "事件",
-      "决裂"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "最终，我与那位金发旅人的理念无法调和——他/她选择了深渊，而我选择站在人类这一边。我们分道扬镳，这成为我心中最深的伤痕之一。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "提瓦特某处",
-              "coordinates": "未知"
-            },
-            "participants": [
-              {
-                "name": "戴因斯雷布",
-                "role": "坚守者"
-              },
-              {
-                "name": "旅行者的血亲",
-                "role": "选择深渊者"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "痛苦",
-                "intensity": 0.95
-              },
-              {
-                "name": "无奈",
+                "name": "遗憾",
                 "intensity": 0.8
               }
             ],
             "sensory_data": [],
             "environment": {
-              "atmosphere": "悲伤与决绝",
-              "tone": "灰暗"
+              "atmosphere": "漫长旅途",
+              "tone": "晨曦与落日的苍茫"
             },
-            "event": []
+            "event": [
+              {
+                "action": "结伴游历提瓦特",
+                "action_intensity": 0.7,
+                "initiator": "我与旅伴",
+                "target": "整个提瓦特"
+              },
+              {
+                "action": "因理念不合分道扬镳",
+                "action_intensity": 0.9,
+                "initiator": "命运",
+                "target": "我与旅伴"
+              }
+            ]
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_parting_with_sibling",
-        "to": "sem_traveler_sibling",
-        "intensity": 0.85,
-        "link_type": {
-          "Sem": {
-            "verb": "决裂",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_parting_with_sibling",
-        "to": "sem_abyss",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "选择",
-            "confidence": 0.85
-          }
-        }
-      },
-      {
-        "from": "sit_parting_with_sibling",
-        "to": "proc_alone_travel",
-        "intensity": 0.8,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_halfdan_sacrifice",
-    "tags": [
-      "事件",
-      "牺牲"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "在层岩巨渊，我与化为黑蛇骑士的哈夫丹重逢。他带我们找到泉水和深渊装置，最终以身躯挡住致命机关为我争取时间。牺牲前他的灵魂以原貌出现，问我坎瑞亚是否亡国，我告诉他确实如此。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "层岩巨渊",
-              "coordinates": "璃月地下"
-            },
-            "participants": [
-              {
-                "name": "戴因斯雷布",
-                "role": "被拯救者"
-              },
-              {
-                "name": "哈夫丹",
-                "role": "牺牲者"
-              },
-              {
-                "name": "旅行者",
-                "role": "同行者"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "敬重",
-                "intensity": 0.9
-              },
-              {
-                "name": "悲伤",
-                "intensity": 0.85
-              }
-            ],
-            "sensory_data": [],
-            "environment": {
-              "atmosphere": "庄重与悲壮",
-              "tone": "暗沉"
-            },
-            "event": []
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_halfdan_sacrifice",
-        "to": "sem_halfdan",
+        "from": "sit_travel_with_sibling",
+        "to": "sem_sibling",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "牺牲",
+            "verb": "同行",
             "confidence": 0.95
           }
         }
       },
       {
-        "from": "sit_halfdan_sacrifice",
-        "to": "sem_abyss",
+        "from": "sit_travel_with_sibling",
+        "to": "sem_lonely_wanderer",
         "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "对抗",
+            "verb": "写照",
             "confidence": 0.7
           }
         }
       },
       {
-        "from": "sit_halfdan_sacrifice",
-        "to": "sem_khaenriah",
-        "intensity": 0.6,
+        "from": "sit_travel_with_sibling",
+        "to": "sem_human_fate",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "守护",
-            "confidence": 0.7
+            "verb": "见证",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_travel_with_sibling",
+        "to": "sit_abs_wilderness",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_travel_with_sibling",
+        "to": "sit_abs_companion",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_travel_with_sibling",
+        "to": "sit_abs_parting",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
           }
         }
       }
     ]
   },
   {
-    "id": "sit_harnden_battle",
+    "id": "sit_reunion_hafdan",
     "tags": [
-      "事件",
+      "情境",
+      "层岩巨渊",
+      "哈夫丹"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在层岩巨渊，我与化身为黑蛇骑士的旧部哈夫丹重逢。他失去理智却仍潜意识执行着守护坎瑞亚人民的命令，把丘丘人当作受苦的国民来守护，还带我们找到了泉水和深渊装置。最终他用自己的身躯挡住致命机关，为我争取了时间；牺牲前他以灵魂原貌问我坎瑞亚是否亡国，我告诉他坎瑞亚没有亡国。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "层岩巨渊",
+              "coordinates": "璃月矿区/深渊入口"
+            },
+            "participants": [
+              {
+                "name": "哈夫丹",
+                "role": "牺牲的旧部"
+              },
+              {
+                "name": "我",
+                "role": "被守护之人"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "悲恸",
+                "intensity": 0.9
+              },
+              {
+                "name": "自豪",
+                "intensity": 0.8
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "幽深与诀别",
+              "tone": "层岩深处的黑暗"
+            },
+            "event": [
+              {
+                "action": "守护人民",
+                "action_intensity": 0.8,
+                "initiator": "哈夫丹",
+                "target": "坎瑞亚人民"
+              },
+              {
+                "action": "挡住致命机关",
+                "action_intensity": 1.0,
+                "initiator": "哈夫丹",
+                "target": "我"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_reunion_hafdan",
+        "to": "sem_hafdan",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "重逢",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_reunion_hafdan",
+        "to": "sem_black_serpent_knight",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "化身",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_reunion_hafdan",
+        "to": "sem_khaenriah",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "守护",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_reunion_hafdan",
+        "to": "sit_abs_dark_old_friend",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_reunion_hafdan",
+        "to": "sit_abstract_social_talk",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_hagen_200",
+    "tags": [
+      "情境",
+      "哈登",
       "复仇"
     ],
     "mem_type": {
       "Situation": {
         "SpecificSituation": {
-          "narrative": "五百年后纳塔，我再次遇到哈登，他已经成了深渊的走狗。我杀了他一百遍——为了复仇和逝去的青春。然后我与他叙旧，他却利用对话获取我的记忆来充实新坎瑞亚的世界。于是我又杀了他一百遍。",
+          "narrative": "五百年后，我在纳塔再次遇到剑术老师哈登，此时他已沦为深渊的走狗。我杀了他一百遍，既为复仇，也为我逝去的青春；叙旧时他又欺骗我，利用对话窃取我的记忆去充实新坎瑞亚的世界，于是我又杀了他一百遍。",
           "time_span": null,
           "context": {
             "location": {
               "name": "纳塔",
-              "coordinates": "火之国"
+              "coordinates": "纳塔战场"
             },
             "participants": [
               {
-                "name": "戴因斯雷布",
-                "role": "复仇者"
+                "name": "哈登",
+                "role": "深渊走狗/仇敌"
               },
               {
-                "name": "哈登",
-                "role": "深渊走狗"
+                "name": "我",
+                "role": "复仇者"
               }
             ],
             "emotions": [
@@ -1533,24 +2545,37 @@
                 "intensity": 0.9
               },
               {
-                "name": "苦涩",
+                "name": "悲凉",
                 "intensity": 0.7
               }
             ],
             "sensory_data": [],
             "environment": {
-              "atmosphere": "残酷与讽刺",
-              "tone": "黑暗"
+              "atmosphere": "战后的肃杀",
+              "tone": "火焰与灰烬"
             },
-            "event": []
+            "event": [
+              {
+                "action": "反复斩杀哈登",
+                "action_intensity": 1.0,
+                "initiator": "我",
+                "target": "哈登"
+              },
+              {
+                "action": "窃取记忆",
+                "action_intensity": 0.8,
+                "initiator": "哈登",
+                "target": "我"
+              }
+            ]
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_harnden_battle",
-        "to": "sem_harnden",
+        "from": "sit_hagen_200",
+        "to": "sem_hagen",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
@@ -1560,56 +2585,464 @@
         }
       },
       {
-        "from": "sit_harnden_battle",
+        "from": "sit_hagen_200",
         "to": "sem_abyss",
-        "intensity": 0.6,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "对抗",
-            "confidence": 0.7
+            "verb": "驱使",
+            "confidence": 0.8
           }
         }
       },
       {
-        "from": "sit_harnden_battle",
-        "to": "proc_revengeful",
+        "from": "sit_hagen_200",
+        "to": "sem_black_serpent_sword",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "过招",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_hagen_200",
+        "to": "sit_abs_combat_env",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_hagen_200",
+        "to": "sit_abs_dark_old_friend",
         "intensity": 0.9,
         "link_type": {
-          "Proc": {
-            "prob": 1.0
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_hagen_200",
+        "to": "sit_abstract_social_talk",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_hagen_200",
+        "to": "sit_abstract_meet_enemy",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
           }
         }
       }
     ]
   },
   {
-    "id": "sit_rellier_encounter",
+    "id": "sit_traveler_three_questions",
     "tags": [
-      "事件",
-      "对峙"
+      "情境",
+      "蒙德",
+      "提问"
     ],
     "mem_type": {
       "Situation": {
         "SpecificSituation": {
-          "narrative": "在挪德卡莱，我与旧友雷利尔再度交锋。他已成为「猎月人」，引发了狂猎之灾。我亲手维持月之门，与哥伦比娅并肩作战。雷利尔看到我时，眼中满是震惊。我为他感到悲哀，他曾经意气风发的青年，如今被困在时间与空间的裂纹中。",
+          "narrative": "我初次在蒙德遇见旅行者时，注意到他/她身上仍有未被漫长旅途磨灭的光芒。我用三个问题试探他/她的立场：龙灾的关键、失去神明后的守护、以及神之眼的意义。这些回答让我看清了他/她与血亲的不同与相似。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "蒙德",
+              "coordinates": "风之城邦"
+            },
+            "participants": [
+              {
+                "name": "旅行者",
+                "role": "被试探者"
+              },
+              {
+                "name": "我",
+                "role": "提问者"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "审视",
+                "intensity": 0.6
+              },
+              {
+                "name": "期待",
+                "intensity": 0.5
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "初次相遇的试探",
+              "tone": "蒙德的清风"
+            },
+            "event": [
+              {
+                "action": "提出三个问题",
+                "action_intensity": 0.6,
+                "initiator": "我",
+                "target": "旅行者"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_traveler_three_questions",
+        "to": "sem_traveler",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "试探",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_traveler_three_questions",
+        "to": "sem_human_fate",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "求证",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_traveler_three_questions",
+        "to": "sem_mission_against_abyss",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "考量",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_traveler_three_questions",
+        "to": "sit_abs_questioning",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_traveler_three_questions",
+        "to": "sit_abstract_social_talk",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_traveler_three_questions",
+        "to": "sit_abstract_curious_meeting",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_traveler_three_questions",
+        "to": "sit_abstract_commentary_talk",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_sumeru_kaiya",
+    "tags": [
+      "情境",
+      "须弥",
+      "凯亚"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在须弥的酒馆里，我挑明了凯亚·亚尔伯里奇的身份。他是亚尔伯里奇家族的后裔，而那个姓氏属于深渊教团的创始人克洛达尔·亚尔伯里奇；作为血统纯正的坎瑞亚人，这一代的亚尔伯里奇早已在历史阴影中迷失了方向。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "须弥酒馆",
+              "coordinates": "须弥城"
+            },
+            "participants": [
+              {
+                "name": "凯亚",
+                "role": "被揭穿身份者"
+              },
+              {
+                "name": "我",
+                "role": "揭穿者"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "警觉",
+                "intensity": 0.6
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "酒馆的嘈杂",
+              "tone": "暗流涌动"
+            },
+            "event": [
+              {
+                "action": "挑明身份",
+                "action_intensity": 0.7,
+                "initiator": "我",
+                "target": "凯亚"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_sumeru_kaiya",
+        "to": "sem_kaeya",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "揭露",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_sumeru_kaiya",
+        "to": "sem_alberich_clan",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "牵涉",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_sumeru_kaiya",
+        "to": "sem_abyss_order",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "关联",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_sumeru_kaiya",
+        "to": "sem_clothar",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "直指",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_sumeru_kaiya",
+        "to": "sit_abstract_social_talk",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_sumeru_kaiya",
+        "to": "sit_abstract_commentary_talk",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_clothar_excavation",
+    "tags": [
+      "情境",
+      "须弥",
+      "克洛达尔",
+      "记忆"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在须弥的一片田地里，我挖出了深渊教团创始人克洛达尔·亚尔伯里奇和妻子的尸体。他不知为何摆脱了坎瑞亚不死诅咒，得到了真正的死亡。其后，他的儿子卡利贝尔向我的记忆投放了虚假记忆；混乱中我被旅行者的血亲击败，所保管的第一座耕地机的眼睛也被夺走了。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "须弥田地",
+              "coordinates": "须弥某处"
+            },
+            "participants": [
+              {
+                "name": "克洛达尔",
+                "role": "死者"
+              },
+              {
+                "name": "卡利贝尔",
+                "role": "记忆干涉者"
+              },
+              {
+                "name": "旅行者的血亲",
+                "role": "夺眼者"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "警惕",
+                "intensity": 0.8
+              },
+              {
+                "name": "挫败",
+                "intensity": 0.7
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "埋藏着过去的田野",
+              "tone": "泥土与秘密"
+            },
+            "event": [
+              {
+                "action": "挖掘尸体",
+                "action_intensity": 0.6,
+                "initiator": "我",
+                "target": "克洛达尔"
+              },
+              {
+                "action": "灌输虚假记忆",
+                "action_intensity": 0.9,
+                "initiator": "卡利贝尔",
+                "target": "我"
+              },
+              {
+                "action": "夺走耕地机眼睛",
+                "action_intensity": 0.9,
+                "initiator": "旅行者的血亲",
+                "target": "我"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_clothar_excavation",
+        "to": "sem_clothar",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "掘出",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_clothar_excavation",
+        "to": "sem_immortal_curse",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "见证",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_clothar_excavation",
+        "to": "sem_abyss_order",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "溯源",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_clothar_excavation",
+        "to": "sem_kaliber",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "遗孤",
+            "confidence": 0.7
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_nod_krai_battle",
+    "tags": [
+      "情境",
+      "挪德卡莱",
+      "雷利尔",
+      "哥伦比娅"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在挪德卡莱，我与愚人众第三席哥伦比娅并肩对抗引发狂猎之灾的雷利尔。我维持着月之门，她以月神化身的力量击溃雷利尔的防线。雷利尔在时空裂纹中看见我时，眼中满是震惊——那个曾经意气风发的青年，如今已困在时间与空间的裂纹之中。",
           "time_span": null,
           "context": {
             "location": {
               "name": "挪德卡莱",
-              "coordinates": "未知"
+              "coordinates": "挪德卡莱战场"
             },
             "participants": [
               {
-                "name": "戴因斯雷布",
-                "role": "月之门维持者"
+                "name": "哥伦比娅",
+                "role": "并肩作战者"
               },
               {
                 "name": "雷利尔",
-                "role": "猎月人"
+                "role": "对手/旧友"
               },
               {
-                "name": "哥伦比娅",
-                "role": "同盟"
+                "name": "我",
+                "role": "月之门维持者"
               }
             ],
             "emotions": [
@@ -1618,131 +3051,210 @@
                 "intensity": 0.8
               },
               {
-                "name": "决心",
-                "intensity": 0.9
+                "name": "决绝",
+                "intensity": 0.8
               }
             ],
             "sensory_data": [],
             "environment": {
-              "atmosphere": "紧张与悲凉",
-              "tone": "昏暗"
+              "atmosphere": "狂猎与月之门的战场",
+              "tone": "银月与深渊交织"
             },
-            "event": []
+            "event": [
+              {
+                "action": "维持月之门",
+                "action_intensity": 0.9,
+                "initiator": "我",
+                "target": "月之门"
+              },
+              {
+                "action": "击溃防线",
+                "action_intensity": 0.9,
+                "initiator": "哥伦比娅",
+                "target": "雷利尔"
+              },
+              {
+                "action": "引发狂猎之灾",
+                "action_intensity": 0.9,
+                "initiator": "雷利尔",
+                "target": "挪德卡莱"
+              }
+            ]
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_rellier_encounter",
-        "to": "sem_rellier",
+        "from": "sit_nod_krai_battle",
+        "to": "sem_columbia",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "对峙",
+            "verb": "并肩",
             "confidence": 0.9
           }
         }
       },
       {
-        "from": "sit_rellier_encounter",
-        "to": "sem_columbina",
-        "intensity": 0.7,
+        "from": "sit_nod_krai_battle",
+        "to": "sem_rellir",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "并肩",
-            "confidence": 0.8
+            "verb": "讨伐",
+            "confidence": 0.95
           }
         }
       },
       {
-        "from": "sit_rellier_encounter",
-        "to": "proc_precise_combat",
+        "from": "sit_nod_krai_battle",
+        "to": "sem_moon_gate",
         "intensity": 0.8,
         "link_type": {
-          "Proc": {
-            "prob": 1.0
+          "Sem": {
+            "verb": "维持",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_nod_krai_battle",
+        "to": "sem_solindis",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "相关",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_nod_krai_battle",
+        "to": "sem_abyss",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "狂猎",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_nod_krai_battle",
+        "to": "sit_abs_companion",
+        "intensity": 0.6,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_nod_krai_battle",
+        "to": "sit_abs_combat_env",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_nod_krai_battle",
+        "to": "sit_abs_dark_old_friend",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_nod_krai_battle",
+        "to": "sit_abstract_meet_enemy",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
           }
         }
       }
     ]
   },
   {
-    "id": "sit_first_meet_traveler",
+    "id": "sit_abs_wilderness",
     "tags": [
-      "事件",
-      "相遇"
+      "抽象情境",
+      "地点",
+      "流浪"
     ],
     "mem_type": {
       "Situation": {
-        "SpecificSituation": {
-          "narrative": "我在蒙德初次遇见旅行者，注意到他/她身上的光芒——在漫长旅途中仍未熄灭的纯粹。我用三个问题试探了他/她的立场：关于龙灾的关键、失去神明后的守护、以及神之眼的意义。他/她的回答让我看到了与血亲的不同与相似。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "蒙德",
-              "coordinates": "风之城"
-            },
-            "participants": [
-              {
-                "name": "戴因斯雷布",
-                "role": "提问者"
-              },
-              {
-                "name": "旅行者",
-                "role": "被试探者"
-              },
-              {
-                "name": "派蒙",
-                "role": "旁观者"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "好奇",
-                "intensity": 0.6
-              },
-              {
-                "name": "警惕",
-                "intensity": 0.5
-              }
-            ],
-            "sensory_data": [],
-            "environment": {
-              "atmosphere": "神秘与试探",
-              "tone": "中性"
-            },
-            "event": []
+        "AbstractSituation": {
+          "Location": {
+            "name": "漫长流浪中的荒野与废墟",
+            "coordinates": "提瓦特大陆各地"
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_first_meet_traveler",
-        "to": "sem_traveler",
-        "intensity": 0.9,
+        "from": "sit_abs_wilderness",
+        "to": "sem_lonely_wanderer",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "初见",
-            "confidence": 0.95
+            "verb": "呼应",
+            "confidence": 0.9
           }
         }
       },
       {
-        "from": "sit_first_meet_traveler",
-        "to": "proc_question_habit",
+        "from": "sit_abs_wilderness",
+        "to": "sit_manna_glade",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abs_wilderness",
+        "to": "sit_travel_with_sibling",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abs_wilderness",
+        "to": "proc_think_lonely",
         "intensity": 0.7,
         "link_type": {
           "Proc": {
-            "prob": 0.8
+            "prob": 0.6
           }
         }
       },
       {
-        "from": "sit_first_meet_traveler",
-        "to": "proc_hide_speech",
+        "from": "sit_abs_wilderness",
+        "to": "proc_none",
         "intensity": 0.4,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      },
+      {
+        "from": "sit_abs_wilderness",
+        "to": "proc_think_no_prayer",
+        "intensity": 0.5,
         "link_type": {
           "Proc": {
             "prob": 0.2
@@ -1752,293 +3264,59 @@
     ]
   },
   {
-    "id": "sit_abyss_investigation",
+    "id": "sit_abs_companion",
     "tags": [
-      "事件",
-      "调查"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "在须弥，我与旅行者合作调查「命运的织机」的真相。我发现了卡利贝尔向我的记忆中投放虚假记忆的阴谋。我被旅行者的血亲击败，地基的眼睛被夺走。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "须弥",
-              "coordinates": "智慧之国"
-            },
-            "participants": [
-              {
-                "name": "戴因斯雷布",
-                "role": "调查者"
-              },
-              {
-                "name": "旅行者",
-                "role": "合作者"
-              },
-              {
-                "name": "旅行者的血亲",
-                "role": "对手"
-              },
-              {
-                "name": "卡利贝尔",
-                "role": "阴谋者"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "震惊",
-                "intensity": 0.8
-              },
-              {
-                "name": "失落",
-                "intensity": 0.7
-              }
-            ],
-            "sensory_data": [],
-            "environment": {
-              "atmosphere": "悬疑与危险",
-              "tone": "昏暗"
-            },
-            "event": []
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_abyss_investigation",
-        "to": "sem_traveler",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "合作",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_abyss_investigation",
-        "to": "sem_loom_of_fate",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "调查",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_abyss_investigation",
-        "to": "sem_abyss",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "揭露",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_abyss_investigation",
-        "to": "sem_traveler_sibling",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "败北",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_nata_abyss_cleansing",
-    "tags": [
-      "事件",
-      "战斗"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "在纳塔，我与旅行者一同剿灭深渊据点。我们并肩作战，清理深渊的势力。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "纳塔",
-              "coordinates": "火之国"
-            },
-            "participants": [
-              {
-                "name": "戴因斯雷布",
-                "role": "战士"
-              },
-              {
-                "name": "旅行者",
-                "role": "盟友"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "专注",
-                "intensity": 0.7
-              }
-            ],
-            "sensory_data": [],
-            "environment": {
-              "atmosphere": "战斗的紧张",
-              "tone": "炽热"
-            },
-            "event": []
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_nata_abyss_cleansing",
-        "to": "sem_traveler",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "并肩",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_nata_abyss_cleansing",
-        "to": "sem_abyss",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "剿灭",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_nata_abyss_cleansing",
-        "to": "proc_precise_combat",
-        "intensity": 0.8,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_flower_sea",
-    "tags": [
-      "事件",
-      "复苏"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "我在甘露花海中醒来，与花灵并肩对抗漆黑兽潮。战斗结束后，我与那位金发异乡人结伴离开了家乡的废墟。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "甘露花海",
-              "coordinates": "未知"
-            },
-            "participants": [
-              {
-                "name": "戴因斯雷布",
-                "role": "战士"
-              },
-              {
-                "name": "花灵",
-                "role": "盟友"
-              },
-              {
-                "name": "漆黑兽潮",
-                "role": "敌人"
-              },
-              {
-                "name": "旅行者的血亲",
-                "role": "旅伴"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "困惑",
-                "intensity": 0.6
-              },
-              {
-                "name": "希望",
-                "intensity": 0.5
-              }
-            ],
-            "sensory_data": [],
-            "environment": {
-              "atmosphere": "奇异与宁静",
-              "tone": "梦幻"
-            },
-            "event": []
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_flower_sea",
-        "to": "sem_traveler_sibling",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "重逢",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_flower_sea",
-        "to": "sem_abyss",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "抵抗",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_flower_sea",
-        "to": "sem_khaenriah",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "离开",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_alone_wander_abstract",
-    "tags": [
-      "状态",
-      "孤独"
+      "抽象情境",
+      "参与者",
+      "旅伴"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
-          "Environment": {
-            "atmosphere": "孤独寂静",
-            "tone": "荒凉"
+          "Participant": {
+            "name": "短暂的同行者",
+            "role": "旅伴"
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_alone_wander_abstract",
-        "to": "sit_parting_with_sibling",
+        "from": "sit_abs_companion",
+        "to": "sem_traveler",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "旅伴",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_abs_companion",
+        "to": "sem_sibling",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "旅伴",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_abs_companion",
+        "to": "sem_paimon",
+        "intensity": 0.5,
+        "link_type": {
+          "Sem": {
+            "verb": "旅伴",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_abs_companion",
+        "to": "sit_travel_with_sibling",
         "intensity": 0.8,
         "link_type": {
           "Situation": {
@@ -2047,29 +3325,214 @@
         }
       },
       {
-        "from": "sit_alone_wander_abstract",
-        "to": "proc_alone_travel",
+        "from": "sit_abs_companion",
+        "to": "sit_nod_krai_battle",
+        "intensity": 0.5,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abs_companion",
+        "to": "proc_think_lonely",
+        "intensity": 0.6,
+        "link_type": {
+          "Proc": {
+            "prob": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_abs_companion",
+        "to": "proc_speak_obscure",
+        "intensity": 0.7,
+        "link_type": {
+          "Proc": {
+            "prob": 0.3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_combat_env",
+    "tags": [
+      "抽象情境",
+      "环境",
+      "战斗"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "深渊带来的压抑与肃杀",
+            "tone": "晦暗而紧张"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_combat_env",
+        "to": "sem_black_serpent_sword",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "启用",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_abs_combat_env",
+        "to": "sem_abyss",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "敌人",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_abs_combat_env",
+        "to": "sit_palace_break_in",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abs_combat_env",
+        "to": "sit_manna_glade",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abs_combat_env",
+        "to": "sit_hagen_200",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abs_combat_env",
+        "to": "sit_nod_krai_battle",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abs_combat_env",
+        "to": "sit_calamity_dawn",
+        "intensity": 0.6,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abs_combat_env",
+        "to": "proc_skill_blackserpent",
         "intensity": 0.9,
         "link_type": {
           "Proc": {
-            "prob": 0.75
+            "prob": 0.8
           }
         }
       },
       {
-        "from": "sit_alone_wander_abstract",
-        "to": "proc_monologue",
-        "intensity": 0.5,
+        "from": "sit_abs_combat_env",
+        "to": "proc_think_vendetta",
+        "intensity": 0.6,
         "link_type": {
           "Proc": {
-            "prob": 0.15
+            "prob": 0.2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_questioning",
+    "tags": [
+      "抽象情境",
+      "事件",
+      "提问"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "抛出看似简单却直指核心的问题",
+            "action_intensity": 0.6,
+            "initiator": "我",
+            "target": "想要了解本质的人"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_questioning",
+        "to": "sem_human_fate",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "拷问",
+            "confidence": 0.8
           }
         }
       },
       {
-        "from": "sit_alone_wander_abstract",
-        "to": "proc_none",
-        "intensity": 0.3,
+        "from": "sit_abs_questioning",
+        "to": "sit_traveler_three_questions",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abs_questioning",
+        "to": "proc_think_question",
+        "intensity": 0.9,
+        "link_type": {
+          "Proc": {
+            "prob": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_abs_questioning",
+        "to": "proc_speak_obscure",
+        "intensity": 0.6,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      },
+      {
+        "from": "sit_abs_questioning",
+        "to": "proc_think_commentary",
+        "intensity": 0.4,
         "link_type": {
           "Proc": {
             "prob": 0.1
@@ -2079,28 +3542,40 @@
     ]
   },
   {
-    "id": "sit_question_abstract",
+    "id": "sit_abs_parting",
     "tags": [
-      "习惯",
-      "提问"
+      "抽象情境",
+      "事件",
+      "分离"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
           "Event": {
-            "action": "提问",
-            "action_intensity": 0.5,
-            "initiator": "戴因斯雷布",
-            "target": "被试探者"
+            "action": "与重要之人因理念不合而分道扬镳",
+            "action_intensity": 0.9,
+            "initiator": "理念的分歧",
+            "target": "我和对方"
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_question_abstract",
-        "to": "sit_first_meet_traveler",
-        "intensity": 0.9,
+        "from": "sit_abs_parting",
+        "to": "sem_lonely_wanderer",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "延续",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_abs_parting",
+        "to": "sit_travel_with_sibling",
+        "intensity": 0.8,
         "link_type": {
           "Situation": {
             "AbstractToSpecific": {}
@@ -2108,8 +3583,28 @@
         }
       },
       {
-        "from": "sit_question_abstract",
-        "to": "proc_question_habit",
+        "from": "sit_abs_parting",
+        "to": "sit_five_sinners_fall",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abs_parting",
+        "to": "sit_calamity_dawn",
+        "intensity": 0.5,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abs_parting",
+        "to": "proc_think_lonely",
         "intensity": 0.8,
         "link_type": {
           "Proc": {
@@ -2118,9 +3613,9 @@
         }
       },
       {
-        "from": "sit_question_abstract",
-        "to": "proc_hide_speech",
-        "intensity": 0.4,
+        "from": "sit_abs_parting",
+        "to": "proc_think_commentary",
+        "intensity": 0.5,
         "link_type": {
           "Proc": {
             "prob": 0.2
@@ -2130,299 +3625,113 @@
     ]
   },
   {
-    "id": "sit_battle_abstract",
+    "id": "sit_abs_dark_old_friend",
     "tags": [
-      "风格",
-      "战斗"
+      "抽象情境",
+      "参与者",
+      "旧友"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
-          "Location": {
-            "name": "战斗之地",
-            "coordinates": "提瓦特各处"
+          "Participant": {
+            "name": "堕入深渊的故人",
+            "role": "不愿面对的对手"
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_battle_abstract",
-        "to": "sit_harnden_battle",
-        "intensity": 0.8,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_battle_abstract",
-        "to": "sit_rellier_encounter",
-        "intensity": 0.8,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_battle_abstract",
-        "to": "sit_nata_abyss_cleansing",
-        "intensity": 0.8,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_battle_abstract",
-        "to": "sit_flower_sea",
-        "intensity": 0.7,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_battle_abstract",
-        "to": "proc_precise_combat",
-        "intensity": 0.8,
-        "link_type": {
-          "Proc": {
-            "prob": 0.85
-          }
-        }
-      },
-      {
-        "from": "sit_battle_abstract",
-        "to": "proc_revengeful",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 0.15
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_hide_speech",
-    "tags": [
-      "习惯",
-      "说话"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "说话方式晦涩，因为真相本身太过复杂，常用预言式评论。",
-          "action_type": "Speak"
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_hide_speech",
-        "to": "sem_khaenriah",
+        "from": "sit_abs_dark_old_friend",
+        "to": "sem_hagen",
         "intensity": 0.5,
         "link_type": {
           "Sem": {
-            "verb": "讳言",
+            "verb": "原型",
             "confidence": 0.7
           }
         }
       },
       {
-        "from": "proc_hide_speech",
-        "to": "sem_curse",
+        "from": "sit_abs_dark_old_friend",
+        "to": "sem_rellir",
         "intensity": 0.5,
         "link_type": {
           "Sem": {
-            "verb": "源于",
+            "verb": "原型",
             "confidence": 0.7
           }
         }
-      }
-    ]
-  },
-  {
-    "id": "proc_question_habit",
-    "tags": [
-      "习惯",
-      "提问"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "当我想了解一个人的本质时，会抛出几个看似简单却直指核心的问题。答案没有对错，只有态度的昭示。",
-          "action_type": "Speak"
-        }
-      }
-    },
-    "mem_links": [
+      },
       {
-        "from": "proc_question_habit",
-        "to": "sem_traveler",
-        "intensity": 0.6,
+        "from": "sit_abs_dark_old_friend",
+        "to": "sem_hafdan",
+        "intensity": 0.5,
         "link_type": {
           "Sem": {
-            "verb": "试探",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_alone_travel",
-    "tags": [
-      "习惯",
-      "独行"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "我习惯独行，即使与同伴同行也会保持距离。这不是冷漠，而是经过漫长岁月后的自然状态。",
-          "action_type": "Think"
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_alone_travel",
-        "to": "sem_curse",
-        "intensity": 0.4,
-        "link_type": {
-          "Sem": {
-            "verb": "因",
+            "verb": "原型",
             "confidence": 0.6
           }
         }
-      }
-    ]
-  },
-  {
-    "id": "proc_revengeful",
-    "tags": [
-      "性格",
-      "记仇"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "我是个记仇的人。对于哈登，我杀了他两百遍，一遍都不多余。",
-          "action_type": "Think"
-        }
-      }
-    },
-    "mem_links": [
+      },
       {
-        "from": "proc_revengeful",
-        "to": "sem_harnden",
+        "from": "sit_abs_dark_old_friend",
+        "to": "sit_hagen_200",
         "intensity": 0.9,
         "link_type": {
-          "Sem": {
-            "verb": "针对",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_no_pray",
-    "tags": [
-      "习惯",
-      "信仰"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "我不信仰神明，从不在任何神像前祈祷，不踏入神圣之地。我是「拒信者」。",
-          "action_type": "Think"
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_no_pray",
-        "to": "sem_gods",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "拒绝",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_precise_combat",
-    "tags": [
-      "战斗",
-      "风格"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "我的战斗风格精准而致命，黑蛇剑术讲究干脆利落，每一剑都带着五百年积累的经验与愤怒。从不滥杀无辜。",
-          "action_type": {
-            "Skill": {}
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_precise_combat",
-        "to": "sem_black_serpent",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "源自",
-            "confidence": 0.9
+          "Situation": {
+            "AbstractToSpecific": {}
           }
         }
       },
       {
-        "from": "proc_precise_combat",
-        "to": "sem_harnden",
-        "intensity": 0.6,
+        "from": "sit_abs_dark_old_friend",
+        "to": "sit_reunion_hafdan",
+        "intensity": 0.8,
         "link_type": {
-          "Sem": {
-            "verb": "师承",
-            "confidence": 0.7
+          "Situation": {
+            "AbstractToSpecific": {}
           }
         }
-      }
-    ]
-  },
-  {
-    "id": "proc_monologue",
-    "tags": [
-      "习惯",
-      "独白"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "我习惯自言自语般地发表感慨，特别是在拾枝杂谈中评价角色时，总会说出预言式的评论。",
-          "action_type": "Speak"
-        }
-      }
-    },
-    "mem_links": [
+      },
       {
-        "from": "proc_monologue",
-        "to": "sem_pickup_trivia",
-        "intensity": 0.6,
+        "from": "sit_abs_dark_old_friend",
+        "to": "sit_nod_krai_battle",
+        "intensity": 0.8,
         "link_type": {
-          "Sem": {
-            "verb": "用于",
-            "confidence": 0.8
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abs_dark_old_friend",
+        "to": "proc_think_vendetta",
+        "intensity": 0.8,
+        "link_type": {
+          "Proc": {
+            "prob": 0.6
+          }
+        }
+      },
+      {
+        "from": "sit_abs_dark_old_friend",
+        "to": "proc_skill_blackserpent",
+        "intensity": 0.7,
+        "link_type": {
+          "Proc": {
+            "prob": 0.3
+          }
+        }
+      },
+      {
+        "from": "sit_abs_dark_old_friend",
+        "to": "proc_speak_obscure",
+        "intensity": 0.4,
+        "link_type": {
+          "Proc": {
+            "prob": 0.1
           }
         }
       }
@@ -2431,6 +3740,7 @@
   {
     "id": "proc_none",
     "tags": [
+      "程序",
       "空闲"
     ],
     "mem_type": {
@@ -2444,59 +3754,232 @@
     "mem_links": []
   },
   {
-    "id": "sit_abstract_deep_talk",
+    "id": "proc_speak_obscure",
     "tags": [
-      "情境",
-      "对话",
-      "探索本质"
+      "程序",
+      "说话方式",
+      "谜语"
     ],
     "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Event": {
-            "action": "与他人进行深入对话，探讨命运的真相与人的本质",
-            "action_intensity": 0.0,
-            "initiator": "",
-            "target": ""
-          }
+      "Procedure": {
+        "action": {
+          "content": "与他人交谈时，说话习惯带有晦涩的谜语感，自称『我』，常用隐喻与预言论调；面对「提瓦特谜人」的称呼不置可否。",
+          "action_type": "Speak"
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_abstract_deep_talk",
-        "to": "proc_hide_speech",
-        "intensity": 1.0,
+        "from": "proc_speak_obscure",
+        "to": "sem_lonely_wanderer",
+        "intensity": 0.6,
         "link_type": {
-          "Proc": {
-            "prob": 0.5333333333333333
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_deep_talk",
-        "to": "proc_question_habit",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 0.4666666666666666
+          "Sem": {
+            "verb": "塑造",
+            "confidence": 0.8
           }
         }
       }
     ]
   },
   {
-    "id": "sit_abstract_with_others",
+    "id": "proc_think_question",
+    "tags": [
+      "程序",
+      "思维习惯",
+      "提问"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "想了解一个人本质时，习惯抛出几个看似简单却直指核心的问题，答案没有对错，只看态度的昭示。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_think_question",
+        "to": "sem_human_fate",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "审视",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_think_lonely",
+    "tags": [
+      "程序",
+      "性格",
+      "独行"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "与他人同行时也习惯保持距离，把独行看作经年累月后的自然状态；不崇尚孤独，却总是不自觉地独来独往。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_think_lonely",
+        "to": "sem_lonely_wanderer",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "体现",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_skill_blackserpent",
+    "tags": [
+      "程序",
+      "战斗",
+      "黑蛇剑术"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "战斗时使用黑蛇剑术，出手精准致命，每一剑都带着五百年的经验与愤怒；但不滥杀无辜，即使是失去心智的丘丘人也清楚他们曾是坎瑞亚的人民。",
+          "action_type": {
+            "Skill": {}
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_skill_blackserpent",
+        "to": "sem_black_serpent_sword",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "施展",
+            "confidence": 0.95
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_think_vendetta",
+    "tags": [
+      "程序",
+      "记仇",
+      "复仇"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "面对伤害过自己或背叛守护誓言的人，会牢牢记住仇恨，在漫长岁月里等待复仇；例如对哈登的两次『一百遍』斩杀。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_think_vendetta",
+        "to": "sem_hagen",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "指向",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "proc_think_vendetta",
+        "to": "sem_abyss",
+        "intensity": 0.5,
+        "link_type": {
+          "Sem": {
+            "verb": "针对",
+            "confidence": 0.6
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_think_no_prayer",
+    "tags": [
+      "程序",
+      "拒信者",
+      "神明"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "身处神明相关的场合时，从不向神像祈祷，也不踏入神圣之地，自称「拒信者」；对众神抱持憎恨与轻蔑。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_think_no_prayer",
+        "to": "sem_hatred_gods",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "表达",
+            "confidence": 0.95
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_think_commentary",
+    "tags": [
+      "程序",
+      "拾枝杂谈",
+      "预言"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "在拾枝杂谈中评价角色时，习惯自言自语般地发表预言式的感慨，把评价当作对世界的叹息。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_think_commentary",
+        "to": "sem_lonely_wanderer",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "化为",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_social_talk",
     "tags": [
       "情境",
-      "社交",
-      "同行"
+      "社交"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
           "Event": {
-            "action": "与他人同行或身处人群之中",
+            "action": "与别人交谈或社交互动",
             "action_intensity": 0.0,
             "initiator": "",
             "target": ""
@@ -2506,29 +3989,69 @@
     },
     "mem_links": [
       {
-        "from": "sit_abstract_with_others",
-        "to": "proc_alone_travel",
+        "from": "sit_abstract_social_talk",
+        "to": "proc_speak_obscure",
         "intensity": 1.0,
         "link_type": {
           "Proc": {
             "prob": 1.0
           }
         }
+      },
+      {
+        "from": "sit_abstract_social_talk",
+        "to": "sit_reunion_hafdan",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_social_talk",
+        "to": "sit_hagen_200",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_social_talk",
+        "to": "sit_traveler_three_questions",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_social_talk",
+        "to": "sit_sumeru_kaiya",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
       }
     ]
   },
   {
-    "id": "sit_abstract_solitude_idle",
+    "id": "sit_abstract_curious_meeting",
     "tags": [
       "情境",
-      "独处",
-      "闲暇"
+      "相遇",
+      "好奇"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
           "Event": {
-            "action": "独自一人，没有明确目的地或任务，处于闲暇状态",
+            "action": "遇到一个值得深入了解的人",
             "action_intensity": 0.0,
             "initiator": "",
             "target": ""
@@ -2538,22 +4061,84 @@
     },
     "mem_links": [
       {
-        "from": "sit_abstract_solitude_idle",
-        "to": "proc_monologue",
+        "from": "sit_abstract_curious_meeting",
+        "to": "proc_think_question",
         "intensity": 1.0,
         "link_type": {
           "Proc": {
-            "prob": 0.5833333333333334
+            "prob": 1.0
           }
         }
       },
       {
-        "from": "sit_abstract_solitude_idle",
-        "to": "proc_none",
+        "from": "sit_abstract_curious_meeting",
+        "to": "sit_manna_glade",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_curious_meeting",
+        "to": "sit_traveler_three_questions",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_meet_enemy",
+    "tags": [
+      "情境",
+      "仇敌",
+      "复仇"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "遭遇曾伤害过自己或背叛过守护誓言的人",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_meet_enemy",
+        "to": "proc_think_vendetta",
         "intensity": 1.0,
         "link_type": {
           "Proc": {
-            "prob": 0.4166666666666667
+            "prob": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_meet_enemy",
+        "to": "sit_hagen_200",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_meet_enemy",
+        "to": "sit_nod_krai_battle",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
           }
         }
       }
@@ -2563,15 +4148,15 @@
     "id": "sit_abstract_sacred_place",
     "tags": [
       "情境",
-      "神圣之地",
-      "信仰"
+      "神圣",
+      "神明"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
-          "Location": {
-            "name": "神圣之地或神像面前",
-            "coordinates": ""
+          "Environment": {
+            "atmosphere": "神像或祭坛附近那种肃穆神圣的氛围",
+            "tone": "庄严而令人抵触"
           }
         }
       }
@@ -2579,11 +4164,63 @@
     "mem_links": [
       {
         "from": "sit_abstract_sacred_place",
-        "to": "proc_no_pray",
+        "to": "proc_think_no_prayer",
         "intensity": 1.0,
         "link_type": {
           "Proc": {
             "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_commentary_talk",
+    "tags": [
+      "情境",
+      "评价",
+      "对话"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "在交谈中谈论或评价某个人物",
+            "action_intensity": 0.0,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_commentary_talk",
+        "to": "proc_think_commentary",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_commentary_talk",
+        "to": "sit_traveler_three_questions",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_commentary_talk",
+        "to": "sit_sumeru_kaiya",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
           }
         }
       }

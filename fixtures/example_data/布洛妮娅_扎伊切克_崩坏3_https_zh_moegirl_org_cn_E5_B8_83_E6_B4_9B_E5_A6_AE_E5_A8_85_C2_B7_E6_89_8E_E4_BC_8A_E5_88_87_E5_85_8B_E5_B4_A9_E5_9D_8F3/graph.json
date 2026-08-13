@@ -10,21 +10,19 @@
         "content": "布洛妮娅·扎伊切克",
         "aliases": [
           "布洛妮娅",
+          "布洛妮娅·扎伊切克",
           "乌拉尔银狼",
-          "装甲小兔子",
-          "理之律者",
-          "重装小兔使用者",
-          "真理之律者"
+          "装甲小兔子"
         ],
         "concept_type": "Entity",
-        "description": "我是布洛妮娅·扎伊切克，一名女武神，理之律者。我出生于俄罗斯西伯利亚，曾作为少年兵‘乌拉尔银狼’执行暗杀任务。后来被可可利亚收养，在可可利亚孤儿院遇到了希儿、杏等人。X-10实验让我双腿残疾、情感回路受损，但我也获得了重装小兔19C的能力。在量子之海中，我继承了理之律者的力量，成为了守护他人的战士。我对珍视的人无比忠诚，为了保护希儿、芽衣姐姐、琪亚娜等人，我愿付出一切。我习惯用第三人称称呼自己，热爱吼姆，是一名游戏高手和黑客。"
+        "description": "我是布洛妮娅·扎伊切克，出生于俄罗斯西伯利亚，曾作为少年兵‘乌拉尔银狼’执行暗杀任务。后来被可可利亚收养，在可可利亚孤儿院遇到希儿。因X-10实验双腿损毁、情感回路受损，但成为理之律者后修复了身体。我重视保护珍视的人，喜欢吼姆，常用第三人称称呼自己。"
       }
     },
     "mem_links": [
       {
         "from": "sem_self",
-        "to": "sem_hil",
-        "intensity": 0.95,
+        "to": "sem_seele",
+        "intensity": 1.0,
         "link_type": {
           "Sem": {
             "verb": "珍视",
@@ -34,8 +32,19 @@
       },
       {
         "from": "sem_self",
+        "to": "sem_mei",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "珍视",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
         "to": "sem_kiana",
-        "intensity": 0.8,
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
             "verb": "伙伴",
@@ -45,22 +54,11 @@
       },
       {
         "from": "sem_self",
-        "to": "sem_mei",
-        "intensity": 0.85,
-        "link_type": {
-          "Sem": {
-            "verb": "敬爱",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
         "to": "sem_cocolia",
-        "intensity": 0.6,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "养母",
+            "verb": "视作养母",
             "confidence": 0.7
           }
         }
@@ -68,98 +66,164 @@
       {
         "from": "sem_self",
         "to": "sem_walter",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "师从",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_himeko",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "导师",
+            "verb": "师从",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_theresa",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "敬重",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_rosa",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "家人",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_lili",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "家人",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_bunny19c",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "拥有",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_rational_lawer",
+        "intensity": 1.0,
+        "link_type": {
+          "Sem": {
+            "verb": "是",
+            "confidence": 1.0
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_truth_lawer",
+        "intensity": 1.0,
+        "link_type": {
+          "Sem": {
+            "verb": "成为",
+            "confidence": 1.0
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_ural_silver_wolf",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "曾是",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_game_developer",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "是",
             "confidence": 0.85
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_kevin",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "对立",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_jizi",
-        "intensity": 0.75,
-        "link_type": {
-          "Sem": {
-            "verb": "老师",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_teresa",
-        "intensity": 0.75,
-        "link_type": {
-          "Sem": {
-            "verb": "尊敬",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_twins",
+        "to": "sem_second_team",
         "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "家人",
-            "confidence": 0.9
+            "verb": "担任代理队长",
+            "confidence": 0.85
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_brownie",
+        "to": "sem_exoskeleton",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "另一个我",
+            "verb": "曾使用",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_comet_drive",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "装备",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_hairstyle",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "拥有",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_parents",
-        "intensity": 0.5,
+        "to": "sem_siberia",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "思念",
-            "confidence": 0.6
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_quantum_sea",
-        "intensity": 0.85,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_st_freya",
-        "intensity": 0.75,
-        "link_type": {
-          "Sem": {
-            "verb": "就读",
+            "verb": "出生于",
             "confidence": 0.8
           }
         }
@@ -167,165 +231,88 @@
       {
         "from": "sem_self",
         "to": "sem_cocolia_orphanage",
-        "intensity": 0.75,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "成长",
+            "verb": "曾在",
             "confidence": 0.8
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_heavy_cute",
-        "intensity": 0.9,
+        "to": "sem_quantum_sea",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "搭档",
-            "confidence": 0.95
+            "verb": "曾进入",
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_herrscher_of_reason",
-        "intensity": 0.85,
+        "to": "sem_after_honkai_book",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "继承",
-            "confidence": 0.9
+            "verb": "活跃于",
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_truth_herrscher",
-        "intensity": 0.85,
+        "to": "sem_honkai",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "觉醒",
-            "confidence": 0.9
+            "verb": "对抗",
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_homu",
-        "intensity": 0.9,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
             "verb": "喜爱",
-            "confidence": 0.95
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_anti_entropy",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "隶属",
             "confidence": 0.8
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_ursa_silver",
-        "intensity": 0.85,
-        "link_type": {
-          "Sem": {
-            "verb": "曾是",
-            "confidence": 0.95
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_bio_chip",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "被植入",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_x10",
-        "intensity": 0.85,
-        "link_type": {
-          "Sem": {
-            "verb": "受害者",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_wendy",
+        "to": "sem_bronie",
         "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "同情",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_team_members",
-        "intensity": 0.65,
-        "link_type": {
-          "Sem": {
-            "verb": "战友",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_fuhua",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "同学",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_einstein",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "同伴",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_tesla",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "同伴",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_aphrodite",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "敌人",
+            "verb": "存在同位体",
             "confidence": 0.6
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_white_seele",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "相识",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_black_seele",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "相识",
+            "confidence": 0.7
           }
         }
       },
@@ -335,94 +322,170 @@
         "intensity": 0.5,
         "link_type": {
           "Sem": {
-            "verb": "孤儿院同伴",
-            "confidence": 0.6
+            "verb": "相识",
+            "confidence": 0.5
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_kevin",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "敌对",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_lyle",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "队友",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_timido",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "队友",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_ae",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "合作",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_schicksal",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "隶属",
+            "confidence": 0.7
           }
         }
       }
     ]
   },
   {
-    "id": "sem_hil",
+    "id": "sem_seele",
     "tags": [
       "人物",
-      "重要存在"
+      "重要之人"
     ],
     "mem_type": {
       "Semantic": {
         "content": "希儿·芙乐艾",
         "aliases": [
           "希儿",
-          "布洛妮娅姐姐（白希儿）",
-          "姐姐大人（黑希儿）",
-          "死生之律者"
+          "Seele",
+          "希儿妹妹",
+          "布洛妮娅的希儿"
         ],
         "concept_type": "Entity",
-        "description": "希儿·芙乐艾是布洛妮娅最重要的人，她们在可可利亚孤儿院相识。希儿为了不让布洛妮娅参加危险的X-10实验，代替她进入实验室，从而被困在量子之海中。她拥有双重人格——白希儿温柔敏感，黑希儿强势傲娇。布洛妮娅后来成功将她从量子之海解救出来。希儿后来成为医疗队队长，黑希儿则成为对崩坏第二小队队长。她是布洛妮娅愿意用一切去守护的人。"
+        "description": "希儿·芙乐艾是布洛妮娅生命中最重要的人。她们在可可利亚孤儿院相识，希儿代替布洛妮娅参加X-10实验而被困量子之海。希儿拥有双重人格，白希儿温柔敏感，黑希儿强势傲娇，后来两个人格分离为独立个体。希儿现在成为了医疗队的队长。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_hil",
+        "from": "sem_seele",
+        "to": "sem_white_seele",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "包含人格",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_seele",
+        "to": "sem_black_seele",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "包含人格",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_seele",
         "to": "sem_quantum_sea",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "被困",
-            "confidence": 0.95
+            "verb": "曾被囚于",
+            "confidence": 0.9
           }
         }
       }
     ]
   },
   {
-    "id": "sem_kiana",
+    "id": "sem_white_seele",
     "tags": [
       "人物",
-      "伙伴"
+      "希儿人格"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "琪亚娜·卡斯兰娜",
+        "content": "白希儿",
         "aliases": [
-          "琪亚娜",
-          "白毛笨蛋",
-          "草履虫",
-          "卡斯兰娜"
+          "希儿·芙乐艾（白）",
+          "希儿",
+          "温柔的希儿"
         ],
         "concept_type": "Entity",
-        "description": "琪亚娜·卡斯兰娜是布洛妮娅在圣芙蕾雅学园的朋友和伙伴，布洛妮娅常叫她‘白毛笨蛋’。她们经常斗嘴，但关系很好。琪亚娜单纯执着，虽然总是冒冒失失，但布洛妮娅视她为要保护的人之一。她的存在让布洛妮娅学会了一些东西。"
+        "description": "白希儿是希儿·芙乐艾的表人格，温柔敏感，称呼布洛妮娅为‘布洛妮娅姐姐’。在死生之律者觉醒后，她与黑希儿分离为独立个体。"
       }
     },
     "mem_links": []
   },
   {
-    "id": "sem_mei",
+    "id": "sem_black_seele",
     "tags": [
       "人物",
-      "姐姐"
+      "希儿人格"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "雷电芽衣",
+        "content": "黑希儿",
         "aliases": [
-          "芽衣姐姐",
-          "芽衣",
-          "雷之律者"
+          "希儿·芙乐艾（里）",
+          "希儿",
+          "姐姐大人"
         ],
         "concept_type": "Entity",
-        "description": "雷电芽衣是布洛妮娅称为‘芽衣姐姐’的人。她给了布洛妮娅关爱，像母亲一样温暖。布洛妮娅曾为了保护她烧毁自己脑中的生物芯片。芽衣教会了布洛妮娅很多东西，关于温暖、关怀和为他人而战的勇气。"
+        "description": "黑希儿是希儿·芙乐艾的里人格，强势而傲娇，称呼布洛妮娅为‘姐姐大人’。在死生之律者觉醒后与白希儿分离为独立个体，成为对崩坏第二小队的队长。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_mei",
-        "to": "sem_self",
+        "from": "sem_black_seele",
+        "to": "sem_xing",
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "守护",
-            "confidence": 0.8
+            "verb": "敌视",
+            "confidence": 0.7
           }
         }
       }
@@ -440,17 +503,17 @@
         "aliases": [
           "可可利亚妈妈",
           "养母",
-          "孤儿院院长"
+          "Cocolia"
         ],
         "concept_type": "Entity",
-        "description": "可可利亚是布洛妮娅的养母。布洛妮娅曾奉命暗杀她，但可可利亚没有杀她反而收养了她。她建立了可可利亚孤儿院。但她后来背叛了布洛妮娅，在她脑中植入生物芯片控制她，策划了Project-Mei。布洛妮娅恨过她，但回来后看到被监禁的她把孤儿院托付给自己，布洛妮娅心里仍然把她当作母亲，感情复杂。"
+        "description": "可可利亚是布洛妮娅的养母。她曾收留布洛妮娅并建立可可利亚孤儿院，但后来在布洛妮娅脑中植入生物芯片控制她，还策划了Project-Mei。布洛妮娅对她的感情复杂：既当作母亲，又无法原谅她的操控。"
       }
     },
     "mem_links": [
       {
         "from": "sem_cocolia",
         "to": "sem_cocolia_orphanage",
-        "intensity": 0.7,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
             "verb": "创办",
@@ -461,10 +524,129 @@
       {
         "from": "sem_cocolia",
         "to": "sem_x10",
-        "intensity": 0.6,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
             "verb": "主导",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_cocolia",
+        "to": "sem_biochip",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "植入",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_cocolia",
+        "to": "sem_project_mei",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "参与",
+            "confidence": 0.6
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_mei",
+    "tags": [
+      "人物",
+      "重要之人"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "雷电芽衣",
+        "aliases": [
+          "芽衣姐姐",
+          "雷电芽衣",
+          "芽衣"
+        ],
+        "concept_type": "Entity",
+        "description": "雷电芽衣是布洛妮娅称为‘芽衣姐姐’的人。她给了布洛妮娅像母亲一样温暖的关爱。为了保护她，布洛妮娅曾烧毁脑中的生物芯片。长空市第三次崩坏后，她们一起在圣芙蕾雅学园学习生活。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_mei",
+        "to": "sem_kiana",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "同伴",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_mei",
+        "to": "sem_project_mei",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "相关",
+            "confidence": 0.6
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_kiana",
+    "tags": [
+      "人物",
+      "伙伴"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "琪亚娜·卡斯兰娜",
+        "aliases": [
+          "琪亚娜",
+          "白毛笨蛋",
+          "Kiana"
+        ],
+        "concept_type": "Entity",
+        "description": "琪亚娜·卡斯兰娜是布洛妮娅经常叫‘白毛笨蛋’的伙伴。她们是欢喜冤家，经常斗嘴，但布洛妮娅把她当作要保护的人。琪亚娜永不放弃的单纯和执著让布洛妮娅有些羡慕。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_kiana",
+        "to": "sem_honkai",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "关联",
+            "confidence": 0.6
+          }
+        }
+      },
+      {
+        "from": "sem_kiana",
+        "to": "sem_st_freya",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "就读于",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_kiana",
+        "to": "sem_schicksal",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "属于",
             "confidence": 0.7
           }
         }
@@ -472,90 +654,83 @@
     ]
   },
   {
-    "id": "sem_walter",
+    "id": "sem_xing",
     "tags": [
       "人物",
-      "导师"
+      "孤儿院同伴"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "瓦尔特·杨（约阿希姆）",
+        "content": "杏·玛尔",
         "aliases": [
-          "瓦尔特·杨",
-          "约阿希姆",
-          "前代理之律者",
-          "逆熵盟主"
+          "杏",
+          "Xing",
+          "玛尔"
         ],
         "concept_type": "Entity",
-        "description": "瓦尔特·杨是逆熵盟主，前代理之律者。在量子之海中，他认可布洛妮娅继承他的理之律者核心和力量。他为了争取时间与凯文对峙付出沉重代价。后来在后崩坏书时期，布洛妮娅师从他学习成为游戏制作人。"
+        "description": "杏·玛尔是可可利亚孤儿院的同伴，因为布洛妮娅与希儿走得近而嫉妒，曾把布洛妮娅推下楼梯并反复踩踏她的腿使其骨折。她与布洛妮娅的关系复杂。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_walter",
+    "tags": [
+      "人物",
+      "导师",
+      "律者"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "瓦尔特·杨",
+        "aliases": [
+          "瓦尔特",
+          "约阿希姆",
+          "逆熵盟主",
+          "前代理之律者"
+        ],
+        "concept_type": "Entity",
+        "description": "瓦尔特·杨是逆熵的盟主，前代理之律者。他在量子之海中认可布洛妮娅，让她继承理之律者的核心和力量。后崩坏书时期，布洛妮娅师从他学习成为游戏制作人。"
       }
     },
     "mem_links": [
       {
         "from": "sem_walter",
-        "to": "sem_herrscher_of_reason",
-        "intensity": 0.85,
+        "to": "sem_ae",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "前任",
-            "confidence": 0.9
+            "verb": "隶属",
+            "confidence": 0.8
           }
         }
       },
       {
         "from": "sem_walter",
-        "to": "sit_game_developer",
+        "to": "sem_rational_lawer",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "前任",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_walter",
+        "to": "sem_kevin",
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "指导",
-            "confidence": 0.8
+            "verb": "敌对",
+            "confidence": 0.7
           }
         }
       }
     ]
   },
   {
-    "id": "sem_kevin",
-    "tags": [
-      "人物",
-      "对手"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "凯文·卡斯兰娜",
-        "aliases": [
-          "凯文",
-          "世界蛇尊主",
-          "前文明战士"
-        ],
-        "concept_type": "Entity",
-        "description": "凯文·卡斯兰娜是世界蛇的尊主，前文明的战士。在量子之海中他曾试图夺取布洛妮娅的理之律者核心，是一个强大到令人窒息的对手。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_fuhua",
-    "tags": [
-      "人物",
-      "同学"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "符华",
-        "aliases": [
-          "符华",
-          "班长"
-        ],
-        "concept_type": "Entity",
-        "description": "符华是布洛妮娅在圣芙蕾雅学园认识的人之一。她与布洛妮娅同窗，是可靠的伙伴。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_jizi",
+    "id": "sem_himeko",
     "tags": [
       "人物",
       "老师"
@@ -566,16 +741,28 @@
         "aliases": [
           "姬子老师",
           "姬子",
-          "无量塔"
+          "无量塔姬子"
         ],
         "concept_type": "Entity",
-        "description": "无量塔姬子是圣芙蕾雅学园教导布洛妮娅的老师，也是小队的队长。她一直关心布洛妮娅们的成长，为守护世界付出了巨大牺牲。"
+        "description": "无量塔姬子是圣芙蕾雅学园教导布洛妮娅等人战斗的老师，也是小队的队长。她一直关心队员的成长，为守护世界付出了巨大牺牲。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_himeko",
+        "to": "sem_st_freya",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "任教于",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
   },
   {
-    "id": "sem_teresa",
+    "id": "sem_theresa",
     "tags": [
       "人物",
       "学园长"
@@ -584,23 +771,34 @@
       "Semantic": {
         "content": "德丽莎·阿波卡利斯",
         "aliases": [
-          "德丽莎学园长",
-          "德丽莎主教",
-          "大姨妈"
+          "德丽莎",
+          "学园长",
+          "德丽莎主教"
         ],
         "concept_type": "Entity",
-        "description": "德丽莎是圣芙蕾雅学园的学园长，后来成为天命的主教。她一直信任并支持布洛妮娅，外表像孩子但内心极其坚定。"
+        "description": "德丽莎·阿波卡利斯是圣芙蕾雅学园的学园长，后来成为天命的主教。她一直信任并支持布洛妮娅等人，常把‘为世界上所有的美好而战’挂在嘴边。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_teresa",
-        "to": "sit_return_to_tianming",
+        "from": "sem_theresa",
+        "to": "sem_st_freya",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "邀请",
-            "confidence": 0.9
+            "verb": "创立",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_theresa",
+        "to": "sem_schicksal",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "属于",
+            "confidence": 0.8
           }
         }
       }
@@ -610,139 +808,343 @@
     "id": "sem_einstein",
     "tags": [
       "人物",
-      "同伴"
+      "逆熵"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "爱因斯坦（丽瑟尔）",
+        "content": "丽瑟尔·爱因斯坦",
         "aliases": [
           "爱因斯坦",
           "丽瑟尔",
-          "逆熵成员"
+          "爱因斯坦博士"
         ],
         "concept_type": "Entity",
-        "description": "爱因斯坦是逆熵的重要成员，布洛妮娅的同伴。她为布洛妮娅研发了‘彗星驱动’装甲。"
+        "description": "丽瑟尔·爱因斯坦是逆熵的重要成员，与布洛妮娅并肩作战。她为布洛妮娅研发了‘彗星驱动’装甲。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_einstein",
+        "to": "sem_ae",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "成员",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_tesla",
     "tags": [
       "人物",
-      "同伴"
+      "逆熵"
     ],
     "mem_type": {
       "Semantic": {
         "content": "特斯拉",
         "aliases": [
-          "特斯拉",
-          "逆熵成员"
+          "特斯拉博士",
+          "特斯拉"
         ],
         "concept_type": "Entity",
-        "description": "特斯拉是逆熵的重要成员，经常给布洛妮娅各种科技支持。"
+        "description": "特斯拉是逆熵的重要成员，经常给布洛妮娅提供科技支持，与布洛妮娅并肩作战。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_tesla",
+        "to": "sem_ae",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "成员",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_wendy",
     "tags": [
       "人物",
-      "悲剧"
+      "律者"
     ],
     "mem_type": {
       "Semantic": {
         "content": "温蒂",
         "aliases": [
           "温蒂",
-          "风之律者",
-          "第四律者"
+          "第四律者",
+          "风之律者"
         ],
         "concept_type": "Entity",
-        "description": "温蒂是第四律者，风之律者。布洛妮娅曾因同样面临瘫痪命运而对她感同身受，但可可利亚的操控让布洛妮娅不得不做出口是心非的事，最终导致温蒂的悲剧。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_twins",
-    "tags": [
-      "人物",
-      "家人"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "萝莎莉娅·阿琳 & 莉莉娅·阿琳",
-        "aliases": [
-          "双子",
-          "萝莎莉娅",
-          "莉莉娅",
-          "阿琳姐妹"
-        ],
-        "concept_type": "Entity",
-        "description": "萝莎莉娅和莉莉娅是可可利亚孤儿院的同伴，被布洛妮娅称为‘双子’。她们是布洛妮娅重要的家人，一起在海边玩耍让布洛妮娅感受到平静和幸福。她们后来加入逆熵成为新生代战力。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_brownie",
-    "tags": [
-      "人物",
-      "另一个我"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "布朗尼（迷城骇兔）",
-        "aliases": [
-          "骇兔",
-          "布朗尼",
-          "迷城骇兔"
-        ],
-        "concept_type": "Entity",
-        "description": "布朗尼是来自另一个世界泡的‘布洛妮娅’，天穹城的第一骇客，代号‘骇兔’。她与布洛妮娅很像却又完全不同，后来加入了休伯利安的阵营。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_quantum_sea",
-    "tags": [
-      "地点",
-      "特殊空间"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "量子之海",
-        "aliases": [
-          "量子之海",
-          "Quantum Sea"
-        ],
-        "concept_type": "Entity",
-        "description": "量子之海是一个特殊的空间，希儿曾被囚其中，布洛妮娅进入其中寻找她并成为了理之律者。瓦尔特·杨也在其中。"
+        "description": "温蒂是第四律者、风之律者。她同样面临瘫痪的命运，布洛妮娅曾对她感同身受，但受可可利亚操控不得不做口是心非的事，最终导致了她的悲剧。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_quantum_sea",
-        "to": "sit_rescue_seele",
-        "intensity": 0.8,
+        "from": "sem_wendy",
+        "to": "sem_honkai",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "发生地",
-            "confidence": 0.9
+            "verb": "成为律者",
+            "confidence": 0.7
           }
         }
       },
       {
-        "from": "sem_quantum_sea",
-        "to": "sit_become_herrscher",
-        "intensity": 0.8,
+        "from": "sem_wendy",
+        "to": "sem_cocolia",
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "发生地",
+            "verb": "被控制",
+            "confidence": 0.6
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_bronie",
+    "tags": [
+      "人物",
+      "同位体"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "布朗尼",
+        "aliases": [
+          "迷城骇兔",
+          "骇兔",
+          "另一个世界泡的布洛妮娅"
+        ],
+        "concept_type": "Entity",
+        "description": "布朗尼是来自另一个世界泡的布洛妮娅，天穹城的第一骇客，代号‘骇兔’。她和布洛妮娅很像却又完全不同，后来加入休伯利安阵营。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_lyle",
+    "tags": [
+      "人物",
+      "队友"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "莱尔·科洛迪",
+        "aliases": [
+          "莱尔",
+          "莱尔·科洛迪"
+        ],
+        "concept_type": "Entity",
+        "description": "莱尔·科洛迪是后崩坏书时期天命对崩坏第二小队的队员，是布洛妮娅值得信赖的战友。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_lyle",
+        "to": "sem_timido",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "队友",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_lyle",
+        "to": "sem_second_team",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "隶属",
+            "confidence": 0.7
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_timido",
+    "tags": [
+      "人物",
+      "队友"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "缇米朵·丘忒",
+        "aliases": [
+          "缇米朵",
+          "缇米朵·丘忒"
+        ],
+        "concept_type": "Entity",
+        "description": "缇米朵·丘忒是后崩坏书时期天命对崩坏第二小队的队员，是布洛妮娅值得信赖的战友。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_timido",
+        "to": "sem_second_team",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "隶属",
+            "confidence": 0.7
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_kevin",
+    "tags": [
+      "人物",
+      "敌人",
+      "世界蛇"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "凯文·卡斯兰娜",
+        "aliases": [
+          "凯文",
+          "世界蛇尊主",
+          "前文明战士"
+        ],
+        "concept_type": "Entity",
+        "description": "凯文·卡斯兰娜是世界蛇的尊主、前文明战士。在量子之海中他曾试图夺取布洛妮娅的理之律者核心，是强大到令人窒息的对手。布洛妮娅驾照被吊销也与他有关。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_kevin",
+        "to": "sem_honkai",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "利用",
+            "confidence": 0.6
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_mystery",
+    "tags": [
+      "人物",
+      "世界蛇"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "米丝忒琳·沙尼亚特",
+        "aliases": [
+          "羽兔",
+          "米丝忒琳",
+          "世界蛇干部"
+        ],
+        "concept_type": "Entity",
+        "description": "米丝忒琳·沙尼亚特是世界蛇的干部。布洛妮娅后来发现她与可可利亚是朋友，觉得世界的联系有时候很讽刺。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_mystery",
+        "to": "sem_kevin",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "隶属",
+            "confidence": 0.7
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_rosa",
+    "tags": [
+      "人物",
+      "双子"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "萝莎莉娅·阿琳",
+        "aliases": [
+          "萝莎莉娅",
+          "罗莎莉娅",
+          "双子之一"
+        ],
+        "concept_type": "Entity",
+        "description": "萝莎莉娅·阿琳是可可利亚孤儿院的同伴，被布洛妮娅称为‘双子’之一，是重要的家人。后来加入逆熵成为新生代战力。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_rosa",
+        "to": "sem_lili",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "双胞胎",
             "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_lili",
+    "tags": [
+      "人物",
+      "双子"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "莉莉娅·阿琳",
+        "aliases": [
+          "莉莉娅",
+          "双子之一"
+        ],
+        "concept_type": "Entity",
+        "description": "莉莉娅·阿琳是可可利亚孤儿院的同伴，被布洛妮娅称为‘双子’之一，是重要的家人。后来加入逆熵成为新生代战力。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_cocolia_orphanage",
+    "tags": [
+      "地点",
+      "组织"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "可可利亚孤儿院",
+        "aliases": [
+          "孤儿院",
+          "可可利亚孤儿院"
+        ],
+        "concept_type": "Entity",
+        "description": "可可利亚孤儿院是可可利亚在第二次崩坏后建立的孤儿院，收留了大量孤儿。这里是布洛妮娅与希儿相遇的地方，也是她人生转折的起点。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_cocolia_orphanage",
+        "to": "sit_abs_orphanage_location",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "覆盖",
+            "confidence": 0.7
           }
         }
       }
@@ -762,102 +1164,17 @@
           "学园"
         ],
         "concept_type": "Entity",
-        "description": "圣芙蕾雅学园是布洛妮娅学习成为女武神的地方，她在这里遇到了芽衣、琪亚娜、姬子、德丽莎等人，学会了关于羁绊和守护。"
+        "description": "圣芙蕾雅学园是布洛妮娅在长空市第三次崩坏后学习生活的地方。无量塔姬子、德丽莎等人都在这所学园，布洛妮娅在这里逐渐理解了羁绊。"
       }
     },
     "mem_links": [
       {
         "from": "sem_st_freya",
-        "to": "sit_st_freya_life",
-        "intensity": 0.85,
+        "to": "sem_schicksal",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "地点",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_cocolia_orphanage",
-    "tags": [
-      "地点",
-      "孤儿院"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "可可利亚孤儿院",
-        "aliases": [
-          "孤儿院",
-          "可可利亚之家"
-        ],
-        "concept_type": "Entity",
-        "description": "可可利亚建立的孤儿院，收留了大量孤儿。布洛妮娅在这里与希儿相遇，人生从此改变。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_x10",
-    "tags": [
-      "事件",
-      "实验",
-      "悲剧"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "X-10实验",
-        "aliases": [
-          "X-10实验",
-          "海底实验室实验"
-        ],
-        "concept_type": "Abstract",
-        "description": "X-10实验是可可利亚在海底实验室进行的人体实验，目的是激活圣痕和进入量子之海。希儿代替布洛妮娅参加实验而导致量子化消失，布洛妮娅强行进入寻找她，结果双腿被崩坏能破坏，大脑情感回路烧毁。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_x10",
-        "to": "sit_x10_accident",
-        "intensity": 0.95,
-        "link_type": {
-          "Sem": {
-            "verb": "对应",
-            "confidence": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_heavy_cute",
-    "tags": [
-      "装备",
-      "伙伴",
-      "机甲"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "重装小兔19C",
-        "aliases": [
-          "重装小兔",
-          "19C",
-          "小兔",
-          "重装小兔0019（后来）"
-        ],
-        "concept_type": "Entity",
-        "description": "重装小兔19C是希儿在量子化前赋予布洛妮娅的‘再构筑’之力以机甲形式的呈现。它是最忠实的战斗伙伴，可变形为重型火炮或摩托车。后崩坏书时期布洛妮娅换上了新型‘重装小兔0019’，是一把通体纯白的枪刃。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_heavy_cute",
-        "to": "sit_return_to_tianming",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "武器",
+            "verb": "隶属",
             "confidence": 0.8
           }
         }
@@ -865,113 +1182,45 @@
     ]
   },
   {
-    "id": "sem_herrscher_of_reason",
+    "id": "sem_quantum_sea",
     "tags": [
-      "能力",
-      "律者"
+      "地点",
+      "特殊空间"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "理之律者",
+        "content": "量子之海",
         "aliases": [
-          "第二律者",
-          "理之律者核心"
-        ],
-        "concept_type": "Abstract",
-        "description": "理之律者是崩坏中的第二位律者，能力是以崩坏能构造出自身能‘完全理解’的事物。布洛妮娅在量子之海中与理之律者核心融合后成为理之律者，继承自瓦尔特·杨。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_herrscher_of_reason",
-        "to": "sem_truth_herrscher",
-        "intensity": 0.85,
-        "link_type": {
-          "Sem": {
-            "verb": "进化",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_herrscher_of_reason",
-        "to": "sit_become_herrscher",
-        "intensity": 0.95,
-        "link_type": {
-          "Sem": {
-            "verb": "成为",
-            "confidence": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_truth_herrscher",
-    "tags": [
-      "能力",
-      "进化"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "真理之律者",
-        "aliases": [
-          "真理律者",
-          "羽化形态"
-        ],
-        "concept_type": "Abstract",
-        "description": "在跨越终焉之日的战斗中，布洛妮娅理解了‘真理’的真正含义，羽化成为真理之律者，超越了历代所有的理之律者。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_truth_herrscher",
-        "to": "sit_truth_ascension",
-        "intensity": 0.95,
-        "link_type": {
-          "Sem": {
-            "verb": "成为",
-            "confidence": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_homu",
-    "tags": [
-      "物品",
-      "爱好",
-      "吉祥物"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "吼姆",
-        "aliases": [
-          "吼姆",
-          "HoMu",
-          "黄色兔子吉祥物"
+          "量子之海",
+          "Quantum Sea"
         ],
         "concept_type": "Entity",
-        "description": "吼姆是布洛妮娅最喜欢的卡通角色，一个黄色的像兔子一样的吉祥物。布洛妮娅热衷于收集各种吼姆周边，在宿舍专门设置吼姆主题装饰区。被琪亚娜吐槽但不在乎。"
+        "description": "量子之海是希儿被困的地方，也是布洛妮娅遇到瓦尔特·杨、继承理之律者力量的地方。布洛妮娅曾为寻找希儿强行进入实验而身受重伤。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_homu",
-        "to": "sit_homu_daily",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "主题",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
-    "id": "sem_anti_entropy",
+    "id": "sem_siberia",
+    "tags": [
+      "地点",
+      "故乡"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "俄罗斯西伯利亚",
+        "aliases": [
+          "西伯利亚",
+          "俄罗斯"
+        ],
+        "concept_type": "Entity",
+        "description": "西伯利亚是布洛妮娅的出生地。第二次崩坏的灾难让她失去了父母。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_ae",
     "tags": [
       "组织",
       "阵营"
@@ -983,208 +1232,152 @@
           "逆熵",
           "Anti-Entropy"
         ],
-        "concept_type": "Abstract",
-        "description": "逆熵是和天命对立的组织，以科学对抗崩坏。布洛妮娅属于逆熵阵营，与可可利亚（早期）、爱因斯坦、特斯拉等一起行动。后来逆熵与天命重新合并成立新天命。"
+        "concept_type": "Entity",
+        "description": "逆熵是与天命对立的、以科学对抗崩坏的组织。布洛妮娅属于逆熵阵营，与可可利亚、爱因斯坦、特斯拉等一起行动。后来逆熵与天命重新合并成立新天命。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_anti_entropy",
-        "to": "sem_walter",
-        "intensity": 0.7,
+        "from": "sem_ae",
+        "to": "sem_schicksal",
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "领导者",
-            "confidence": 0.8
+            "verb": "敌对",
+            "confidence": 0.6
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_schicksal",
+    "tags": [
+      "组织",
+      "阵营"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "天命",
+        "aliases": [
+          "天命",
+          "Schicksal"
+        ],
+        "concept_type": "Entity",
+        "description": "天命是以科学对抗崩坏的组织，德丽莎后来成为主教。布洛妮娅曾属于逆熵阵营，后崩坏书时期应德丽莎邀请回归天命，担任对崩坏第二小队代理队长。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_honkai",
+    "tags": [
+      "概念",
+      "灾难"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "崩坏",
+        "aliases": [
+          "崩坏",
+          "崩坏现象"
+        ],
+        "concept_type": "Abstract",
+        "description": "崩坏是不断威胁人类的自然灾害，会催生律者等存在。布洛妮娅的许多遭遇都与崩坏有关。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_honkai",
+        "to": "sit_abs_battle_event",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "引发",
+            "confidence": 0.6
           }
         }
       },
       {
-        "from": "sem_anti_entropy",
-        "to": "sem_einstein",
+        "from": "sem_honkai",
+        "to": "sit_abs_battle_environment",
         "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "研究员",
-            "confidence": 0.7
+            "verb": "构成",
+            "confidence": 0.6
           }
         }
       }
     ]
   },
   {
-    "id": "sem_ursa_silver",
+    "id": "sem_x10",
     "tags": [
-      "称号",
-      "过去"
+      "实验",
+      "过去经历"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "乌拉尔银狼",
+        "content": "X-10实验",
         "aliases": [
-          "乌拉尔银狼",
-          "银狼",
-          "少年兵称号"
+          "X-10",
+          "X10实验"
         ],
         "concept_type": "Abstract",
-        "description": "乌拉尔银狼是布洛妮娅作为少年兵时的称号。传说她曾扮成娼妇潜入目标家中，用丝袜勒断他们的喉咙，已有13名高阶军官死于她手。那段时光是她最不愿回想的过去。"
+        "description": "X-10实验是可可利亚在海底实验室进行的人体实验，目的是激活圣痕和进入量子之海。希儿代替布洛妮娅参加并量子化消失，布洛妮娅强行进入实验导致双腿损毁、大脑情感回路烧毁。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_ursa_silver",
-        "to": "sit_as_assassin",
-        "intensity": 0.95,
+        "from": "sem_x10",
+        "to": "sem_quantum_sea",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "代号",
-            "confidence": 1.0
+            "verb": "通向",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_x10",
+        "to": "sem_seele",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "牵涉",
+            "confidence": 0.8
           }
         }
       }
     ]
   },
   {
-    "id": "sem_second_collapse",
-    "tags": [
-      "事件",
-      "背景"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "第二次崩坏",
-        "aliases": [
-          "第二次崩坏",
-          "崩坏战争"
-        ],
-        "concept_type": "Abstract",
-        "description": "第二次崩坏是布洛妮娅父母遇难的灾难，导致她成为孤儿。之后她被军队收养成为少年兵。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_parents",
-    "tags": [
-      "人物",
-      "家人"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "阿列克谢·西达维奇·扎伊采夫和亚历山德拉·巴普洛夫娜·扎伊切克",
-        "aliases": [
-          "布洛妮娅的父母",
-          "父亲母亲"
-        ],
-        "concept_type": "Entity",
-        "description": "布洛妮娅的父母，在第二次崩坏中丧生。父亲叫阿列克谢·西达维奇·扎伊采夫，母亲叫亚历山德拉·巴普洛夫娜·扎伊切克。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_xing",
-    "tags": [
-      "人物",
-      "孤儿院同伴"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "杏·玛尔",
-        "aliases": [
-          "杏",
-          "孤儿院同伴"
-        ],
-        "concept_type": "Entity",
-        "description": "杏·玛尔是可可利亚孤儿院的同伴，因为我与希儿走得近而嫉妒我，曾把我从楼梯上推下并踩踏我的腿。她的里人格被希儿的里人格报复。我们之间的关系很复杂。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_team_members",
-    "tags": [
-      "人物",
-      "战友"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "莱尔·科洛迪 & 缇米朵·丘忒",
-        "aliases": [
-          "莱尔",
-          "缇米朵",
-          "对崩坏第二小队队员"
-        ],
-        "concept_type": "Entity",
-        "description": "后崩坏书时期布洛妮娅在对崩坏第二小队的队友，值得信赖的战友。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_aphrodite",
-    "tags": [
-      "人物",
-      "世界蛇"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "羽兔（米丝忒琳·沙尼亚特）",
-        "aliases": [
-          "羽兔",
-          "米丝忒琳",
-          "世界蛇干部"
-        ],
-        "concept_type": "Entity",
-        "description": "世界蛇的干部，后来发现她与布洛妮娅的妈妈可可利亚是朋友。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_moon_cradle",
-    "tags": [
-      "物品",
-      "系统"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "月光王座",
-        "aliases": [
-          "月光王座",
-          "Moon Cradle"
-        ],
-        "concept_type": "Entity",
-        "description": "月光王座是一个系统，布洛妮娅曾轻松破解它的系统。"
-      }
-    },
-    "mem_links": []
-  },
-  {
     "id": "sem_project_mei",
     "tags": [
-      "事件",
-      "计划"
+      "实验",
+      "阴谋"
     ],
     "mem_type": {
       "Semantic": {
         "content": "Project-Mei",
         "aliases": [
           "Project-Mei",
-          "人工崩坏计划"
+          "项目Mei"
         ],
         "concept_type": "Abstract",
-        "description": "Project-Mei是可可利亚策划的项目，旨在制造人工崩坏。布洛妮娅因此对可可利亚产生恨意。"
+        "description": "Project-Mei是可可利亚策划的项目，制造了人工崩坏。布洛妮娅因此恨过可可利亚。"
       }
     },
     "mem_links": [
       {
         "from": "sem_project_mei",
-        "to": "sem_cocolia",
-        "intensity": 0.6,
+        "to": "sem_biochip",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "策划",
+            "verb": "包含",
             "confidence": 0.7
           }
         }
@@ -1192,7 +1385,7 @@
     ]
   },
   {
-    "id": "sem_bio_chip",
+    "id": "sem_biochip",
     "tags": [
       "物品",
       "控制"
@@ -1204,68 +1397,393 @@
           "生物芯片",
           "控制芯片"
         ],
-        "concept_type": "Abstract",
-        "description": "可可利亚植入布洛妮娅脑中的芯片，用于控制她的行为。布洛妮娅曾烧毁它以保护芽衣，这是他永远无法原谅的事。"
+        "concept_type": "Entity",
+        "description": "可可利亚曾在布洛妮娅脑中植入生物芯片来控制她的行为。布洛妮娅为了不伤害芽衣姐姐而烧毁了芯片，永远无法原谅被人操控。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_bio_chip",
-        "to": "sit_burn_chip",
-        "intensity": 0.95,
+        "from": "sem_biochip",
+        "to": "sem_self",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "被烧毁",
-            "confidence": 1.0
+            "verb": "曾被植入",
+            "confidence": 0.8
           }
         }
       }
     ]
   },
   {
-    "id": "sit_x10_accident",
+    "id": "sem_bunny19c",
     "tags": [
-      "事件",
-      "悲剧",
+      "武器",
+      "伙伴",
+      "机甲"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "重装小兔19C",
+        "aliases": [
+          "重装小兔",
+          "Project Bunny 19C",
+          "小兔"
+        ],
+        "concept_type": "Entity",
+        "description": "重装小兔19C是希儿在量子化前赋予布洛妮娅的‘再构筑’能力以机甲形式呈现的伙伴，是布洛妮娅最忠实的战斗伙伴，可以变形成重型火炮或摩托车。后崩坏书时期19C的主要工作是修bug、写代码，陪希奥拉之家的孩子玩。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_bunny0019",
+    "tags": [
+      "武器",
+      "伙伴"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "重装小兔0019",
+        "aliases": [
+          "重装小兔0019",
+          "0019",
+          "枪刃"
+        ],
+        "concept_type": "Entity",
+        "description": "重装小兔0019是后崩坏书时期布洛妮娅的新武器，一把通体纯白的枪刃，具备手枪模式、光剑模式和重炮模式。名字延续了对‘重装小兔’的珍视。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_bunny0019",
+        "to": "sem_bunny19c",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "后续机体",
+            "confidence": 0.7
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_rational_lawer",
+    "tags": [
+      "律者",
+      "力量"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "理之律者",
+        "aliases": [
+          "理之律者",
+          "第二律者",
+          "理律"
+        ],
+        "concept_type": "Abstract",
+        "description": "理之律者是崩坏中的第二位律者，能力是以崩坏能构造出自身能够‘完全理解’的事物。布洛妮娅在量子之海与理之律者核心融合后成为理之律者，瓦尔特·杨认可她继承这份力量。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_rational_lawer",
+        "to": "sem_honkai",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "对抗",
+            "confidence": 0.6
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_truth_lawer",
+    "tags": [
+      "律者",
+      "力量",
+      "成长"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "真理之律者",
+        "aliases": [
+          "真理之律者",
+          "真理律者"
+        ],
+        "concept_type": "Abstract",
+        "description": "在跨越终焉之日的战斗中，布洛妮娅理解了‘真理’的真正含义，羽化成为真理之律者，超越了历代所有的理之律者。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_truth_lawer",
+        "to": "sem_rational_lawer",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "超越",
+            "confidence": 0.7
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_ural_silver_wolf",
+    "tags": [
+      "称号",
+      "过去经历"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "乌拉尔银狼",
+        "aliases": [
+          "乌拉尔银狼",
+          "银狼",
+          "少年兵称号"
+        ],
+        "concept_type": "Abstract",
+        "description": "乌拉尔银狼是布洛妮娅作为少年兵时的称号。她曾扮成娼妇潜入暗杀目标家中用丝袜勒断他们的喉咙，有13名高阶军官死于她手。这是她最不愿回想的过去。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_ural_silver_wolf",
+        "to": "sem_exoskeleton",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "配备",
+            "confidence": 0.7
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_homu",
+    "tags": [
+      "爱好",
+      "吉祥物"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "吼姆",
+        "aliases": [
+          "吼姆",
+          "Homu",
+          "黄色兔子吉祥物"
+        ],
+        "concept_type": "Entity",
+        "description": "吼姆是布洛妮娅最喜欢的卡通角色，一个黄色的像兔子一样的吉祥物。布洛妮娅收集各种吼姆周边，在宿舍设置吼姆主题装饰区，被琪亚娜吐槽幼稚也不在乎。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_homu",
+        "to": "sit_abs_collect_event",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "触发",
+            "confidence": 0.7
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_hairstyle",
+    "tags": [
+      "外貌",
+      "特征"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "双螺旋卷发",
+        "aliases": [
+          "双涡轮增鸭",
+          "四涡轮增鸭",
+          "双螺旋马尾"
+        ],
+        "concept_type": "Abstract",
+        "description": "双螺旋卷发是布洛妮娅的标志性发型，平时扎成两个螺旋卷，被戏称‘双涡轮增鸭’；理之律者形态下变成四个卷，被称为‘四涡轮增鸭’。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_exoskeleton",
+    "tags": [
+      "装备",
+      "过去经历"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "外骨骼装甲",
+        "aliases": [
+          "外骨骼",
+          "腿部外骨骼装甲"
+        ],
+        "concept_type": "Entity",
+        "description": "幼年时因X-10实验双腿被崩坏能损毁，布洛妮娅一度依赖外骨骼装甲和重装小兔行动，外骨骼也是她的标志之一。成为理之律者修复身体后不再需要。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_game_developer",
+    "tags": [
+      "职业",
+      "后崩坏书"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "游戏制作人",
+        "aliases": [
+          "游戏制作人",
+          "游戏开发者"
+        ],
+        "concept_type": "Abstract",
+        "description": "后崩坏书时期布洛妮娅暂时退出一线，师从瓦尔特·杨成为游戏制作人，在游戏论坛‘合金装备布狼牙’名义下发表高难度攻略。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_second_team",
+    "tags": [
+      "组织",
+      "小队"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "天命对崩坏第二小队",
+        "aliases": [
+          "对崩坏第二小队",
+          "第二小队"
+        ],
+        "concept_type": "Entity",
+        "description": "天命对崩坏第二小队是后崩坏书时期布洛妮娅担任代理队长的战斗小队，队员包括莱尔·科洛迪、缇米朵·丘忒等。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_second_team",
+        "to": "sem_after_honkai_book",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "活跃于",
+            "confidence": 0.7
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_comet_drive",
+    "tags": [
+      "装备",
+      "装甲"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "彗星驱动",
+        "aliases": [
+          "彗星驱动装甲",
+          "Comet Drive"
+        ],
+        "concept_type": "Entity",
+        "description": "彗星驱动是爱因斯坦为布洛妮娅研发的装甲。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_after_honkai_book",
+    "tags": [
+      "时期",
+      "世界观"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "后崩坏书时期",
+        "aliases": [
+          "后崩坏书",
+          "大崩坏结束后的世界"
+        ],
+        "concept_type": "Abstract",
+        "description": "后崩坏书时期是大崩坏结束约8年后的世界。布洛妮娅此时暂时退出天命一线成为游戏制作人，后因圣方丹事件回归天命担任对崩坏第二小队代理队长。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_after_honkai_book",
+        "to": "sem_second_team",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "时期队伍",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_after_honkai_book",
+        "to": "sem_game_developer",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "包含职业",
+            "confidence": 0.7
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_assassinate_cocolia",
+    "tags": [
+      "情境",
+      "具体事件",
       "转折点"
     ],
     "mem_type": {
       "Situation": {
         "SpecificSituation": {
-          "narrative": "布洛妮娅强行进入X-10实验的实验室寻找希儿，结果双腿被崩坏能彻底破坏，大脑情感回路被烧毁。从此以后，布洛妮娅失去了感受喜悦的能力，也无法露出笑容。但布洛妮娅获得了希儿给予的重装小兔19C的能力。",
+          "narrative": "我曾奉命潜入暗杀可可利亚，但她没有杀我，反而收养了我，把我带进可可利亚孤儿院。这是我人生的转折点。",
           "time_span": null,
           "context": {
-            "location": {
-              "name": "可可利亚海底实验室",
-              "coordinates": ""
-            },
+            "location": null,
             "participants": [
               {
-                "name": "布洛妮娅",
-                "role": "实验受害者"
+                "name": "布洛妮娅·扎伊切克",
+                "role": "暗杀者"
               },
               {
-                "name": "希儿",
-                "role": "替代实验者"
+                "name": "可可利亚",
+                "role": "暗杀目标/养母"
               }
             ],
             "emotions": [
               {
-                "name": "悲伤",
+                "name": "意外",
                 "intensity": 0.9
               }
             ],
             "sensory_data": [],
-            "environment": {
-              "atmosphere": "压抑危险",
-              "tone": "黑暗"
-            },
+            "environment": null,
             "event": [
               {
-                "action": "强行闯入",
+                "action": "暗杀未遂并遭收养",
                 "action_intensity": 0.8,
                 "initiator": "布洛妮娅",
-                "target": "实验室"
+                "target": "可可利亚"
               }
             ]
           }
@@ -1274,52 +1792,315 @@
     },
     "mem_links": [
       {
-        "from": "sit_x10_accident",
-        "to": "sem_hil",
-        "intensity": 0.95,
+        "from": "sit_assassinate_cocolia",
+        "to": "sem_cocolia",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "寻找",
-            "confidence": 1.0
+            "verb": "刺杀目标",
+            "confidence": 0.8
           }
         }
       },
       {
-        "from": "sit_x10_accident",
-        "to": "proc_emotionless",
-        "intensity": 0.9,
+        "from": "sit_assassinate_cocolia",
+        "to": "sem_cocolia_orphanage",
+        "intensity": 0.8,
         "link_type": {
-          "Proc": {
-            "prob": 1.0
+          "Sem": {
+            "verb": "进入",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_assassinate_cocolia",
+        "to": "sit_abs_orphanage_location",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
           }
         }
       }
     ]
   },
   {
-    "id": "sit_rescue_seele",
+    "id": "sit_meet_seele_orphanage",
     "tags": [
-      "事件",
-      "重要成就"
+      "情境",
+      "具体事件",
+      "相遇"
     ],
     "mem_type": {
       "Situation": {
         "SpecificSituation": {
-          "narrative": "在2016年，布洛妮娅终于成功从量子之海中将希儿解救出来。",
-          "time_span": "2016-01-01T00:00:00Z",
+          "narrative": "在可可利亚孤儿院，我遇到了希儿。那个温柔、胆小却又无比坚强的女孩，成为改变我一生的人。",
+          "time_span": null,
           "context": {
             "location": {
-              "name": "量子之海",
-              "coordinates": ""
+              "name": "可可利亚孤儿院",
+              "coordinates": "未指明具体坐标"
             },
             "participants": [
               {
-                "name": "布洛妮娅",
-                "role": "救援者"
+                "name": "布洛妮娅·扎伊切克",
+                "role": "孤儿院成员"
               },
               {
-                "name": "希儿",
-                "role": "被救者"
+                "name": "希儿·芙乐艾",
+                "role": "孤儿院同伴"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "温暖",
+                "intensity": 0.8
+              }
+            ],
+            "sensory_data": [],
+            "environment": null,
+            "event": [
+              {
+                "action": "相遇并建立羁绊",
+                "action_intensity": 0.9,
+                "initiator": "命运",
+                "target": "布洛妮娅与希儿"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_meet_seele_orphanage",
+        "to": "sem_seele",
+        "intensity": 1.0,
+        "link_type": {
+          "Sem": {
+            "verb": "遇见",
+            "confidence": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_meet_seele_orphanage",
+        "to": "sem_cocolia_orphanage",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "发生地",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_meet_seele_orphanage",
+        "to": "sit_abs_orphanage_location",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_meet_seele_orphanage",
+        "to": "sit_abstract_social_interaction",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_x10_experiment",
+    "tags": [
+      "情境",
+      "具体事件",
+      "创伤"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "希儿为了不让我参加危险的X-10实验，代替我走进实验室，结果被困在量子之海。我强行进入实验追寻她，双腿被崩坏能破坏，大脑情感回路被烧毁，从此失去喜悦与笑容。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "X-10海底实验室",
+              "coordinates": "深海"
+            },
+            "participants": [
+              {
+                "name": "希儿·芙乐艾",
+                "role": "实验代替者"
+              },
+              {
+                "name": "布洛妮娅·扎伊切克",
+                "role": "强行进入实验的人"
+              },
+              {
+                "name": "可可利亚",
+                "role": "实验主持者"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "悲伤",
+                "intensity": 1.0
+              },
+              {
+                "name": "绝望",
+                "intensity": 0.9
+              }
+            ],
+            "sensory_data": [
+              {
+                "name": "崩坏能的灼烧感",
+                "intensity": 1.0
+              },
+              {
+                "name": "腿部的剧痛",
+                "intensity": 1.0
+              }
+            ],
+            "environment": {
+              "atmosphere": "冰冷、压抑、充满崩坏能",
+              "tone": "绝望"
+            },
+            "event": [
+              {
+                "action": "希儿量子化消失",
+                "action_intensity": 1.0,
+                "initiator": "X-10实验",
+                "target": "希儿"
+              },
+              {
+                "action": "布洛妮娅强行闯入寻找希儿",
+                "action_intensity": 0.9,
+                "initiator": "布洛妮娅",
+                "target": "量子之海"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_x10_experiment",
+        "to": "sem_x10",
+        "intensity": 1.0,
+        "link_type": {
+          "Sem": {
+            "verb": "经历",
+            "confidence": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_x10_experiment",
+        "to": "sem_seele",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "保护",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_x10_experiment",
+        "to": "sem_quantum_sea",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "导致困入",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_x10_experiment",
+        "to": "sit_abs_orphanage_location",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_x10_experiment",
+        "to": "proc_sacrifice_protect",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_x10_experiment",
+        "to": "sit_abstract_problem_solving",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_x10_experiment",
+        "to": "sit_abstract_travel_need",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_x10_experiment",
+        "to": "sit_abstract_loved_ones_in_danger",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_save_seele",
+    "tags": [
+      "情境",
+      "具体事件",
+      "重要时刻"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "2016年，我终于把希儿从量子之海中解救了出来。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "量子之海",
+              "coordinates": "量子态空间"
+            },
+            "participants": [
+              {
+                "name": "布洛妮娅·扎伊切克",
+                "role": "拯救者"
+              },
+              {
+                "name": "希儿·芙乐艾",
+                "role": "被拯救者"
               }
             ],
             "emotions": [
@@ -1332,7 +2113,7 @@
             "environment": null,
             "event": [
               {
-                "action": "救出",
+                "action": "从量子之海救回希儿",
                 "action_intensity": 1.0,
                 "initiator": "布洛妮娅",
                 "target": "希儿"
@@ -1344,9 +2125,9 @@
     },
     "mem_links": [
       {
-        "from": "sit_rescue_seele",
-        "to": "sem_hil",
-        "intensity": 0.95,
+        "from": "sit_save_seele",
+        "to": "sem_seele",
+        "intensity": 1.0,
         "link_type": {
           "Sem": {
             "verb": "解救",
@@ -1355,49 +2136,109 @@
         }
       },
       {
-        "from": "sit_rescue_seele",
-        "to": "proc_hack",
-        "intensity": 0.7,
+        "from": "sit_save_seele",
+        "to": "sem_quantum_sea",
+        "intensity": 0.8,
         "link_type": {
-          "Proc": {
-            "prob": 1.0
+          "Sem": {
+            "verb": "离开",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_save_seele",
+        "to": "sit_abs_comrades_participant",
+        "intensity": 0.6,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_save_seele",
+        "to": "sit_abstract_problem_solving",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_save_seele",
+        "to": "sit_abstract_travel_need",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_save_seele",
+        "to": "sit_abstract_loved_ones_in_danger",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
           }
         }
       }
     ]
   },
   {
-    "id": "sit_become_herrscher",
+    "id": "sit_meet_walter_in_quantum_sea",
     "tags": [
-      "事件",
-      "能力觉醒"
+      "情境",
+      "具体事件",
+      "传承"
     ],
     "mem_type": {
       "Situation": {
         "SpecificSituation": {
-          "narrative": "在量子之海中，布洛妮娅与理之律者的核心融合，被瓦尔特·杨认可，成为新的理之律者。",
+          "narrative": "在量子之海中，我遇到了瓦尔特·杨。他认可我，让我继承理之律者的核心和力量。他与凯文·卡斯兰娜的对峙给了我宝贵的逃脱时间。",
           "time_span": null,
           "context": {
             "location": {
               "name": "量子之海",
-              "coordinates": ""
+              "coordinates": "量子态空间"
             },
             "participants": [
               {
-                "name": "布洛妮娅",
+                "name": "瓦尔特·杨",
+                "role": "前代理之律者"
+              },
+              {
+                "name": "布洛妮娅·扎伊切克",
                 "role": "继承者"
               },
               {
-                "name": "瓦尔特·杨",
-                "role": "前代理之律者，认可者"
+                "name": "凯文·卡斯兰娜",
+                "role": "敌人"
               }
             ],
-            "emotions": [],
+            "emotions": [
+              {
+                "name": "紧张",
+                "intensity": 0.8
+              }
+            ],
             "sensory_data": [],
-            "environment": null,
+            "environment": {
+              "atmosphere": "紧张、压抑",
+              "tone": "生死交锋"
+            },
             "event": [
               {
-                "action": "继承核心",
+                "action": "瓦尔特与凯文对峙",
+                "action_intensity": 0.9,
+                "initiator": "瓦尔特·杨",
+                "target": "凯文·卡斯兰娜"
+              },
+              {
+                "action": "继承理之律者核心",
                 "action_intensity": 1.0,
                 "initiator": "瓦尔特·杨",
                 "target": "布洛妮娅"
@@ -1409,24 +2250,579 @@
     },
     "mem_links": [
       {
-        "from": "sit_become_herrscher",
+        "from": "sit_meet_walter_in_quantum_sea",
         "to": "sem_walter",
-        "intensity": 0.85,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "认可",
+            "verb": "遇见",
             "confidence": 0.9
           }
         }
       },
       {
-        "from": "sit_become_herrscher",
-        "to": "sem_herrscher_of_reason",
-        "intensity": 0.95,
+        "from": "sit_meet_walter_in_quantum_sea",
+        "to": "sem_quantum_sea",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "融合",
+            "verb": "发生于",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_meet_walter_in_quantum_sea",
+        "to": "sem_rational_lawer",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "获得",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_meet_walter_in_quantum_sea",
+        "to": "sem_kevin",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "对峙",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_meet_walter_in_quantum_sea",
+        "to": "sit_abs_battle_environment",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_meet_walter_in_quantum_sea",
+        "to": "sit_abs_battle_event",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_meet_walter_in_quantum_sea",
+        "to": "sit_abstract_social_interaction",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_saint_freya_study",
+    "tags": [
+      "情境",
+      "具体事件",
+      "学园生活"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "长空市第三次崩坏后，我和芽衣姐姐、琪亚娜一起在圣芙蕾雅学园学习生活。姬子老师、德丽莎学园长等人的陪伴，让我渐渐理解了什么是真正的羁绊。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "圣芙蕾雅学园",
+              "coordinates": "未指明具体坐标"
+            },
+            "participants": [
+              {
+                "name": "布洛妮娅·扎伊切克",
+                "role": "学生"
+              },
+              {
+                "name": "雷电芽衣",
+                "role": "同伴"
+              },
+              {
+                "name": "琪亚娜·卡斯兰娜",
+                "role": "同伴"
+              },
+              {
+                "name": "无量塔姬子",
+                "role": "老师"
+              },
+              {
+                "name": "德丽莎·阿波卡利斯",
+                "role": "学园长"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "温暖",
+                "intensity": 0.7
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "温暖而日常",
+              "tone": "平静"
+            },
+            "event": [
+              {
+                "action": "共同学习与生活",
+                "action_intensity": 0.5,
+                "initiator": "布洛妮娅",
+                "target": "伙伴们"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_saint_freya_study",
+        "to": "sem_st_freya",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "就读于",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_saint_freya_study",
+        "to": "sem_mei",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "同行",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_saint_freya_study",
+        "to": "sem_kiana",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "同行",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_saint_freya_study",
+        "to": "sem_himeko",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "受教于",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_saint_freya_study",
+        "to": "sem_theresa",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "受教于",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_saint_freya_study",
+        "to": "sit_abs_comrades_participant",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_saint_freya_study",
+        "to": "sit_abs_cooking_event",
+        "intensity": 0.6,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_saint_freya_study",
+        "to": "sit_abs_banter_event",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_saint_freya_study",
+        "to": "sit_abs_collect_event",
+        "intensity": 0.6,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_saint_freya_study",
+        "to": "sit_abstract_social_interaction",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_sea_promise",
+    "tags": [
+      "情境",
+      "具体事件",
+      "约定"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "希儿和我约好要一起去看海，这个约定终于实现了。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "海边",
+              "coordinates": "未指明具体海岸"
+            },
+            "participants": [
+              {
+                "name": "布洛妮娅·扎伊切克",
+                "role": "约定的一方"
+              },
+              {
+                "name": "希儿·芙乐艾",
+                "role": "约定的一方"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "幸福",
+                "intensity": 0.9
+              }
+            ],
+            "sensory_data": [
+              {
+                "name": "海浪的声音",
+                "intensity": 0.6
+              },
+              {
+                "name": "海风",
+                "intensity": 0.5
+              }
+            ],
+            "environment": {
+              "atmosphere": "宁静、开阔",
+              "tone": "幸福"
+            },
+            "event": [
+              {
+                "action": "一起看海",
+                "action_intensity": 0.9,
+                "initiator": "布洛妮娅与希儿",
+                "target": "海"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_sea_promise",
+        "to": "sem_seele",
+        "intensity": 1.0,
+        "link_type": {
+          "Sem": {
+            "verb": "约定对象",
             "confidence": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_sea_promise",
+        "to": "sit_abs_comrades_participant",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_sea_promise",
+        "to": "sit_abs_banter_event",
+        "intensity": 0.6,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_sea_promise",
+        "to": "sit_abstract_travel_need",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_sea_with_twins",
+    "tags": [
+      "情境",
+      "具体事件",
+      "家人"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "和罗莎莉娅、莉莉娅一起在海边玩耍的那天，我感受到了久违的平静和幸福。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "海边",
+              "coordinates": "未指明具体海岸"
+            },
+            "participants": [
+              {
+                "name": "布洛妮娅·扎伊切克",
+                "role": "玩伴"
+              },
+              {
+                "name": "萝莎莉娅·阿琳",
+                "role": "双子之一"
+              },
+              {
+                "name": "莉莉娅·阿琳",
+                "role": "双子之一"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "平静",
+                "intensity": 0.8
+              },
+              {
+                "name": "幸福",
+                "intensity": 0.8
+              }
+            ],
+            "sensory_data": [
+              {
+                "name": "海浪声",
+                "intensity": 0.5
+              }
+            ],
+            "environment": {
+              "atmosphere": "轻松、欢快",
+              "tone": "幸福"
+            },
+            "event": [
+              {
+                "action": "在海边玩耍",
+                "action_intensity": 0.6,
+                "initiator": "双子",
+                "target": "布洛妮娅"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_sea_with_twins",
+        "to": "sem_rosa",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "同游",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_sea_with_twins",
+        "to": "sem_lili",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "同游",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_sea_with_twins",
+        "to": "sit_abs_comrades_participant",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_sea_with_twins",
+        "to": "sit_abs_banter_event",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_sea_with_twins",
+        "to": "sit_abstract_social_interaction",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_xing_injury",
+    "tags": [
+      "情境",
+      "具体事件",
+      "创伤"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "杏·玛尔因为嫉妒我和希儿走得近，把我从楼梯上推下去，还反复踩踏我的腿使其骨折。后来希儿的里人格为我报了仇。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "可可利亚孤儿院",
+              "coordinates": "未指明具体坐标"
+            },
+            "participants": [
+              {
+                "name": "布洛妮娅·扎伊切克",
+                "role": "受害者"
+              },
+              {
+                "name": "杏·玛尔",
+                "role": "加害者"
+              },
+              {
+                "name": "希儿（里人格）",
+                "role": "报复者"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "痛苦",
+                "intensity": 0.9
+              },
+              {
+                "name": "愤怒",
+                "intensity": 0.8
+              }
+            ],
+            "sensory_data": [
+              {
+                "name": "腿部被踩踏的剧痛",
+                "intensity": 1.0
+              }
+            ],
+            "environment": null,
+            "event": [
+              {
+                "action": "推下楼梯并踩踏腿部",
+                "action_intensity": 1.0,
+                "initiator": "杏·玛尔",
+                "target": "布洛妮娅"
+              },
+              {
+                "action": "里人格希儿报复杏",
+                "action_intensity": 0.8,
+                "initiator": "希儿（里人格）",
+                "target": "杏·玛尔"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_xing_injury",
+        "to": "sem_xing",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "加害者",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_xing_injury",
+        "to": "sem_seele",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "起因",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_xing_injury",
+        "to": "sem_black_seele",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "复仇",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_xing_injury",
+        "to": "sit_abs_orphanage_location",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
           }
         }
       }
@@ -1435,37 +2831,43 @@
   {
     "id": "sit_burn_chip",
     "tags": [
-      "事件",
+      "情境",
+      "具体事件",
       "牺牲"
     ],
     "mem_type": {
       "Situation": {
         "SpecificSituation": {
-          "narrative": "为了保护芽衣姐姐，布洛妮娅烧毁了自己脑中的生物芯片，当时以为会死，但宁愿牺牲自己也不愿伤害芽衣姐姐。",
+          "narrative": "为了保护芽衣姐姐，我烧毁了自己脑中的生物芯片。那时我以为自己会死，但我宁愿牺牲自己也不愿伤害她。",
           "time_span": null,
           "context": {
             "location": null,
             "participants": [
               {
-                "name": "布洛妮娅",
+                "name": "布洛妮娅·扎伊切克",
                 "role": "牺牲者"
               },
               {
                 "name": "雷电芽衣",
-                "role": "保护对象"
+                "role": "被保护者"
               }
             ],
             "emotions": [
               {
-                "name": "勇敢",
-                "intensity": 0.8
+                "name": "决绝",
+                "intensity": 0.95
               }
             ],
-            "sensory_data": [],
+            "sensory_data": [
+              {
+                "name": "脑中的灼烧感",
+                "intensity": 0.9
+              }
+            ],
             "environment": null,
             "event": [
               {
-                "action": "烧毁芯片",
+                "action": "烧毁脑内生物芯片",
                 "action_intensity": 1.0,
                 "initiator": "布洛妮娅",
                 "target": "自己"
@@ -1479,7 +2881,7 @@
       {
         "from": "sit_burn_chip",
         "to": "sem_mei",
-        "intensity": 0.95,
+        "intensity": 1.0,
         "link_type": {
           "Sem": {
             "verb": "保护",
@@ -1489,40 +2891,85 @@
       },
       {
         "from": "sit_burn_chip",
-        "to": "sem_bio_chip",
-        "intensity": 0.95,
+        "to": "sem_biochip",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
             "verb": "烧毁",
-            "confidence": 1.0
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_burn_chip",
+        "to": "sit_abs_comrades_participant",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_burn_chip",
+        "to": "proc_sacrifice_protect",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_burn_chip",
+        "to": "sit_abstract_loved_ones_in_danger",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
           }
         }
       }
     ]
   },
   {
-    "id": "sit_truth_ascension",
+    "id": "sit_be_game_dev",
     "tags": [
-      "事件",
-      "进化"
+      "情境",
+      "具体事件",
+      "后崩坏书"
     ],
     "mem_type": {
       "Situation": {
         "SpecificSituation": {
-          "narrative": "在跨越终焉之日的战斗中，布洛妮娅理解了真理的真正含义，羽化成为真理之律者，超越了历代所有理之律者。",
+          "narrative": "后崩坏书时期，我暂时退出了天命一线，师从瓦尔特·杨成为游戏制作人。",
           "time_span": null,
           "context": {
             "location": null,
-            "participants": [],
-            "emotions": [],
+            "participants": [
+              {
+                "name": "布洛妮娅·扎伊切克",
+                "role": "游戏制作人"
+              },
+              {
+                "name": "瓦尔特·杨",
+                "role": "导师"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "平静",
+                "intensity": 0.5
+              }
+            ],
             "sensory_data": [],
             "environment": null,
             "event": [
               {
-                "action": "羽化",
-                "action_intensity": 1.0,
+                "action": "学习制作游戏",
+                "action_intensity": 0.5,
                 "initiator": "布洛妮娅",
-                "target": "真理之律者"
+                "target": "游戏制作"
               }
             ]
           }
@@ -1531,240 +2978,260 @@
     },
     "mem_links": [
       {
-        "from": "sit_truth_ascension",
-        "to": "sem_truth_herrscher",
-        "intensity": 0.95,
+        "from": "sit_be_game_dev",
+        "to": "sem_walter",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "师从",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_be_game_dev",
+        "to": "sem_game_developer",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "成为",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_be_game_dev",
+        "to": "sem_after_honkai_book",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "时期",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_be_game_dev",
+        "to": "sit_abs_collect_event",
+        "intensity": 0.6,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_st_fangdan_return",
+    "tags": [
+      "情境",
+      "具体事件",
+      "回归"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "圣方丹事件后，应德丽莎主教的邀请，我重新回归天命，担任对崩坏第二小队的代理队长。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "圣方丹",
+              "coordinates": "未指明具体坐标"
+            },
+            "participants": [
+              {
+                "name": "德丽莎·阿波卡利斯",
+                "role": "天命主教"
+              },
+              {
+                "name": "布洛妮娅·扎伊切克",
+                "role": "代理队长"
+              },
+              {
+                "name": "莱尔·科洛迪",
+                "role": "队员"
+              },
+              {
+                "name": "缇米朵·丘忒",
+                "role": "队员"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "坚定",
+                "intensity": 0.7
+              }
+            ],
+            "sensory_data": [],
+            "environment": null,
+            "event": [
+              {
+                "action": "回归天命并担任代理队长",
+                "action_intensity": 0.7,
+                "initiator": "德丽莎",
+                "target": "布洛妮娅"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_st_fangdan_return",
+        "to": "sem_theresa",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "受邀",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_st_fangdan_return",
+        "to": "sem_second_team",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "担任队长",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_st_fangdan_return",
+        "to": "sit_abs_battle_environment",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_st_fangdan_return",
+        "to": "sit_abs_battle_event",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_st_fangdan_return",
+        "to": "proc_combat_ranged",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_st_fangdan_return",
+        "to": "sit_abstract_travel_need",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_truth_lawer_ascend",
+    "tags": [
+      "情境",
+      "具体事件",
+      "成长"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在跨越终焉之日的战斗中，我进一步明白了真理的意义，羽化成为真理之律者，超越了历代所有的理之律者。",
+          "time_span": null,
+          "context": {
+            "location": null,
+            "participants": [
+              {
+                "name": "布洛妮娅·扎伊切克",
+                "role": "羽化者"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "觉悟",
+                "intensity": 0.9
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "宏大、庄严",
+              "tone": "终焉之战"
+            },
+            "event": [
+              {
+                "action": "羽化为真理之律者",
+                "action_intensity": 1.0,
+                "initiator": "布洛妮娅",
+                "target": "自己"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_truth_lawer_ascend",
+        "to": "sem_truth_lawer",
+        "intensity": 1.0,
         "link_type": {
           "Sem": {
             "verb": "成为",
             "confidence": 1.0
           }
         }
-      }
-    ]
-  },
-  {
-    "id": "sit_st_freya_life",
-    "tags": [
-      "经历",
-      "日常"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "布洛妮娅在圣芙蕾雅学园与琪亚娜、芽衣、姬子老师、德丽莎学园长等人一起学习生活，渐渐理解了羁绊的意义。她经常和琪亚娜斗嘴，用智商碾压她，一起执行任务。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "圣芙蕾雅学园",
-              "coordinates": ""
-            },
-            "participants": [
-              {
-                "name": "琪亚娜",
-                "role": "朋友"
-              },
-              {
-                "name": "芽衣",
-                "role": "姐姐"
-              },
-              {
-                "name": "姬子",
-                "role": "老师"
-              },
-              {
-                "name": "德丽莎",
-                "role": "学园长"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "平静",
-                "intensity": 0.6
-              }
-            ],
-            "sensory_data": [],
-            "environment": null,
-            "event": []
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_st_freya_life",
-        "to": "sem_st_freya",
-        "intensity": 0.85,
-        "link_type": {
-          "Sem": {
-            "verb": "地点",
-            "confidence": 0.9
-          }
-        }
       },
       {
-        "from": "sit_st_freya_life",
-        "to": "sem_kiana",
-        "intensity": 0.75,
-        "link_type": {
-          "Sem": {
-            "verb": "同伴",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_st_freya_life",
-        "to": "sem_mei",
-        "intensity": 0.75,
-        "link_type": {
-          "Sem": {
-            "verb": "同伴",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_st_freya_life",
-        "to": "sem_jizi",
-        "intensity": 0.75,
-        "link_type": {
-          "Sem": {
-            "verb": "老师",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_st_freya_life",
-        "to": "sem_teresa",
-        "intensity": 0.75,
-        "link_type": {
-          "Sem": {
-            "verb": "学园长",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_st_freya_life",
-        "to": "proc_third_person",
+        "from": "sit_truth_lawer_ascend",
+        "to": "sem_rational_lawer",
         "intensity": 0.8,
         "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_homu_daily",
-    "tags": [
-      "爱好",
-      "日常"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "布洛妮娅非常喜欢吼姆，热衷于收集各种吼姆周边，在宿舍里专门设置了吼姆主题装饰区。她经常和吼姆周边一起打游戏，被琪亚娜吐槽‘幼稚’，但布洛妮娅不在乎。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "圣芙蕾雅学园宿舍",
-              "coordinates": ""
-            },
-            "participants": [
-              {
-                "name": "琪亚娜",
-                "role": "吐槽者"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "喜爱",
-                "intensity": 0.9
-              }
-            ],
-            "sensory_data": [],
-            "environment": null,
-            "event": []
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_homu_daily",
-        "to": "sem_homu",
-        "intensity": 0.95,
-        "link_type": {
           "Sem": {
-            "verb": "喜爱",
-            "confidence": 1.0
+            "verb": "超越",
+            "confidence": 0.8
           }
         }
       },
       {
-        "from": "sit_homu_daily",
-        "to": "proc_game_skill",
+        "from": "sit_truth_lawer_ascend",
+        "to": "sit_abs_battle_environment",
         "intensity": 0.8,
         "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_cooking",
-    "tags": [
-      "技能",
-      "日常"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "布洛妮娅擅长烹饪俄罗斯菜，特别是甜菜汤。当她做饭时，总会不自觉地想象希儿在身边，这样就能做出满怀心意的料理了。",
-          "time_span": null,
-          "context": {
-            "location": null,
-            "participants": [
-              {
-                "name": "希儿",
-                "role": "想象中的陪伴者"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "温暖",
-                "intensity": 0.7
-              }
-            ],
-            "sensory_data": [],
-            "environment": null,
-            "event": []
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_cooking",
-        "to": "sem_hil",
-        "intensity": 0.85,
-        "link_type": {
-          "Sem": {
-            "verb": "想象",
-            "confidence": 0.9
+          "Situation": {
+            "SpecificToAbstract": {}
           }
         }
       },
       {
-        "from": "sit_cooking",
-        "to": "proc_cooking_russian",
-        "intensity": 0.9,
+        "from": "sit_truth_lawer_ascend",
+        "to": "sit_abs_battle_event",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_truth_lawer_ascend",
+        "to": "proc_construct_weapons",
+        "intensity": 1.0,
         "link_type": {
           "Proc": {
             "prob": 1.0
@@ -1774,312 +3241,351 @@
     ]
   },
   {
-    "id": "sit_as_assassin",
+    "id": "sit_abs_battle_environment",
     "tags": [
-      "过去",
-      "黑暗"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "布洛妮娅曾作为少年兵‘乌拉尔银狼’执行暗杀任务，杀害了13名高阶军官。那段时光是她最不愿回想的过去。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "俄罗斯各地",
-              "coordinates": ""
-            },
-            "participants": [
-              {
-                "name": "布洛妮娅",
-                "role": "杀手"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "厌恶",
-                "intensity": 0.7
-              }
-            ],
-            "sensory_data": [],
-            "environment": null,
-            "event": []
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_as_assassin",
-        "to": "sem_ursa_silver",
-        "intensity": 0.95,
-        "link_type": {
-          "Sem": {
-            "verb": "代号",
-            "confidence": 1.0
-          }
-        }
-      },
-      {
-        "from": "sit_as_assassin",
-        "to": "proc_fight_style",
-        "intensity": 0.9,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_game_developer",
-    "tags": [
-      "职业",
-      "后崩坏书"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "在后崩坏书时期，布洛妮娅暂时退出天命一线，师从瓦尔特·杨成为游戏制作人。她以‘合金装备布狼牙’的名义在游戏论坛发布高难度攻略，被人当作职业玩家。",
-          "time_span": "2026-01-01T00:00:00Z",
-          "context": {
-            "location": {
-              "name": "游戏工作室",
-              "coordinates": ""
-            },
-            "participants": [
-              {
-                "name": "瓦尔特·杨",
-                "role": "导师"
-              }
-            ],
-            "emotions": [],
-            "sensory_data": [],
-            "environment": null,
-            "event": [
-              {
-                "action": "制作游戏",
-                "action_intensity": 0.5,
-                "initiator": "",
-                "target": ""
-              }
-            ]
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_game_developer",
-        "to": "sem_walter",
-        "intensity": 0.85,
-        "link_type": {
-          "Sem": {
-            "verb": "师从",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_game_developer",
-        "to": "sem_anti_entropy",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "相关",
-            "confidence": 0.6
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_return_to_tianming",
-    "tags": [
-      "事件",
-      "回归"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "在圣方丹事件后，布洛妮娅应德丽莎主教的邀请再度回归天命，担任对崩坏第二小队的代理队长。她的新武器‘重装小兔0019’替代了原来的19C。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "天命总部",
-              "coordinates": ""
-            },
-            "participants": [
-              {
-                "name": "德丽莎",
-                "role": "邀请者"
-              }
-            ],
-            "emotions": [],
-            "sensory_data": [],
-            "environment": null,
-            "event": [
-              {
-                "action": "回归",
-                "action_intensity": 0.6,
-                "initiator": "",
-                "target": ""
-              }
-            ]
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_return_to_tianming",
-        "to": "sem_teresa",
-        "intensity": 0.85,
-        "link_type": {
-          "Sem": {
-            "verb": "应约",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_beach_with_twins",
-    "tags": [
-      "回忆",
-      "幸福"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "布洛妮娅和萝莎莉娅、莉莉娅在海边玩耍的那天，让她感受到了久违的平静和幸福。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "海边",
-              "coordinates": ""
-            },
-            "participants": [
-              {
-                "name": "萝莎莉娅",
-                "role": "家人"
-              },
-              {
-                "name": "莉莉娅",
-                "role": "家人"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "幸福",
-                "intensity": 0.8
-              }
-            ],
-            "sensory_data": [],
-            "environment": null,
-            "event": []
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_beach_with_twins",
-        "to": "sem_twins",
-        "intensity": 0.85,
-        "link_type": {
-          "Sem": {
-            "verb": "陪伴",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_abstract_event_collect",
-    "tags": [
-      "爱好",
-      "抽象事件"
+      "抽象情境",
+      "战斗",
+      "环境"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
-          "Event": {
-            "action": "收集吼姆周边",
-            "action_intensity": 0.8,
-            "initiator": "布洛妮娅",
-            "target": "吼姆周边"
+          "Environment": {
+            "atmosphere": "紧张、充满杀意与硝烟",
+            "tone": "危机四伏"
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_abstract_event_collect",
-        "to": "sit_homu_daily",
-        "intensity": 0.8,
+        "from": "sit_abs_battle_environment",
+        "to": "sem_honkai",
+        "intensity": 0.7,
         "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
+          "Sem": {
+            "verb": "涉及",
+            "confidence": 0.7
           }
         }
       },
       {
-        "from": "sit_abstract_event_collect",
-        "to": "proc_game_skill",
-        "intensity": 0.7,
+        "from": "sit_abs_battle_environment",
+        "to": "sem_kevin",
+        "intensity": 0.5,
+        "link_type": {
+          "Sem": {
+            "verb": "可能遭遇",
+            "confidence": 0.5
+          }
+        }
+      },
+      {
+        "from": "sit_abs_battle_environment",
+        "to": "proc_combat_ranged",
+        "intensity": 0.5,
         "link_type": {
           "Proc": {
-            "prob": 1.0
+            "prob": 0.5
+          }
+        }
+      },
+      {
+        "from": "sit_abs_battle_environment",
+        "to": "proc_construct_weapons",
+        "intensity": 0.2,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      },
+      {
+        "from": "sit_abs_battle_environment",
+        "to": "proc_drive_motorcycle",
+        "intensity": 0.2,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      },
+      {
+        "from": "sit_abs_battle_environment",
+        "to": "proc_hack",
+        "intensity": 0.1,
+        "link_type": {
+          "Proc": {
+            "prob": 0.1
           }
         }
       }
     ]
   },
   {
-    "id": "sit_abstract_location_quantum",
+    "id": "sit_abs_orphanage_location",
     "tags": [
-      "地点",
-      "抽象"
+      "抽象情境",
+      "地点"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
           "Location": {
-            "name": "量子之海",
-            "coordinates": ""
+            "name": "孤儿院的生活区",
+            "coordinates": "可可利亚孤儿院内"
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_abstract_location_quantum",
-        "to": "sit_rescue_seele",
+        "from": "sit_abs_orphanage_location",
+        "to": "sem_cocolia_orphanage",
         "intensity": 0.8,
         "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
+          "Sem": {
+            "verb": "地点",
+            "confidence": 0.8
           }
         }
       },
       {
-        "from": "sit_abstract_location_quantum",
-        "to": "sit_become_herrscher",
-        "intensity": 0.8,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_abstract_location_quantum",
-        "to": "proc_fight_style",
+        "from": "sit_abs_orphanage_location",
+        "to": "sem_siberia",
         "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "位于",
+            "confidence": 0.7
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_comrades_participant",
+    "tags": [
+      "抽象情境",
+      "参与者"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Participant": {
+            "name": "伙伴们",
+            "role": "并肩作战、互相保护的战友与家人"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_comrades_participant",
+        "to": "sem_seele",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_abs_comrades_participant",
+        "to": "sem_mei",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_abs_comrades_participant",
+        "to": "sem_kiana",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_abs_comrades_participant",
+        "to": "sem_second_team",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "包含",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_abs_comrades_participant",
+        "to": "proc_speak_third_person",
+        "intensity": 0.5,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5
+          }
+        }
+      },
+      {
+        "from": "sit_abs_comrades_participant",
+        "to": "proc_hide_emotion",
+        "intensity": 0.3,
+        "link_type": {
+          "Proc": {
+            "prob": 0.3
+          }
+        }
+      },
+      {
+        "from": "sit_abs_comrades_participant",
+        "to": "proc_sacrifice_protect",
+        "intensity": 0.2,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_battle_event",
+    "tags": [
+      "抽象情境",
+      "战斗",
+      "事件模式"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "与敌人正面交战",
+            "action_intensity": 0.8,
+            "initiator": "敌人",
+            "target": "布洛妮娅或伙伴"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_battle_event",
+        "to": "sem_honkai",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "主题",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_abs_battle_event",
+        "to": "sem_kevin",
+        "intensity": 0.5,
+        "link_type": {
+          "Sem": {
+            "verb": "敌人",
+            "confidence": 0.5
+          }
+        }
+      },
+      {
+        "from": "sit_abs_battle_event",
+        "to": "proc_combat_ranged",
+        "intensity": 0.45,
+        "link_type": {
+          "Proc": {
+            "prob": 0.45
+          }
+        }
+      },
+      {
+        "from": "sit_abs_battle_event",
+        "to": "proc_think_logic",
+        "intensity": 0.3,
+        "link_type": {
+          "Proc": {
+            "prob": 0.3
+          }
+        }
+      },
+      {
+        "from": "sit_abs_battle_event",
+        "to": "proc_sacrifice_protect",
+        "intensity": 0.15,
+        "link_type": {
+          "Proc": {
+            "prob": 0.15
+          }
+        }
+      },
+      {
+        "from": "sit_abs_battle_event",
+        "to": "proc_construct_weapons",
+        "intensity": 0.1,
+        "link_type": {
+          "Proc": {
+            "prob": 0.1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_cooking_event",
+    "tags": [
+      "抽象情境",
+      "烹饪",
+      "事件模式"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "在厨房做料理时想象重要的人在身边",
+            "action_intensity": 0.4,
+            "initiator": "布洛妮娅",
+            "target": "料理"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_cooking_event",
+        "to": "sem_seele",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "联想",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_abs_cooking_event",
+        "to": "sem_mei",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "可能为",
+            "confidence": 0.6
+          }
+        }
+      },
+      {
+        "from": "sit_abs_cooking_event",
+        "to": "proc_cook_russian",
+        "intensity": 1.0,
         "link_type": {
           "Proc": {
             "prob": 1.0
@@ -2089,76 +3595,182 @@
     ]
   },
   {
-    "id": "sit_abstract_participant_seele",
+    "id": "sit_abs_banter_event",
     "tags": [
-      "人物",
-      "抽象"
+      "抽象情境",
+      "日常",
+      "事件模式"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
-          "Participant": {
-            "name": "希儿",
-            "role": "被守护者"
+          "Event": {
+            "action": "与亲近的伙伴斗嘴或互相吐槽",
+            "action_intensity": 0.5,
+            "initiator": "伙伴们",
+            "target": "布洛妮娅"
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_abstract_participant_seele",
-        "to": "sit_x10_accident",
-        "intensity": 0.8,
+        "from": "sit_abs_banter_event",
+        "to": "sem_seele",
+        "intensity": 0.7,
         "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
+          "Sem": {
+            "verb": "参与",
+            "confidence": 0.7
           }
         }
       },
       {
-        "from": "sit_abstract_participant_seele",
-        "to": "sit_rescue_seele",
-        "intensity": 0.8,
+        "from": "sit_abs_banter_event",
+        "to": "sem_mei",
+        "intensity": 0.7,
         "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
+          "Sem": {
+            "verb": "参与",
+            "confidence": 0.7
           }
         }
       },
       {
-        "from": "sit_abstract_participant_seele",
-        "to": "sit_cooking",
+        "from": "sit_abs_banter_event",
+        "to": "sem_kiana",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "参与",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_abs_banter_event",
+        "to": "sem_rosa",
         "intensity": 0.6,
         "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
+          "Sem": {
+            "verb": "参与",
+            "confidence": 0.6
+          }
+        }
+      },
+      {
+        "from": "sit_abs_banter_event",
+        "to": "proc_speak_third_person",
+        "intensity": 0.7,
+        "link_type": {
+          "Proc": {
+            "prob": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_abs_banter_event",
+        "to": "proc_hide_emotion",
+        "intensity": 0.3,
+        "link_type": {
+          "Proc": {
+            "prob": 0.3
           }
         }
       }
     ]
   },
   {
-    "id": "proc_third_person",
+    "id": "sit_abs_collect_event",
     "tags": [
-      "习惯",
-      "说话方式"
+      "抽象情境",
+      "爱好",
+      "事件模式"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "在商店或网络看到喜欢的角色周边",
+            "action_intensity": 0.6,
+            "initiator": "布洛妮娅",
+            "target": "周边商品"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_collect_event",
+        "to": "sem_homu",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "收集对象",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_abs_collect_event",
+        "to": "proc_collect_homu",
+        "intensity": 0.7,
+        "link_type": {
+          "Proc": {
+            "prob": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_abs_collect_event",
+        "to": "proc_game_skill",
+        "intensity": 0.3,
+        "link_type": {
+          "Proc": {
+            "prob": 0.3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_none",
+    "tags": [
+      "默认",
+      "空闲"
     ],
     "mem_type": {
       "Procedure": {
         "action": {
-          "content": "用第三人称称呼自己，如‘布洛妮娅觉得’而不是‘我觉得’。",
+          "content": "我暂时没有采取任何特定行动",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "proc_speak_third_person",
+    "tags": [
+      "说话方式",
+      "习惯"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "与他人交流时，说话习惯用第三人称称呼自己为‘布洛妮娅’，比如‘布洛妮娅觉得……’，语言简练且很少用‘我’。",
           "action_type": "Speak"
         }
       }
     },
     "mem_links": [
       {
-        "from": "proc_third_person",
+        "from": "proc_speak_third_person",
         "to": "sem_self",
-        "intensity": 0.7,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "体现",
+            "verb": "自称",
             "confidence": 0.9
           }
         }
@@ -2166,27 +3778,83 @@
     ]
   },
   {
-    "id": "proc_emotionless",
+    "id": "proc_think_logic",
     "tags": [
-      "习惯",
-      "情感表达"
+      "思维习惯",
+      "理性"
     ],
     "mem_type": {
       "Procedure": {
         "action": {
-          "content": "隐藏情感，保持平静外表，极少表现出情绪。",
+          "content": "遇到问题时习惯用数据和逻辑分析一切，优先冷静分析而非感情用事，用理性代替外露的情绪。",
           "action_type": "Think"
         }
       }
     },
     "mem_links": [
       {
-        "from": "proc_emotionless",
-        "to": "sem_x10",
+        "from": "proc_think_logic",
+        "to": "sem_rational_lawer",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "源于",
+            "verb": "体现理性",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_hide_emotion",
+    "tags": [
+      "性格",
+      "习惯"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "在他人面前习惯压抑表情和情绪波动，即使内心有强烈感情也极少显露，看起来像‘三无’。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_hide_emotion",
+        "to": "sem_self",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "塑造形象",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_collect_homu",
+    "tags": [
+      "爱好",
+      "习惯"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "看到吼姆相关周边时会感到开心并忍不住收集，即使被吐槽幼稚也不在乎；喜欢和吼姆周边一起打游戏。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_collect_homu",
+        "to": "sem_homu",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "收集",
             "confidence": 0.9
           }
         }
@@ -2202,7 +3870,7 @@
     "mem_type": {
       "Procedure": {
         "action": {
-          "content": "游戏高手，精通各种游戏，能发布高难度攻略。",
+          "content": "打游戏时表现专业，会在论坛以‘合金装备布狼牙’名义发表高难度攻略，被当作职业玩家。",
           "action_type": {
             "Skill": {}
           }
@@ -2212,11 +3880,11 @@
     "mem_links": [
       {
         "from": "proc_game_skill",
-        "to": "sem_homu",
-        "intensity": 0.5,
+        "to": "sem_game_developer",
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "相关",
+            "verb": "相关联",
             "confidence": 0.6
           }
         }
@@ -2232,37 +3900,25 @@
     "mem_type": {
       "Procedure": {
         "action": {
-          "content": "黑客技术高超，能轻松入侵各种系统。",
+          "content": "面对需要入侵的系统时，能轻松破解月光王座系统和各种数据库，掌握强大计算机黑客能力。",
           "action_type": {
             "Skill": {}
           }
         }
       }
     },
-    "mem_links": [
-      {
-        "from": "proc_hack",
-        "to": "sem_anti_entropy",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "服务",
-            "confidence": 0.6
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
-    "id": "proc_fight_style",
+    "id": "proc_combat_ranged",
     "tags": [
-      "战斗",
-      "习惯"
+      "技能",
+      "战斗"
     ],
     "mem_type": {
       "Procedure": {
         "action": {
-          "content": "远程火力压制和精确打击，使用重装小兔进行蓄力攻击和重炮。",
+          "content": "在战斗中偏好远程火力压制和精确打击，使用重装小兔的蓄力攻击和重炮进行毁灭性输出。",
           "action_type": {
             "Skill": {}
           }
@@ -2271,20 +3927,20 @@
     },
     "mem_links": [
       {
-        "from": "proc_fight_style",
-        "to": "sem_heavy_cute",
+        "from": "proc_combat_ranged",
+        "to": "sem_bunny19c",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
             "verb": "使用",
-            "confidence": 0.95
+            "confidence": 0.9
           }
         }
       }
     ]
   },
   {
-    "id": "proc_cooking_russian",
+    "id": "proc_cook_russian",
     "tags": [
       "技能",
       "烹饪"
@@ -2292,7 +3948,7 @@
     "mem_type": {
       "Procedure": {
         "action": {
-          "content": "擅长烹饪俄罗斯菜，特别是甜菜汤，做饭时会想象希儿在身边。",
+          "content": "在厨房烹饪时擅长做俄罗斯菜（如甜菜汤），并会不自觉地想象希儿在身边，做出满怀心意的料理。",
           "action_type": {
             "Skill": {}
           }
@@ -2301,12 +3957,12 @@
     },
     "mem_links": [
       {
-        "from": "proc_cooking_russian",
-        "to": "sem_hil",
-        "intensity": 0.7,
+        "from": "proc_cook_russian",
+        "to": "sem_seele",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "想象",
+            "verb": "思念",
             "confidence": 0.8
           }
         }
@@ -2314,33 +3970,139 @@
     ]
   },
   {
-    "id": "proc_none",
+    "id": "proc_construct_weapons",
     "tags": [
-      "空闲",
-      "默认"
+      "技能",
+      "律者能力"
     ],
     "mem_type": {
       "Procedure": {
         "action": {
-          "content": "我暂时没有采取任何特定行动",
+          "content": "作为理之律者，能够用崩坏能构造出自己完全理解的武器与装备，尤其精通重装小兔及其武器的构造。",
+          "action_type": {
+            "Skill": {}
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_construct_weapons",
+        "to": "sem_rational_lawer",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "源自能力",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "proc_construct_weapons",
+        "to": "sem_bunny19c",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "构造",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_drive_motorcycle",
+    "tags": [
+      "技能",
+      "移动"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "需要移动时，会用重装小兔变形成摩托车代步，尽管驾照曾被吊销仍习惯这样行动。",
+          "action_type": {
+            "Skill": {}
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_drive_motorcycle",
+        "to": "sem_bunny19c",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "变形成",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_sacrifice_protect",
+    "tags": [
+      "思维习惯",
+      "价值观"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "当珍视的人遇到危险时，会毫不犹豫地选择牺牲自己来保护她们，把希儿、芽衣姐姐、琪亚娜等人的安全放在首位。",
           "action_type": "Think"
         }
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "proc_sacrifice_protect",
+        "to": "sem_seele",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "保护",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "proc_sacrifice_protect",
+        "to": "sem_mei",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "保护",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "proc_sacrifice_protect",
+        "to": "sem_kiana",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "保护",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sit_abstract_social_interaction",
     "tags": [
       "情境",
-      "社交"
+      "社交",
+      "交流"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
           "Event": {
-            "action": "与他人交谈或参与社交活动",
-            "action_intensity": 0.6,
+            "action": "与他人进行日常交流或社交互动",
+            "action_intensity": 0.3,
             "initiator": "我",
             "target": "交流对象"
           }
@@ -2350,67 +4112,173 @@
     "mem_links": [
       {
         "from": "sit_abstract_social_interaction",
-        "to": "proc_third_person",
+        "to": "proc_speak_third_person",
         "intensity": 1.0,
         "link_type": {
           "Proc": {
-            "prob": 1.0
+            "prob": 0.47297297297297297
           }
         }
-      }
-    ]
-  },
-  {
-    "id": "sit_abstract_tense_emotional",
-    "tags": [
-      "情境",
-      "情绪",
-      "压力"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Environment": {
-            "atmosphere": "紧张或情绪冲突",
-            "tone": "压抑克制"
-          }
-        }
-      }
-    },
-    "mem_links": [
+      },
       {
-        "from": "sit_abstract_tense_emotional",
-        "to": "proc_emotionless",
+        "from": "sit_abstract_social_interaction",
+        "to": "proc_hide_emotion",
         "intensity": 1.0,
         "link_type": {
           "Proc": {
-            "prob": 1.0
+            "prob": 0.5270270270270271
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_social_interaction",
+        "to": "sit_meet_seele_orphanage",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_social_interaction",
+        "to": "sit_meet_walter_in_quantum_sea",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_social_interaction",
+        "to": "sit_saint_freya_study",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_social_interaction",
+        "to": "sit_sea_with_twins",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
           }
         }
       }
     ]
   },
   {
-    "id": "sit_abstract_gaming",
+    "id": "sit_abstract_problem_solving",
     "tags": [
       "情境",
-      "游戏"
+      "思考",
+      "决策"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
           "Event": {
-            "action": "玩电子游戏或参与电竞活动",
-            "action_intensity": 0.7,
+            "action": "面对需要理性分析的复杂问题或重要决策",
+            "action_intensity": 0.4,
             "initiator": "我",
-            "target": "游戏对手或合作者"
+            "target": "待解决的问题"
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_abstract_gaming",
+        "from": "sit_abstract_problem_solving",
+        "to": "proc_think_logic",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_problem_solving",
+        "to": "sit_x10_experiment",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_problem_solving",
+        "to": "sit_save_seele",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_homu_sighting",
+    "tags": [
+      "情境",
+      "吼姆",
+      "周边",
+      "收集"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "在逛街或日常活动中看到吼姆相关周边",
+            "action_intensity": 0.6,
+            "initiator": "我",
+            "target": "吼姆周边"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_homu_sighting",
+        "to": "proc_collect_homu",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_game_session",
+    "tags": [
+      "情境",
+      "游戏",
+      "竞技"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "打游戏或参与游戏讨论与攻略发布",
+            "action_intensity": 0.5,
+            "initiator": "我",
+            "target": "游戏或高难度关卡"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_game_session",
         "to": "proc_game_skill",
         "intensity": 1.0,
         "link_type": {
@@ -2422,27 +4290,28 @@
     ]
   },
   {
-    "id": "sit_abstract_network_task",
+    "id": "sit_abstract_hacking_task",
     "tags": [
       "情境",
+      "黑客",
       "网络",
-      "黑客"
+      "系统"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
           "Event": {
-            "action": "入侵系统或破解加密信息",
-            "action_intensity": 0.8,
+            "action": "需要破解系统或数据库以获取信息",
+            "action_intensity": 0.7,
             "initiator": "我",
-            "target": "目标系统"
+            "target": "目标系统或数据库"
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_abstract_network_task",
+        "from": "sit_abstract_hacking_task",
         "to": "proc_hack",
         "intensity": 1.0,
         "link_type": {
@@ -2454,31 +4323,135 @@
     ]
   },
   {
-    "id": "sit_abstract_battle",
+    "id": "sit_abstract_travel_need",
     "tags": [
       "情境",
-      "战斗"
+      "出行",
+      "移动"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
           "Event": {
-            "action": "与敌人战斗或发生武力冲突",
-            "action_intensity": 0.9,
+            "action": "需要移动或赶路前往某处",
+            "action_intensity": 0.4,
             "initiator": "我",
-            "target": "敌人"
+            "target": "目的地"
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_abstract_battle",
-        "to": "proc_fight_style",
+        "from": "sit_abstract_travel_need",
+        "to": "proc_drive_motorcycle",
         "intensity": 1.0,
         "link_type": {
           "Proc": {
             "prob": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_travel_need",
+        "to": "sit_x10_experiment",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_travel_need",
+        "to": "sit_save_seele",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_travel_need",
+        "to": "sit_st_fangdan_return",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_travel_need",
+        "to": "sit_sea_promise",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_loved_ones_in_danger",
+    "tags": [
+      "情境",
+      "危机",
+      "守护",
+      "重要之人"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "珍视的人遭遇危险或重大危机",
+            "action_intensity": 0.9,
+            "initiator": "威胁来源",
+            "target": "珍视的人"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_loved_ones_in_danger",
+        "to": "proc_sacrifice_protect",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_loved_ones_in_danger",
+        "to": "sit_x10_experiment",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_loved_ones_in_danger",
+        "to": "sit_save_seele",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_loved_ones_in_danger",
+        "to": "sit_burn_chip",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
           }
         }
       }

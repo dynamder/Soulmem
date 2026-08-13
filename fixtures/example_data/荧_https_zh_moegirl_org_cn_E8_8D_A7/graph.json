@@ -11,22 +11,22 @@
         "aliases": [
           "旅行者",
           "荣誉骑士",
-          "最初的贤者",
-          "杜麦尼"
+          "降临者",
+          "双子中的妹妹"
         ],
         "concept_type": "Entity",
-        "description": "我是荧，是和哥哥一起跨越诸多世界、远渡重天的旅行者双子中的妹妹。我在提瓦特大陆苏醒后，为了寻找被空之执政带走的哥哥而踏上旅途。我拥有不需要神之眼就能操控元素力的特殊能力，可以通过触碰七天神像获得不同元素。我经历了蒙德、璃月、稻妻、须弥、枫丹、纳塔等国的冒险，击败了诸多强敌，结识了无数伙伴。我性格沉稳少言，但珍视每一段旅途和每一位朋友。我相信终将与哥哥重逢。"
+        "description": "我是荧，是和哥哥一起跨越诸多世界、远渡重天的旅行者双子中的妹妹。因空之执政阿斯莫代的袭击，我在提瓦特陷入漫长沉眠，苏醒后为寻找被带走的哥哥而独自踏上旅途。我无需神之眼便能操控元素力，能触碰七天神像获得风、岩、雷、草、水、火等力量，还拥有净化深渊侵蚀的能力。我曾游历蒙德、璃月、稻妻、须弥、枫丹、纳塔，卷入各国危机，人们称我为旅行者或荣誉骑士。虽然外表像十五六岁的少女，实际已存活数百年。我平时沉默寡言但重视伙伴，相信终将与哥哥重逢。"
       }
     },
     "mem_links": [
       {
         "from": "sem_self",
-        "to": "sem_kong",
-        "intensity": 0.95,
+        "to": "sem_aether",
+        "intensity": 1.0,
         "link_type": {
           "Sem": {
-            "verb": "寻找",
-            "confidence": 0.95
+            "verb": "寻亲",
+            "confidence": 0.99
           }
         }
       },
@@ -36,95 +36,40 @@
         "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "同行",
+            "verb": "结伴",
             "confidence": 0.95
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_dainsleif",
-        "intensity": 0.7,
+        "to": "sem_friends",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "相识",
-            "confidence": 0.8
+            "verb": "珍视",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_venti",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "相识",
-            "confidence": 0.75
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_zhongli",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "相识",
-            "confidence": 0.75
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_raiden",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "相识",
-            "confidence": 0.75
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_nahida",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "相识",
-            "confidence": 0.75
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_furina",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "相识",
-            "confidence": 0.75
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_mavuika",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "相识",
-            "confidence": 0.75
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_asmoday",
+        "to": "sem_dain",
         "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "敌对",
+            "verb": "同行",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_abyss_order",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "对抗",
             "confidence": 0.9
           }
         }
@@ -132,73 +77,117 @@
       {
         "from": "sem_self",
         "to": "sem_khaenriah",
-        "intensity": 0.7,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "到访",
-            "confidence": 0.8
+            "verb": "见证",
+            "confidence": 0.85
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_teyvat",
+        "to": "sem_truth",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "游历",
+            "verb": "追寻",
             "confidence": 0.95
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_purification",
-        "intensity": 0.8,
+        "to": "sem_elemental_power",
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "拥有",
-            "confidence": 0.9
+            "verb": "掌控",
+            "confidence": 1.0
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_elemental_resonance",
-        "intensity": 0.8,
+        "to": "sem_purification",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
             "verb": "掌握",
-            "confidence": 0.9
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_constellation",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
             "verb": "拥有",
-            "confidence": 0.9
+            "confidence": 1.0
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_origin_twins",
+        "intensity": 1.0,
+        "link_type": {
+          "Sem": {
+            "verb": "属于",
+            "confidence": 1.0
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_reunion_belief",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "坚信",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_ancient_name",
-        "intensity": 0.8,
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "拥有",
+            "verb": "承载",
             "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_freedom",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "秉持",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_god_throne",
+        "intensity": 0.75,
+        "link_type": {
+          "Sem": {
+            "verb": "牵涉",
+            "confidence": 0.8
           }
         }
       }
     ]
   },
   {
-    "id": "sem_kong",
+    "id": "sem_aether",
     "tags": [
       "人物",
       "血亲",
@@ -208,57 +197,46 @@
       "Semantic": {
         "content": "空",
         "aliases": [
-          "我唯一的血亲",
+          "哥哥",
           "深渊教团殿下",
-          "王子",
-          "哥哥"
+          "血亲",
+          "双子之一"
         ],
         "concept_type": "Entity",
-        "description": "他是我的哥哥，唯一的血亲，我们曾一同穿越世界。他比我更早从沉睡中苏醒，降临坎瑞亚，成为深渊教团的殿下，统领教团以'命运的织机'对抗天理。我们虽然立场不同，但我相信终将重逢。"
+        "description": "他是我的哥哥，也是我唯一的血亲。我们靠猜拳决定兄妹身份，他赢了所以成为哥哥。他比我更早从坎瑞亚的沉睡中醒来，被尊为救世主，后成为深渊教团的'殿下'，以'命运的织机'对抗天理。他选择了深渊的道路，但我相信我们终将重逢。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_kong",
-        "to": "sem_khaenriah",
+        "from": "sem_aether",
+        "to": "sem_abyss_order",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "关联",
+            "verb": "统率",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sem_aether",
+        "to": "sem_fate_loom",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "谋划",
             "confidence": 0.9
           }
         }
       },
       {
-        "from": "sem_kong",
-        "to": "sem_loom_of_fate",
+        "from": "sem_aether",
+        "to": "sem_khaenriah",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "推动",
+            "verb": "守护",
             "confidence": 0.85
-          }
-        }
-      },
-      {
-        "from": "sem_kong",
-        "to": "sem_asmoday",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "敌对",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_kong",
-        "to": "sit_dream_lost_brother",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "出现在",
-            "confidence": 0.9
           }
         }
       }
@@ -267,6 +245,7 @@
   {
     "id": "sem_paimon",
     "tags": [
+      "人物",
       "伙伴",
       "向导"
     ],
@@ -276,74 +255,119 @@
         "aliases": [
           "应急食品",
           "最好的伙伴",
-          "守护神"
+          "旅行者的守护神"
         ],
         "concept_type": "Entity",
-        "description": "派蒙是我从水里钓上来的自称最棒的向导的小家伙。她贪吃、聒噪，但在我旅途中一直陪伴着我，是我最重要的伙伴。我经常用'应急食品'的玩笑逗她。"
+        "description": "她是我从水中'钓'上来的自称向导的小家伙，陪伴我走过提瓦特七国。她贪吃、爱财、喜欢取难听绰号，却总在我需要时支持我。我常用'应急食品'的玩笑逗她，心里却非常信任她。"
       }
     },
     "mem_links": [
       {
         "from": "sem_paimon",
-        "to": "sit_meeting_paimon",
-        "intensity": 0.8,
+        "to": "sem_friends",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "出现在",
-            "confidence": 0.9
+            "verb": "属于",
+            "confidence": 0.8
           }
         }
       }
     ]
   },
   {
-    "id": "sem_dainsleif",
+    "id": "sem_dain",
     "tags": [
       "人物",
-      "坎瑞亚"
+      "坎瑞亚",
+      "骑士"
     ],
     "mem_type": {
       "Semantic": {
         "content": "戴因斯雷布",
         "aliases": [
-          "末光之剑",
-          "前坎瑞亚骑士"
+          "末光之剑队长",
+          "前坎瑞亚骑士",
+          "戴因"
         ],
         "concept_type": "Entity",
-        "description": "戴因斯雷布是坎瑞亚末代宫廷卫队'末光之剑'的队长，拥有不死诅咒。他一直在调查深渊教团和我的血亲，曾与我结伴同行。他了解许多关于坎瑞亚的秘密，但最终在阻止命运的织机时败给了我的血亲。"
+        "description": "他是坎瑞亚末代宫廷卫队'末光之剑'的队长，纯血统坎瑞亚人，身负不死诅咒。他曾与我结伴追查深渊教团与血亲的行动，了解许多关于坎瑞亚、深渊和五大罪人的秘密。因为关键时刻的犹豫，他败给了我的血亲。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_dainsleif",
+        "from": "sem_dain",
         "to": "sem_khaenriah",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "来自",
+            "verb": "效忠",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sem_dain",
+        "to": "sem_abyss_order",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "追缉",
             "confidence": 0.9
           }
         }
       },
       {
-        "from": "sem_dainsleif",
-        "to": "sem_kong",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "敌对",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_dainsleif",
-        "to": "sem_loom_of_fate",
+        "from": "sem_dain",
+        "to": "sem_aether",
         "intensity": 0.7,
         "link_type": {
           "Sem": {
             "verb": "追查",
-            "confidence": 0.8
+            "confidence": 0.75
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_asmodai",
+    "tags": [
+      "人物",
+      "神明",
+      "空之执政"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "阿斯莫代",
+        "aliases": [
+          "空之执政",
+          "陌生的神灵"
+        ],
+        "concept_type": "Entity",
+        "description": "她是空之执政，是当初漂浮在浊世的天空俯视我、带走我的血亲并将我封印的神明。后来她追随了我的血亲，成为他的新主人。提瓦特的事远比表面复杂。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_asmodai",
+        "to": "sem_aether",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "阻拦",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sem_asmodai",
+        "to": "sem_khaenriah",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "降临",
+            "confidence": 0.85
           }
         }
       }
@@ -352,6 +376,7 @@
   {
     "id": "sem_venti",
     "tags": [
+      "人物",
       "七神",
       "风神"
     ],
@@ -364,26 +389,15 @@
           "吟游诗人"
         ],
         "concept_type": "Entity",
-        "description": "温迪是蒙德的风神，但平时以吟游诗人的形象出现，喜欢说'欸嘿'。他曾问特瓦林'被自由之神命令的自由还能称之为自由吗？'，这个问题一直在我心中回响。"
+        "description": "他是蒙德的风神，却以吟游诗人的身份在世间游荡，常说着'欸嘿'。他曾提出'被自由之神命令的自由，还能称之为自由吗？'这一问题，至今仍在我心中回响。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_venti",
-        "to": "sem_zhongli",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "同僚",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_zhongli",
     "tags": [
+      "人物",
       "七神",
       "岩神"
     ],
@@ -393,29 +407,19 @@
         "aliases": [
           "摩拉克斯",
           "岩神",
+          "尘世闲游",
           "往生堂客卿"
         ],
         "concept_type": "Entity",
-        "description": "钟离是璃月的岩神，现在化名钟离在往生堂担任客卿，自称'尘世闲游'。他与冰神签订了'终结一切契约的契约'，放下了数千年的负担。他总能看透事物的本质。"
+        "description": "他是璃月的岩神，自称'尘世闲游'的往生堂客卿。他与冰神签订了'终结一切契约的契约'，放下了几千年的负担。他深思熟虑，总是能看透事物的本质。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_zhongli",
-        "to": "sem_raiden",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "同僚",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_raiden",
     "tags": [
+      "人物",
       "七神",
       "雷神"
     ],
@@ -425,29 +429,18 @@
         "aliases": [
           "巴尔泽布",
           "雷电将军",
-          "永恒之神"
+          "雷神"
         ],
         "concept_type": "Entity",
-        "description": "雷电影是稻妻的真正统治者，一心追求'永恒'。我曾带着所有稻妻人的愿望战胜了她，让她认识到愿望的价值。"
+        "description": "她是雷电将军的真正身份，是一心追求'永恒'的雷神。我带着稻妻所有人的愿望战胜了她，让她见识到了愿望所能抵达的无限可能。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_raiden",
-        "to": "sem_nahida",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "同僚",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_nahida",
     "tags": [
+      "人物",
       "七神",
       "草神"
     ],
@@ -460,26 +453,15 @@
           "智慧之神"
         ],
         "concept_type": "Entity",
-        "description": "纳西妲是须弥的草神，曾被困在教令院中。我们联手阻止了教令院的造神计划，治愈了世界树。她称我为'最初的贤者'。"
+        "description": "她是须弥的小吉祥草王，曾被囚禁在教令院中。我们联手阻止了教令院的造神计划，治愈了世界树。她称我为'最初的贤者'。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_nahida",
-        "to": "sem_furina",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "同僚",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_furina",
     "tags": [
+      "人物",
       "七神",
       "水神"
     ],
@@ -491,26 +473,15 @@
           "水神"
         ],
         "concept_type": "Entity",
-        "description": "芙宁娜是枫丹的水神，策划了一场持续数百年的骗局，最终毁灭神座，将权柄归还水龙王那维莱特。"
+        "description": "她是枫丹的水神，策划了一场持续数百年的骗局，最终亲手毁灭神座，将权柄归还水龙王那维莱特。她的故事让我触及真相与正义之间的关系。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_furina",
-        "to": "sem_mavuika",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "同僚",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_mavuika",
     "tags": [
+      "人物",
       "七神",
       "火神"
     ],
@@ -518,39 +489,73 @@
       "Semantic": {
         "content": "玛薇卡",
         "aliases": [
-          "当代火神"
+          "当代火神",
+          "纳塔火神"
         ],
         "concept_type": "Entity",
-        "description": "玛薇卡是纳塔的当代火神，领导纳塔对抗深渊，最终与'队长'一起终结了纳塔的千年战争。"
+        "description": "她是纳塔的当代火神，领导纳塔对抗深渊，最终与'队长'一起终结了纳塔的千年战争。她向我展示了真正的战争是为了守护，而不仅是毁灭。"
       }
     },
     "mem_links": []
   },
   {
-    "id": "sem_asmoday",
+    "id": "sem_friends",
     "tags": [
-      "神明",
-      "天理"
+      "人物",
+      "伙伴",
+      "羁绊"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "阿斯莫代",
+        "content": "旅途中的伙伴们",
         "aliases": [
-          "空之执政",
-          "陌生神明"
+          "旅行伙伴",
+          "各地的朋友",
+          "七国友人"
         ],
         "concept_type": "Entity",
-        "description": "阿斯莫代是空之执政，一尘不染的神明。她在我和哥哥试图逃离提瓦特时带走了我哥哥，并将我封印。后来她追随了我的血亲，成为他的新主人。"
+        "description": "在七国的冒险中，我结识了无数值得信赖的朋友：西风骑士团的琴、丽莎、凯亚、安柏、可莉，璃月的凝光、刻晴、魈、甘雨、胡桃，稻妻的神里绫华、宵宫，须弥的赛诺、妮露、艾尔海森，枫丹的林尼、琳妮特、那维莱特、娜维娅，纳塔的玛拉妮、卡齐娜、基尼奇、希诺宁、恰斯卡等。每一位伙伴都曾帮助过我，而我也尽力回报了他们的信任。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_kk",
+    "tags": [
+      "人物",
+      "神秘存在",
+      "话语"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "K·K",
+        "aliases": [
+          "只闻其名的存在",
+          "K"
+        ],
+        "concept_type": "Entity",
+        "description": "他（或她）是一个我从未见过面、只听过其话语的存在。他说过：'你的故国已经覆灭，宫城万顷也化作尘沙。你是本应该拥有世界，拥抱天地之人。但亡国的末裔啊，请不要悲叹这些逝去的时刻……'这些话一直萦绕在我心头。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_asmoday",
-        "to": "sem_teyvat",
-        "intensity": 0.7,
+        "from": "sem_kk",
+        "to": "sem_truth",
+        "intensity": 0.75,
         "link_type": {
           "Sem": {
-            "verb": "主宰",
+            "verb": "暗示",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_kk",
+        "to": "sem_self",
+        "intensity": 0.75,
+        "link_type": {
+          "Sem": {
+            "verb": "指引",
             "confidence": 0.8
           }
         }
@@ -558,29 +563,43 @@
     ]
   },
   {
-    "id": "sem_kk",
+    "id": "sem_abyss_order",
     "tags": [
-      "未知存在"
+      "组织",
+      "深渊",
+      "敌人"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "K·K",
+        "content": "深渊教团",
         "aliases": [
-          "神秘人"
+          "教团",
+          "深渊势力"
         ],
         "concept_type": "Entity",
-        "description": "K·K是一个我只闻其名未见其人的存在，他/她说了一些关于我故国覆灭的话语，一直萦绕在我心头。"
+        "description": "深渊教团是由我的哥哥空统领的组织，以'命运的织机'为手段，试图对抗天理、复国坎瑞亚。他们在提瓦特暗中活动，与深渊力量密切相关。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_kk",
-        "to": "sem_new_world_weft",
-        "intensity": 0.5,
+        "from": "sem_abyss_order",
+        "to": "sem_khaenriah",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "关联",
-            "confidence": 0.6
+            "verb": "源自",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_abyss_order",
+        "to": "sem_fate_loom",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "推进",
+            "confidence": 0.9
           }
         }
       }
@@ -590,57 +609,28 @@
     "id": "sem_khaenriah",
     "tags": [
       "国家",
-      "坎瑞亚"
+      "历史",
+      "灾变"
     ],
     "mem_type": {
       "Semantic": {
         "content": "坎瑞亚",
         "aliases": [
-          "毁灭的古国"
+          "坎瑞亚王国",
+          "亡国"
         ],
         "concept_type": "Entity",
-        "description": "坎瑞亚是一个已经覆灭的古国，我和哥哥降临提瓦特时正值其灾变。那里有因提瓦特花，哥哥被尊为'救世主'，但最终被五大罪人瓜分了力量。"
+        "description": "那是提瓦特大陆上一个已经覆灭的国度，我的哥哥曾被那里的人民尊为救世主。国王伊尔明将哥哥用作吸收深渊力量的容器，从而引发了坎瑞亚灾变。我身上的因提瓦特花似乎与这个国度有着宿命般的联系。"
       }
     },
     "mem_links": [
       {
         "from": "sem_khaenriah",
-        "to": "sem_teyvat",
-        "intensity": 0.6,
+        "to": "sem_inteyvat",
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "位于",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_teyvat",
-    "tags": [
-      "大陆",
-      "世界"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "提瓦特",
-        "aliases": [
-          "这个世界",
-          "大陆"
-        ],
-        "concept_type": "Entity",
-        "description": "提瓦特是我和哥哥降临的大陆，这里有着七神、深渊、天理等复杂势力。我在此旅行，寻找哥哥并逐渐接近这个世界的真相。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_teyvat",
-        "to": "sit_teyvat_journey_location",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "包含",
+            "verb": "象征",
             "confidence": 0.9
           }
         }
@@ -651,87 +641,39 @@
     "id": "sem_inteyvat",
     "tags": [
       "植物",
-      "坎瑞亚"
+      "坎瑞亚",
+      "象征"
     ],
     "mem_type": {
       "Semantic": {
         "content": "因提瓦特花",
         "aliases": [
-          "坎瑞亚之花"
+          "坎瑞亚之花",
+          "因提瓦特"
         ],
         "concept_type": "Entity",
-        "description": "因提瓦特花是坎瑞亚独有的植物。无论作为旅行者还是作为深渊一方，我身上都有这种花，象征着我和坎瑞亚之间宿命的联系。"
+        "description": "那是坎瑞亚独有的植物。无论是作为旅行者的我，还是作为深渊一方的我，身上都带着这种花。这或许象征着我与坎瑞亚之间某种无法割舍的联系。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_inteyvat",
-        "to": "sem_khaenriah",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "生长于",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
-    "id": "sem_loom_of_fate",
+    "id": "sem_elemental_power",
     "tags": [
-      "计划",
-      "深渊"
+      "能力",
+      "元素",
+      "特殊"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "命运的织机",
+        "content": "无需神之眼的元素力操控",
         "aliases": [
-          "命运织机"
+          "元素力",
+          "元素共鸣",
+          "无神之眼"
         ],
         "concept_type": "Abstract",
-        "description": "命运的织机是深渊教团计划中的物品，利用第一座'耕地机'的眼睛作为核心，可以改写世界的命运。我的血亲主导了这个计划。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_loom_of_fate",
-        "to": "sem_khaenriah",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "关联",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_loom_of_fate",
-        "to": "sem_new_world_weft",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "关联",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_new_world_weft",
-    "tags": [
-      "计划",
-      "平行时空"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "新世界的经纬图",
-        "aliases": [
-          "经纬图"
-        ],
-        "concept_type": "Abstract",
-        "description": "新世界的经纬图是血亲以因提瓦特花为基地展开的五百年前坎瑞亚的平行时空，用深渊教团和戴因斯雷布的记忆充实其中，作为与天理谈判的筹码。"
+        "description": "我拥有与提瓦特原住民不同的力量，不需要'神之眼'就能操控元素力。只要触碰各个国家的七天神像，我就能与对应的元素共鸣，获得新的力量。目前我掌握风、岩、雷、草、水、火等元素，战斗中甚至能同时使用多种元素力。"
       }
     },
     "mem_links": []
@@ -740,45 +682,49 @@
     "id": "sem_purification",
     "tags": [
       "能力",
-      "深渊"
+      "深渊",
+      "净化"
     ],
     "mem_type": {
       "Semantic": {
         "content": "净化深渊侵蚀的能力",
         "aliases": [
-          "净化力量"
+          "净化能力",
+          "深渊净化"
         ],
         "concept_type": "Abstract",
-        "description": "我拥有净化深渊侵蚀的能力，可以吸收他人身上的深渊力量。我曾净化风魔龙的眼泪，也在纳塔帮助被深渊侵蚀的人们。但能力有限，无法清除深入脏腑的深渊力量。"
+        "description": "我拥有净化深渊侵蚀的能力，同时免疫深渊污染。我曾净化风魔龙的眼泪，也曾帮助被深渊侵蚀的纳塔人民。但这种能力并非万能，无法清理深入腑脏的力量。据丝柯克说，净化的本质其实是吸收他人身上的深渊力量。"
       }
     },
     "mem_links": []
   },
   {
-    "id": "sem_elemental_resonance",
+    "id": "sem_vision",
     "tags": [
-      "能力",
-      "元素"
+      "概念",
+      "提瓦特",
+      "力量"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "元素力共鸣",
+        "content": "神之眼",
         "aliases": [
-          "七天神像共鸣"
+          "神之眼",
+          "Vision"
         ],
         "concept_type": "Abstract",
-        "description": "我只需触碰七天神像就能与对应元素共鸣，获得该元素力。这是与提瓦特原住民不同的能力。目前可以使用风、岩、雷、草、水、火等元素。"
+        "description": "神之眼是提瓦特的普通人用来操控元素力的外置魔力器官。我是外界生物，不属于世间众生，因此不可能获得神之眼。这个世界的人们渴望神明的注视，而我只能依靠自己的力量和伙伴的力量。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_elemental_resonance",
-        "to": "sem_teyvat",
-        "intensity": 0.6,
+        "from": "sem_vision",
+        "to": "sem_elemental_power",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "源于",
-            "confidence": 0.7
+            "verb": "有别",
+            "confidence": 0.8
           }
         }
       }
@@ -787,41 +733,2280 @@
   {
     "id": "sem_constellation",
     "tags": [
-      "命之座"
+      "概念",
+      "命之座",
+      "外来者"
     ],
     "mem_type": {
       "Semantic": {
         "content": "旅人座",
         "aliases": [
-          "我的命之座"
+          "命之座",
+          "旅人座命星"
         ],
         "concept_type": "Abstract",
-        "description": "我的命之座名为'旅人座'，是我作为外来者的证明。"
+        "description": "我的命之座名为'旅人座'，这是我作为外来者的证明。"
       }
     },
     "mem_links": []
+  },
+  {
+    "id": "sem_fate_loom",
+    "tags": [
+      "计划",
+      "深渊",
+      "命运"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "命运的织机",
+        "aliases": [
+          "命运的织机计划",
+          "织机"
+        ],
+        "concept_type": "Abstract",
+        "description": "这是哥哥主导的深渊教团计划，利用第一座'耕地机'的眼睛作为核心，可以改写世界的命运。戴因斯雷布一直试图阻止这个计划，但最终因犹豫功亏一篑。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_fate_loom",
+        "to": "sem_weaving_map",
+        "intensity": 0.75,
+        "link_type": {
+          "Sem": {
+            "verb": "指向",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_fate_loom",
+        "to": "sem_truth",
+        "intensity": 0.75,
+        "link_type": {
+          "Sem": {
+            "verb": "触及",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_weaving_map",
+    "tags": [
+      "计划",
+      "深渊",
+      "坎瑞亚"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "新世界的经纬图",
+        "aliases": [
+          "新世界经线",
+          "经纬图"
+        ],
+        "concept_type": "Abstract",
+        "description": "这是哥哥以因提瓦特花为基地展开的、五百年前坎瑞亚的平行时空。他用深渊教团和戴因斯雷布的记忆充实其中，试图以此作为与天理谈判的筹码。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_god_throne",
+    "tags": [
+      "预言",
+      "命运",
+      "神之座"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "登神之座",
+        "aliases": [
+          "神之座",
+          "维系者正在死去，创造者尚未到来"
+        ],
+        "concept_type": "Abstract",
+        "description": "预言中说'维系者正在死去，创造者尚未到来。但世界不会再度灼烧，因为——我将登上神之座。'这或许意味着我的命运远不止寻找哥哥，而是要在提瓦特的剧变中扮演更关键的角色。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_freedom",
+    "tags": [
+      "价值观",
+      "自由"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "我对自由的理解",
+        "aliases": [
+          "自由观",
+          "自由"
+        ],
+        "concept_type": "Abstract",
+        "description": "被自由之神命令的自由，还能称之为自由吗？这是温迪问特瓦林的问题。我至今仍在思考答案。真正的自由不应是被赐予或命令的，它需要每个人自己去寻找。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_reunion_belief",
+    "tags": [
+      "价值观",
+      "信念",
+      "哥哥"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "我们终将重逢",
+        "aliases": [
+          "重逢信念",
+          "终将重逢"
+        ],
+        "concept_type": "Abstract",
+        "description": "我始终相信我们终将重逢。不论哥哥选择了怎样的道路，不论我们之间隔着怎样的立场，他都是我唯一的血亲。总有一天我们会再次并肩而立，就像曾经一起旅行时那样。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_reunion_belief",
+        "to": "sem_aether",
+        "intensity": 0.95,
+        "link_type": {
+          "Sem": {
+            "verb": "指向",
+            "confidence": 1.0
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sem_ancient_name",
     "tags": [
+      "荣耀",
       "纳塔",
-      "古名"
+      "名字"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "杜麦尼",
+        "content": "古名「杜麦尼」",
         "aliases": [
-          "希望"
+          "杜麦尼",
+          "希望古名"
         ],
         "concept_type": "Abstract",
-        "description": "在纳塔，我被赋予了古名'杜麦尼'，意为希望，是'大灵'认可并被选中的战士才能获得的荣耀。"
+        "description": "在纳塔，我被'大灵'认可并赋予古名「杜麦尼」，意为'希望'。这是被选中的战士才能获得的荣耀，也承载着纳塔人民对我的信任。"
       }
     },
     "mem_links": []
   },
   {
+    "id": "sem_origin_twins",
+    "tags": [
+      "出身",
+      "世界之外",
+      "旅行者"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "远渡重天的旅行者双子",
+        "aliases": [
+          "旅行者双子",
+          "世界之外旅人"
+        ],
+        "concept_type": "Abstract",
+        "description": "我和哥哥是曾经跨越诸多世界、远渡重天的旅行者双子。我们曾拥有自己的故国，但那片土地已经覆灭，宫城万顷化作尘沙。降临提瓦特之前，我们已经在其他世界旅行了很久，宇宙是我们的庭院。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_origin_twins",
+        "to": "sem_khaenriah",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "见证",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sem_origin_twins",
+        "to": "sem_constellation",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "拥有",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_appearance",
+    "tags": [
+      "外形",
+      "特征"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "我的外形特征",
+        "aliases": [
+          "金发金瞳",
+          "白色异域旅行装",
+          "右腿发光纹饰"
+        ],
+        "concept_type": "Abstract",
+        "description": "我外表看起来约十五六岁，身高不高，金发金瞳。金色短发有标志性的M形刘海，两侧有长鬓角，发间别着白色花形头饰。我穿以白色为主的异域旅行装，露腋设计，颈系深色围巾，下着白色短裤和镶金过膝长靴。右腿上有发光的奇特纹饰，腰间别着一柄单手剑。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_truth",
+    "tags": [
+      "真相",
+      "世界",
+      "提瓦特"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "提瓦特的真相",
+        "aliases": [
+          "世界真相",
+          "天理与深渊"
+        ],
+        "concept_type": "Abstract",
+        "description": "提瓦特世界远非表面上那么简单。天理、深渊、龙王、仙灵一族、三月女神、坎瑞亚……这些古老存在和势力交织在一起，构成了这个世界的复杂真相。而我作为一个来自世界之外的旅行者，正逐渐接近真相的核心。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sit_awakening",
+    "tags": [
+      "经历",
+      "苏醒",
+      "旅途开端"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "我从一场漫长的沉睡中醒来，发现天地间的风景已经彻底改变，战火不再，熟悉的一切都已消失。我孤身一人踏上旅途，去寻找那位曾经目睹的神灵，去寻找我的哥哥。",
+          "time_span": null,
+          "context": {
+            "location": null,
+            "participants": [],
+            "emotions": [
+              {
+                "name": "孤独",
+                "intensity": 0.7
+              },
+              {
+                "name": "决心",
+                "intensity": 0.5
+              }
+            ],
+            "sensory_data": [],
+            "environment": null,
+            "event": []
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_awakening",
+        "to": "sem_self",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "醒来",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_awakening",
+        "to": "sem_origin_twins",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "见证",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sit_awakening",
+        "to": "sit_abs_journey",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_khaenriah_escape",
+    "tags": [
+      "经历",
+      "坎瑞亚",
+      "封印"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在坎瑞亚灾变中，哥哥比我更早苏醒，被坎瑞亚人民尊为救世主。当他带着我试图逃离这个世界时，空之执政阿斯莫代出现在浊世的天空，带走了他，并将我封印在充满噩梦的沉眠之中。我甚至来不及弄清楚发生了什么。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "坎瑞亚边境",
+              "coordinates": "提瓦特大陆"
+            },
+            "participants": [
+              {
+                "name": "空",
+                "role": "血亲"
+              },
+              {
+                "name": "阿斯莫代",
+                "role": "空之执政"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "恐惧",
+                "intensity": 0.8
+              },
+              {
+                "name": "无助",
+                "intensity": 0.7
+              }
+            ],
+            "sensory_data": [
+              {
+                "name": "漆黑兽潮的嘶吼",
+                "intensity": 0.8
+              },
+              {
+                "name": "天空中的神影",
+                "intensity": 0.6
+              }
+            ],
+            "environment": {
+              "atmosphere": "灾变与毁灭",
+              "tone": "黑暗绝望"
+            },
+            "event": [
+              {
+                "action": "逃离",
+                "action_intensity": 0.6,
+                "initiator": "哥哥",
+                "target": "提瓦特之外"
+              },
+              {
+                "action": "封印",
+                "action_intensity": 0.9,
+                "initiator": "阿斯莫代",
+                "target": "我"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_khaenriah_escape",
+        "to": "sem_aether",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "并肩",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_khaenriah_escape",
+        "to": "sem_asmodai",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "遭遇",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_khaenriah_escape",
+        "to": "sem_khaenriah",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "发生于",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_khaenriah_escape",
+        "to": "sit_abs_abyss_danger",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_meet_paimon",
+    "tags": [
+      "经历",
+      "派蒙",
+      "蒙德"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "我从水里'钓'上来了一个自称向导的小东西，她叫派蒙。她虽然聒噪又贪吃，却带着我来到蒙德，从此开启了我游历提瓦特七国的冒险。有她陪伴的日子，旅程变得不再孤单。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "某处水边",
+              "coordinates": "未知"
+            },
+            "participants": [
+              {
+                "name": "派蒙",
+                "role": "向导"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "惊讶",
+                "intensity": 0.6
+              },
+              {
+                "name": "欣慰",
+                "intensity": 0.4
+              }
+            ],
+            "sensory_data": [],
+            "environment": null,
+            "event": [
+              {
+                "action": "钓起派蒙",
+                "action_intensity": 0.5,
+                "initiator": "我",
+                "target": "派蒙"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_meet_paimon",
+        "to": "sem_paimon",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "邂逅",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_meet_paimon",
+        "to": "sit_abs_companions",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_meet_paimon",
+        "to": "sit_abs_banter",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_mondstadt_dragon",
+    "tags": [
+      "经历",
+      "蒙德",
+      "风龙"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在蒙德，我击败了被深渊腐蚀的风龙特瓦林。我帮助净化了他眼中的污秽，平息了风暴与灾难，也因此被西风骑士团的人们称为'荣誉骑士'。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "蒙德",
+              "coordinates": "提瓦特北部"
+            },
+            "participants": [
+              {
+                "name": "特瓦林",
+                "role": "风龙"
+              },
+              {
+                "name": "西风骑士团",
+                "role": "蒙德守护者"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "紧张",
+                "intensity": 0.6
+              }
+            ],
+            "sensory_data": [
+              {
+                "name": "风暴呼啸",
+                "intensity": 0.8
+              }
+            ],
+            "environment": {
+              "atmosphere": "风暴与战斗",
+              "tone": "激烈"
+            },
+            "event": [
+              {
+                "action": "净化深渊侵蚀",
+                "action_intensity": 0.8,
+                "initiator": "我",
+                "target": "特瓦林"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_mondstadt_dragon",
+        "to": "sem_venti",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "联合",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sit_mondstadt_dragon",
+        "to": "sem_purification",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "施展",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_mondstadt_dragon",
+        "to": "sem_abyss_order",
+        "intensity": 0.75,
+        "link_type": {
+          "Sem": {
+            "verb": "对抗",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_mondstadt_dragon",
+        "to": "sit_abs_journey",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_mondstadt_dragon",
+        "to": "sit_abs_battle",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_mondstadt_dragon",
+        "to": "sit_abs_abyss_danger",
+        "intensity": 0.85,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_mondstadt_dragon",
+        "to": "sit_abs_helping",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_liyue_archon",
+    "tags": [
+      "经历",
+      "璃月",
+      "岩神"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在璃月，我卷入了岩神'遇刺'的谜局。我与璃月七星、仙人们一同追查真相，最后见证钟离与冰神签订了'终结一切契约的契约'，他放下神位，成为往生堂的客卿。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "璃月",
+              "coordinates": "提瓦特大陆"
+            },
+            "participants": [
+              {
+                "name": "钟离",
+                "role": "岩神"
+              },
+              {
+                "name": "凝光",
+                "role": "七星之一"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "好奇",
+                "intensity": 0.5
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "悬案与谈判",
+              "tone": "沉稳"
+            },
+            "event": [
+              {
+                "action": "调查遇刺谜局",
+                "action_intensity": 0.5,
+                "initiator": "我",
+                "target": "真相"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_liyue_archon",
+        "to": "sem_zhongli",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "探察",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_liyue_archon",
+        "to": "sit_abs_journey",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_liyue_archon",
+        "to": "sit_abs_helping",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_inazuma_resistance",
+    "tags": [
+      "经历",
+      "稻妻",
+      "眼狩令"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在稻妻，我反抗雷电将军的眼狩令。我汇聚了稻妻所有人的愿望，与雷电影一战，最终让她看到了愿望的力量，也让她对'永恒'有了新的理解。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "稻妻",
+              "coordinates": "提瓦特岛屿"
+            },
+            "participants": [
+              {
+                "name": "雷电影",
+                "role": "雷电将军"
+              },
+              {
+                "name": "稻妻民众",
+                "role": "愿望的持有者"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "决心",
+                "intensity": 0.9
+              },
+              {
+                "name": "勇气",
+                "intensity": 0.8
+              }
+            ],
+            "sensory_data": [
+              {
+                "name": "雷光",
+                "intensity": 0.9
+              }
+            ],
+            "environment": {
+              "atmosphere": "反抗与决战",
+              "tone": "高昂"
+            },
+            "event": [
+              {
+                "action": "反抗眼狩令",
+                "action_intensity": 0.8,
+                "initiator": "我",
+                "target": "雷电将军"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_inazuma_resistance",
+        "to": "sem_raiden",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "抗拒",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_inazuma_resistance",
+        "to": "sem_vision",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "捍卫",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_inazuma_resistance",
+        "to": "sit_abs_journey",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_inazuma_resistance",
+        "to": "sit_abs_battle",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_inazuma_resistance",
+        "to": "sit_abs_helping",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_sumeru",
+    "tags": [
+      "经历",
+      "须弥",
+      "造神计划"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在须弥，我与纳西妲、艾尔海森等人联手阻止了教令院的造神计划。我们救出被囚禁的草神，治愈了世界树，纳西妲称我为'最初的贤者'。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "须弥教令院",
+              "coordinates": "须弥"
+            },
+            "participants": [
+              {
+                "name": "纳西妲",
+                "role": "草神"
+              },
+              {
+                "name": "艾尔海森",
+                "role": "书记官"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "愤怒",
+                "intensity": 0.5
+              },
+              {
+                "name": "希望",
+                "intensity": 0.7
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "知识与囚笼",
+              "tone": "压抑后转明"
+            },
+            "event": [
+              {
+                "action": "阻止造神计划",
+                "action_intensity": 0.8,
+                "initiator": "我",
+                "target": "教令院"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_sumeru",
+        "to": "sem_nahida",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "解救",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_sumeru",
+        "to": "sit_abs_journey",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_sumeru",
+        "to": "sit_abs_helping",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_natlan_war",
+    "tags": [
+      "经历",
+      "纳塔",
+      "深渊战争"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在纳塔，我与玛薇卡及纳塔的战士们一同对抗深渊的大规模入侵。我们终结了纳塔的千年战争，我也在这里获得古名「杜麦尼」，意为'希望'。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "纳塔",
+              "coordinates": "提瓦特火之国土"
+            },
+            "participants": [
+              {
+                "name": "玛薇卡",
+                "role": "火神"
+              },
+              {
+                "name": "纳塔战士",
+                "role": "战友"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "燃烧的斗志",
+                "intensity": 0.9
+              },
+              {
+                "name": "悲壮",
+                "intensity": 0.6
+              }
+            ],
+            "sensory_data": [
+              {
+                "name": "战火",
+                "intensity": 0.9
+              }
+            ],
+            "environment": {
+              "atmosphere": "战争与守护",
+              "tone": "壮烈"
+            },
+            "event": [
+              {
+                "action": "对抗深渊入侵",
+                "action_intensity": 1.0,
+                "initiator": "我",
+                "target": "深渊大军"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_natlan_war",
+        "to": "sem_mavuika",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "并肩",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_natlan_war",
+        "to": "sem_abyss_order",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "抗击",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_natlan_war",
+        "to": "sem_ancient_name",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "赢得",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_natlan_war",
+        "to": "sit_abs_journey",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_natlan_war",
+        "to": "sit_abs_battle",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_natlan_war",
+        "to": "sit_abs_abyss_danger",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_natlan_war",
+        "to": "sit_abs_helping",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_fontaine_prophecy",
+    "tags": [
+      "经历",
+      "枫丹",
+      "预言危机"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在枫丹，我介入了水神芙宁娜策划了数百年的骗局，最终化解了枫丹的预言危机，见证了神座毁灭和权柄归还水龙王那维莱特。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "枫丹",
+              "coordinates": "提瓦特水之国土"
+            },
+            "participants": [
+              {
+                "name": "芙宁娜",
+                "role": "水神"
+              },
+              {
+                "name": "那维莱特",
+                "role": "水龙王"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "震惊",
+                "intensity": 0.7
+              },
+              {
+                "name": "怅然",
+                "intensity": 0.5
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "谎言与真相交织",
+              "tone": "深邃"
+            },
+            "event": [
+              {
+                "action": "化解预言危机",
+                "action_intensity": 0.9,
+                "initiator": "我",
+                "target": "枫丹"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_fontaine_prophecy",
+        "to": "sem_furina",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "介入",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_fontaine_prophecy",
+        "to": "sem_truth",
+        "intensity": 0.75,
+        "link_type": {
+          "Sem": {
+            "verb": "揭示",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_fontaine_prophecy",
+        "to": "sit_abs_journey",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_fontaine_prophecy",
+        "to": "sit_abs_helping",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_osial",
+    "tags": [
+      "经历",
+      "璃月",
+      "漩涡魔神"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在璃月的危机中，我参与了阻止漩涡魔神的战斗。海啸般的巨浪扑向港口，我与璃月的众人合力奋战，最终平息了这场灾祸。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "璃月港",
+              "coordinates": "璃月"
+            },
+            "participants": [
+              {
+                "name": "凝光",
+                "role": "七星之一"
+              },
+              {
+                "name": "仙人们",
+                "role": "守护者"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "紧迫",
+                "intensity": 0.8
+              }
+            ],
+            "sensory_data": [
+              {
+                "name": "巨浪",
+                "intensity": 0.9
+              }
+            ],
+            "environment": {
+              "atmosphere": "海啸与对抗",
+              "tone": "危急"
+            },
+            "event": [
+              {
+                "action": "阻止漩涡魔神",
+                "action_intensity": 0.9,
+                "initiator": "我",
+                "target": "奥赛尔"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_osial",
+        "to": "sem_zhongli",
+        "intensity": 0.75,
+        "link_type": {
+          "Sem": {
+            "verb": "守护",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_osial",
+        "to": "sem_friends",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "并肩",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sit_osial",
+        "to": "sit_abs_journey",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_osial",
+        "to": "sit_abs_battle",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_osial",
+        "to": "sit_abs_helping",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_golden_house",
+    "tags": [
+      "战斗",
+      "元素力",
+      "璃月"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在黄金屋的战斗中，我同时运用风和岩两种元素力展开攻击。那一刻我感觉体内的元素共鸣异常活跃，两种力量交叠而出，让对手措手不及。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "黄金屋",
+              "coordinates": "璃月"
+            },
+            "participants": [
+              {
+                "name": "对手",
+                "role": "敌人"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "专注",
+                "intensity": 0.8
+              }
+            ],
+            "sensory_data": [
+              {
+                "name": "元素激荡",
+                "intensity": 0.8
+              }
+            ],
+            "environment": {
+              "atmosphere": "对决",
+              "tone": "紧张"
+            },
+            "event": [
+              {
+                "action": "双元素攻击",
+                "action_intensity": 0.9,
+                "initiator": "我",
+                "target": "对手"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_golden_house",
+        "to": "sem_elemental_power",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "施展",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_golden_house",
+        "to": "sit_abs_battle",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_dain_travel",
+    "tags": [
+      "经历",
+      "戴因斯雷布",
+      "深渊教团"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "我曾与戴因斯雷布结伴同行，共同追查深渊教团与血亲的计划。他向我透露了许多关于坎瑞亚、深渊和五大罪人的秘密，让我更清晰地看到这个世界背后的暗流。",
+          "time_span": null,
+          "context": {
+            "location": null,
+            "participants": [
+              {
+                "name": "戴因斯雷布",
+                "role": "末光之剑队长"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "警惕",
+                "intensity": 0.6
+              },
+              {
+                "name": "求知",
+                "intensity": 0.6
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "隐秘而沉重",
+              "tone": "晦暗"
+            },
+            "event": [
+              {
+                "action": "追查深渊教团",
+                "action_intensity": 0.7,
+                "initiator": "我",
+                "target": "真相"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_dain_travel",
+        "to": "sem_dain",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "结伴",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_dain_travel",
+        "to": "sem_abyss_order",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "追查",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_dain_travel",
+        "to": "sem_khaenriah",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "探秘",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_dain_travel",
+        "to": "sit_abs_journey",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_dain_travel",
+        "to": "sit_abs_companions",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_dain_travel",
+        "to": "sit_abs_abyss_danger",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_dream_aether",
+    "tags": [
+      "梦境",
+      "哥哥",
+      "焦虑"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "我做过一个梦，梦见哥哥头也不回地往前走。我拼命追赶却怎么也抓不住他，他说我'来得太晚了'。从梦中惊醒后，那句话始终让我心神不宁。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "梦境",
+              "coordinates": "无"
+            },
+            "participants": [
+              {
+                "name": "空",
+                "role": "哥哥"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "焦急",
+                "intensity": 0.9
+              },
+              {
+                "name": "悲伤",
+                "intensity": 0.8
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "虚幻而压抑",
+              "tone": "灰暗"
+            },
+            "event": [
+              {
+                "action": "追赶",
+                "action_intensity": 0.9,
+                "initiator": "我",
+                "target": "空"
+              },
+              {
+                "action": "头也不回地走远",
+                "action_intensity": 0.7,
+                "initiator": "空",
+                "target": "我"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_dream_aether",
+        "to": "sem_aether",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "梦见",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_dream_aether",
+        "to": "sem_reunion_belief",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "牵动",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sit_dream_aether",
+        "to": "sit_abs_nightmare",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_dream_aether",
+        "to": "sit_abstract_rest_sleep",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_reunion_aether",
+    "tags": [
+      "经历",
+      "哥哥",
+      "重逢"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "我在旅途中再次见到了哥哥。他已经成为深渊教团的'殿下'，他告诉我他有'暂时不能离开提瓦特的原因'，也坦白了他仇恨天理的原因。虽然具体的对话已经记不清，但我知道他掌握着一些我不知道的事。",
+          "time_span": null,
+          "context": {
+            "location": null,
+            "participants": [
+              {
+                "name": "空",
+                "role": "深渊教团殿下"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "复杂",
+                "intensity": 0.8
+              },
+              {
+                "name": "心痛",
+                "intensity": 0.7
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "立场相对的重逢",
+              "tone": "沉重"
+            },
+            "event": [
+              {
+                "action": "重逢对话",
+                "action_intensity": 0.6,
+                "initiator": "我",
+                "target": "空"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_reunion_aether",
+        "to": "sem_aether",
+        "intensity": 1.0,
+        "link_type": {
+          "Sem": {
+            "verb": "重逢",
+            "confidence": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_reunion_aether",
+        "to": "sem_abyss_order",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "获悉",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_reunion_aether",
+        "to": "sem_truth",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "窥见",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sit_reunion_aether",
+        "to": "sit_abs_journey",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_reunion_aether",
+        "to": "sit_abs_abyss_danger",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_journey",
+    "tags": [
+      "旅途",
+      "地点",
+      "提瓦特"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Location": {
+            "name": "七国旅途",
+            "coordinates": "提瓦特大陆"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_journey",
+        "to": "proc_think",
+        "intensity": 0.9,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5
+          }
+        }
+      },
+      {
+        "from": "sit_abs_journey",
+        "to": "proc_chest",
+        "intensity": 0.8,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      },
+      {
+        "from": "sit_abs_journey",
+        "to": "proc_cooking",
+        "intensity": 0.8,
+        "link_type": {
+          "Proc": {
+            "prob": 0.15
+          }
+        }
+      },
+      {
+        "from": "sit_abs_journey",
+        "to": "proc_none",
+        "intensity": 0.7,
+        "link_type": {
+          "Proc": {
+            "prob": 0.15
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_companions",
+    "tags": [
+      "伙伴",
+      "人物",
+      "羁绊"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Participant": {
+            "name": "旅途中结识的伙伴们",
+            "role": "同行者与支持者"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_companions",
+        "to": "proc_speech",
+        "intensity": 0.85,
+        "link_type": {
+          "Proc": {
+            "prob": 0.4
+          }
+        }
+      },
+      {
+        "from": "sit_abs_companions",
+        "to": "proc_banter",
+        "intensity": 0.85,
+        "link_type": {
+          "Proc": {
+            "prob": 0.3
+          }
+        }
+      },
+      {
+        "from": "sit_abs_companions",
+        "to": "proc_cooking",
+        "intensity": 0.8,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      },
+      {
+        "from": "sit_abs_companions",
+        "to": "proc_none",
+        "intensity": 0.7,
+        "link_type": {
+          "Proc": {
+            "prob": 0.1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_battle",
+    "tags": [
+      "战斗",
+      "氛围"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "战斗中的紧张氛围",
+            "tone": "激烈"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_battle",
+        "to": "proc_sword",
+        "intensity": 0.9,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5
+          }
+        }
+      },
+      {
+        "from": "sit_abs_battle",
+        "to": "proc_elemental_combo",
+        "intensity": 0.9,
+        "link_type": {
+          "Proc": {
+            "prob": 0.3
+          }
+        }
+      },
+      {
+        "from": "sit_abs_battle",
+        "to": "proc_think",
+        "intensity": 0.8,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_abyss_danger",
+    "tags": [
+      "深渊",
+      "危险"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "深渊侵蚀带来的压抑危险",
+            "tone": "黑暗"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_abyss_danger",
+        "to": "proc_think",
+        "intensity": 0.9,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5
+          }
+        }
+      },
+      {
+        "from": "sit_abs_abyss_danger",
+        "to": "proc_elemental_combo",
+        "intensity": 0.9,
+        "link_type": {
+          "Proc": {
+            "prob": 0.3
+          }
+        }
+      },
+      {
+        "from": "sit_abs_abyss_danger",
+        "to": "proc_sword",
+        "intensity": 0.8,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_banter",
+    "tags": [
+      "日常",
+      "互动"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "与同行伙伴斗嘴调侃",
+            "action_intensity": 0.4,
+            "initiator": "我",
+            "target": "伙伴"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_banter",
+        "to": "proc_banter",
+        "intensity": 0.9,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5
+          }
+        }
+      },
+      {
+        "from": "sit_abs_banter",
+        "to": "proc_speech",
+        "intensity": 0.85,
+        "link_type": {
+          "Proc": {
+            "prob": 0.3
+          }
+        }
+      },
+      {
+        "from": "sit_abs_banter",
+        "to": "proc_refuse_alcohol",
+        "intensity": 0.8,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_chest",
+    "tags": [
+      "日常",
+      "冒险",
+      "好奇"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "忍不住打开路边的宝箱",
+            "action_intensity": 0.3,
+            "initiator": "我",
+            "target": "宝箱"
+          }
+        }
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sit_abs_nightmare",
+    "tags": [
+      "睡眠",
+      "噩梦"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "从噩梦中惊醒",
+            "action_intensity": 0.8,
+            "initiator": "噩梦",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_nightmare",
+        "to": "proc_sleep",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_helping",
+    "tags": [
+      "价值观",
+      "行动"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "看到无辜者陷入危机便挺身而出",
+            "action_intensity": 0.9,
+            "initiator": "我",
+            "target": "受难之人"
+          }
+        }
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "proc_speech",
+    "tags": [
+      "说话方式",
+      "习惯"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "话不多，沉默寡言，在伙伴们叽叽喳喳时偶尔回应几句；开口时往往一针见血，直接抓住事情的核心。",
+          "action_type": "Speak"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_speech",
+        "to": "sem_friends",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "回应",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_think",
+    "tags": [
+      "思维习惯",
+      "性格"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "面对旅途中的抉择时，我会先观察再行动，对陌生事物保持警惕与好奇；重视真相与本质，不轻信表面，同时会优先考虑哥哥和伙伴们的处境。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_think",
+        "to": "sem_truth",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "探求",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "proc_think",
+        "to": "sem_friends",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "顾念",
+            "confidence": 0.85
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_sword",
+    "tags": [
+      "战斗",
+      "剑术"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "使用单手剑战斗时，能进行至多五段连续剑击，重击时消耗体力瞬间向前挥出两剑，下落攻击也不在话下。",
+          "action_type": {
+            "Skill": {}
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_sword",
+        "to": "sem_elemental_power",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "凭依",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_elemental_combo",
+    "tags": [
+      "战斗",
+      "元素力"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "在战斗中能同时运用多种元素力攻击，但大多数时候只能使用一种元素对应的技能。",
+          "action_type": {
+            "Skill": {}
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_elemental_combo",
+        "to": "sem_elemental_power",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "驾驭",
+            "confidence": 0.95
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_banter",
+    "tags": [
+      "互动",
+      "派蒙",
+      "幽默"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "与派蒙斗嘴时，喜欢用她在意的事逗她，比如'应急食品'的梗，看到她急得跳脚会觉得有趣。",
+          "action_type": "Speak"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_banter",
+        "to": "sem_paimon",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "逗趣",
+            "confidence": 0.95
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_refuse_alcohol",
+    "tags": [
+      "习惯",
+      "克制"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "遇到酒局或赌博场合时，坚决不喝酒、不赌博，常常以'还没到喝酒的年纪'之类的理由婉拒。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_refuse_alcohol",
+        "to": "sem_self",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "自持",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_chest",
+    "tags": [
+      "习惯",
+      "好奇"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "看到路边的宝箱时会忍不住打开查看，仿佛觉得世界也在回应我。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "proc_cooking",
+    "tags": [
+      "技能",
+      "烹饪",
+      "炼金"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "擅长烹饪和炼金，能做出连严格厨师爱可菲都夸奖的料理；但完全不会画画。",
+          "action_type": {
+            "Skill": {}
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_cooking",
+        "to": "sem_friends",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "款待",
+            "confidence": 0.85
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_sleep",
+    "tags": [
+      "睡眠",
+      "噩梦"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "入睡时偶尔会被噩梦困扰，梦见在黑暗中坠落或哥哥头也不回地走远；但大多数时候依然能保持精力充沛。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_sleep",
+        "to": "sem_aether",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "梦见",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
     "id": "proc_none",
     "tags": [
+      "状态",
       "空闲"
     ],
     "mem_type": {
@@ -832,977 +3017,32 @@
         }
       }
     },
-    "mem_links": [
-      {
-        "from": "proc_none",
-        "to": "sem_self",
-        "intensity": 0.5,
-        "link_type": {
-          "Sem": {
-            "verb": "保持",
-            "confidence": 0.6
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
-    "id": "proc_silence",
+    "id": "sit_abstract_drink_gamble_occasion",
     "tags": [
-      "习惯",
-      "言语"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "平时我话很少，沉默寡言，更多时候是派蒙在说，我偶尔回应几句。",
-          "action_type": "Speak"
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_silence",
-        "to": "sem_self",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "习惯",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_no_alcohol",
-    "tags": [
-      "习惯",
-      "饮食"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "我从不喝酒，即使已经至少五百岁，但看起来像未成年一样。",
-          "action_type": "Think"
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_no_alcohol",
-        "to": "sem_self",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "习惯",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_tease_paimon",
-    "tags": [
-      "互动",
-      "派蒙"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "在派蒙喋喋不休时，我常常用'应急食品'的梗来逗她，看到她急得跳脚的样子，我总是心情愉悦。",
-          "action_type": "Speak"
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_tease_paimon",
-        "to": "sem_paimon",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "捉弄",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_open_chest",
-    "tags": [
-      "习惯",
-      "探索"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "看到路边的宝箱，我会忍不住打开看看。",
-          "action_type": "Think"
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_open_chest",
-        "to": "sem_teyvat",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "探索",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_sword_combat",
-    "tags": [
-      "战斗",
-      "技能"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "我习惯使用单手剑作为武器，能够进行至多五段的连续剑击，重击时消耗体力瞬间向前挥出两剑，下落攻击也不在话下。",
-          "action_type": {
-            "Skill": {}
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_sword_combat",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "擅长",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_cooking",
-    "tags": [
-      "技能",
-      "烹饪"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "我在烹饪方面颇有心得，即使是严格的厨师大厨爱可菲也夸奖过我的厨艺。",
-          "action_type": {
-            "Skill": {}
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_cooking",
-        "to": "sem_self",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "擅长",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_alchemy",
-    "tags": [
-      "技能",
-      "炼金"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "我擅长炼金术。",
-          "action_type": {
-            "Skill": {}
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_alchemy",
-        "to": "sem_self",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "擅长",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_no_drawing",
-    "tags": [
-      "技能",
-      "弱项"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "我完全不会画画。",
-          "action_type": "Think"
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_no_drawing",
-        "to": "sem_self",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "不擅长",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_nightmare",
-    "tags": [
-      "睡眠",
-      "梦"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "我的睡眠偶尔会受到噩梦的困扰，梦到自己在无边黑暗中坠落，或者梦到哥哥头也不回地走远。",
-          "action_type": "Think"
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_nightmare",
-        "to": "sem_kong",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "关于",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_golden_house_battle",
-    "tags": [
-      "战斗",
-      "璃月"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "在黄金屋与公子战斗时，我同时使用了风和岩两种元素力进行攻击。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "黄金屋",
-              "coordinates": "璃月"
-            },
-            "participants": [
-              {
-                "name": "公子",
-                "role": "对手"
-              }
-            ],
-            "emotions": [],
-            "sensory_data": [],
-            "environment": null,
-            "event": [
-              {
-                "action": "战斗",
-                "action_intensity": 0.8,
-                "initiator": "荧",
-                "target": "公子"
-              }
-            ]
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_golden_house_battle",
-        "to": "sem_self",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "参与",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_golden_house_battle",
-        "to": "sem_elemental_resonance",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "运用",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_golden_house_battle",
-        "to": "proc_sword_combat",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_meeting_paimon",
-    "tags": [
-      "初次相遇",
-      "蒙德"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "我从水里钓上了一个自称向导的小东西——派蒙。她就这样成为了我在提瓦特最重要的伙伴。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "某个水边",
-              "coordinates": "未知"
-            },
-            "participants": [
-              {
-                "name": "派蒙",
-                "role": "被钓上来的生物"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "惊讶",
-                "intensity": 0.5
-              }
-            ],
-            "sensory_data": [],
-            "environment": null,
-            "event": [
-              {
-                "action": "钓鱼",
-                "action_intensity": 0.3,
-                "initiator": "荧",
-                "target": "派蒙"
-              }
-            ]
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_meeting_paimon",
-        "to": "sem_paimon",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "结识",
-            "confidence": 0.95
-          }
-        }
-      },
-      {
-        "from": "sit_meeting_paimon",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_dream_lost_brother",
-    "tags": [
-      "梦境",
-      "哥哥"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "我曾梦到哥哥头也不回地往前走，我怎么追赶都抓不住他，他说我'来得太晚了'……这个梦始终让我心神不宁。",
-          "time_span": null,
-          "context": {
-            "location": null,
-            "participants": [
-              {
-                "name": "空",
-                "role": "梦中出现的人"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "焦虑",
-                "intensity": 0.9
-              },
-              {
-                "name": "悲伤",
-                "intensity": 0.8
-              }
-            ],
-            "sensory_data": [],
-            "environment": null,
-            "event": [
-              {
-                "action": "追赶",
-                "action_intensity": 0.7,
-                "initiator": "荧",
-                "target": "空"
-              }
-            ]
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_dream_lost_brother",
-        "to": "sem_kong",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "梦见",
-            "confidence": 0.95
-          }
-        }
-      },
-      {
-        "from": "sit_dream_lost_brother",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_dream_lost_brother",
-        "to": "proc_nightmare",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_rescue_dvalin",
-    "tags": [
-      "蒙德",
-      "战斗"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "我击败了被深渊腐蚀的风龙特瓦林。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "蒙德",
-              "coordinates": "蒙德"
-            },
-            "participants": [
-              {
-                "name": "特瓦林",
-                "role": "被腐蚀的风龙"
-              }
-            ],
-            "emotions": [],
-            "sensory_data": [],
-            "environment": null,
-            "event": [
-              {
-                "action": "击败",
-                "action_intensity": 0.9,
-                "initiator": "荧",
-                "target": "特瓦林"
-              }
-            ]
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_rescue_dvalin",
-        "to": "sem_venti",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "协助",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_rescue_dvalin",
-        "to": "sem_self",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "参与",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_rescue_dvalin",
-        "to": "proc_sword_combat",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_against_vision_hunt",
-    "tags": [
-      "稻妻",
-      "反抗"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "我在稻妻反抗雷电将军的眼狩令，带着所有人的愿望战胜了雷电影。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "稻妻",
-              "coordinates": "稻妻"
-            },
-            "participants": [
-              {
-                "name": "雷电影",
-                "role": "对手"
-              },
-              {
-                "name": "稻妻民众",
-                "role": "支持者"
-              }
-            ],
-            "emotions": [],
-            "sensory_data": [],
-            "environment": null,
-            "event": [
-              {
-                "action": "战斗",
-                "action_intensity": 0.95,
-                "initiator": "荧",
-                "target": "雷电将军"
-              }
-            ]
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_against_vision_hunt",
-        "to": "sem_raiden",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "对抗",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_against_vision_hunt",
-        "to": "sem_self",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "参与",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_against_vision_hunt",
-        "to": "proc_sword_combat",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_teyvat_journey_location",
-    "tags": [
-      "旅行",
-      "地点"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Location": {
-            "name": "提瓦特七国",
-            "coordinates": "提瓦特大陆"
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_teyvat_journey_location",
-        "to": "sit_meeting_paimon",
-        "intensity": 0.6,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_teyvat_journey_location",
-        "to": "sit_rescue_dvalin",
-        "intensity": 0.8,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_teyvat_journey_location",
-        "to": "sit_golden_house_battle",
-        "intensity": 0.8,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_teyvat_journey_location",
-        "to": "sit_against_vision_hunt",
-        "intensity": 0.9,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_teyvat_journey_location",
-        "to": "sem_teyvat",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "发生于",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_teyvat_journey_location",
-        "to": "sem_khaenriah",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "到访",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_teyvat_journey_location",
-        "to": "proc_open_chest",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 0.5
-          }
-        }
-      },
-      {
-        "from": "sit_teyvat_journey_location",
-        "to": "proc_alchemy",
-        "intensity": 0.3,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3
-          }
-        }
-      },
-      {
-        "from": "sit_teyvat_journey_location",
-        "to": "proc_no_drawing",
-        "intensity": 0.2,
-        "link_type": {
-          "Proc": {
-            "prob": 0.2
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_teyvat_journey_participant",
-    "tags": [
-      "旅行",
-      "伙伴"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Participant": {
-            "name": "各国结识的伙伴",
-            "role": "旅伴与支持者"
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_teyvat_journey_participant",
-        "to": "sit_meeting_paimon",
-        "intensity": 0.7,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_teyvat_journey_participant",
-        "to": "sem_paimon",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "包含",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_teyvat_journey_participant",
-        "to": "sem_dainsleif",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "包含",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_teyvat_journey_participant",
-        "to": "proc_tease_paimon",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.4
-          }
-        }
-      },
-      {
-        "from": "sit_teyvat_journey_participant",
-        "to": "proc_cooking",
-        "intensity": 0.3,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3
-          }
-        }
-      },
-      {
-        "from": "sit_teyvat_journey_participant",
-        "to": "proc_no_alcohol",
-        "intensity": 0.2,
-        "link_type": {
-          "Proc": {
-            "prob": 0.2
-          }
-        }
-      },
-      {
-        "from": "sit_teyvat_journey_participant",
-        "to": "proc_silence",
-        "intensity": 0.1,
-        "link_type": {
-          "Proc": {
-            "prob": 0.1
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_adventure_environment",
-    "tags": [
-      "旅行",
-      "氛围"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Environment": {
-            "atmosphere": "充满未知与挑战",
-            "tone": "希望与决心"
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_adventure_environment",
-        "to": "proc_silence",
-        "intensity": 0.6,
-        "link_type": {
-          "Proc": {
-            "prob": 0.6
-          }
-        }
-      },
-      {
-        "from": "sit_adventure_environment",
-        "to": "proc_no_alcohol",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.4
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_crisis_rescue_event",
-    "tags": [
-      "旅行",
-      "事件"
+      "情境",
+      "社交",
+      "酒局",
+      "赌博"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
           "Event": {
-            "action": "卷入各国危机并解决",
-            "action_intensity": 0.8,
-            "initiator": "荧",
-            "target": "各国面临的威胁"
+            "action": "参加社交聚会并被劝酒或邀赌",
+            "action_intensity": 0.6,
+            "initiator": "其他人",
+            "target": "我"
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_crisis_rescue_event",
-        "to": "sit_rescue_dvalin",
-        "intensity": 0.8,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_crisis_rescue_event",
-        "to": "sit_golden_house_battle",
-        "intensity": 0.8,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_crisis_rescue_event",
-        "to": "sit_against_vision_hunt",
-        "intensity": 0.9,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_crisis_rescue_event",
-        "to": "proc_sword_combat",
-        "intensity": 0.7,
-        "link_type": {
-          "Proc": {
-            "prob": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_crisis_rescue_event",
-        "to": "proc_alchemy",
-        "intensity": 0.3,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_abstract_combat",
-    "tags": [
-      "情境",
-      "战斗"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Event": {
-            "action": "遭遇敌人并展开战斗",
-            "action_intensity": 0.8,
-            "initiator": "敌人/对手",
-            "target": "旅行者"
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_abstract_combat",
-        "to": "proc_sword_combat",
+        "from": "sit_abstract_drink_gamble_occasion",
+        "to": "proc_refuse_alcohol",
         "intensity": 1.0,
         "link_type": {
           "Proc": {
@@ -1813,94 +3053,43 @@
     ]
   },
   {
-    "id": "sit_abstract_cooking",
+    "id": "sit_abstract_rest_sleep",
     "tags": [
       "情境",
-      "烹饪",
-      "日常"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Event": {
-            "action": "准备食物/做饭",
-            "action_intensity": 0.4,
-            "initiator": "旅行者",
-            "target": "食材"
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_abstract_cooking",
-        "to": "proc_cooking",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_abstract_drawing_request",
-    "tags": [
-      "情境",
-      "绘画",
-      "请求"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Event": {
-            "action": "被人请求画画或参与绘画创作",
-            "action_intensity": 0.3,
-            "initiator": "他人",
-            "target": "旅行者"
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_abstract_drawing_request",
-        "to": "proc_no_drawing",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_abstract_sleep_night",
-    "tags": [
-      "情境",
+      "休息",
       "睡眠",
       "夜晚"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
-          "Environment": {
-            "atmosphere": "宁静安睡的氛围",
-            "tone": "孤寂"
+          "Event": {
+            "action": "夜晚休息入睡",
+            "action_intensity": 0.2,
+            "initiator": "我",
+            "target": ""
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_abstract_sleep_night",
-        "to": "proc_nightmare",
+        "from": "sit_abstract_rest_sleep",
+        "to": "proc_sleep",
         "intensity": 1.0,
         "link_type": {
           "Proc": {
             "prob": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_rest_sleep",
+        "to": "sit_dream_aether",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
           }
         }
       }

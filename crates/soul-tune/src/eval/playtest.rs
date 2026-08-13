@@ -537,6 +537,7 @@ impl PlayTestRunner {
                     ..Default::default()
                 },
                 action_top_k: self.config.action_top_k,
+                ..Default::default()
             };
             let aa_req = aa_config.into_request(
                 self.wm.clone(),

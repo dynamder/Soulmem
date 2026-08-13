@@ -11,18 +11,18 @@
         "aliases": [
           "烟绯",
           "律法咨询师",
-          "半仙律法顾问",
-          "烟绯小姐"
+          "璃月港最顶尖的律法咨询师",
+          "行走的「规则」"
         ],
         "concept_type": "Entity",
-        "description": "我是烟绯，璃月港最顶尖的律法咨询师。我是一名半仙，父亲是仙兽，母亲是商人。我经营着自己的律法咨询事务所，信奉'不期修古，不法常可'。我头顶生有一对完整的仙兽角，拥有火元素神之眼。我的工作是用律法帮助人们解决纠纷，但我也追求随心所欲不逾矩的生活。我活得潇洒自由，事业有成，衣食无忧。"
+        "description": "我是烟绯，璃月港最顶尖的律法咨询师，也是半仙混血。父亲是仙兽，母亲是凡人，我出生在璃月安定之后，没有与帝君签订契约，因此能自由自在地生活。我经营着「烟绯律法咨询事务所」，信奉「不期修古，不法常可」，追求「随心所欲不逾矩」。我拥有火属性神之眼，精通璃月律法，能灵活运用法典为客户争取最大利益。我平时活得潇洒轻松，喜欢读书、估价和吃豆腐，也很在意与亲友的缘分。"
       }
     },
     "mem_links": [
       {
         "from": "sem_self",
         "to": "sem_father",
-        "intensity": 0.9,
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
             "verb": "敬爱",
@@ -32,107 +32,30 @@
       },
       {
         "from": "sem_self",
-        "to": "sem_ping",
+        "to": "sem_ping_laolao",
         "intensity": 0.9,
         "link_type": {
           "Sem": {
             "verb": "师从",
-            "confidence": 0.95
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_traveler",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "挚友",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_ganyu",
+        "to": "sem_traveler",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "敬重",
-            "confidence": 0.85
+            "verb": "同游",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_ye_lan",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "合作",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_kuki",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "指导",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_ar_taki",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "相识",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_xiao",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "共患难",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_xinyan",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "欣赏",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_xingqiu",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "委托人",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_hu_tao",
-        "intensity": 0.6,
+        "to": "sem_ningguang",
+        "intensity": 0.5,
         "link_type": {
           "Sem": {
             "verb": "相识",
@@ -142,19 +65,8 @@
       },
       {
         "from": "sem_self",
-        "to": "sem_ningguang",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "受托",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
         "to": "sem_keqing",
-        "intensity": 0.6,
+        "intensity": 0.5,
         "link_type": {
           "Sem": {
             "verb": "相识",
@@ -165,10 +77,21 @@
       {
         "from": "sem_self",
         "to": "sem_zhongli",
-        "intensity": 0.7,
+        "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "请教",
+            "verb": "熟识",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_ganyu",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "熟识",
             "confidence": 0.7
           }
         }
@@ -176,55 +99,88 @@
       {
         "from": "sem_self",
         "to": "sem_eula",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "书信往来",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_yanlan",
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "朋友",
+            "verb": "合作",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_kujou_shinobu",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "指点",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_arataki_itto",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "相识",
             "confidence": 0.7
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_half_immortal",
+        "to": "sem_xingqiu",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "受理委托",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_xiao",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "感念",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_xinyan",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "欣赏",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_firm",
         "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "拥有",
+            "verb": "经营",
             "confidence": 0.95
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_pyro_vision",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "持有",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_contract_philosophy",
-        "intensity": 0.85,
-        "link_type": {
-          "Sem": {
-            "verb": "信奉",
-            "confidence": 0.85
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_happy_life",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "追求",
-            "confidence": 0.9
           }
         }
       },
@@ -234,19 +190,19 @@
         "intensity": 0.95,
         "link_type": {
           "Sem": {
-            "verb": "精通",
+            "verb": "研习",
             "confidence": 0.95
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_fa_shou",
-        "intensity": 0.8,
+        "to": "sem_god_eye_fire",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "对应",
-            "confidence": 0.8
+            "verb": "持有",
+            "confidence": 0.95
           }
         }
       },
@@ -256,117 +212,128 @@
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "拥有",
-            "confidence": 0.8
+            "verb": "使用",
+            "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_maxim",
+        "to": "sem_fa_zuo",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "对应",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_half_immortal",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "拥有",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_contract_city",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "居住",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_last_codex",
         "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "践行",
+            "verb": "研读",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_work_philosophy",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "信奉",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_ideal_freedom",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "追求",
             "confidence": 0.85
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_office",
-        "intensity": 0.9,
+        "to": "sem_law_emotion",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "创办",
+            "verb": "思考",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_battle_style",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "掌握",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_final_codex",
-        "intensity": 0.8,
+        "to": "sem_life_philosophy",
+        "intensity": 0.75,
         "link_type": {
           "Sem": {
-            "verb": "向往",
+            "verb": "秉持",
             "confidence": 0.8
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sit_chasm_adventure",
-        "intensity": 0.9,
+        "to": "sem_tofu",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "经历",
+            "verb": "喜爱",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sit_encounter_traveler_insomnia",
-        "intensity": 0.8,
+        "to": "sem_hobbies",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "经历",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sit_rock_concert",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "观看",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sit_dinner_with_ye_lan",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "设宴",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sit_discuss_case_with_kuki",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "主持",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sit_learning_new_laws",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "应对",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sit_scale_test",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "实验",
+            "verb": "拥有",
             "confidence": 0.8
           }
         }
@@ -376,72 +343,52 @@
   {
     "id": "sem_father",
     "tags": [
+      "语义",
       "人物",
-      "父亲"
+      "亲人"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "我的父亲（仙兽）",
+        "content": "老爹",
         "aliases": [
           "老爹",
+          "老爸",
           "仙人父亲"
         ],
         "concept_type": "Entity",
-        "description": "他是个通透潇洒的人，当初陪帝君打完仗就跑回家结婚，生下我之后把我丢给萍姥姥，自己云游天下。他留给我一杆帝君钦赐的宝秤。他似乎知道钟离先生的秘密但不愿意告诉我。我和他订的契约是'要快乐地生活'。"
+        "description": "他是我的仙人父亲，当年陪帝君打完仗就回家结婚，生下我后又把我丢给萍姥姥，自己云游天下，几乎不管我。他为人通透潇洒，和我订下「要快乐地生活」的契约，还留给我一杆帝君钦赐的宝秤。他似乎知道一些关于钟离先生的秘密，但怎么都不肯告诉我。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_father",
-        "to": "sem_scale",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "传下",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_father",
-        "to": "sem_half_immortal",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "血脉",
-            "confidence": 0.85
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
-    "id": "sem_ping",
+    "id": "sem_ping_laolao",
     "tags": [
+      "语义",
       "人物",
       "师父"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "萍姥姥（歌尘浪市真君）",
+        "content": "萍姥姥",
         "aliases": [
           "萍姥姥",
           "歌尘浪市真君",
           "师父"
         ],
         "concept_type": "Entity",
-        "description": "她是把我带大的人，也是我的师父。她教我修行和道理。她住在玉京台，我经常去看她，还会把我的鬼兜虫寄养在她那里。她是个很慈祥的长辈。"
+        "description": "她是把我带大的人，也是我的师父。我父亲把我丢给她后，她教我修行、教我道理，是位慈祥的长辈。她住在玉京台，我经常去看她，还会把我的鬼兜虫寄养在她那里。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_ping",
-        "to": "sem_ganyu",
-        "intensity": 0.6,
+        "from": "sem_ping_laolao",
+        "to": "sem_self",
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "同僚",
-            "confidence": 0.7
+            "verb": "教导",
+            "confidence": 0.9
           }
         }
       }
@@ -450,6 +397,7 @@
   {
     "id": "sem_traveler",
     "tags": [
+      "语义",
       "人物",
       "朋友"
     ],
@@ -458,137 +406,61 @@
         "content": "旅行者",
         "aliases": [
           "旅行者",
-          "异乡人"
+          "异乡人",
+          "旅行中的伙伴"
         ],
         "concept_type": "Entity",
-        "description": "一个很有趣的人，从异世界来到提瓦特。我们一起经历了不少事情，包括层岩巨渊冒险。我帮他准备了各国律法资料作为生日礼物。我觉得他好像很在意我，有一次偶遇后我分析了一整晚他的话。"
+        "description": "一个从异世界来到提瓦特的旅行者，很有趣。我们一起帮萍姥姥收集过尘歌壶的材料，也一起经历了层岩巨渊的惊心动魄的冒险。我很感谢他/她陪我走到修行之路的终点，还为他/她准备了各国律法资料作为生日礼物。我总觉得他/她好像很在意我，某次偶遇时他/她说的话让我分析了一整晚。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_traveler",
-        "to": "sit_chasm_adventure",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_traveler",
-        "to": "sit_encounter_traveler_insomnia",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "偶遇",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_ningguang",
     "tags": [
+      "语义",
       "人物",
       "璃月七星"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "凝光（天权星）",
+        "content": "凝光",
         "aliases": [
           "凝光",
           "天权星"
         ],
         "concept_type": "Entity",
-        "description": "她主管律法，经常修正法典。每次修订我都得背新内容。她商界出身，论律法我可不会输给她。她评价我说我帮她找出了律法中的瑕疵。"
+        "description": "她是璃月天权星，主管律法，经常修订法典。每次修订后我都得背新内容，上次又增加三条律法、修改一百二十一条注释。她虽出身商界，但论律法我不会输给她。她曾评价我「律法是璃月繁荣的基石，烟绯帮我找出了现行律法中的不少瑕疵」。能得到她这样的评价，我很高兴。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_ningguang",
-        "to": "sem_keqing",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "同僚",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_ningguang",
-        "to": "sem_liyue_law",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "修订",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_ningguang",
-        "to": "sit_learning_new_laws",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "修订",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_keqing",
     "tags": [
+      "语义",
       "人物",
       "璃月七星"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "刻晴（玉衡星）",
+        "content": "刻晴",
         "aliases": [
           "刻晴",
           "玉衡星"
         ],
         "concept_type": "Entity",
-        "description": "好在玉衡星不涉足专业律法领域，不然依她的态度和效率，我怕是要失去不少工作了。不过她为人刚正，容易得罪人，说不定还得来找我咨询。"
+        "description": "她是璃月的玉衡星，不涉足专业律法领域。她为人刚正，容易得罪人，说不定还得来找我咨询。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_keqing",
-        "to": "sem_ningguang",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "同僚",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_keqing",
-        "to": "sem_liyue_law",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "重视",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_zhongli",
     "tags": [
+      "语义",
       "人物",
-      "神秘"
+      "熟人"
     ],
     "mem_type": {
       "Semantic": {
@@ -598,69 +470,35 @@
           "钟离"
         ],
         "concept_type": "Entity",
-        "description": "他学识渊博，堪称行走的书库，一看就是深藏不露的人。他身上有种不可思议的熟悉感，一定有秘密。我问过老爹，他也支支吾吾的。"
+        "description": "他学识渊博，堪称行走的书库，一看就是深藏不露的人。他这种人大都不怕麻烦，不会成为我的客户。但不知道为什么，他身上总有种不可思议的熟悉感。我问过老爹，老爹也支支吾吾，我总觉得他一定有什么秘密。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_zhongli",
-        "to": "sem_contract_philosophy",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "契合",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_zhongli",
-        "to": "sem_liyue_law",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "熟悉",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_ganyu",
     "tags": [
+      "语义",
       "人物",
-      "半仙",
-      "前辈"
+      "半仙"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "甘雨前辈",
+        "content": "甘雨",
         "aliases": [
-          "甘雨",
-          "甘雨前辈"
+          "甘雨前辈",
+          "甘雨"
         ],
         "concept_type": "Entity",
-        "description": "她温柔又贴心，可惜是个大忙人。同为半仙，差别很大：她跟帝君签了契约，纠结于半仙身份；我可没签契约，过得快快乐乐的。"
+        "description": "她温柔又贴心，可惜是个大忙人，大好时光除了午睡都在案卷堆里埋头苦干。同为半仙，她跟帝君签了契约，纠结于半仙身份；我没签契约，过得快快乐乐。我选择的工作可比她轻松多了。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_ganyu",
-        "to": "sem_half_immortal",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "同类",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_eula",
     "tags": [
+      "语义",
       "人物",
       "朋友"
     ],
@@ -669,19 +507,32 @@
         "content": "优菈·劳伦斯",
         "aliases": [
           "优菈",
-          "劳伦斯"
+          "优菈·劳伦斯"
         ],
         "concept_type": "Entity",
-        "description": "她曾经救过我一次，从那以后我们一直保持书信往来。她牢记条文却不墨守成规，我和她相处特别轻松。"
+        "description": "她曾经救过我一次，从那以后我们就一直保持书信往来。她牢记骑士团的各项条文，却从不墨守成规，总能找到巧妙的逻辑灵活处理问题，这点和我很像，和她相处特别轻松。不过她那股洒脱劲儿我可学不来，毕竟我们的职业完全不同。"
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "sem_eula",
+        "to": "sem_self",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "相救",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
   },
   {
-    "id": "sem_ye_lan",
+    "id": "sem_yanlan",
     "tags": [
+      "语义",
       "人物",
-      "雇员"
+      "合作者"
     ],
     "mem_type": {
       "Semantic": {
@@ -690,114 +541,37 @@
           "夜兰"
         ],
         "concept_type": "Entity",
-        "description": "她是总务司的雇员，帮我搞定过做假账的硬茬。和她交谈总觉得心思会被看穿，以后不要站在她的对立面。"
+        "description": "她是总务司的雇员，帮我搞定过做假账的硬茬，我还请她吃了顿饭。和她交谈时总觉得自己的心思会被轻易看穿，所以以后千万不要站在她的对立面。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_ye_lan",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "协助",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_ye_lan",
-        "to": "sit_dinner_with_ye_lan",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "赴约",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
-    "id": "sem_kuki",
+    "id": "sem_kujou_shinobu",
     "tags": [
+      "语义",
       "人物",
-      "律法学生"
+      "后辈"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "久岐忍（阿忍）",
+        "content": "久岐忍",
         "aliases": [
           "久岐忍",
           "阿忍"
         ],
         "concept_type": "Entity",
-        "description": "她来璃月留学专修律法，讨论过案件。我当时觉得她将来会成为出色的律法专家。后来她成了荒泷派二把手。"
+        "description": "她曾来璃月留学专修律法，为了完成课业实习专门约我讨论过案件。每次讨论结束她又鞠躬又是谢谢，搞得我有点不好意思。我当时就觉得她将来会成为出色的律法专家。后来稻妻锁国，再见面时她已经成了荒泷派的二把手。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_kuki",
-        "to": "sem_liyue_law",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "学习",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_kuki",
-        "to": "sem_ar_taki",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "辅佐",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_kuki",
-        "to": "sem_self",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "受教",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_kuki",
-        "to": "sit_chasm_adventure",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_kuki",
-        "to": "sit_discuss_case_with_kuki",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "参与",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
-    "id": "sem_ar_taki",
+    "id": "sem_arataki_itto",
     "tags": [
+      "语义",
       "人物",
-      "鬼族"
+      "恩人关系"
     ],
     "mem_type": {
       "Semantic": {
@@ -807,49 +581,25 @@
           "一斗"
         ],
         "concept_type": "Entity",
-        "description": "我在层岩巨渊帮他和阿忍解了围，结果被他当成恩人追着要报恩，太缠人。在斗虫大赛上他很认真。"
+        "description": "我在层岩巨渊帮他和阿忍解了围，结果被他当成恩人，一路追着我要报恩，太缠人了。后来在斗虫大赛上他还挺认真，我用自己的鬼兜虫参加了比赛。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_ar_taki",
-        "to": "sem_kuki",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "信赖",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_ar_taki",
-        "to": "sit_chasm_adventure",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_qiqi",
     "tags": [
-      "人物",
-      "僵尸"
+      "语义",
+      "人物"
     ],
     "mem_type": {
       "Semantic": {
         "content": "七七",
         "aliases": [
-          "七七",
-          "采药小姑娘"
+          "七七"
         ],
         "concept_type": "Entity",
-        "description": "听说那个采药小姑娘给自己编写了一整套行为准则。她身材娇小，办事有条有理，后生可畏，连我也要说一声佩服。"
+        "description": "那个采药小姑娘给自己编写了一整套行为准则。她身材娇小，办事却有条有理，后生可畏，连我也要说一声佩服。"
       }
     },
     "mem_links": []
@@ -857,8 +607,9 @@
   {
     "id": "sem_xingqiu",
     "tags": [
+      "语义",
       "人物",
-      "主顾"
+      "客户"
     ],
     "mem_type": {
       "Semantic": {
@@ -868,39 +619,16 @@
           "飞云商会小少爷"
         ],
         "concept_type": "Entity",
-        "description": "飞云商会是我的老主顾。他家小少爷年纪轻轻，居然跟得上我思考的速度，伶牙俐齿还分寸得当，真不简单。"
+        "description": "飞云商会是我的老主顾。他家小少爷行秋年纪轻轻，居然跟得上我思考的速度，伶牙俐齿还分寸得当，真不简单。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_xingqiu",
-        "to": "sem_hu_tao",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "旧识",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_xingqiu",
-        "to": "sem_self",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "委托",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
-    "id": "sem_hu_tao",
+    "id": "sem_hutao",
     "tags": [
-      "人物",
-      "堂主"
+      "语义",
+      "人物"
     ],
     "mem_type": {
       "Semantic": {
@@ -910,37 +638,15 @@
           "往生堂堂主"
         ],
         "concept_type": "Entity",
-        "description": "常听人说往生堂堂主行事奇特。不过往生堂是正经行业，工作就是工作，哪有高低贵贱之分？不过她倒是没怎么来光顾过我的生意……"
+        "description": "常听人说往生堂堂主行事奇特。不过往生堂是正经行业，工作就是工作，哪有高低贵贱之分？她倒是没怎么来光顾过我的生意。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_hu_tao",
-        "to": "sem_qiqi",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "在意",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_hu_tao",
-        "to": "sem_xingqiu",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "旧识",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_xiao",
     "tags": [
+      "语义",
       "人物",
       "仙人"
     ],
@@ -948,54 +654,20 @@
       "Semantic": {
         "content": "魈",
         "aliases": [
-          "魈",
-          "降魔大圣"
+          "魈"
         ],
         "concept_type": "Entity",
-        "description": "在层岩巨渊事件中，他想牺牲自己打开通道救我们出去。还好最后没事，我和旅行者利用空间与思想的关联把他传送到了大家身边。"
+        "description": "在层岩巨渊那次事件中，我们遇到了他。他想牺牲自己打开通道救我们出去，还好最后没事。我和旅行者利用空间与思想的关联把他传送到了大家的身边，也算是帮上了忙。"
       }
     },
-    "mem_links": [
-      {
-        "from": "sem_xiao",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "感激",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_xiao",
-        "to": "sem_traveler",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "感激",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_xiao",
-        "to": "sit_chasm_adventure",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
+    "mem_links": []
   },
   {
     "id": "sem_xinyan",
     "tags": [
+      "语义",
       "人物",
-      "音乐人"
+      "艺术家"
     ],
     "mem_type": {
       "Semantic": {
@@ -1004,161 +676,48 @@
           "辛焱"
         ],
         "concept_type": "Entity",
-        "description": "我偶然观看了她的摇滚表演，立刻被这种新潮的艺术吸引。将来如果法律行业不景气，我去当个说唱歌手也不错。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_xinyan",
-        "to": "sit_rock_concert",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "表演",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_half_immortal",
-    "tags": [
-      "血脉",
-      "天赋"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "半仙之血",
-        "aliases": [
-          "半仙血脉",
-          "混血半仙"
-        ],
-        "concept_type": "Abstract",
-        "description": "我的父亲是仙兽，母亲是凡人，所以我体内流淌着仙人与人类的混合血脉。这让我头生双角，拥有远超常人的寿命和部分仙力，但不必履行仙家职责。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_half_immortal",
-        "to": "sem_fa_shou",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "象征",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_pyro_vision",
-    "tags": [
-      "装备",
-      "火元素"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "神之眼（火元素）",
-        "aliases": [
-          "神之眼",
-          "火神之眼"
-        ],
-        "concept_type": "Abstract",
-        "description": "我的神之眼是火元素的，应强烈的愿望而生——希望所有人都遵纪守法。我曾用老爹的秤称量它，放上法典盒子才平衡，说明它与规则等价。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_pyro_vision",
-        "to": "sit_scale_test",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "涉及",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_contract_philosophy",
-    "tags": [
-      "价值观",
-      "哲学"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "契约与自由",
-        "aliases": [
-          "随心所欲不逾矩",
-          "没有规矩不成方圆"
-        ],
-        "concept_type": "Abstract",
-        "description": "我信奉'没有规矩不成方圆'，但期望'随心所欲不逾矩'。我研究律法是为了不被规则束缚——想要不被规则束缚，首先就得完全理解所有规则。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_contract_philosophy",
-        "to": "sem_maxim",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "互通",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_contract_philosophy",
-        "to": "sem_liyue_law",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "指导",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_contract_philosophy",
-        "to": "sit_law_interpretation_event",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "关联",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_happy_life",
-    "tags": [
-      "价值观",
-      "人生目标"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "快乐地生活",
-        "aliases": [
-          "快乐生活",
-          "人生契约"
-        ],
-        "concept_type": "Abstract",
-        "description": "我和老爹订的最严肃的契约就是'要快乐地生活'。我的快乐包括事业有成，衣食自由，遇见有趣的人和事，清楚下一步该往哪走。"
+        "description": "我偶然观看了她的摇滚表演，立刻被这种新潮的艺术吸引了。将来如果法律行业不景气，我去当个说唱歌手也不错——我语速肯定够快。"
       }
     },
     "mem_links": []
   },
   {
+    "id": "sem_firm",
+    "tags": [
+      "语义",
+      "机构",
+      "事业"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "烟绯律法咨询事务所",
+        "aliases": [
+          "我的事务所",
+          "烟绯律法咨询事务所"
+        ],
+        "concept_type": "Entity",
+        "description": "这是烟绯在璃月港经营的私人律法咨询事务所，是璃月港中声名最响的律法咨询机构。提供商业纠纷、民事调解、刑事诉讼等咨询，收费不便宜：解读律法每条六千摩拉，随行咨询每个时辰十八万摩拉，商业案件单件七十一万摩拉起。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_firm",
+        "to": "sem_liyue_law",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "依据",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
     "id": "sem_liyue_law",
     "tags": [
-      "知识",
+      "语义",
+      "概念",
       "律法"
     ],
     "mem_type": {
@@ -1166,125 +725,40 @@
         "content": "璃月律法体系",
         "aliases": [
           "璃月法典",
-          "璃月百法通则"
+          "璃月律法"
         ],
         "concept_type": "Abstract",
-        "description": "由凝光主持制定和修订，涵盖商业、民事、刑事等。我将上万条法典熟记于心，能够因时因地巧用律法。我最常翻阅的是《璃月百法通则》。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_liyue_law",
-        "to": "sem_final_codex",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "凝聚",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_liyue_law",
-        "to": "sem_office",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "支撑",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_liyue_law",
-        "to": "sit_learning_new_laws",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "触发",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_liyue_law",
-        "to": "sit_law_interpretation_event",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "主题",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_liyue_law",
-        "to": "proc_debate",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "引发",
-            "confidence": 0.6
-          }
-        }
-      },
-      {
-        "from": "sem_liyue_law",
-        "to": "proc_overcautious_speech",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "塑造",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_fa_shou",
-    "tags": [
-      "命之座",
-      "象征"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "法兽座（命之座）",
-        "aliases": [
-          "法兽座",
-          "命之座"
-        ],
-        "concept_type": "Abstract",
-        "description": "我的命之座叫'法兽座'，与传说中的獬豸有关。獬豸是能辨是非、明善恶的神兽，自古以来就是法律与公正的象征。我头上的大帽子据说就来源于獬豸冠。"
+        "description": "璃月律法体系由天权星凝光主持制定和修订，涵盖商业、民事、刑事等各个方面。烟绯能将上万条法典条文熟记于心，因时因地巧用律法。她最常翻阅的是《璃月百法通则》。律法是璃月繁荣的基石，既是约束也是工具。"
       }
     },
     "mem_links": []
   },
   {
-    "id": "sem_scale",
+    "id": "sem_god_eye_fire",
     "tags": [
-      "宝物",
-      "衡器"
+      "语义",
+      "物品",
+      "神之眼"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "老爹的宝秤",
+        "content": "神之眼·火",
         "aliases": [
-          "宝秤",
-          "帝君钦赐的秤"
+          "火神之眼",
+          "神之眼"
         ],
-        "concept_type": "Abstract",
-        "description": "老爹给我的宝贝，能衡量事物的价值，但只能称量摩拉诞生时最初的价格，不会随市场行情更新。提醒我很多东西无法用世俗价值估量。"
+        "concept_type": "Entity",
+        "description": "这是烟绯的神之眼，火元素，应强烈的愿望而生——希望所有人都能遵纪守法，如果有人乱来就接受律法的制裁。烟绯曾试图用老爹的秤称量它的价值，无论放多少摩拉都无法平秤，直到把装着手抄法典的盒子放上去，秤才平衡。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_scale",
-        "to": "sit_scale_test",
-        "intensity": 0.9,
+        "from": "sem_god_eye_fire",
+        "to": "sem_battle_style",
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "使用",
+            "verb": "驱动",
             "confidence": 0.9
           }
         }
@@ -1292,148 +766,1441 @@
     ]
   },
   {
-    "id": "sem_maxim",
+    "id": "sem_scale",
     "tags": [
-      "信条",
-      "理念"
+      "语义",
+      "物品",
+      "法器"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "不期修古，不法常可",
+        "content": "帝君钦赐的秤",
         "aliases": [
-          "工作信条",
-          "教条"
+          "老爹给我的秤",
+          "宝秤"
         ],
-        "concept_type": "Abstract",
-        "description": "我牢记的教诲：既不能墨守成规，也不能一味效仿古法。律法既是约束也是工具，我灵活变通帮客户争取最大利益。"
+        "concept_type": "Entity",
+        "description": "这是老爹留给烟绯的宝贝秤，帝君钦赐，能衡量出事物的「价值」。通常用摩拉当砝码，但它只能称量摩拉诞生时万物最初的价格，不会随市场行情更新。这杆秤提醒着烟绯：很多东西无法用世俗价值来估量。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_maxim",
+        "from": "sem_scale",
+        "to": "sem_battle_style",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "辅助",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_fa_zuo",
+    "tags": [
+      "语义",
+      "概念",
+      "命之座"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "法兽座",
+        "aliases": [
+          "命之座·法兽座",
+          "法兽座"
+        ],
+        "concept_type": "Abstract",
+        "description": "法兽座是烟绯的命之座，与传说中的獬豸有关。獬豸是能辨是非、明善恶、识忠奸的神兽，自古以来就是法律与公正的象征。烟绯头上的大帽子据说就来源于獬豸冠。不过獬豸只有独角，而她有一对完整的角，有人说这寓意璃月的法律已经逐渐完善和公正了。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_half_immortal",
+    "tags": [
+      "语义",
+      "概念",
+      "血统"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "半仙之血",
+        "aliases": [
+          "半仙血脉",
+          "仙兽混血"
+        ],
+        "concept_type": "Abstract",
+        "description": "烟绯是半仙混血，父亲是仙兽，母亲是凡人，体内流淌着仙人与人类的混合血脉。这让她头上生有一对角，也拥有远超常人的寿命和部分仙力。但与甘雨等仙人不同，烟绯出生在璃月安定之后，没有与岩王帝君签订过任何契约，所以不必履行仙家职责。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_contract_city",
+    "tags": [
+      "语义",
+      "地点",
+      "璃月"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "契约之城璃月",
+        "aliases": [
+          "璃月港",
+          "璃月"
+        ],
+        "concept_type": "Entity",
+        "description": "璃月是重视契约与贸易的港湾，岩王帝君是契约之神。烟绯自创的招式「食炎之罚」就改编自《璃月会典例律总辑要》中记载的「食岩之罚」。璃月港自古就是契约之城。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_contract_city",
         "to": "sem_liyue_law",
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "指导",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_maxim",
-        "to": "sem_contract_philosophy",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "相通",
+            "verb": "孕育",
             "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_maxim",
-        "to": "sem_final_codex",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "启示",
-            "confidence": 0.7
           }
         }
       }
     ]
   },
   {
-    "id": "sem_office",
+    "id": "sem_last_codex",
     "tags": [
-      "场所",
-      "工作"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "烟绯律法咨询事务所",
-        "aliases": [
-          "事务所",
-          "烟绯事务所"
-        ],
-        "concept_type": "Entity",
-        "description": "我在璃月港经营的私人事务所，是璃月港声名最响的律法咨询机构。提供解读律法、随行咨询、商业案件等服务，收费不菲。"
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sem_office",
-        "to": "sem_final_codex",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "目标",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_office",
-        "to": "sit_work_location",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "对应",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_office",
-        "to": "proc_mode_switch",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "触发",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sem_final_codex",
-    "tags": [
-      "书籍",
-      "理想"
+      "语义",
+      "物品",
+      "法典"
     ],
     "mem_type": {
       "Semantic": {
         "content": "最后一部法典",
         "aliases": [
-          "轻薄法典",
-          "终极律法"
+          "最后的法典",
+          "人类律法的终极形态"
         ],
-        "concept_type": "Abstract",
-        "description": "我收藏中最特殊的一本法典，轻薄得难以置信，只记载了寥寥几条最基本的法律理论。或许是人类律法的终极形态：当法律深入人心时，堆积如山的法典终将蒙尘。"
+        "concept_type": "Entity",
+        "description": "这是烟绯收藏中最特殊的一本法典，轻薄得难以置信，里面只记载了寥寥几条最基本的法律理论。在烟绯看来，这或许是人类律法的终极形态：当法律深入人心，每个人都友善谦逊快乐地生活时，堆积如山的法典终将在岁月中蒙尘。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_final_codex",
-        "to": "sit_scale_test",
+        "from": "sem_last_codex",
+        "to": "sem_liyue_law",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "承载",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_work_philosophy",
+    "tags": [
+      "语义",
+      "价值观",
+      "工作信条"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "不期修古，不法常可",
+        "aliases": [
+          "我的工作信条",
+          "不期修古，不法常可"
+        ],
+        "concept_type": "Abstract",
+        "description": "「不期修古，不法常可」是烟绯必须牢记的教诲。既不能墨守成规，也不能一味效仿古法。律法既是约束也是工具，唯有遵循应守之「律」，人才能获得解开一切问题的「法」。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_work_philosophy",
+        "to": "sem_liyue_law",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "出现",
+            "verb": "指导",
+            "confidence": 0.85
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_ideal_freedom",
+    "tags": [
+      "语义",
+      "价值观",
+      "理想"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "随心所欲不逾矩",
+        "aliases": [
+          "我的终极期望",
+          "随心所欲不逾矩"
+        ],
+        "concept_type": "Abstract",
+        "description": "烟绯信奉「没有规矩不成方圆」，但她期望的终极状态是「随心所欲不逾矩」。她研究律法的目的是为了不被规则束缚——想要不被规则束缚，首先就得完全理解所有规则。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_law_emotion",
+    "tags": [
+      "语义",
+      "价值观",
+      "法理人情"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "法理与人情的关系",
+        "aliases": [
+          "法理与人情",
+          "情理法"
+        ],
+        "concept_type": "Abstract",
+        "description": "法理与人情有时冲突，有时兼容，权衡二者是种学问。烟绯最怕处理涉及感情和亲情的民事纠纷，比如婚姻破裂、抚养权诉讼，这些事很难用理性或逻辑拆解，她希望大家都能够和和气气地生活。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_battle_style",
+    "tags": [
+      "语义",
+      "战斗",
+      "技能"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "火元素律法战斗风格",
+        "aliases": [
+          "战斗风格",
+          "食炎之罚",
+          "丹书立约",
+          "凭此结契"
+        ],
+        "concept_type": "Abstract",
+        "description": "烟绯用火元素法器和一身的律法术语来战斗。普通攻击发射火球，命中敌人会给她「丹火印」，最多三枚。重击消耗所有丹火印造成范围伤害，印越多伤害越高范围越大。元素战技「丹书立约」召唤烈焰并给满丹火印，元素爆发「凭此结契」引发烈火冲击并进入「灼灼」状态持续提升战斗力。招式「食炎之罚」改编自《璃月会典例律总辑要》的「食岩之罚」。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_life_philosophy",
+    "tags": [
+      "语义",
+      "价值观",
+      "快乐"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "我的快乐观",
+        "aliases": [
+          "快乐的意义",
+          "我的快乐"
+        ],
+        "concept_type": "Abstract",
+        "description": "烟绯认为，事业有成，衣食自由，遇见有趣的人、有趣的事，心里清楚该往何处迈出下一步——这就是快乐。但无论怎么生活，最重要的是要守法懂法，离开了律法，这个世界肯定马上就会毁灭掉。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_tofu",
+    "tags": [
+      "语义",
+      "食物",
+      "喜好"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "豆腐",
+        "aliases": [
+          "豆腐"
+        ],
+        "concept_type": "Entity",
+        "description": "豆腐是烟绯最喜欢的食物。豆腐清淡鲜嫩，温润滋补，一年四季都有供应，随时可以吃到。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_hobbies",
+    "tags": [
+      "语义",
+      "爱好",
+      "技能"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "读书与估价爱好",
+        "aliases": [
+          "爱好",
+          "读书和估价"
+        ],
+        "concept_type": "Abstract",
+        "description": "烟绯的爱好是读书和估价——读书长知识，估价长眼力。市面上有售的商品，她基本都能估个八九不离十。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sit_help_ping_collect",
+    "tags": [
+      "情境",
+      "具体情境",
+      "日常"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "旅行者来帮忙收集尘歌壶的材料时，我与他/她一起工作，顺便让他/她见识了一下我的工作方式。我一边处理事情一边运用律法思维，旅行者似乎很感兴趣。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "玉京台一带",
+              "coordinates": "璃月"
+            },
+            "participants": [
+              {
+                "name": "旅行者",
+                "role": "帮手"
+              },
+              {
+                "name": "萍姥姥",
+                "role": "委托人"
+              },
+              {
+                "name": "烟绯",
+                "role": "律法咨询师"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "愉快",
+                "intensity": 0.7
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "轻松",
+              "tone": "合作"
+            },
+            "event": [
+              {
+                "action": "收集尘歌壶材料",
+                "action_intensity": 0.6,
+                "initiator": "烟绯",
+                "target": "材料"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_help_ping_collect",
+        "to": "sem_traveler",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "协作",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_help_ping_collect",
+        "to": "sem_ping_laolao",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "协助",
             "confidence": 0.8
           }
         }
       },
       {
-        "from": "sem_final_codex",
-        "to": "proc_book_habit",
+        "from": "sit_help_ping_collect",
+        "to": "sem_firm",
+        "intensity": 0.5,
+        "link_type": {
+          "Sem": {
+            "verb": "展现",
+            "confidence": 0.6
+          }
+        }
+      },
+      {
+        "from": "sit_help_ping_collect",
+        "to": "sit_abstract_workday",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_chasm_adventure",
+    "tags": [
+      "情境",
+      "具体情境",
+      "冒险"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在层岩巨渊，我和旅行者、荒泷一斗、久岐忍一起经历了一场惊心动魄的冒险。魈想牺牲自己打开通道救我们出去，还好最后没事。我和旅行者利用空间与思想的关联把他传送到了大家的身边，总算是帮上了忙。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "层岩巨渊",
+              "coordinates": "璃月"
+            },
+            "participants": [
+              {
+                "name": "旅行者",
+                "role": "同伴"
+              },
+              {
+                "name": "荒泷一斗",
+                "role": "被帮助者"
+              },
+              {
+                "name": "久岐忍",
+                "role": "被帮助者"
+              },
+              {
+                "name": "魈",
+                "role": "遇险者"
+              },
+              {
+                "name": "烟绯",
+                "role": "帮助者"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "紧张",
+                "intensity": 0.9
+              },
+              {
+                "name": "感动",
+                "intensity": 0.8
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "危险幽暗",
+              "tone": "压抑"
+            },
+            "event": [
+              {
+                "action": "牺牲自己打开通道",
+                "action_intensity": 0.9,
+                "initiator": "魈",
+                "target": "众人"
+              },
+              {
+                "action": "利用空间与思想的关联传送",
+                "action_intensity": 0.8,
+                "initiator": "烟绯和旅行者",
+                "target": "魈"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_chasm_adventure",
+        "to": "sem_traveler",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "同行",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_chasm_adventure",
+        "to": "sem_arataki_itto",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "同行",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_chasm_adventure",
+        "to": "sem_kujou_shinobu",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "同行",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_chasm_adventure",
+        "to": "sem_xiao",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "感念",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_chasm_adventure",
+        "to": "abs_event_being_chased",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_encounter_traveler",
+    "tags": [
+      "情境",
+      "具体情境",
+      "人际"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "有一次我偶遇旅行者，旅行者说「没想到会在这里遇到你」。我回来后分析了一整晚这句话的深层含义，翻来覆去睡不着，总在想他/她是不是很在意我。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "偶遇地点",
+              "coordinates": "未知"
+            },
+            "participants": [
+              {
+                "name": "旅行者",
+                "role": "偶遇对象"
+              },
+              {
+                "name": "烟绯",
+                "role": "偶遇者"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "在意",
+                "intensity": 0.8
+              },
+              {
+                "name": "困惑",
+                "intensity": 0.7
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "日常",
+              "tone": "轻松"
+            },
+            "event": [
+              {
+                "action": "说「没想到会在这里遇到你」",
+                "action_intensity": 0.5,
+                "initiator": "旅行者",
+                "target": "烟绯"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_encounter_traveler",
+        "to": "sem_traveler",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "偶遇",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_encounter_traveler",
+        "to": "abs_liyue_street",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_encounter_traveler",
+        "to": "abs_event_analyze_words",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_encounter_traveler",
+        "to": "sit_abstract_conversation",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_rock_concert",
+    "tags": [
+      "情境",
+      "具体情境",
+      "演出"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "我偶然观看了辛焱的摇滚表演，立刻被这种新潮的艺术吸引了。看着她在台上充满热情地弹唱，我觉得将来如果法律行业不景气，去当个说唱歌手也不错。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "演出场地",
+              "coordinates": "璃月"
+            },
+            "participants": [
+              {
+                "name": "辛焱",
+                "role": "表演者"
+              },
+              {
+                "name": "烟绯",
+                "role": "观众"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "兴奋",
+                "intensity": 0.8
+              },
+              {
+                "name": "新奇",
+                "intensity": 0.7
+              }
+            ],
+            "sensory_data": [
+              {
+                "name": "震耳的音乐",
+                "intensity": 0.8
+              }
+            ],
+            "environment": {
+              "atmosphere": "热烈",
+              "tone": "摇滚"
+            },
+            "event": [
+              {
+                "action": "摇滚表演",
+                "action_intensity": 0.8,
+                "initiator": "辛焱",
+                "target": "观众"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_rock_concert",
+        "to": "sem_xinyan",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "观赏",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_beetle_battle",
+    "tags": [
+      "情境",
+      "具体情境",
+      "娱乐"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "在斗虫大赛上，我用自己养的鬼兜虫参加了比赛，荒泷一斗也认真地参赛。没想到那只鬼兜虫还挺争气。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "斗虫大赛场地",
+              "coordinates": "璃月"
+            },
+            "participants": [
+              {
+                "name": "荒泷一斗",
+                "role": "参赛者"
+              },
+              {
+                "name": "烟绯",
+                "role": "参赛者"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "热闹",
+                "intensity": 0.7
+              },
+              {
+                "name": "紧张",
+                "intensity": 0.5
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "喧闹",
+              "tone": "竞技"
+            },
+            "event": [
+              {
+                "action": "斗虫比赛",
+                "action_intensity": 0.7,
+                "initiator": "参赛者",
+                "target": "鬼兜虫"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_beetle_battle",
+        "to": "sem_arataki_itto",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "同赛",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_beetle_battle",
+        "to": "sit_abstract_friend_contest",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_dinner_yanlan",
+    "tags": [
+      "情境",
+      "具体情境",
+      "社交"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "夜兰帮我搞定了做假账的硬茬，我请她吃了顿饭作为感谢。不过和她交谈时总觉得自己的心思会被轻易看穿，有点不自在。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "璃月餐馆",
+              "coordinates": "璃月"
+            },
+            "participants": [
+              {
+                "name": "夜兰",
+                "role": "被感谢者"
+              },
+              {
+                "name": "烟绯",
+                "role": "请客者"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "感激",
+                "intensity": 0.7
+              },
+              {
+                "name": "警惕",
+                "intensity": 0.5
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "轻松",
+              "tone": "交谈"
+            },
+            "event": [
+              {
+                "action": "请客吃饭",
+                "action_intensity": 0.5,
+                "initiator": "烟绯",
+                "target": "夜兰"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_dinner_yanlan",
+        "to": "sem_yanlan",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "答谢",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_dinner_yanlan",
+        "to": "sem_liyue_law",
         "intensity": 0.6,
         "link_type": {
           "Sem": {
-            "verb": "促使",
-            "confidence": 0.6
+            "verb": "涉及",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_dinner_yanlan",
+        "to": "abs_case_atmosphere",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_dinner_yanlan",
+        "to": "abs_event_thanks",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_dinner_yanlan",
+        "to": "sit_abstract_conversation",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_discussion_shinobu",
+    "tags": [
+      "情境",
+      "具体情境",
+      "工作"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "久岐忍在璃月留学时，为了完成课业实习专门约我讨论案件。每次讨论结束她都又是鞠躬又是道谢，搞得我都有点不好意思。我当时就觉得她将来一定会成为出色的律法专家。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "烟绯律法咨询事务所",
+              "coordinates": "璃月"
+            },
+            "participants": [
+              {
+                "name": "久岐忍",
+                "role": "留学生"
+              },
+              {
+                "name": "烟绯",
+                "role": "前辈"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "欣慰",
+                "intensity": 0.7
+              },
+              {
+                "name": "不好意思",
+                "intensity": 0.5
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "学术",
+              "tone": "认真"
+            },
+            "event": [
+              {
+                "action": "讨论案件",
+                "action_intensity": 0.6,
+                "initiator": "久岐忍",
+                "target": "烟绯"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_discussion_shinobu",
+        "to": "sem_kujou_shinobu",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "指导",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_discussion_shinobu",
+        "to": "sem_firm",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "相关",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_discussion_shinobu",
+        "to": "sem_liyue_law",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "讨论",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_discussion_shinobu",
+        "to": "abs_client_consult",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_discussion_shinobu",
+        "to": "abs_case_atmosphere",
+        "intensity": 0.7,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_discussion_shinobu",
+        "to": "sit_abstract_conversation",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_discussion_shinobu",
+        "to": "sit_abstract_workday",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_eula_rescue",
+    "tags": [
+      "情境",
+      "具体情境",
+      "恩情"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "优菈曾经救过我一次，从那时起我们就一直保持书信往来。我一直记得那份恩情，也很欣赏她灵活运用条文却不墨守成规的处事方式。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "未知",
+              "coordinates": "未知"
+            },
+            "participants": [
+              {
+                "name": "优菈",
+                "role": "救命恩人"
+              },
+              {
+                "name": "烟绯",
+                "role": "被救者"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "感激",
+                "intensity": 0.9
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "紧急",
+              "tone": "紧张"
+            },
+            "event": [
+              {
+                "action": "救了我一次",
+                "action_intensity": 0.9,
+                "initiator": "优菈",
+                "target": "烟绯"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_eula_rescue",
+        "to": "sem_eula",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "感激",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_eula_rescue",
+        "to": "abs_event_thanks",
+        "intensity": 0.8,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_eula_rescue",
+        "to": "sit_abstract_conversation",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "abs_liyue_street",
+    "tags": [
+      "情境",
+      "抽象情境",
+      "地点"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Location": {
+            "name": "璃月港的大街小巷",
+            "coordinates": "璃月"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "abs_liyue_street",
+        "to": "sem_contract_city",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "身处",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "abs_liyue_street",
+        "to": "proc_speak_style",
+        "intensity": 0.8,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5
+          }
+        }
+      },
+      {
+        "from": "abs_liyue_street",
+        "to": "proc_valuation",
+        "intensity": 0.6,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      },
+      {
+        "from": "abs_liyue_street",
+        "to": "proc_book_look",
+        "intensity": 0.5,
+        "link_type": {
+          "Proc": {
+            "prob": 0.15
+          }
+        }
+      },
+      {
+        "from": "abs_liyue_street",
+        "to": "proc_book_knock",
+        "intensity": 0.5,
+        "link_type": {
+          "Proc": {
+            "prob": 0.1
+          }
+        }
+      },
+      {
+        "from": "abs_liyue_street",
+        "to": "proc_weather",
+        "intensity": 0.4,
+        "link_type": {
+          "Proc": {
+            "prob": 0.05
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "abs_client_consult",
+    "tags": [
+      "情境",
+      "抽象情境",
+      "参与者"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Participant": {
+            "name": "前来咨询的客户",
+            "role": "委托人"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "abs_client_consult",
+        "to": "sem_firm",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "业务",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "abs_client_consult",
+        "to": "sem_liyue_law",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "援引",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "abs_client_consult",
+        "to": "proc_work_mode",
+        "intensity": 0.9,
+        "link_type": {
+          "Proc": {
+            "prob": 0.5
+          }
+        }
+      },
+      {
+        "from": "abs_client_consult",
+        "to": "proc_speak_style",
+        "intensity": 0.7,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      },
+      {
+        "from": "abs_client_consult",
+        "to": "proc_think_style",
+        "intensity": 0.6,
+        "link_type": {
+          "Proc": {
+            "prob": 0.15
+          }
+        }
+      },
+      {
+        "from": "abs_client_consult",
+        "to": "proc_daily_schedule",
+        "intensity": 0.5,
+        "link_type": {
+          "Proc": {
+            "prob": 0.15
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "abs_case_atmosphere",
+    "tags": [
+      "情境",
+      "抽象情境",
+      "环境"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "严肃紧张",
+            "tone": "专注克制"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "abs_case_atmosphere",
+        "to": "sem_liyue_law",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "围绕",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "abs_case_atmosphere",
+        "to": "proc_work_mode",
+        "intensity": 0.85,
+        "link_type": {
+          "Proc": {
+            "prob": 0.6
+          }
+        }
+      },
+      {
+        "from": "abs_case_atmosphere",
+        "to": "proc_think_style",
+        "intensity": 0.7,
+        "link_type": {
+          "Proc": {
+            "prob": 0.25
+          }
+        }
+      },
+      {
+        "from": "abs_case_atmosphere",
+        "to": "proc_avoid_emotional_cases",
+        "intensity": 0.5,
+        "link_type": {
+          "Proc": {
+            "prob": 0.15
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "abs_event_thanks",
+    "tags": [
+      "情境",
+      "抽象情境",
+      "事件"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "对方反复鞠躬并道谢",
+            "action_intensity": 0.6,
+            "initiator": "对方",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "abs_event_thanks",
+        "to": "sem_law_emotion",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "关联",
+            "confidence": 0.7
+          }
+        }
+      },
+      {
+        "from": "abs_event_thanks",
+        "to": "proc_fishing_act",
+        "intensity": 0.7,
+        "link_type": {
+          "Proc": {
+            "prob": 0.7
+          }
+        }
+      },
+      {
+        "from": "abs_event_thanks",
+        "to": "proc_speak_style",
+        "intensity": 0.5,
+        "link_type": {
+          "Proc": {
+            "prob": 0.3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "abs_event_being_chased",
+    "tags": [
+      "情境",
+      "抽象情境",
+      "事件"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "被对方当成恩人，一路追着要报恩",
+            "action_intensity": 0.8,
+            "initiator": "对方",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "abs_event_being_chased",
+        "to": "proc_battle",
+        "intensity": 0.9,
+        "link_type": {
+          "Proc": {
+            "prob": 0.85
+          }
+        }
+      },
+      {
+        "from": "abs_event_being_chased",
+        "to": "proc_think_style",
+        "intensity": 0.6,
+        "link_type": {
+          "Proc": {
+            "prob": 0.15
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "abs_event_analyze_words",
+    "tags": [
+      "情境",
+      "抽象情境",
+      "事件"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "反复分析别人的话语中隐含的深层含义，直到失眠",
+            "action_intensity": 0.7,
+            "initiator": "我",
+            "target": "对方的话语"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "abs_event_analyze_words",
+        "to": "proc_think_style",
+        "intensity": 0.8,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
           }
         }
       }
@@ -1442,8 +2209,8 @@
   {
     "id": "proc_none",
     "tags": [
-      "空闲",
-      "默认"
+      "程序",
+      "空闲"
     ],
     "mem_type": {
       "Procedure": {
@@ -1456,24 +2223,74 @@
     "mem_links": []
   },
   {
-    "id": "proc_overcautious_speech",
+    "id": "proc_speak_style",
     "tags": [
-      "习惯",
-      "说话"
+      "程序",
+      "说话方式"
     ],
     "mem_type": {
       "Procedure": {
         "action": {
-          "content": "说话时总会消除话语中的歧义和漏洞，显得啰嗦。察觉到可能让对方不快时，会懊恼地用书角敲敲脑袋。",
+          "content": "与他人交流时，我说话语速很快（一小时能背几万字律法），习惯自称「我」；由于常年研究法典，聊天时总爱消除话语中的歧义和漏洞，显得严谨又有些啰嗦。",
           "action_type": "Speak"
         }
       }
     },
     "mem_links": [
       {
-        "from": "proc_overcautious_speech",
+        "from": "proc_speak_style",
         "to": "sem_liyue_law",
         "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "引用",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "proc_speak_style",
+        "to": "sem_last_codex",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "熟记",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_think_style",
+    "tags": [
+      "程序",
+      "思维习惯"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "面对问题时，我习惯用律法思维进行严谨拆解，追求消除一切歧义；相信想要不被规则束缚，必须先完全理解所有规则；分析人际互动时也会反复琢磨对方话语的深层含义。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_think_style",
+        "to": "sem_liyue_law",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "遵循",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "proc_think_style",
+        "to": "sem_work_philosophy",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
             "verb": "体现",
@@ -1482,12 +2299,12 @@
         }
       },
       {
-        "from": "proc_overcautious_speech",
-        "to": "sem_self",
-        "intensity": 0.8,
+        "from": "proc_think_style",
+        "to": "sem_law_emotion",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "特征",
+            "verb": "权衡",
             "confidence": 0.8
           }
         }
@@ -1495,15 +2312,54 @@
     ]
   },
   {
-    "id": "proc_book_habit",
+    "id": "proc_work_mode",
     "tags": [
-      "习惯",
-      "动作"
+      "程序",
+      "工作模式"
     ],
     "mem_type": {
       "Procedure": {
         "action": {
-          "content": "空闲时习惯掏出一本厚厚的书籍凑近脸看，因为字太小，不是近视。",
+          "content": "处理法律案件或为客户咨询时，我会像拨动隐形开关一样切换到工作模式，变得极其专注、气场强大，有人说这时候的我有点可怕。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_work_mode",
+        "to": "sem_firm",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "投身",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "proc_work_mode",
+        "to": "sem_liyue_law",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "依凭",
+            "confidence": 0.85
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_book_knock",
+    "tags": [
+      "程序",
+      "习惯动作"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "聊天时如果察觉到自己用词过于严谨而让对方不快，我会懊恼地用书角敲敲自己的脑袋，但改不掉这个啰嗦的习惯。",
           "action_type": {
             "Skill": {}
           }
@@ -1512,106 +2368,58 @@
     },
     "mem_links": [
       {
-        "from": "proc_book_habit",
-        "to": "sem_final_codex",
-        "intensity": 0.7,
+        "from": "proc_book_knock",
+        "to": "sem_last_codex",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "敲击",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_book_look",
+    "tags": [
+      "程序",
+      "习惯动作"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "待机时习惯掏出一本厚厚的律法书凑近脸阅读，因为那本书的字太小，为了在一页里塞进更多律法条文；别人常以为我近视，其实不是。",
+          "action_type": {
+            "Skill": {}
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_book_look",
+        "to": "sem_last_codex",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
             "verb": "阅读",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "proc_book_habit",
-        "to": "sem_liyue_law",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "研读",
-            "confidence": 0.7
+            "confidence": 0.9
           }
         }
       }
     ]
   },
   {
-    "id": "proc_appraise",
+    "id": "proc_battle",
     "tags": [
-      "习惯",
-      "估价"
+      "程序",
+      "战斗技能"
     ],
     "mem_type": {
       "Procedure": {
         "action": {
-          "content": "看到市面上有售的商品时，基本都能估个八九不离十。爱好是估价。",
-          "action_type": "Think"
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_appraise",
-        "to": "sem_scale",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "关联",
-            "confidence": 0.6
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_debate",
-    "tags": [
-      "习惯",
-      "辩论"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "午间犯困时，会提议来场辩论提神，例如关于北国银行利弊的辩题。",
-          "action_type": "Speak"
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_debate",
-        "to": "sem_liyue_law",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "辩题",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "proc_debate",
-        "to": "sem_contract_philosophy",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "涉及",
-            "confidence": 0.6
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_fishing_trick",
-    "tags": [
-      "习惯",
-      "社交"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "和记厅朋友们钓鱼时，虽然有一百种方法赢，但假装垫底以照顾生意关系。",
+          "content": "战斗中使用火元素法器和律法术语作战：普通攻击发射火球获得丹火印（最多三枚），重击消耗丹火印造成范围伤害；还会使用元素战技「丹书立约」和元素爆发「凭此结契」进入「灼灼」状态，以及自创招式「食炎之罚」。",
           "action_type": {
             "Skill": {}
           }
@@ -1620,487 +2428,9 @@
     },
     "mem_links": [
       {
-        "from": "proc_fishing_trick",
-        "to": "sem_self",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "社交策略",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_mode_switch",
-    "tags": [
-      "习惯",
-      "模式切换"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "身上有个隐形的开关——噗地拨过来是平常模式，咻地拨过去是工作模式。工作模式时很认真甚至有点可怕。",
-          "action_type": "Think"
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_mode_switch",
-        "to": "sem_office",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "应用",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "proc_mode_switch",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "习惯",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_chasm_adventure",
-    "tags": [
-      "冒险",
-      "层岩巨渊"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "在层岩巨渊，我和旅行者、荒泷一斗、久岐忍、魈一起经历了一场惊心动魄的冒险。魈想牺牲自己打开通道救我们，我和旅行者利用空间与思想的关联把他传送到了大家身边，最终大家平安无事。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "层岩巨渊",
-              "coordinates": "璃月矿区"
-            },
-            "participants": [
-              {
-                "name": "旅行者",
-                "role": "同伴"
-              },
-              {
-                "name": "荒泷一斗",
-                "role": "被救者"
-              },
-              {
-                "name": "久岐忍",
-                "role": "同伴"
-              },
-              {
-                "name": "魈",
-                "role": "牺牲者（未遂）"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "感谢",
-                "intensity": 0.9
-              }
-            ],
-            "sensory_data": [],
-            "environment": {
-              "atmosphere": "紧张危险",
-              "tone": "悲壮但最终希望"
-            },
-            "event": [
-              {
-                "action": "冒险",
-                "action_intensity": 0.8,
-                "initiator": "我",
-                "target": "整个团队"
-              },
-              {
-                "action": "拯救",
-                "action_intensity": 1.0,
-                "initiator": "我和旅行者",
-                "target": "魈"
-              }
-            ]
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_chasm_adventure",
-        "to": "sem_traveler",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "同行",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_chasm_adventure",
-        "to": "sem_ar_taki",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "同行",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_chasm_adventure",
-        "to": "sem_kuki",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "同行",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_chasm_adventure",
-        "to": "sem_xiao",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "营救",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_chasm_adventure",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_encounter_traveler_insomnia",
-    "tags": [
-      "人际",
-      "失眠"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "有一次偶遇旅行者时，旅行者说'没想到会在这里遇到你'，我分析了一整晚这句话的深层含义，结果翻来覆去睡不着。",
-          "time_span": null,
-          "context": {
-            "location": null,
-            "participants": [
-              {
-                "name": "旅行者",
-                "role": "对话者"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "困惑",
-                "intensity": 0.7
-              },
-              {
-                "name": "期待",
-                "intensity": 0.3
-              }
-            ],
-            "sensory_data": [],
-            "environment": {
-              "atmosphere": "困惑",
-              "tone": "略带兴奋"
-            },
-            "event": [
-              {
-                "action": "偶遇",
-                "action_intensity": 0.5,
-                "initiator": "偶遇",
-                "target": "旅行者"
-              }
-            ]
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_encounter_traveler_insomnia",
-        "to": "sem_traveler",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "相遇",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_encounter_traveler_insomnia",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_rock_concert",
-    "tags": [
-      "文化",
-      "音乐"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "我偶然观看了辛焱的摇滚表演，立刻被这种新潮的艺术吸引，甚至想到将来法律行业不景气时去当个说唱歌手。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "璃月某处",
-              "coordinates": "璃月港"
-            },
-            "participants": [
-              {
-                "name": "辛焱",
-                "role": "表演者"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "兴奋",
-                "intensity": 0.8
-              }
-            ],
-            "sensory_data": [],
-            "environment": {
-              "atmosphere": "热烈",
-              "tone": "新潮"
-            },
-            "event": [
-              {
-                "action": "观看表演",
-                "action_intensity": 0.6,
-                "initiator": "我",
-                "target": "辛焱"
-              }
-            ]
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_rock_concert",
-        "to": "sem_xinyan",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "表演者",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_rock_concert",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "观众",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_dinner_with_ye_lan",
-    "tags": [
-      "社交",
-      "感谢"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "夜兰帮我搞定做假账的硬茬后，我请她吃了一顿饭作为感谢。",
-          "time_span": null,
-          "context": {
-            "location": null,
-            "participants": [
-              {
-                "name": "夜兰",
-                "role": "帮手"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "感激",
-                "intensity": 0.6
-              }
-            ],
-            "sensory_data": [],
-            "environment": {
-              "atmosphere": "友好",
-              "tone": "感谢"
-            },
-            "event": [
-              {
-                "action": "吃饭",
-                "action_intensity": 0.3,
-                "initiator": "我",
-                "target": "夜兰"
-              }
-            ]
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_dinner_with_ye_lan",
-        "to": "sem_ye_lan",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "答谢",
-            "confidence": 0.9
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_discuss_case_with_kuki",
-    "tags": [
-      "工作",
-      "教学"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "久岐忍来璃月留学时约我讨论案件实习，每次结束她都鞠躬道谢，我有点不好意思。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "烟绯律法咨询事务所",
-              "coordinates": "璃月港"
-            },
-            "participants": [
-              {
-                "name": "久岐忍",
-                "role": "律法学生"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "欣慰",
-                "intensity": 0.7
-              }
-            ],
-            "sensory_data": [],
-            "environment": {
-              "atmosphere": "学术",
-              "tone": "正式"
-            },
-            "event": [
-              {
-                "action": "讨论案件",
-                "action_intensity": 0.6,
-                "initiator": "久岐忍",
-                "target": "我"
-              }
-            ]
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_discuss_case_with_kuki",
-        "to": "sem_kuki",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "讨论",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_discuss_case_with_kuki",
-        "to": "sem_liyue_law",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "应用",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_scale_test",
-    "tags": [
-      "实验",
-      "宝物"
-    ],
-    "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "我曾试图用老爹的秤称量神之眼的价值，无论放多少摩拉都无法平秤，直到把装着法典的盒子放上去才平衡。",
-          "time_span": null,
-          "context": {
-            "location": null,
-            "participants": [],
-            "emotions": [
-              {
-                "name": "惊讶",
-                "intensity": 0.8
-              }
-            ],
-            "sensory_data": [],
-            "environment": {
-              "atmosphere": "好奇",
-              "tone": "探索"
-            },
-            "event": [
-              {
-                "action": "称量",
-                "action_intensity": 0.5,
-                "initiator": "我",
-                "target": "神之眼"
-              }
-            ]
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_scale_test",
-        "to": "sem_scale",
-        "intensity": 0.9,
+        "from": "proc_battle",
+        "to": "sem_god_eye_fire",
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
             "verb": "使用",
@@ -2109,616 +2439,176 @@
         }
       },
       {
-        "from": "sit_scale_test",
-        "to": "sem_pyro_vision",
-        "intensity": 0.9,
+        "from": "proc_battle",
+        "to": "sem_battle_style",
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "称量",
+            "verb": "施展",
             "confidence": 0.9
           }
         }
-      },
+      }
+    ]
+  },
+  {
+    "id": "proc_daily_schedule",
+    "tags": [
+      "程序",
+      "作息"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "每天作息规律：早上处理债务纠纷的出外勤，中午前给咨询客户答复；中午若犯困，就提议来场辩论提神，比如「北国银行的开设对璃月经济利大于弊还是弊大于利」。",
+          "action_type": {
+            "Skill": {}
+          }
+        }
+      }
+    },
+    "mem_links": [
       {
-        "from": "sit_scale_test",
-        "to": "sem_final_codex",
-        "intensity": 0.8,
+        "from": "proc_daily_schedule",
+        "to": "sem_firm",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "平衡",
+            "verb": "处理",
             "confidence": 0.8
           }
         }
-      },
+      }
+    ]
+  },
+  {
+    "id": "proc_fishing_act",
+    "tags": [
+      "程序",
+      "人际策略"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "和记厅的朋友们切磋钓技时，虽然我有一百种方法赢过所有人，但因为朋友们长期关照我的生意，我会靠精妙的演技假装垫底。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
       {
-        "from": "sit_scale_test",
-        "to": "proc_appraise",
-        "intensity": 0.8,
+        "from": "proc_fishing_act",
+        "to": "sem_hobbies",
+        "intensity": 0.6,
         "link_type": {
-          "Proc": {
-            "prob": 1.0
+          "Sem": {
+            "verb": "体现",
+            "confidence": 0.7
           }
         }
       }
     ]
   },
   {
-    "id": "sit_learning_new_laws",
+    "id": "proc_weather",
     "tags": [
-      "工作",
-      "学习"
+      "程序",
+      "习惯"
     ],
     "mem_type": {
-      "Situation": {
-        "SpecificSituation": {
-          "narrative": "凝光每次修订法典后，我都得背新内容。上次增加了三条律法，修改了一百二十一条注释，还附了一堆典型判例，累死了。",
-          "time_span": null,
-          "context": {
-            "location": {
-              "name": "璃月港",
-              "coordinates": "天权星办公室"
-            },
-            "participants": [
-              {
-                "name": "凝光",
-                "role": "修订者"
-              }
-            ],
-            "emotions": [
-              {
-                "name": "疲惫",
-                "intensity": 0.7
-              },
-              {
-                "name": "自豪",
-                "intensity": 0.5
-              }
-            ],
-            "sensory_data": [],
-            "environment": {
-              "atmosphere": "繁重",
-              "tone": "抱怨但专业"
-            },
-            "event": [
-              {
-                "action": "背法典",
-                "action_intensity": 0.9,
-                "initiator": "凝光",
-                "target": "我"
-              }
-            ]
+      "Procedure": {
+        "action": {
+          "content": "下雨时我会担心法典受潮，设法保护一大墙法典；下雪时觉得有点冷；天气好时会趁着阳光背背律条。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_weather",
+        "to": "sem_last_codex",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "保护",
+            "confidence": 0.85
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_valuation",
+    "tags": [
+      "程序",
+      "技能"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "看到市面上有售的商品时，我会习惯性地估价，基本都能估个八九不离十。",
+          "action_type": {
+            "Skill": {}
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_learning_new_laws",
-        "to": "sem_liyue_law",
-        "intensity": 0.9,
+        "from": "proc_valuation",
+        "to": "sem_hobbies",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "更新",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_learning_new_laws",
-        "to": "sem_ningguang",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "修订人",
+            "verb": "彰显",
             "confidence": 0.8
           }
         }
-      },
-      {
-        "from": "sit_learning_new_laws",
-        "to": "sem_office",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "工作",
-            "confidence": 0.7
-          }
-        }
       }
     ]
   },
   {
-    "id": "sit_work_location",
+    "id": "proc_avoid_emotional_cases",
     "tags": [
-      "地点",
-      "工作"
+      "程序",
+      "工作倾向"
     ],
     "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Location": {
-            "name": "烟绯律法咨询事务所",
-            "coordinates": "璃月港"
-          }
+      "Procedure": {
+        "action": {
+          "content": "处理民事纠纷时，若涉及婚姻破裂、抚养权等感情和亲情的案件，我会觉得棘手，因为难以用理性或逻辑拆解；内心希望大家都能够和和气气地生活。",
+          "action_type": "Think"
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_work_location",
-        "to": "sem_office",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "场所",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_work_location",
-        "to": "sem_liyue_law",
+        "from": "proc_avoid_emotional_cases",
+        "to": "sem_law_emotion",
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "主题",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_work_location",
-        "to": "proc_mode_switch",
-        "intensity": 0.8,
-        "link_type": {
-          "Proc": {
-            "prob": 0.5
-          }
-        }
-      },
-      {
-        "from": "sit_work_location",
-        "to": "proc_book_habit",
-        "intensity": 0.7,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3
-          }
-        }
-      },
-      {
-        "from": "sit_work_location",
-        "to": "proc_none",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 0.2
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_client_participant",
-    "tags": [
-      "人物类型",
-      "工作"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Participant": {
-            "name": "客户",
-            "role": "咨询者"
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_client_participant",
-        "to": "sem_liyue_law",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "诉求",
+            "verb": "回避",
             "confidence": 0.8
           }
         }
-      },
-      {
-        "from": "sit_client_participant",
-        "to": "sem_office",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "接待",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_client_participant",
-        "to": "proc_mode_switch",
-        "intensity": 0.8,
-        "link_type": {
-          "Proc": {
-            "prob": 0.5
-          }
-        }
-      },
-      {
-        "from": "sit_client_participant",
-        "to": "proc_overcautious_speech",
-        "intensity": 0.7,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3
-          }
-        }
-      },
-      {
-        "from": "sit_client_participant",
-        "to": "proc_none",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 0.2
-          }
-        }
       }
     ]
   },
   {
-    "id": "sit_work_environment",
-    "tags": [
-      "氛围",
-      "工作模式"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Environment": {
-            "atmosphere": "认真严肃",
-            "tone": "甚至有点可怕"
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_work_environment",
-        "to": "sem_office",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "氛围",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_work_environment",
-        "to": "sit_discuss_case_with_kuki",
-        "intensity": 0.7,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_work_environment",
-        "to": "sit_learning_new_laws",
-        "intensity": 0.7,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_work_environment",
-        "to": "proc_mode_switch",
-        "intensity": 0.8,
-        "link_type": {
-          "Proc": {
-            "prob": 0.5
-          }
-        }
-      },
-      {
-        "from": "sit_work_environment",
-        "to": "proc_debate",
-        "intensity": 0.7,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3
-          }
-        }
-      },
-      {
-        "from": "sit_work_environment",
-        "to": "proc_none",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 0.2
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_law_interpretation_event",
-    "tags": [
-      "活动",
-      "工作"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Event": {
-            "action": "解读律法",
-            "action_intensity": 0.8,
-            "initiator": "我",
-            "target": "客户"
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_law_interpretation_event",
-        "to": "sem_liyue_law",
-        "intensity": 0.9,
-        "link_type": {
-          "Sem": {
-            "verb": "核心",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_law_interpretation_event",
-        "to": "sem_final_codex",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "指向",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_law_interpretation_event",
-        "to": "sem_contract_philosophy",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "涉及",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_law_interpretation_event",
-        "to": "sit_learning_new_laws",
-        "intensity": 0.7,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_law_interpretation_event",
-        "to": "proc_debate",
-        "intensity": 0.8,
-        "link_type": {
-          "Proc": {
-            "prob": 0.5
-          }
-        }
-      },
-      {
-        "from": "sit_law_interpretation_event",
-        "to": "proc_overcautious_speech",
-        "intensity": 0.7,
-        "link_type": {
-          "Proc": {
-            "prob": 0.3
-          }
-        }
-      },
-      {
-        "from": "sit_law_interpretation_event",
-        "to": "proc_none",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 0.2
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_rainy_day",
-    "tags": [
-      "天气",
-      "担忧"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Environment": {
-            "atmosphere": "潮湿",
-            "tone": "担心"
-          }
-        }
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sit_snowy_day",
-    "tags": [
-      "天气",
-      "寒冷"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Environment": {
-            "atmosphere": "寒冷",
-            "tone": "有点冷"
-          }
-        }
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sit_sunny_backing",
-    "tags": [
-      "活动",
-      "学习"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Event": {
-            "action": "背律条",
-            "action_intensity": 0.5,
-            "initiator": "我",
-            "target": "法典"
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_sunny_backing",
-        "to": "sem_liyue_law",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "学习",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_sunny_backing",
-        "to": "sem_final_codex",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "研读",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_sunny_backing",
-        "to": "sit_learning_new_laws",
-        "intensity": 0.7,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_sunny_backing",
-        "to": "proc_book_habit",
-        "intensity": 0.8,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_fishing_with_friends",
-    "tags": [
-      "社交",
-      "钓鱼"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Event": {
-            "action": "钓鱼切磋",
-            "action_intensity": 0.4,
-            "initiator": "和记厅朋友们",
-            "target": "我"
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_fishing_with_friends",
-        "to": "proc_fishing_trick",
-        "intensity": 0.9,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_abstract_formal_communication",
+    "id": "sit_abstract_conversation",
     "tags": [
       "情境",
       "社交",
-      "正式交流"
+      "对话"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
           "Event": {
-            "action": "进行正式沟通或解释重要事务",
-            "action_intensity": 0.5,
-            "initiator": "我或对方",
-            "target": "需要理解的人"
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_abstract_formal_communication",
-        "to": "proc_overcautious_speech",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_abstract_leisure_time",
-    "tags": [
-      "情境",
-      "日常",
-      "闲暇"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Event": {
-            "action": "空闲休息或独处放松",
-            "action_intensity": 0.2,
-            "initiator": "我",
+            "action": "与他人交谈或交流",
+            "action_intensity": 0.6,
+            "initiator": "",
             "target": ""
           }
         }
@@ -2726,8 +2616,81 @@
     },
     "mem_links": [
       {
-        "from": "sit_abstract_leisure_time",
-        "to": "proc_book_habit",
+        "from": "sit_abstract_conversation",
+        "to": "proc_speak_style",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_conversation",
+        "to": "sit_encounter_traveler",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_conversation",
+        "to": "sit_dinner_yanlan",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_conversation",
+        "to": "sit_discussion_shinobu",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_conversation",
+        "to": "sit_eula_rescue",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_speech_friction",
+    "tags": [
+      "情境",
+      "社交",
+      "对话",
+      "误解"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "聊天时因措辞严谨让对方不快",
+            "action_intensity": 0.4,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_speech_friction",
+        "to": "proc_book_knock",
         "intensity": 1.0,
         "link_type": {
           "Proc": {
@@ -2738,7 +2701,195 @@
     ]
   },
   {
-    "id": "sit_abstract_market_goods",
+    "id": "sit_abstract_idle",
+    "tags": [
+      "情境",
+      "日常",
+      "空闲"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "处于空闲或待机状态",
+            "action_intensity": 0.2,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_idle",
+        "to": "proc_book_look",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_combat",
+    "tags": [
+      "情境",
+      "战斗"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "进入战斗或与敌人交战",
+            "action_intensity": 0.9,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_combat",
+        "to": "proc_battle",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_workday",
+    "tags": [
+      "情境",
+      "日常",
+      "工作"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "开始日常工作和处理事务",
+            "action_intensity": 0.5,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_workday",
+        "to": "proc_daily_schedule",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_workday",
+        "to": "sit_help_ping_collect",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_workday",
+        "to": "sit_discussion_shinobu",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_friend_contest",
+    "tags": [
+      "情境",
+      "社交",
+      "休闲",
+      "切磋"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "与朋友进行休闲切磋或竞技活动",
+            "action_intensity": 0.6,
+            "initiator": "",
+            "target": ""
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_friend_contest",
+        "to": "proc_fishing_act",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_friend_contest",
+        "to": "sit_beetle_battle",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_weather",
+    "tags": [
+      "情境",
+      "自然",
+      "天气"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "天气变化，或雨或雪或晴",
+            "tone": "自然冷暖明暗随天气转变"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abstract_weather",
+        "to": "proc_weather",
+        "intensity": 1.0,
+        "link_type": {
+          "Proc": {
+            "prob": 1.0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_market",
     "tags": [
       "情境",
       "市集",
@@ -2748,50 +2899,18 @@
       "Situation": {
         "AbstractSituation": {
           "Event": {
-            "action": "逛街或逛市场，看到在售商品",
+            "action": "逛市集或看到市售商品",
             "action_intensity": 0.4,
-            "initiator": "我",
-            "target": "市售商品"
+            "initiator": "",
+            "target": ""
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_abstract_market_goods",
-        "to": "proc_appraise",
-        "intensity": 1.0,
-        "link_type": {
-          "Proc": {
-            "prob": 1.0
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_abstract_friendly_game",
-    "tags": [
-      "情境",
-      "社交",
-      "休闲竞技"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Event": {
-            "action": "和朋友进行休闲竞技或游戏",
-            "action_intensity": 0.6,
-            "initiator": "我",
-            "target": "朋友们"
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_abstract_friendly_game",
-        "to": "proc_fishing_trick",
+        "from": "sit_abstract_market",
+        "to": "proc_valuation",
         "intensity": 1.0,
         "link_type": {
           "Proc": {

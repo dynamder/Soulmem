@@ -36,6 +36,12 @@ pub struct RetrieveCaseData {
     pub combined_ranking_metrics: RankingMetrics,
     pub per_query_metrics: Vec<PerQueryMetrics>,
     pub action_metrics: ActionMetrics,
+    /// 该用例的期望结果中是否包含抽象情境节点（有真值才计入抽象指标）。
+    pub has_expected_abstract: bool,
+    /// 期望抽象节点是否出现在合并结果（相似度+PPR）中。
+    pub abstract_detected: Option<bool>,
+    /// 期望抽象节点是否仍被相似度直接命中（数据侧泛化是否达标的观测门）。
+    pub abstract_direct_hit: Option<bool>,
     pub tag_weight: f32,
     pub variant_weight: f32,
     pub id_names: Option<Arc<HashMap<MemoryId, NodeSummary>>>,
@@ -212,6 +218,9 @@ mod tests {
                 action_recall_at: vec![(1, 1.0)],
                 has_expected_actions: false,
             },
+            has_expected_abstract: false,
+            abstract_detected: None,
+            abstract_direct_hit: None,
             tag_weight: 0.4,
             variant_weight: 0.6,
             id_names: None,

@@ -232,6 +232,55 @@ pub fn print_batch_result(result: &BatchResult) {
             ok_mark,
         );
     }
+
+    // 抽象检出指标：期望含抽象情境的用例中，经合并结果（相似度+PPR）检出的比例，
+    // 以及仍被相似度直接命中的比例（数据侧泛化是否达标的观测门）。
+    println!("\n抽象检出（期望含抽象情境的用例）:");
+    for ds in &sorted {
+        let total = ds
+            .outcomes
+            .iter()
+            .filter(|o| {
+                o.data
+                    .downcast_ref::<RetrieveCaseData>()
+                    .map(|d| d.has_expected_abstract)
+                    .unwrap_or(false)
+            })
+            .count();
+        if total == 0 {
+            continue;
+        }
+        let detected = ds
+            .outcomes
+            .iter()
+            .filter(|o| {
+                o.data
+                    .downcast_ref::<RetrieveCaseData>()
+                    .map(|d| d.abstract_detected == Some(true))
+                    .unwrap_or(false)
+            })
+            .count() as f64
+            / total as f64;
+        let direct = ds
+            .outcomes
+            .iter()
+            .filter(|o| {
+                o.data
+                    .downcast_ref::<RetrieveCaseData>()
+                    .map(|d| d.abstract_direct_hit == Some(true))
+                    .unwrap_or(false)
+            })
+            .count() as f64
+            / total as f64;
+        println!(
+            "{:<28} 用例 {:>3} | 检出率 {:>5.1}% | 直接命中率 {:>5.1}%",
+            ds.name.chars().take(26).collect::<String>(),
+            total,
+            detected * 100.0,
+            direct * 100.0
+        );
+    }
+
     match total_summary {
         Some(s) => println!(
             "动作评测: {} 个带期望动作的用例 | 动作Hit {:.1}% | Recall@3 {:.3}",
@@ -293,6 +342,9 @@ mod tests {
                 action_recall_at: vec![(1, recall3), (3, recall3), (5, recall3)],
                 has_expected_actions: has_expected,
             },
+            has_expected_abstract: false,
+            abstract_detected: None,
+            abstract_direct_hit: None,
             tag_weight: 0.3,
             variant_weight: 0.7,
             id_names: None,

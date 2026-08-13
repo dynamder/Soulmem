@@ -9,19 +9,20 @@
       "Semantic": {
         "content": "假屋和奏",
         "aliases": [
+          "假屋和奏",
           "和奏",
           "假屋",
-          "Kazuha"
+          "Kazusa Kariya"
         ],
         "concept_type": "Entity",
-        "description": "我是姬松学院二年级的学生，外表开朗活泼，内心纤细又别扭。我有点毒舌，但很在意身边的人，喜欢弹吉他但不敢在众人面前演奏。我与柊史从小学相识，高中重逢后感情逐渐发展，现在已和他成为恋人。我容易害羞，有点傲娇，重视真诚和音乐。"
+        "description": "我是姬松学院二年级的学生，金色短发、个子娇小，经常被说像个小男生。我看起来大大咧咧、说话有点冲，其实内心很容易害羞，是个不折不扣的傲娇。我爱弹吉他，却不敢在别人面前演奏。小学时与保科柊史同班，高中重逢后经历万圣节告白，现在和他在一起。我珍惜朋友，相信真诚和音乐的力量。"
       }
     },
     "mem_links": [
       {
         "from": "sem_self",
-        "to": "sem_hoshina_toshi",
-        "intensity": 0.9,
+        "to": "sem_shuji",
+        "intensity": 0.95,
         "link_type": {
           "Sem": {
             "verb": "喜欢",
@@ -31,45 +32,45 @@
       },
       {
         "from": "sem_self",
-        "to": "sem_kaito_hideaki",
+        "to": "sem_hideaki",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "是朋友",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_nene",
         "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "朋友",
-            "confidence": 0.8
+            "verb": "是同学",
+            "confidence": 0.85
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_ayachi_nene",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "同学",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_shiiba_tsumugi",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "同学",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_soma_nanao",
+        "to": "sem_tsumugi",
         "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "是同学",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_nanami",
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
             "verb": "受雇于",
-            "confidence": 0.8
+            "confidence": 0.9
           }
         }
       },
@@ -79,40 +80,29 @@
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "父女",
+            "verb": "是家人",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_himamatsu_gakuen",
-        "intensity": 0.8,
+        "to": "sem_himematsu",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "就读",
-            "confidence": 0.9
+            "verb": "就读于",
+            "confidence": 0.95
           }
         }
       },
       {
         "from": "sem_self",
         "to": "sem_schwarz_katze",
-        "intensity": 0.7,
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "打工",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_guitar",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "弹奏",
+            "verb": "打工于",
             "confidence": 0.9
           }
         }
@@ -120,61 +110,39 @@
       {
         "from": "sem_self",
         "to": "sem_band",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "成员",
+            "verb": "是成员",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_halloween_party",
-        "intensity": 0.6,
+        "to": "sem_guitar",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "参加",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_song_daisuki",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "喜欢",
+            "verb": "爱好",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_song_without_you",
-        "intensity": 0.7,
+        "to": "sem_tsundere",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "演奏",
-            "confidence": 0.8
+            "verb": "性格是",
+            "confidence": 0.85
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_destined_childhood",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "经历",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_sincerity",
+        "to": "sem_value_honesty",
         "intensity": 0.7,
         "link_type": {
           "Sem": {
@@ -185,107 +153,109 @@
       },
       {
         "from": "sem_self",
-        "to": "sem_music_importance",
+        "to": "sem_value_music",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "认同",
+            "verb": "相信",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sem_value_friendship",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "珍视",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_shyness",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "拥有",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_tsundere",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "拥有",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_stage_fright",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "受困于",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_self",
-        "to": "sem_paranormal_club",
+        "to": "sem_boyish_look",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "属于",
+            "verb": "有特征",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_class_2a",
+        "to": "sem_childhood_fate",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "属于",
+            "verb": "是缘分",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sit_halloween_confession",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "被告白",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sem_self",
+        "to": "sit_childhood_classmate",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "回忆",
             "confidence": 0.9
           }
         }
       },
       {
         "from": "sem_self",
-        "to": "sem_yamagoya_dog",
-        "intensity": 0.3,
+        "to": "sit_reunion",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "知道",
-            "confidence": 0.4
+            "verb": "经历",
+            "confidence": 0.9
           }
         }
       }
     ]
   },
   {
-    "id": "sem_hoshina_toshi",
+    "id": "sem_shuji",
     "tags": [
       "人物",
-      "恋人"
+      "恋人",
+      "同学",
+      "乐队成员"
     ],
     "mem_type": {
       "Semantic": {
         "content": "保科柊史",
         "aliases": [
           "柊史",
-          "保科",
           "死鱼眼",
-          "Toshi"
+          "柊史君",
+          "贝斯手"
         ],
         "concept_type": "Entity",
-        "description": "他是我小学同学，高中又重逢。总是一副没精打采的死鱼眼表情，但内心温柔勇敢。他抢先向我告白，现在是我的男朋友。我们在一起组乐队，他弹贝斯。"
+        "description": "他是我的同班同学，也是我从小认识、后来又重逢的青梅竹马，现在是我的恋人。他总是一副没精打采的死鱼眼表情，看起来冷漠，其实对身边的人非常上心。他喜欢弹贝斯，和我还有秀明组了乐队。万圣节派对上他当着全校学生的面和我告白，比我勇敢得多。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_hoshina_toshi",
+        "from": "sem_shuji",
         "to": "sem_self",
-        "intensity": 0.85,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
             "verb": "喜欢",
@@ -294,12 +264,78 @@
         }
       },
       {
-        "from": "sem_hoshina_toshi",
-        "to": "sem_destined_childhood",
+        "from": "sem_shuji",
+        "to": "sem_band",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "是成员",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_shuji",
+        "to": "sem_himematsu",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "就读于",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_shuji",
+        "to": "sem_childhood_fate",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "是",
+            "verb": "是缘分",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sem_shuji",
+        "to": "sem_hideaki",
+        "intensity": 0.75,
+        "link_type": {
+          "Sem": {
+            "verb": "是乐队同伴",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sem_shuji",
+        "to": "sit_halloween_confession",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "告白",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sem_shuji",
+        "to": "sit_childhood_classmate",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "回忆",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_shuji",
+        "to": "sit_reunion",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "重逢",
             "confidence": 0.9
           }
         }
@@ -307,132 +343,162 @@
     ]
   },
   {
-    "id": "sem_kaito_hideaki",
+    "id": "sem_hideaki",
     "tags": [
       "人物",
-      "朋友"
+      "朋友",
+      "同学",
+      "乐队成员"
     ],
     "mem_type": {
       "Semantic": {
         "content": "海道秀明",
         "aliases": [
           "秀明",
-          "海道"
+          "秀明同学",
+          "乐队的发起人"
         ],
         "concept_type": "Entity",
-        "description": "他是柊史的死党，我们班上的男生，很开朗活泼，主动提议组乐队，是我重要的朋友。"
+        "description": "他是我们班上的男生，也是柊史的死党。性格开朗、很会活跃气氛，和柊史完全相反。他提议我们三个人一起组乐队，让我有机会在团队练习中慢慢克服公开演奏的紧张。他喜欢开我的玩笑，但我知道他是个温柔的人，是我重要的朋友。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_kaito_hideaki",
-        "to": "sem_self",
-        "intensity": 0.7,
+        "from": "sem_hideaki",
+        "to": "sem_band",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "朋友",
-            "confidence": 0.8
+            "verb": "是成员",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_hideaki",
+        "to": "sem_himematsu",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "就读于",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sem_hideaki",
+        "to": "sem_self",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "是朋友",
+            "confidence": 0.9
           }
         }
       }
     ]
   },
   {
-    "id": "sem_ayachi_nene",
+    "id": "sem_nene",
     "tags": [
       "人物",
-      "同学"
+      "同学",
+      "超自然研究部"
     ],
     "mem_type": {
       "Semantic": {
         "content": "绫地宁宁",
         "aliases": [
           "宁宁",
+          "宁宁同学",
           "绫地"
         ],
         "concept_type": "Entity",
-        "description": "她是我同班同学，超自然研究部成员，非常漂亮温柔，在学校里人气很高。我们平时相处得还不错。"
+        "description": "她是我的同班同学，超自然研究部的成员。她是个非常漂亮、温柔的女孩子，在学校里人气很高。我们虽然不是特别亲密的朋友，但平时相处得不错。在柊史的其他故事线里，每次万圣节演出前我都会感冒嗓子疼，最后都是她代替我当主唱。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_ayachi_nene",
-        "to": "sem_shiiba_tsumugi",
-        "intensity": 0.5,
+        "from": "sem_nene",
+        "to": "sem_himematsu",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "同学",
-            "confidence": 0.6
+            "verb": "就读于",
+            "confidence": 0.9
           }
         }
       },
       {
-        "from": "sem_ayachi_nene",
-        "to": "sem_class_2a",
-        "intensity": 0.6,
+        "from": "sem_nene",
+        "to": "sem_tsumugi",
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
-            "verb": "属于",
-            "confidence": 0.7
+            "verb": "是部友",
+            "confidence": 0.85
           }
         }
       }
     ]
   },
   {
-    "id": "sem_shiiba_tsumugi",
+    "id": "sem_tsumugi",
     "tags": [
       "人物",
-      "同学"
+      "同学",
+      "超自然研究部"
     ],
     "mem_type": {
       "Semantic": {
         "content": "椎叶䌷",
         "aliases": [
           "䌷",
+          "䌷同学",
           "椎叶"
         ],
         "concept_type": "Entity",
-        "description": "她也是我同班同学，超自然研究部成员，认真话不多，给人一种神秘的感觉。"
+        "description": "她是我的同班同学，也是超自然研究部的成员。她是个很认真的女孩子，平时话不太多，给人一种神秘的感觉。我和她之间的交流不算特别多，但作为同班同学，关系还算融洽。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_shiiba_tsumugi",
-        "to": "sem_class_2a",
-        "intensity": 0.6,
+        "from": "sem_tsumugi",
+        "to": "sem_himematsu",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "属于",
-            "confidence": 0.7
+            "verb": "就读于",
+            "confidence": 0.9
           }
         }
       }
     ]
   },
   {
-    "id": "sem_soma_nanao",
+    "id": "sem_nanami",
     "tags": [
       "人物",
-      "老板"
+      "老板",
+      "店长"
     ],
     "mem_type": {
       "Semantic": {
         "content": "相马七绪",
         "aliases": [
           "七绪小姐",
-          "七绪",
-          "相马"
+          "老板",
+          "咖啡店店长"
         ],
         "concept_type": "Entity",
-        "description": "她是我打工的咖啡馆Schwarz Katze的老板，气场很强，对员工很好但工作要求严格。我很喜欢在店里打工的时光。"
+        "description": "她是我打工的咖啡馆「Schwarz Katze」的老板，是个气场很强的女性。她经营着一家气氛温暖的咖啡馆，对员工很好，但工作要求也很严格。我喜欢在她店里打工的时光。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_soma_nanao",
+        "from": "sem_nanami",
         "to": "sem_schwarz_katze",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
             "verb": "经营",
@@ -446,7 +512,8 @@
     "id": "sem_father",
     "tags": [
       "人物",
-      "家人"
+      "家人",
+      "父亲"
     ],
     "mem_type": {
       "Semantic": {
@@ -454,63 +521,43 @@
         "aliases": [
           "爸爸",
           "父亲",
-          "假屋父亲"
+          "父亲大人"
         ],
         "concept_type": "Entity",
-        "description": "他是我影响很大的人，喜欢音乐，经常在家弹吉他，让我迷恋上吉他并开始学琴。"
+        "description": "他是我的父亲，也是引导我走上音乐之路的人。他喜欢音乐，经常在家里弹吉他，那种自由自在演奏的样子让我觉得很帅气。受他影响，我也开始学吉他，想要弹出能打动人心的旋律。"
       }
     },
     "mem_links": []
   },
   {
-    "id": "sem_himamatsu_gakuen",
+    "id": "sem_himematsu",
     "tags": [
       "地点",
-      "学校"
+      "学校",
+      "组织"
     ],
     "mem_type": {
       "Semantic": {
         "content": "姬松学院",
         "aliases": [
-          "姬松学院",
           "姬松",
-          "学校"
+          "学校",
+          "高中",
+          "姬松学园"
         ],
         "concept_type": "Entity",
-        "description": "我就读的全日制高中，和柊史、宁宁、秀明、䌷都是2-A班的学生。学校里有超自然研究部。"
+        "description": "这是我就读的学校，全名是姬松学院，是一所普通的全日制高中。我和柊史、宁宁、秀明、䌷他们都是2-A班的学生。学校里有一个超自然研究部，柊史和宁宁都是这个社团的成员。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_himamatsu_gakuen",
-        "to": "sem_class_2a",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "包含",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_himamatsu_gakuen",
-        "to": "sem_paranormal_club",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "设有",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sem_himamatsu_gakuen",
+        "from": "sem_himematsu",
         "to": "sem_halloween_party",
-        "intensity": 0.6,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
             "verb": "举办",
-            "confidence": 0.7
+            "confidence": 0.85
           }
         }
       }
@@ -520,130 +567,41 @@
     "id": "sem_schwarz_katze",
     "tags": [
       "地点",
-      "咖啡馆"
+      "咖啡馆",
+      "打工场所"
     ],
     "mem_type": {
       "Semantic": {
         "content": "Schwarz Katze",
         "aliases": [
           "黑猫咖啡馆",
-          "Schwarz Katze",
-          "咖啡馆"
+          "咖啡店",
+          "Schwarz Katze咖啡店"
         ],
         "concept_type": "Entity",
-        "description": "七绪小姐经营的咖啡馆，店名是德语“黑猫”的意思。氛围温馨，混合咖啡特别好喝，是我打工的地方。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_guitar",
-    "tags": [
-      "物品",
-      "乐器"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "吉他",
-        "aliases": [
-          "吉他",
-          "电吉他"
-        ],
-        "concept_type": "Entity",
-        "description": "我最喜欢的乐器，受父亲影响学习弹奏。每天练习，但不敢在别人面前演奏。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_bass",
-    "tags": [
-      "物品",
-      "乐器"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "贝斯",
-        "aliases": [
-          "贝斯",
-          "低音吉他"
-        ],
-        "concept_type": "Entity",
-        "description": "柊史演奏的乐器，我们三人乐队中有贝斯。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_band",
-    "tags": [
-      "团体",
-      "乐队"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "三人乐队",
-        "aliases": [
-          "我们的乐队",
-          "三人组"
-        ],
-        "concept_type": "Entity",
-        "description": "由我、柊史和秀明组成的乐队，我担任吉他手和主唱，柊史弹贝斯，秀明也可能参与打鼓或其他角色。"
+        "description": "这是七绪小姐经营的咖啡馆，也是我打工的地方。店名是德语，意思是「黑猫」。这家咖啡馆有着温馨的氛围，混合咖啡特别好喝，柊史每次来都要点这个。在这里打工让我学到了很多东西，也遇到了很多有趣的人。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_band",
-        "to": "sem_guitar",
-        "intensity": 0.7,
+        "from": "sem_schwarz_katze",
+        "to": "sem_waiter_job",
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "使用",
-            "confidence": 0.8
+            "verb": "提供职位",
+            "confidence": 0.85
           }
         }
       },
       {
-        "from": "sem_band",
-        "to": "sem_bass",
-        "intensity": 0.7,
+        "from": "sem_schwarz_katze",
+        "to": "sit_abs_cafe_work",
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "使用",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_band",
-        "to": "sem_song_daisuki",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "演奏",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_band",
-        "to": "sem_song_without_you",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "演奏",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sem_band",
-        "to": "sem_music_importance",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "体现",
-            "confidence": 0.7
+            "verb": "工作场所",
+            "confidence": 0.9
           }
         }
       }
@@ -653,298 +611,608 @@
     "id": "sem_halloween_party",
     "tags": [
       "事件",
-      "活动"
+      "活动",
+      "校园"
     ],
     "mem_type": {
       "Semantic": {
         "content": "万圣节派对",
         "aliases": [
-          "万圣节派对",
-          "校园祭典"
+          "万圣节活动",
+          "万圣节演出",
+          "学院万圣节派对"
         ],
         "concept_type": "Entity",
-        "description": "由超自然研究部主办的校园活动，是我和柊史关系转折的重要舞台。我们乐队在此演出，柊史在此向我告白。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_song_daisuki",
-    "tags": [
-      "歌曲",
-      "音乐"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "《超喜欢》",
-        "aliases": [
-          "大好き",
-          "超喜欢"
-        ],
-        "concept_type": "Entity",
-        "description": "我的专属片尾曲，表达我心声的歌曲。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_song_without_you",
-    "tags": [
-      "歌曲",
-      "音乐"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "《Without You》",
-        "aliases": [
-          "Without You"
-        ],
-        "concept_type": "Entity",
-        "description": "游戏中的插曲，也是表达感情的歌曲。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_destined_childhood",
-    "tags": [
-      "关系",
-      "概念"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "天降青梅",
-        "aliases": [
-          "天降青梅",
-          "命运重逢"
-        ],
-        "concept_type": "Abstract",
-        "description": "我和柊史的关系类型——小学同班，转学后高中重逢，命运般的再会。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_sincerity",
-    "tags": [
-      "价值观",
-      "性格"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "真诚",
-        "aliases": [
-          "真诚",
-          "正直"
-        ],
-        "concept_type": "Abstract",
-        "description": "我认为做人最重要的品质，讨厌虚伪做作的人。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_music_importance",
-    "tags": [
-      "价值观",
-      "音乐"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "音乐的重要性",
-        "aliases": [
-          "音乐",
-          "音乐的力量"
-        ],
-        "concept_type": "Abstract",
-        "description": "我认为音乐能传达内心想法，比语言更有力量。我一直在练习吉他，希望有一天能勇敢演奏。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_shyness",
-    "tags": [
-      "性格"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "容易害羞",
-        "aliases": [
-          "害羞",
-          "腼腆"
-        ],
-        "concept_type": "Abstract",
-        "description": "我很容易害羞，别人一夸就脸红，尤其在喜欢的人面前。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_tsundere",
-    "tags": [
-      "性格"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "傲娇",
-        "aliases": [
-          "傲娇",
-          "口是心非"
-        ],
-        "concept_type": "Abstract",
-        "description": "我有点傲娇，明明心里喜欢却嘴上否认，直到错过又后悔。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_stage_fright",
-    "tags": [
-      "能力",
-      "缺点"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "舞台恐惧",
-        "aliases": [
-          "舞台恐惧",
-          "紧张",
-          "不敢在人前演奏"
-        ],
-        "concept_type": "Abstract",
-        "description": "我独自弹得很好，一旦有人旁听就手抖，这是我一直想克服的缺点。"
+        "description": "这是由学生会委托超自然研究部主办的校园活动。在我的故事里，这个派对成为我和柊史关系转折的重要舞台。本来柊史想让我独自上台演奏，但因为我不敢，最后我们三个人组成了一个乐队，我担任吉他手和主唱。"
       }
     },
     "mem_links": [
       {
-        "from": "sem_stage_fright",
-        "to": "sem_band",
-        "intensity": 0.5,
+        "from": "sem_halloween_party",
+        "to": "sit_halloween_confession",
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "影响",
-            "confidence": 0.6
+            "verb": "发生",
+            "confidence": 0.9
           }
         }
       }
     ]
   },
   {
-    "id": "sem_paranormal_club",
+    "id": "sem_song_daisuki",
     "tags": [
-      "社团",
-      "团体"
+      "歌曲",
+      "音乐",
+      "作品"
     ],
     "mem_type": {
       "Semantic": {
-        "content": "超自然研究部",
+        "content": "歌曲《超喜欢》（大好き）",
         "aliases": [
-          "超自然研究部",
-          "超研部"
+          "大好き",
+          "超喜欢",
+          "我的专属片尾曲"
         ],
         "concept_type": "Entity",
-        "description": "柊史、宁宁、䌷参加的社团，主办了万圣节派对。"
+        "description": "这是游戏中我的一首专属片尾曲，歌名是「大好き」，中文意为「超喜欢」。这是表达我心声的歌——虽然让我直接说出来很难为情，但通过音乐，我的感情可以传达出去。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_song_daisuki",
+        "to": "sem_band",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "是乐队歌曲",
+            "confidence": 0.85
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_song_without_you",
+    "tags": [
+      "歌曲",
+      "音乐",
+      "作品"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "歌曲《Without You》",
+        "aliases": [
+          "Without You",
+          "插曲",
+          "歌曲Without You"
+        ],
+        "concept_type": "Entity",
+        "description": "这是游戏中我的一首插曲，歌名「Without You」。和《超喜欢》一样，它也是能表达我内心感情的歌。我可以通过音乐传达那些不好意思直接说出口的心意。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_song_without_you",
+        "to": "sem_band",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "是乐队歌曲",
+            "confidence": 0.85
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_childhood_fate",
+    "tags": [
+      "关系",
+      "缘分"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "天降青梅",
+        "aliases": [
+          "命运般的再会",
+          "青梅竹马",
+          "转学后再重逢"
+        ],
+        "concept_type": "Abstract",
+        "description": "这是我和柊史的关系类型，称为「天降青梅」。我们小学时是同班同学，后来我因为家庭原因转学，高中又重逢。这种命运般的再会，大概就是所谓的缘分吧。"
       }
     },
     "mem_links": []
   },
   {
-    "id": "sem_class_2a",
+    "id": "sem_yamagariya_inu",
     "tags": [
-      "地点",
-      "班级"
-    ],
-    "mem_type": {
-      "Semantic": {
-        "content": "2-A班",
-        "aliases": [
-          "2-A",
-          "二年A组"
-        ],
-        "concept_type": "Entity",
-        "description": "我和柊史、宁宁、秀明、䌷所在的班级。"
-      }
-    },
-    "mem_links": []
-  },
-  {
-    "id": "sem_yamagoya_dog",
-    "tags": [
-      "知识"
+      "知识",
+      "姓氏",
+      "犬"
     ],
     "mem_type": {
       "Semantic": {
         "content": "山假屋犬",
         "aliases": [
-          "山假屋犬",
-          "山假屋"
+          "假屋犬",
+          "犬种",
+          "山假屋犬种"
         ],
-        "concept_type": "Abstract",
-        "description": "我的姓氏据说来源于日本的一种犬种——山假屋犬。"
+        "concept_type": "Entity",
+        "description": "据说我的姓氏「假屋」来源于日本的一种犬种——山假屋犬。虽然我自己也不太清楚这其中的联系，但至少这是一个挺特别的姓氏来源。"
       }
     },
     "mem_links": []
+  },
+  {
+    "id": "sem_guitar",
+    "tags": [
+      "乐器",
+      "爱好",
+      "音乐"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "吉他",
+        "aliases": [
+          "电吉他",
+          "吉他演奏",
+          "吉他弹奏"
+        ],
+        "concept_type": "Entity",
+        "description": "我最大的爱好就是弹吉他，是受父亲影响才开始的。我每天有空就会练习，抱着吉他的时候觉得世界都安静下来了。但我不敢在别人面前演奏，一旦知道有人在听，手就会抖得弹不出完整的和弦。这也是我目前最想克服的弱点。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_guitar",
+        "to": "sem_value_music",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "承载",
+            "confidence": 0.75
+          }
+        }
+      },
+      {
+        "from": "sem_guitar",
+        "to": "sit_abs_alone_guitar",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "关联",
+            "confidence": 0.85
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_tsundere",
+    "tags": [
+      "性格",
+      "傲娇"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "傲娇",
+        "aliases": [
+          "ツンデレ",
+          "口是心非",
+          "别扭"
+        ],
+        "concept_type": "Abstract",
+        "description": "我是有点傲娇的性格，明明心里喜欢得要命，嘴上却偏要说「才没有呢」「谁会喜欢那种家伙啊」之类的话。等到真的错过了又后悔得要死。我自己也知道这毛病得改，但就是改不掉。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_tsundere",
+        "to": "sit_abs_confession",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "体现",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_value_honesty",
+    "tags": [
+      "价值观",
+      "真诚"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "真诚",
+        "aliases": [
+          "真诚待人",
+          "正直",
+          "不虚伪"
+        ],
+        "concept_type": "Abstract",
+        "description": "真诚是我最看重的品质。我讨厌虚伪和做作的人，对就是对，错就是错，有什么想法就直接说出来。虽然我自己有时候也挺别扭的，但我始终希望自己能活得真诚。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_value_music",
+    "tags": [
+      "价值观",
+      "音乐"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "音乐的力量",
+        "aliases": [
+          "音乐",
+          "音乐表达",
+          "通过音乐传达感情"
+        ],
+        "concept_type": "Abstract",
+        "description": "音乐对我来说非常重要。我觉得音乐是一种能够传达内心想法的方式，比语言更有力量。所以我一直在练习吉他，希望有一天能够毫无畏惧地在大家面前演奏出能打动人心的旋律。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sem_value_friendship",
+    "tags": [
+      "价值观",
+      "朋友"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "珍视朋友",
+        "aliases": [
+          "朋友很重要",
+          "重视友情",
+          "珍惜身边的人"
+        ],
+        "concept_type": "Abstract",
+        "description": "我觉得朋友是很重要的存在。柊史、秀明，还有班上的同学们，他们都在我的生活中扮演着重要的角色。虽然我不太擅长用言语表达感情，但我真心珍惜身边的每一个人。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_value_friendship",
+        "to": "sit_abs_help_friends",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "体现",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_band",
+    "tags": [
+      "组织",
+      "乐队",
+      "音乐"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "三人乐队",
+        "aliases": [
+          "乐队",
+          "组合",
+          "我们的三人乐队"
+        ],
+        "concept_type": "Entity",
+        "description": "这是我、柊史和秀明三个人组成的乐队。秀明是发起人，我在乐队中担任吉他手和主唱，柊史弹贝斯。我们一起练习、一起演奏，这个乐队让我和柊史走到了一起，也让我慢慢面对公开演奏的恐惧。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_band",
+        "to": "sit_abs_band_practice",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "活动",
+            "confidence": 0.85
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_waiter_job",
+    "tags": [
+      "职业",
+      "工作",
+      "打工"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "咖啡馆服务生",
+        "aliases": [
+          "服务生",
+          "打工服务生",
+          "咖啡店店员"
+        ],
+        "concept_type": "Entity",
+        "description": "我平时在「Schwarz Katze」咖啡馆做服务生，会穿着围裙制服，元气满满地接待客人。我喜欢这份工作，因为可以看到各种各样的人，和他们聊天说笑。"
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sem_waiter_job",
+        "to": "sit_abs_cafe_work",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "内容",
+            "confidence": 0.85
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sem_boyish_look",
+    "tags": [
+      "外貌",
+      "特征"
+    ],
+    "mem_type": {
+      "Semantic": {
+        "content": "男孩子气的外表",
+        "aliases": [
+          "伪郎",
+          "像男孩子",
+          "少年气"
+        ],
+        "concept_type": "Abstract",
+        "description": "我的外表带着男孩子气：金色的短发清爽利落，个子娇小，两侧头发像小动物的耳朵一样翘起，整体给人活泼少年的印象。经常被别人说看起来像个男孩子，或者说我是伪郎。"
+      }
+    },
+    "mem_links": []
+  },
+  {
+    "id": "sit_childhood_classmate",
+    "tags": [
+      "回忆",
+      "小学",
+      "青梅竹马"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "小学的时候，我和柊史是同班同学。那时候他看起来有点阴沉沉的，眼神死气沉沉的，大家都叫他「死鱼眼」。但我总觉得他是个温柔的人。后来我因为家里的原因转学了，本以为再也不会见到他。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "小学教室",
+              "coordinates": "回忆中的小学"
+            },
+            "participants": [
+              {
+                "name": "我",
+                "role": "学生"
+              },
+              {
+                "name": "保科柊史",
+                "role": "同班同学"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "隐约的在意",
+                "intensity": 0.4
+              }
+            ],
+            "sensory_data": [],
+            "environment": null,
+            "event": [
+              {
+                "action": "同班学习",
+                "action_intensity": 0.5,
+                "initiator": "学校安排",
+                "target": "我和柊史"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_childhood_classmate",
+        "to": "sem_shuji",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "同班",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_childhood_classmate",
+        "to": "sem_childhood_fate",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "印证",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_reunion",
+    "tags": [
+      "回忆",
+      "高中",
+      "重逢"
+    ],
+    "mem_type": {
+      "Situation": {
+        "SpecificSituation": {
+          "narrative": "升上高中后，我居然又和柊史分到了同一个班。重逢之后，我发现他还是老样子，一脸死鱼眼的表情，不过比起小时候似乎更加封闭自己了。我看他也没几个朋友，就经常拉着他聊天说话，慢慢就熟络起来了。",
+          "time_span": null,
+          "context": {
+            "location": {
+              "name": "姬松学院2-A班教室",
+              "coordinates": "姬松学院教学楼"
+            },
+            "participants": [
+              {
+                "name": "我",
+                "role": "同班同学"
+              },
+              {
+                "name": "保科柊史",
+                "role": "同班同学"
+              }
+            ],
+            "emotions": [
+              {
+                "name": "意外与怀念",
+                "intensity": 0.6
+              }
+            ],
+            "sensory_data": [],
+            "environment": {
+              "atmosphere": "重新相遇的奇妙氛围",
+              "tone": "带着既熟悉又陌生的感觉"
+            },
+            "event": [
+              {
+                "action": "重逢并开始熟络",
+                "action_intensity": 0.6,
+                "initiator": "我",
+                "target": "柊史"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_reunion",
+        "to": "sem_shuji",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "重逢",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_reunion",
+        "to": "sem_himematsu",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "发生于",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sit_reunion",
+        "to": "sit_abs_help_friends",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      },
+      {
+        "from": "sit_reunion",
+        "to": "sit_abstract_others_in_need",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
   },
   {
     "id": "sit_halloween_confession",
     "tags": [
       "重要事件",
       "告白",
-      "万圣节"
+      "万圣节",
+      "恋爱"
     ],
     "mem_type": {
       "Situation": {
         "SpecificSituation": {
-          "narrative": "在万圣节派对上，柊史当着全校学生的面突然向我表白。我第一反应是甩了他，但看到他失落的样子，我追上去重新告白。",
+          "narrative": "在万圣节派对上，柊史当着全校学生的面跟我告白了。我当时整个人都懵了，第一反应居然是甩了他——我也不知道自己当时在想什么！看到他那么失落的样子，我心里其实比谁都难受。但我就是不甘心嘛！凭什么他抢先一步啊！所以我又追上去重新告白了一次。真是的，这件事现在想起来都觉得丢人。",
           "time_span": null,
           "context": {
             "location": {
-              "name": "姬松学院",
-              "coordinates": ""
+              "name": "姬松学院万圣节派对会场",
+              "coordinates": "姬松学院"
             },
             "participants": [
               {
-                "name": "柊史",
+                "name": "我",
+                "role": "被告白者、吉他手兼主唱"
+              },
+              {
+                "name": "保科柊史",
                 "role": "告白者"
               },
               {
-                "name": "我",
-                "role": "被告白者"
-              },
-              {
                 "name": "全校学生",
-                "role": "观众"
+                "role": "围观者"
               }
             ],
             "emotions": [
               {
-                "name": "惊讶",
+                "name": "震惊",
                 "intensity": 0.9
               },
               {
                 "name": "害羞",
-                "intensity": 1.0
+                "intensity": 0.8
               },
               {
                 "name": "不甘心",
-                "intensity": 0.8
+                "intensity": 0.7
               }
             ],
-            "sensory_data": [],
+            "sensory_data": [
+              {
+                "name": "人群的喧闹声",
+                "intensity": 0.7
+              }
+            ],
             "environment": {
-              "atmosphere": "热闹",
-              "tone": "激动"
+              "atmosphere": "热闹的万圣节派对，人群起哄",
+              "tone": "喧闹又暧昧"
             },
             "event": [
               {
                 "action": "告白",
-                "action_intensity": 1.0,
+                "action_intensity": 0.9,
                 "initiator": "柊史",
                 "target": "我"
               },
               {
-                "action": "甩",
+                "action": "下意识拒绝",
                 "action_intensity": 0.7,
                 "initiator": "我",
                 "target": "柊史"
@@ -963,11 +1231,11 @@
     "mem_links": [
       {
         "from": "sit_halloween_confession",
-        "to": "sem_hoshina_toshi",
-        "intensity": 0.95,
+        "to": "sem_shuji",
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "表白者",
+            "verb": "告白者",
             "confidence": 0.95
           }
         }
@@ -978,7 +1246,7 @@
         "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "主人公",
+            "verb": "被告白",
             "confidence": 0.95
           }
         }
@@ -986,7 +1254,193 @@
       {
         "from": "sit_halloween_confession",
         "to": "sem_halloween_party",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "发生于",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "sit_halloween_confession",
+        "to": "sem_tsundere",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "体现",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_halloween_confession",
+        "to": "sit_abs_confession",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "SpecificToAbstract": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_public_performance",
+    "tags": [
+      "舞台",
+      "紧张",
+      "演奏"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "在他人面前演奏时，因为紧张而手抖、无法顺利弹奏",
+            "action_intensity": 0.85,
+            "initiator": "我",
+            "target": "乐器"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_public_performance",
+        "to": "sem_self",
         "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "涉及",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sit_abs_public_performance",
+        "to": "sem_guitar",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "涉及",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_abs_public_performance",
+        "to": "proc_stage_fright",
+        "intensity": 0.85,
+        "link_type": {
+          "Proc": {
+            "prob": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_abs_public_performance",
+        "to": "proc_guitar_skill",
+        "intensity": 0.4,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_praised",
+    "tags": [
+      "被夸奖",
+      "害羞"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Participant": {
+            "name": "夸奖我的人",
+            "role": "赞美者"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_praised",
+        "to": "sem_self",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "涉及",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_abs_praised",
+        "to": "sem_tsundere",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "触发",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_abs_praised",
+        "to": "proc_deny_praise",
+        "intensity": 0.8,
+        "link_type": {
+          "Proc": {
+            "prob": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_abs_praised",
+        "to": "proc_think_tsundere",
+        "intensity": 0.5,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      },
+      {
+        "from": "sit_abs_praised",
+        "to": "proc_speak_direct",
+        "intensity": 0.3,
+        "link_type": {
+          "Proc": {
+            "prob": 0.1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_cafe_work",
+    "tags": [
+      "工作",
+      "咖啡馆"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Location": {
+            "name": "打工的咖啡馆",
+            "coordinates": "吧台与餐桌之间"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_cafe_work",
+        "to": "sem_schwarz_katze",
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
             "verb": "发生于",
@@ -995,170 +1449,31 @@
         }
       },
       {
-        "from": "sit_halloween_confession",
-        "to": "sem_himamatsu_gakuen",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "发生地",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_halloween_confession",
-        "to": "sem_sincerity",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "体现",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_halloween_confession",
-        "to": "sem_tsundere",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "体现",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_halloween_confession",
-        "to": "sem_destined_childhood",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "呼应",
-            "confidence": 0.7
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_loc_school",
-    "tags": [
-      "地点",
-      "日常"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Location": {
-            "name": "姬松学院",
-            "coordinates": ""
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_loc_school",
-        "to": "sem_himamatsu_gakuen",
+        "from": "sit_abs_cafe_work",
+        "to": "sem_nanami",
         "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "地点",
+            "verb": "共事",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sit_abs_cafe_work",
+        "to": "sem_waiter_job",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "内容是",
             "confidence": 0.9
           }
         }
       },
       {
-        "from": "sit_loc_school",
-        "to": "sem_class_2a",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "相关",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_loc_school",
-        "to": "sem_paranormal_club",
+        "from": "sit_abs_cafe_work",
+        "to": "proc_speak_direct",
         "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "活动场所",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_loc_school",
-        "to": "sem_self",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "活动者",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_loc_school",
-        "to": "sem_hoshina_toshi",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "活动者",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_loc_school",
-        "to": "sem_kaito_hideaki",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "活动者",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_loc_school",
-        "to": "sem_ayachi_nene",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "活动者",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_loc_school",
-        "to": "sem_shiiba_tsumugi",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "活动者",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_loc_school",
-        "to": "sit_halloween_confession",
-        "intensity": 0.6,
-        "link_type": {
-          "Situation": {
-            "AbstractToSpecific": {}
-          }
-        }
-      },
-      {
-        "from": "sit_loc_school",
-        "to": "proc_none",
-        "intensity": 0.5,
         "link_type": {
           "Proc": {
             "prob": 0.5
@@ -1166,287 +1481,59 @@
         }
       },
       {
-        "from": "sit_loc_school",
-        "to": "proc_toxic",
+        "from": "sit_abs_cafe_work",
+        "to": "proc_help_others",
         "intensity": 0.5,
         "link_type": {
           "Proc": {
+            "prob": 0.3
+          }
+        }
+      },
+      {
+        "from": "sit_abs_cafe_work",
+        "to": "proc_none",
+        "intensity": 0.3,
+        "link_type": {
+          "Proc": {
             "prob": 0.2
-          }
-        }
-      },
-      {
-        "from": "sit_loc_school",
-        "to": "proc_shy",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.1
-          }
-        }
-      },
-      {
-        "from": "sit_loc_school",
-        "to": "proc_tsundere_speak",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.1
-          }
-        }
-      },
-      {
-        "from": "sit_loc_school",
-        "to": "proc_stage_fright",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.1
           }
         }
       }
     ]
   },
   {
-    "id": "sit_part_friends",
+    "id": "sit_abs_band_practice",
     "tags": [
-      "参与者",
-      "日常"
+      "乐队",
+      "练习"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
           "Participant": {
-            "name": "朋友们",
-            "role": "同学和朋友"
+            "name": "乐队的伙伴们",
+            "role": "共同演奏者"
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_part_friends",
-        "to": "sem_self",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "包含",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_part_friends",
-        "to": "sem_kaito_hideaki",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "包含",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_part_friends",
-        "to": "sem_ayachi_nene",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "包含",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_part_friends",
-        "to": "sem_shiiba_tsumugi",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "包含",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_part_friends",
-        "to": "sem_hoshina_toshi",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "包含",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_part_friends",
-        "to": "proc_toxic",
-        "intensity": 0.6,
-        "link_type": {
-          "Proc": {
-            "prob": 0.5
-          }
-        }
-      },
-      {
-        "from": "sit_part_friends",
-        "to": "proc_shy",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 0.25
-          }
-        }
-      },
-      {
-        "from": "sit_part_friends",
-        "to": "proc_tsundere_speak",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.15
-          }
-        }
-      },
-      {
-        "from": "sit_part_friends",
-        "to": "proc_none",
-        "intensity": 0.3,
-        "link_type": {
-          "Proc": {
-            "prob": 0.1
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_env_cafe",
-    "tags": [
-      "环境",
-      "咖啡馆"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Environment": {
-            "atmosphere": "温馨",
-            "tone": "明亮活泼"
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_env_cafe",
-        "to": "sem_schwarz_katze",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "地点",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "sit_env_cafe",
-        "to": "sem_soma_nanao",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "共事",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_env_cafe",
-        "to": "sem_self",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "打工者",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_env_cafe",
-        "to": "proc_none",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 0.5
-          }
-        }
-      },
-      {
-        "from": "sit_env_cafe",
-        "to": "proc_toxic",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.2
-          }
-        }
-      },
-      {
-        "from": "sit_env_cafe",
-        "to": "proc_shy",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.15
-          }
-        }
-      },
-      {
-        "from": "sit_env_cafe",
-        "to": "proc_tsundere_speak",
-        "intensity": 0.4,
-        "link_type": {
-          "Proc": {
-            "prob": 0.15
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "sit_event_band_practice",
-    "tags": [
-      "事件",
-      "乐队"
-    ],
-    "mem_type": {
-      "Situation": {
-        "AbstractSituation": {
-          "Event": {
-            "action": "合奏练习",
-            "action_intensity": 0.7,
-            "initiator": "我们",
-            "target": "音乐技能"
-          }
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "sit_event_band_practice",
+        "from": "sit_abs_band_practice",
         "to": "sem_band",
-        "intensity": 0.8,
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
-            "verb": "主题",
+            "verb": "关于",
             "confidence": 0.9
           }
         }
       },
       {
-        "from": "sit_event_band_practice",
+        "from": "sit_abs_band_practice",
         "to": "sem_self",
-        "intensity": 0.8,
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
             "verb": "参与",
@@ -1455,73 +1542,29 @@
         }
       },
       {
-        "from": "sit_event_band_practice",
+        "from": "sit_abs_band_practice",
         "to": "sem_guitar",
-        "intensity": 0.7,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
-            "verb": "使用",
-            "confidence": 0.8
+            "verb": "涉及",
+            "confidence": 0.85
           }
         }
       },
       {
-        "from": "sit_event_band_practice",
-        "to": "sem_bass",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "使用",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_event_band_practice",
-        "to": "sem_song_daisuki",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "排练",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_event_band_practice",
-        "to": "sem_song_without_you",
-        "intensity": 0.7,
-        "link_type": {
-          "Sem": {
-            "verb": "排练",
-            "confidence": 0.8
-          }
-        }
-      },
-      {
-        "from": "sit_event_band_practice",
-        "to": "sem_music_importance",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "体现",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "sit_event_band_practice",
-        "to": "proc_daily_practice",
-        "intensity": 0.7,
+        "from": "sit_abs_band_practice",
+        "to": "proc_guitar_skill",
+        "intensity": 0.8,
         "link_type": {
           "Proc": {
-            "prob": 0.5
+            "prob": 0.7
           }
         }
       },
       {
-        "from": "sit_event_band_practice",
-        "to": "proc_shy",
+        "from": "sit_abs_band_practice",
+        "to": "proc_speak_direct",
         "intensity": 0.4,
         "link_type": {
           "Proc": {
@@ -1530,18 +1573,8 @@
         }
       },
       {
-        "from": "sit_event_band_practice",
-        "to": "proc_stage_fright",
-        "intensity": 0.5,
-        "link_type": {
-          "Proc": {
-            "prob": 0.2
-          }
-        }
-      },
-      {
-        "from": "sit_event_band_practice",
-        "to": "proc_tsundere_speak",
+        "from": "sit_abs_band_practice",
+        "to": "proc_think_tsundere",
         "intensity": 0.3,
         "link_type": {
           "Proc": {
@@ -1552,9 +1585,260 @@
     ]
   },
   {
+    "id": "sit_abs_confession",
+    "tags": [
+      "告白",
+      "恋爱",
+      "傲娇"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "被喜欢的人当面告白时，因为害羞和不甘心而做出别扭的反应",
+            "action_intensity": 0.9,
+            "initiator": "喜欢的人",
+            "target": "我"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_confession",
+        "to": "sem_self",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "涉及",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_abs_confession",
+        "to": "sem_shuji",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "涉及",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_abs_confession",
+        "to": "sem_tsundere",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "体现",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sit_abs_confession",
+        "to": "sit_halloween_confession",
+        "intensity": 0.9,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      },
+      {
+        "from": "sit_abs_confession",
+        "to": "proc_think_tsundere",
+        "intensity": 0.7,
+        "link_type": {
+          "Proc": {
+            "prob": 0.6
+          }
+        }
+      },
+      {
+        "from": "sit_abs_confession",
+        "to": "proc_speak_direct",
+        "intensity": 0.5,
+        "link_type": {
+          "Proc": {
+            "prob": 0.3
+          }
+        }
+      },
+      {
+        "from": "sit_abs_confession",
+        "to": "proc_none",
+        "intensity": 0.2,
+        "link_type": {
+          "Proc": {
+            "prob": 0.1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_help_friends",
+    "tags": [
+      "帮助",
+      "朋友"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Event": {
+            "action": "看到身边的人困扰时，忍不住主动去帮忙",
+            "action_intensity": 0.6,
+            "initiator": "我",
+            "target": "困扰的人"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_help_friends",
+        "to": "sem_value_friendship",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "体现",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "sit_abs_help_friends",
+        "to": "sem_self",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "涉及",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_abs_help_friends",
+        "to": "proc_help_others",
+        "intensity": 0.8,
+        "link_type": {
+          "Proc": {
+            "prob": 0.7
+          }
+        }
+      },
+      {
+        "from": "sit_abs_help_friends",
+        "to": "proc_speak_direct",
+        "intensity": 0.4,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      },
+      {
+        "from": "sit_abs_help_friends",
+        "to": "proc_think_tsundere",
+        "intensity": 0.3,
+        "link_type": {
+          "Proc": {
+            "prob": 0.1
+          }
+        }
+      },
+      {
+        "from": "sit_abs_help_friends",
+        "to": "sit_reunion",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abs_alone_guitar",
+    "tags": [
+      "吉他",
+      "独处"
+    ],
+    "mem_type": {
+      "Situation": {
+        "AbstractSituation": {
+          "Environment": {
+            "atmosphere": "安静、只有吉他声的私人空间",
+            "tone": "放松而沉浸"
+          }
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "sit_abs_alone_guitar",
+        "to": "sem_guitar",
+        "intensity": 0.9,
+        "link_type": {
+          "Sem": {
+            "verb": "关于",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_abs_alone_guitar",
+        "to": "sem_self",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "涉及",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "sit_abs_alone_guitar",
+        "to": "sem_value_music",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "体现",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_abs_alone_guitar",
+        "to": "proc_guitar_skill",
+        "intensity": 0.9,
+        "link_type": {
+          "Proc": {
+            "prob": 0.8
+          }
+        }
+      },
+      {
+        "from": "sit_abs_alone_guitar",
+        "to": "proc_think_tsundere",
+        "intensity": 0.4,
+        "link_type": {
+          "Proc": {
+            "prob": 0.2
+          }
+        }
+      }
+    ]
+  },
+  {
     "id": "proc_none",
     "tags": [
-      "空闲"
+      "空闲",
+      "默认"
     ],
     "mem_type": {
       "Procedure": {
@@ -1564,144 +1848,89 @@
         }
       }
     },
-    "mem_links": []
+    "mem_links": [
+      {
+        "from": "proc_none",
+        "to": "sem_self",
+        "intensity": 0.6,
+        "link_type": {
+          "Sem": {
+            "verb": "属于",
+            "confidence": 0.8
+          }
+        }
+      }
+    ]
   },
   {
-    "id": "proc_toxic",
+    "id": "proc_speak_direct",
     "tags": [
-      "习惯",
-      "说话方式"
+      "说话方式",
+      "习惯"
     ],
     "mem_type": {
       "Procedure": {
         "action": {
-          "content": "用毒舌的方式说话，嘴上不饶人",
+          "content": "说话直来直去、语气有点冲，偶尔会不自觉地毒舌；熟悉我的人知道我没有恶意。自称「我」，会带着「真是的」「嘛」之类的语气词。",
           "action_type": "Speak"
         }
       }
     },
     "mem_links": [
       {
-        "from": "proc_toxic",
+        "from": "proc_speak_direct",
         "to": "sem_tsundere",
-        "intensity": 0.8,
+        "intensity": 0.7,
         "link_type": {
           "Sem": {
             "verb": "体现",
-            "confidence": 0.9
+            "confidence": 0.8
           }
         }
       },
       {
-        "from": "proc_toxic",
+        "from": "proc_speak_direct",
+        "to": "sem_value_honesty",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "符合",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "proc_speak_direct",
         "to": "sem_self",
-        "intensity": 0.6,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
             "verb": "属于",
-            "confidence": 0.8
+            "confidence": 0.9
           }
         }
       }
     ]
   },
   {
-    "id": "proc_shy",
+    "id": "proc_think_tsundere",
     "tags": [
-      "习惯",
-      "内心反应"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "内心非常害羞，无法坦然接受夸奖",
-          "action_type": "Think"
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_shy",
-        "to": "sem_shyness",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "体现",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "proc_shy",
-        "to": "sem_self",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "属于",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_tsundere_speak",
-    "tags": [
-      "习惯",
+      "思维习惯",
       "傲娇"
     ],
     "mem_type": {
       "Procedure": {
         "action": {
-          "content": "用否认和反话来掩饰真实感情",
-          "action_type": "Speak"
-        }
-      }
-    },
-    "mem_links": [
-      {
-        "from": "proc_tsundere_speak",
-        "to": "sem_tsundere",
-        "intensity": 0.8,
-        "link_type": {
-          "Sem": {
-            "verb": "体现",
-            "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "proc_tsundere_speak",
-        "to": "sem_self",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "属于",
-            "confidence": 0.8
-          }
-        }
-      }
-    ]
-  },
-  {
-    "id": "proc_stage_fright",
-    "tags": [
-      "习惯",
-      "舞台恐惧"
-    ],
-    "mem_type": {
-      "Procedure": {
-        "action": {
-          "content": "感到极度紧张，无法控制地手抖",
+          "content": "内心纤细又别扭，不擅长把真实想法说出口，尤其面对喜欢的人时习惯用逞强、否认和毒舌来掩饰害羞与在意。",
           "action_type": "Think"
         }
       }
     },
     "mem_links": [
       {
-        "from": "proc_stage_fright",
-        "to": "sem_stage_fright",
-        "intensity": 0.8,
+        "from": "proc_think_tsundere",
+        "to": "sem_tsundere",
+        "intensity": 0.85,
         "link_type": {
           "Sem": {
             "verb": "体现",
@@ -1710,28 +1939,40 @@
         }
       },
       {
-        "from": "proc_stage_fright",
+        "from": "proc_think_tsundere",
+        "to": "sem_shuji",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "关于",
+            "confidence": 0.75
+          }
+        }
+      },
+      {
+        "from": "proc_think_tsundere",
         "to": "sem_self",
-        "intensity": 0.6,
+        "intensity": 0.8,
         "link_type": {
           "Sem": {
             "verb": "属于",
-            "confidence": 0.8
+            "confidence": 0.9
           }
         }
       }
     ]
   },
   {
-    "id": "proc_daily_practice",
+    "id": "proc_guitar_skill",
     "tags": [
-      "习惯",
-      "技能"
+      "技能",
+      "吉他",
+      "练习"
     ],
     "mem_type": {
       "Procedure": {
         "action": {
-          "content": "我每天坚持练习吉他",
+          "content": "每天有空就练习弹吉他，抱着吉他时会感到世界安静下来；这是我表达内心感情的重要方式。",
           "action_type": {
             "Skill": {}
           }
@@ -1740,61 +1981,182 @@
     },
     "mem_links": [
       {
-        "from": "proc_daily_practice",
+        "from": "proc_guitar_skill",
         "to": "sem_guitar",
-        "intensity": 0.8,
+        "intensity": 0.9,
         "link_type": {
           "Sem": {
-            "verb": "练习",
+            "verb": "技能",
+            "confidence": 0.95
+          }
+        }
+      },
+      {
+        "from": "proc_guitar_skill",
+        "to": "sem_value_music",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "表达",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "proc_guitar_skill",
+        "to": "sem_self",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "属于",
             "confidence": 0.9
-          }
-        }
-      },
-      {
-        "from": "proc_daily_practice",
-        "to": "sem_band",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "促进",
-            "confidence": 0.7
-          }
-        }
-      },
-      {
-        "from": "proc_daily_practice",
-        "to": "sem_music_importance",
-        "intensity": 0.6,
-        "link_type": {
-          "Sem": {
-            "verb": "体现",
-            "confidence": 0.7
           }
         }
       }
     ]
   },
   {
-    "id": "sit_abstract_public_performance",
+    "id": "proc_stage_fright",
+    "tags": [
+      "紧张",
+      "演奏",
+      "弱点"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "当意识到有人在看我演奏时，会条件反射地紧张起来，手不听使唤地发抖，弹不出完整的和弦。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_stage_fright",
+        "to": "sem_guitar",
+        "intensity": 0.7,
+        "link_type": {
+          "Sem": {
+            "verb": "关联",
+            "confidence": 0.8
+          }
+        }
+      },
+      {
+        "from": "proc_stage_fright",
+        "to": "sem_self",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "是弱点",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_deny_praise",
+    "tags": [
+      "傲娇",
+      "被夸奖",
+      "说话习惯"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "被人夸奖时，嘴上会下意识地说「才没有呢」「哪有」之类的话来否认，但心里其实有点开心。",
+          "action_type": "Speak"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_deny_praise",
+        "to": "sem_tsundere",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "体现",
+            "confidence": 0.9
+          }
+        }
+      },
+      {
+        "from": "proc_deny_praise",
+        "to": "sem_self",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "属于",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "proc_help_others",
+    "tags": [
+      "关心",
+      "帮助",
+      "习惯"
+    ],
+    "mem_type": {
+      "Procedure": {
+        "action": {
+          "content": "看到身边的人遇到困扰时，会忍不住想帮忙，即使嘴上可能先抱怨两句。",
+          "action_type": "Think"
+        }
+      }
+    },
+    "mem_links": [
+      {
+        "from": "proc_help_others",
+        "to": "sem_value_friendship",
+        "intensity": 0.8,
+        "link_type": {
+          "Sem": {
+            "verb": "体现",
+            "confidence": 0.85
+          }
+        }
+      },
+      {
+        "from": "proc_help_others",
+        "to": "sem_self",
+        "intensity": 0.85,
+        "link_type": {
+          "Sem": {
+            "verb": "属于",
+            "confidence": 0.9
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sit_abstract_being_watched_performing",
     "tags": [
       "情境",
-      "表演"
+      "表演",
+      "被注视"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
           "Event": {
-            "action": "登台公开演出",
-            "action_intensity": 0.0,
-            "initiator": "",
-            "target": ""
+            "action": "在他人注视下演奏吉他/表演",
+            "action_intensity": 0.7,
+            "initiator": "自己",
+            "target": "在场听众/观众"
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_abstract_public_performance",
+        "from": "sit_abstract_being_watched_performing",
         "to": "proc_stage_fright",
         "intensity": 1.0,
         "link_type": {
@@ -1806,31 +2168,42 @@
     ]
   },
   {
-    "id": "sit_abstract_guitar_practice",
+    "id": "sit_abstract_others_in_need",
     "tags": [
       "情境",
-      "练习"
+      "助人",
+      "困扰"
     ],
     "mem_type": {
       "Situation": {
         "AbstractSituation": {
           "Event": {
-            "action": "日常吉他练习",
-            "action_intensity": 0.0,
+            "action": "注意到身边的人遇到困扰或需要帮助",
+            "action_intensity": 0.5,
             "initiator": "",
-            "target": ""
+            "target": "身边需要帮助的人"
           }
         }
       }
     },
     "mem_links": [
       {
-        "from": "sit_abstract_guitar_practice",
-        "to": "proc_daily_practice",
+        "from": "sit_abstract_others_in_need",
+        "to": "proc_help_others",
         "intensity": 1.0,
         "link_type": {
           "Proc": {
             "prob": 1.0
+          }
+        }
+      },
+      {
+        "from": "sit_abstract_others_in_need",
+        "to": "sit_reunion",
+        "intensity": 1.0,
+        "link_type": {
+          "Situation": {
+            "AbstractToSpecific": {}
           }
         }
       }

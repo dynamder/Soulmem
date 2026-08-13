@@ -320,6 +320,30 @@ impl TestSuite for RetrieveSuite {
         let test_case = &tcw.query;
         let query_embs = &self.query_embeddings[index];
 
+        // 抽象节点集合与期望抽象列表（供"抽象检出率 / 抽象直接命中率"指标使用）
+        let abstract_ids: std::collections::HashSet<MemoryId> = self
+            .wm
+            .memory_cluster()
+            .read_or_compute(|c| {
+                c.graph()
+                    .node_weights()
+                    .filter_map(|n| match n.note().mem_type() {
+                        MemoryType::Situation(SituationType::AbstractSituation(_)) => {
+                            Some(n.note().id())
+                        }
+                        _ => None,
+                    })
+                    .collect()
+            });
+        let expected_abstract: Vec<MemoryId> = test_case
+            .expected_combined_ranking
+            .iter()
+            .chain(test_case.bonus_combined_ranking.iter())
+            .copied()
+            .filter(|id| abstract_ids.contains(id))
+            .collect();
+        let has_expected_abstract = !expected_abstract.is_empty();
+
         let mut per_query_metrics = Vec::new();
         let mut all_similarity: Vec<Vec<(MemoryId, f32)>> = Vec::new();
         // FullPipeline 模式：每个子查询执行真正的 DefaultPipeline，收集其合并记忆与动作输出
@@ -350,6 +374,7 @@ impl TestSuite for RetrieveSuite {
                     assoc_with_action: AssociateWithActionConfig {
                         association: Default::default(),
                         action_top_k: 3,
+                        ..Default::default()
                     },
                 };
                 let pipeline_request = pipeline_config.into_request(
@@ -378,6 +403,22 @@ impl TestSuite for RetrieveSuite {
                         .into_iter()
                         .map(|(id, score)| (id, score, priority)),
                 );
+                // 抽象直接命中率观测：仅对期望含抽象节点的用例额外跑一次相似度，
+                // 避免全量双跑相似度拖慢 suite（字符串分是 O(N) 开销）。
+                if has_expected_abstract {
+                    let sim_config = SimilarityConfig {
+                        similarity_threshold: self.meta.similarity_threshold,
+                        max_results: self.meta.max_results,
+                    };
+                    let sim_req = sim_config.into_request(
+                        Arc::clone(&self.wm),
+                        EmbeddedMemoryRetrieveQuery {
+                            embedding: emb.clone(),
+                            query: MemoryRetrieveQuery::new(sq.tags.clone(), sq.variant.clone()),
+                        },
+                    );
+                    all_similarity.push(RetrSimilarity {}.retrieve(sim_req));
+                }
                 ids
             } else {
                 let config = SimilarityConfig {
@@ -424,6 +465,13 @@ impl TestSuite for RetrieveSuite {
             };
             per_query_metrics.push(per_metrics);
         }
+
+        // 相似度直接命中集合（供抽象直接命中率观测；FullPipeline 模式下仅
+        // 期望含抽象节点的用例有数据，其余模式每子查询都有）。
+        let sim_ids: std::collections::HashSet<MemoryId> = all_similarity
+            .iter()
+            .flat_map(|results| results.iter().map(|(id, _)| *id))
+            .collect();
 
         let (combined_ids, combined_ranking, passed) = match self.pipeline_mode {
             RetrieveMode::Embedding => {
@@ -511,6 +559,20 @@ impl TestSuite for RetrieveSuite {
             }
         };
 
+        // ── 抽象检出指标 ──
+        let combined_set: std::collections::HashSet<MemoryId> =
+            combined_ids.iter().copied().collect();
+        let abstract_detected = if has_expected_abstract {
+            Some(expected_abstract.iter().any(|id| combined_set.contains(id)))
+        } else {
+            None
+        };
+        let abstract_direct_hit = if has_expected_abstract {
+            Some(expected_abstract.iter().any(|id| sim_ids.contains(id)))
+        } else {
+            None
+        };
+
         let action_metrics = if test_case.expected_actions.is_empty() {
             ActionMetrics {
                 action_hit_rate: 1.0,
@@ -558,6 +620,9 @@ impl TestSuite for RetrieveSuite {
                 combined_ranking_metrics: combined_ranking,
                 per_query_metrics,
                 action_metrics,
+                has_expected_abstract,
+                abstract_detected,
+                abstract_direct_hit,
                 tag_weight: tcw.tag_weight,
                 variant_weight: tcw.variant_weight,
                 id_names: Some(self.id_names.clone()),
@@ -601,6 +666,9 @@ impl TestSuite for RetrieveSuite {
                         action_recall_at: data.action_metrics.action_recall_at.clone(),
                         has_expected_actions: data.action_metrics.has_expected_actions,
                     },
+                    has_expected_abstract: data.has_expected_abstract,
+                    abstract_detected: data.abstract_detected,
+                    abstract_direct_hit: data.abstract_direct_hit,
                     tag_weight: data.tag_weight,
                     variant_weight: data.variant_weight,
                     id_names: data.id_names.clone(),
@@ -662,6 +730,32 @@ impl TestSuite for RetrieveSuite {
                 group_label.clone(),
                 format!("{:.4}", avg_recall3),
             )));
+            let abstract_total = group_data
+                .iter()
+                .filter(|d| d.has_expected_abstract)
+                .count();
+            if abstract_total > 0 {
+                let abstract_detected_rate = group_data
+                    .iter()
+                    .filter(|d| d.abstract_detected == Some(true))
+                    .count() as f64
+                    / abstract_total as f64;
+                let abstract_direct_hit_rate = group_data
+                    .iter()
+                    .filter(|d| d.abstract_direct_hit == Some(true))
+                    .count() as f64
+                    / abstract_total as f64;
+                metrics.push(Box::new(key_value_metric(
+                    "抽象检出率",
+                    group_label.clone(),
+                    format!("{:.2}", abstract_detected_rate),
+                )));
+                metrics.push(Box::new(key_value_metric(
+                    "抽象直接命中率",
+                    group_label.clone(),
+                    format!("{:.2}", abstract_direct_hit_rate),
+                )));
+            }
             metrics.push(Box::new(key_value_metric(
                 "用例数",
                 group_label,

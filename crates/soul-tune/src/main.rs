@@ -320,9 +320,18 @@ fn fmt_trace(kind: &str, t: &RetrievalTrace) -> String {
             qt.action_nodes.len(),
             qt.total_elapsed.as_secs_f64()
         ));
+        if !qt.ppr_nodes.is_empty() {
+            let ppr_ids = qt
+                .ppr_nodes
+                .iter()
+                .map(|n| format!("{}:{:?}", n.name, n.stage))
+                .collect::<Vec<_>>()
+                .join(", ");
+            out.push_str(&format!("      ppr节点: {}\n", ppr_ids));
+        }
     }
     for n in t.merged_nodes.iter().take(12) {
-        let content: String = n.content.chars().take(40).collect();
+        let content: String = n.content.chars().take(400).collect();
         out.push_str(&format!(
             "  - [{}] {:?} score={:.4} | {}\n",
             n.name, n.stage, n.score, content
