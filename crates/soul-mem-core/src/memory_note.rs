@@ -165,6 +165,90 @@ mod tests {
     use super::*;
     use crate::memory_note::sem_mem::ConceptType;
     use chrono::TimeZone;
+    use uuid::Uuid;
+
+    #[test]
+    fn test_memory_id_from_uuid_and_display() {
+        let uuid = Uuid::new_v4();
+        let id = MemoryId::from(uuid);
+        assert_eq!(format!("{id}"), uuid.to_string());
+    }
+
+    #[test]
+    fn test_memory_id_default_is_new() {
+        let a = MemoryId::default();
+        let b = MemoryId::default();
+        assert_ne!(a, b, "each default MemoryId must be unique");
+    }
+
+    #[test]
+    fn test_is_same_id_true() {
+        let uuid = Uuid::new_v4();
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let note1 = MemoryNoteBuilder::new(mem_type.clone())
+            .id(uuid)
+            .build()
+            .unwrap();
+        let note2 = MemoryNoteBuilder::new(mem_type)
+            .id(uuid)
+            .build()
+            .unwrap();
+        assert!(MemoryNote::is_same_id(&note1, &note2));
+    }
+
+    #[test]
+    fn test_is_same_id_false() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let note1 = MemoryNoteBuilder::new(mem_type.clone()).build().unwrap();
+        let note2 = MemoryNoteBuilder::new(mem_type).build().unwrap();
+        assert!(!MemoryNote::is_same_id(&note1, &note2));
+    }
+
+    #[test]
+    fn test_memory_note_explicit_id_roundtrip() {
+        let uuid = Uuid::new_v4();
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let note = MemoryNoteBuilder::new(mem_type).id(uuid).build().unwrap();
+        assert_eq!(note.id(), MemoryId::from(uuid));
+    }
+
+    #[test]
+    fn test_memory_note_links_roundtrip() {
+        let uuid_from = Uuid::new_v4();
+        let uuid_to = Uuid::new_v4();
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let link = MemoryLink::new(
+            MemoryId::from(uuid_from),
+            MemoryId::from(uuid_to),
+            crate::memory_links::MemoryLinkType::Sem(crate::memory_links::sem_mem::SemMemLink::new(
+                "is_related_to".to_string(),
+                0.9,
+            )),
+        );
+        let note = MemoryNoteBuilder::new(mem_type)
+            .mem_links(vec![link])
+            .build()
+            .unwrap();
+        assert_eq!(note.links().len(), 1);
+        assert_eq!(note.links()[0].from(), MemoryId::from(uuid_from));
+        assert_eq!(note.links()[0].to(), MemoryId::from(uuid_to));
+    }
 
     #[test]
     fn test_memory_note_builder_basic() {

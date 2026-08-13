@@ -195,3 +195,143 @@ pub struct SensoryData {
     pub name: String,
     pub intensity: f32,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::TimeZone;
+
+    fn sample_context() -> Context {
+        Context::new(
+            Some(Location {
+                name: "cafe".to_string(),
+                coordinates: "0,0".to_string(),
+            }),
+            vec![Participant {
+                name: "alice".to_string(),
+                role: "friend".to_string(),
+            }],
+            vec![Emotion {
+                name: "joy".to_string(),
+                intensity: 0.8,
+            }],
+            vec![SensoryData {
+                name: "warmth".to_string(),
+                intensity: 0.5,
+            }],
+            Environment {
+                atmosphere: "cozy".to_string(),
+                tone: "warm".to_string(),
+            },
+            vec![Event {
+                action: "talk".to_string(),
+                action_intensity: 0.4,
+                initiator: "alice".to_string(),
+                target: "bob".to_string(),
+            }],
+        )
+    }
+
+    #[test]
+    fn test_specific_situation_narrative_roundtrip() {
+        let time = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+        let mut situation = SpecificSituation::new(
+            "original".to_string(),
+            time,
+            Context::new(None, vec![], vec![], vec![], Environment { atmosphere: "".to_string(), tone: "".to_string() }, vec![]),
+        );
+        assert_eq!(situation.get_narrative(), "original");
+        assert_eq!(situation.get_time_span(), &time);
+
+        situation.get_mut_narrative().push_str(" extended");
+        assert_eq!(situation.get_narrative(), "original extended");
+    }
+
+    #[test]
+    fn test_context_getters_roundtrip() {
+        let mut ctx = sample_context();
+
+        assert_eq!(ctx.get_location().as_ref().map(|l| l.name.as_str()), Some("cafe"));
+        assert_eq!(ctx.get_participants().len(), 1);
+        assert_eq!(ctx.get_emotions().len(), 1);
+        assert_eq!(ctx.get_sensory_data().len(), 1);
+        assert_eq!(ctx.get_environment().atmosphere, "cozy");
+        assert_eq!(ctx.get_event().len(), 1);
+
+        ctx.get_mut_location().as_mut().unwrap().name = "park".to_string();
+        ctx.get_mut_participants().push(Participant {
+            name: "bob".to_string(),
+            role: "friend".to_string(),
+        });
+        ctx.get_mut_emotions().push(Emotion {
+            name: "calm".to_string(),
+            intensity: 0.2,
+        });
+        ctx.get_mut_sensory_data().push(SensoryData {
+            name: "breeze".to_string(),
+            intensity: 0.3,
+        });
+        ctx.get_mut_environment().tone = "cool".to_string();
+        ctx.get_mut_event().push(Event {
+            action: "walk".to_string(),
+            action_intensity: 0.6,
+            initiator: "bob".to_string(),
+            target: "alice".to_string(),
+        });
+
+        assert_eq!(ctx.get_location().as_ref().map(|l| l.name.as_str()), Some("park"));
+        assert_eq!(ctx.get_participants().len(), 2);
+        assert_eq!(ctx.get_emotions().len(), 2);
+        assert_eq!(ctx.get_sensory_data().len(), 2);
+        assert_eq!(ctx.get_environment().tone, "cool");
+        assert_eq!(ctx.get_event().len(), 2);
+    }
+
+    #[test]
+    fn test_situation_type_from_abstract_and_specific() {
+        let abstract_s = AbstractSituation::Location(Location {
+            name: "home".to_string(),
+            coordinates: "1,1".to_string(),
+        });
+        let st: SituationType = abstract_s.into();
+        assert!(matches!(st, SituationType::AbstractSituation(_)));
+
+        let time = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+        let specific = SpecificSituation::new(
+            "n".to_string(),
+            time,
+            Context::new(None, vec![], vec![], vec![], Environment { atmosphere: "".to_string(), tone: "".to_string() }, vec![]),
+        );
+        let st: SituationType = specific.into();
+        assert!(matches!(st, SituationType::SpecificSituation(_)));
+    }
+
+    #[test]
+    fn test_abstract_situation_from_variants() {
+        let location = AbstractSituation::Location(Location {
+            name: "x".to_string(),
+            coordinates: "0,0".to_string(),
+        });
+        assert!(matches!(location, AbstractSituation::Location(_)));
+
+        let participant = AbstractSituation::Participant(Participant {
+            name: "p".to_string(),
+            role: "r".to_string(),
+        });
+        assert!(matches!(participant, AbstractSituation::Participant(_)));
+
+        let env = AbstractSituation::Environment(Environment {
+            atmosphere: "a".to_string(),
+            tone: "t".to_string(),
+        });
+        assert!(matches!(env, AbstractSituation::Environment(_)));
+
+        let event = AbstractSituation::Event(Event {
+            action: "a".to_string(),
+            action_intensity: 1.0,
+            initiator: "i".to_string(),
+            target: "t".to_string(),
+        });
+        assert!(matches!(event, AbstractSituation::Event(_)));
+    }
+}

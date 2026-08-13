@@ -97,3 +97,64 @@ impl From<(MemoryId, MemoryId, MemoryLinkType, f64)> for MemoryLink {
         MemoryLink::from_tuple(tuple.0, tuple.1, tuple.2, tuple.3)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_link_id_default_is_new() {
+        let a = LinkId::default();
+        let b = LinkId::default();
+        assert_ne!(a, b, "each default LinkId must be unique");
+    }
+
+    #[test]
+    fn test_link_id_display() {
+        let id = LinkId::default();
+        let uuid = {
+            // LinkId's inner Uuid is opaque; verify display is non-empty and stable
+            let s1 = id.to_string();
+            let s2 = id.to_string();
+            assert_eq!(s1, s2);
+            assert!(!s1.is_empty());
+            s1
+        };
+        let parsed = uuid::Uuid::parse_str(&uuid).expect("display output must be a valid Uuid");
+        let _ = parsed;
+    }
+
+    #[test]
+    fn test_memory_link_from_to_roundtrip() {
+        let from = MemoryId::default();
+        let to = MemoryId::default();
+        let link = MemoryLink::new(
+            from,
+            to,
+            MemoryLinkType::Sem(SemMemLink::new("test".to_string(), 0.5)),
+        );
+        assert_eq!(link.from(), from);
+        assert_eq!(link.to(), to);
+        assert_eq!(link.id(), link.id());
+    }
+
+    #[test]
+    fn test_memory_link_from_tuple() {
+        let from = MemoryId::default();
+        let to = MemoryId::default();
+        let link_type = MemoryLinkType::Sem(SemMemLink::new("test".to_string(), 0.5));
+        let link = MemoryLink::from_tuple(from, to, link_type.clone(), 2.5);
+        assert_eq!(link.from(), from);
+        assert_eq!(link.to(), to);
+        assert_eq!(link.into_link_type(), link_type);
+    }
+
+    #[test]
+    fn test_memory_link_into_tuple() {
+        let from = MemoryId::default();
+        let to = MemoryId::default();
+        let link_type = MemoryLinkType::Sem(SemMemLink::new("test".to_string(), 0.5));
+        let link = MemoryLink::from_tuple(from, to, link_type.clone(), 2.5);
+        assert_eq!(link.into_tuple(), (from, to, link_type, 2.5));
+    }
+}

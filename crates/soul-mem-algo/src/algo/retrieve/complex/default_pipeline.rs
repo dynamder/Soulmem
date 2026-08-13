@@ -15,9 +15,9 @@ use soul_mem_runtime::working_memory::{sliding_window::Information, WorkingMemor
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct DefaultPipelineConfig {
-    short_mem_with_history: ShortOnlyConfig,
-    similarity: SimilarityConfig,
-    assoc_with_action: AssociateWithActionConfig,
+    pub short_mem_with_history: ShortOnlyConfig,
+    pub similarity: SimilarityConfig,
+    pub assoc_with_action: AssociateWithActionConfig,
 }
 
 impl DefaultPipelineConfig {
@@ -174,8 +174,10 @@ mod tests {
             .mem_links(vec![link1])
             .build()
             .unwrap();
+            let mut tag1 = vec![0.0f32; 128];
+            tag1[0] = 1.0;
             let embedding1 = MemoryEmbedding::new(
-                EmbeddingVec::zero(128),
+                EmbeddingVec::new(tag1),
                 MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
                     EmbeddingVec::zero(128),
                     EmbeddingVec::zero(128),
@@ -251,6 +253,7 @@ mod tests {
             assoc_with_action: AssociateWithActionConfig {
                 association: Default::default(),
                 action_top_k: 3,
+                ..Default::default()
             },
         }
     }
@@ -311,6 +314,32 @@ mod tests {
     }
 
     #[test]
+    fn test_default_pipeline_full_pipeline() {
+        let wm = create_mock_working_memory_full();
+        let mut config = create_default_pipeline_config();
+        config.similarity.similarity_threshold = 0.0;
+        let mut qt = vec![0.0f32; 128];
+        qt[0] = 1.0;
+        let query_embedding = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::new(qt));
+        let embedded_query = EmbeddedMemoryRetrieveQuery {
+            embedding: query_embedding,
+            query: MemoryRetrieveQuery::new(
+                vec!["test".to_string()],
+                MemoryRetrieveQueryVariant::Semantic(vec![]),
+            ),
+        };
+        let request = config.into_request(Arc::new(wm), embedded_query, 1);
+        let result = RetrDefaultPipeline {}.retrieve(request);
+
+        assert_eq!(result.priority, 1);
+        assert!(!result.short_history.is_empty());
+        assert!(!result.association.is_empty());
+
+        let assoc_scores: Vec<f64> = result.association.iter().map(|(_, s)| *s).collect();
+        insta::assert_debug_snapshot!("full_pipeline_association_scores", assoc_scores);
+    }
+
+    #[test]
     fn test_merge_note_scores_dedupe_and_cap() {
         let id_a = MemoryId::new();
         let id_b = MemoryId::new();
@@ -350,7 +379,7 @@ mod tests {
         //   2. 字形/语义都无关、被相似度阈值排除的节点，通过PPR链接被关联检索到
         //   3. 结果数量级正确：分数有限、落在[0,1]、note总数不超过10
         let model = BgeSmallZh::default_cpu().unwrap();
-        let mut wm = WorkingMemory::new(10);
+        let wm = WorkingMemory::new(10);
         let cluster = wm.memory_cluster();
 
         let id1 = MemoryId::new();
@@ -443,6 +472,7 @@ mod tests {
             assoc_with_action: AssociateWithActionConfig {
                 association: Default::default(),
                 action_top_k: 3,
+                ..Default::default()
             },
         };
         let request = config.into_request(Arc::new(wm), embedded_query, 1);

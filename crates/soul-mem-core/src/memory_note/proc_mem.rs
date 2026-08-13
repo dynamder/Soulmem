@@ -52,9 +52,41 @@ impl ProcMemory {
     pub fn new(action: Action) -> Self {
         Self { action }
     }
+    pub fn get_action(&self) -> &Action {
+        &self.action
+    }
 }
 impl From<Action> for ProcMemory {
     fn from(action: Action) -> Self {
         Self::new(action)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_action_get_content() {
+        let action = Action::new("speak softly".to_string(), ActionType::new_speak());
+        assert_eq!(action.get_content(), "speak softly");
+        assert_eq!(action.get_action_type(), &ActionType::Speak);
+    }
+
+    #[test]
+    fn test_action_new_skill_and_think() {
+        let skill = Action::new("use_tool".to_string(), ActionType::new_skill(SkillRecord {}));
+        assert_eq!(skill.get_content(), "use_tool");
+        assert_eq!(skill.get_action_type(), &ActionType::Skill(SkillRecord {}));
+
+        let think = Action::new("plan".to_string(), ActionType::new_think());
+        assert_eq!(think.get_action_type(), &ActionType::Think);
+    }
+
+    #[test]
+    fn test_proc_memory_from_action() {
+        let action = Action::new("act".to_string(), ActionType::new_speak());
+        let mem: ProcMemory = action.into();
+        let _ = mem;
     }
 }

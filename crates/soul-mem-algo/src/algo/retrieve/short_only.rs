@@ -73,6 +73,21 @@ mod tests {
     use super::*;
     use soul_mem_runtime::working_memory::sliding_window::{AssistantInformation, UserInformation};
 
+    #[test]
+    fn test_default_include_summary() {
+        assert!(!default_include_summary());
+    }
+
+    #[test]
+    fn test_short_only_config_defaults() {
+        let config = ShortOnlyConfig {
+            clipping_length: None,
+            include_summary: default_include_summary(),
+        };
+        assert!(config.clipping_length.is_none());
+        assert!(!config.include_summary);
+    }
+
     fn create_mock_working_memory_with_window() -> WorkingMemory {
         let mut wm = WorkingMemory::new(10);
         let sw = wm.sliding_window_mut();
