@@ -1,0 +1,231 @@
+/* ============================================================
+   SoulMem 文档主题
+   —— 更大的字号与行距、宽松的彩色表格、明暗主题双适配
+   ============================================================ */
+
+/* ---------- 基础：字号与行距 ---------- */
+
+/* 1rem = 10px 不变，正文从默认 1.6rem(16px) 提升到 1.75rem(17.5px) */
+.content main {
+    font-size: 1.75rem;
+}
+
+/* 行距从默认 1.45em 提升到 1.85em，阅读更舒展 */
+.content p,
+.content li,
+.content blockquote {
+    line-height: 1.85em;
+}
+.content p {
+    margin: 1.1em 0;
+}
+.content li {
+    margin: 0.45em 0;
+}
+
+/* 代码块行距 */
+.content pre {
+    line-height: 1.7;
+    font-size: 1.45rem;
+}
+
+/* 标题：更大的字号与间距 */
+.content h1 {
+    font-size: 2.7rem;
+    margin-top: 2.2em;
+    margin-bottom: 0.8em;
+}
+.content h2 {
+    font-size: 2.2rem;
+    margin-top: 1.9em;
+    margin-bottom: 0.7em;
+    padding-bottom: 0.35em;
+    border-bottom: 2px solid;
+}
+.content h3 {
+    font-size: 1.85rem;
+    margin-top: 1.6em;
+    margin-bottom: 0.6em;
+}
+.content h4 {
+    font-size: 1.65rem;
+    margin-top: 1.4em;
+    margin-bottom: 0.5em;
+}
+
+/* ---------- 主题色变量（明暗双适配） ---------- */
+
+:root {
+    --sm-accent: #4f46e5;          /* 主色：靛蓝 */
+    --sm-accent-soft: #6366f1;
+    --sm-accent-deep: #3730a3;
+    --sm-link: #2563eb;
+    --sm-code-bg: #eef2ff;         /* 行内代码底 */
+    --sm-code-fg: #3730a3;
+    --sm-quote-bg: #eef2ff;
+    --sm-table-header-a: #4f46e5;
+    --sm-table-header-b: #7c3aed;
+    --sm-table-hover: #eef2ff;
+    --sm-codeblock-border: #c7d2fe;
+    --sm-badge-bg: #eef2ff;
+    --sm-badge-fg: #3730a3;
+}
+
+/* 暗色主题（navy/coal/ayu/rust 均覆盖） */
+.navy,
+.coal,
+.ayu,
+.rust {
+    --sm-accent: #818cf8;
+    --sm-accent-soft: #a5b4fc;
+    --sm-accent-deep: #6366f1;
+    --sm-link: #93c5fd;
+    --sm-code-bg: #1e293b;
+    --sm-code-fg: #a5b4fc;
+    --sm-quote-bg: #1e293b;
+    --sm-table-header-a: #4338ca;
+    --sm-table-header-b: #6d28d9;
+    --sm-table-hover: #1e293b;
+    --sm-codeblock-border: #3730a3;
+    --sm-badge-bg: #1e293b;
+    --sm-badge-fg: #a5b4fc;
+}
+
+/* ---------- 链接与强调色 ---------- */
+
+.content a {
+    color: var(--sm-link);
+}
+.content a:hover {
+    text-decoration-thickness: 2px;
+}
+
+/* 标题着色：一级用主色，二级用主色系 */
+.content h1 {
+    color: var(--sm-accent);
+}
+.content h2 {
+    color: var(--sm-accent);
+    border-bottom-color: var(--sm-accent-soft);
+}
+.content h3,
+.content h4 {
+    color: var(--sm-accent-deep);
+}
+
+/* 行内代码 */
+.content code {
+    font-size: 0.88em;
+    background: var(--sm-code-bg);
+    color: var(--sm-code-fg);
+    border-radius: 4px;
+    padding: 0.15em 0.4em;
+}
+/* 代码块内行内代码还原 */
+.content pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+    font-size: 1.4rem;              /* 约 14px，代码块内不再继承缩小 */
+}
+
+/* 代码块：圆角 + 彩色边框 */
+.content pre {
+    border-radius: 10px;
+    border: 1px solid var(--sm-codeblock-border);
+    padding: 1.2em 1.4em;
+}
+
+/* ---------- 引用块 ---------- */
+
+.content blockquote {
+    background: var(--sm-quote-bg);
+    border-left: 4px solid var(--sm-accent);
+    border-radius: 0 8px 8px 0;
+    padding: 0.8em 1.2em;
+    margin: 1.2em 0;
+}
+.content blockquote p {
+    margin: 0.4em 0;
+}
+
+/* ---------- 表格：宽松 + 彩色 ---------- */
+
+.content table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    width: 100%;
+    margin: 1.4em 0;
+}
+.content table td,
+.content table th {
+    padding: 0.8em 1.1em;           /* 从默认 0.5em 6px 提升 */
+    border: none;
+    line-height: 1.6;
+    font-size: 1.5rem;              /* 表内文字略小于正文 */
+}
+/* 表头：渐变 + 白字 */
+.content table thead {
+    background: linear-gradient(135deg, var(--sm-table-header-a), var(--sm-table-header-b));
+}
+.content table thead th,
+.content table thead td {
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border-bottom: none;
+}
+/* 行分隔线：柔和 */
+.content table tbody tr {
+    border-bottom: 1px solid var(--table-border-color);
+}
+.content table tbody tr:last-child {
+    border-bottom: none;
+}
+/* 斑马纹 + 悬停高亮 */
+.content table tbody tr:nth-child(2n) {
+    background: var(--table-alternate-bg);
+}
+.content table tbody tr:hover {
+    background: var(--sm-table-hover);
+}
+
+/* ---------- 侧边栏：行距与选中色 ---------- */
+
+.sidebar .sidebar-scrollbox {
+    font-size: 1.5rem;
+}
+.sidebar .chapter li a,
+.sidebar .chapter li a.active {
+    line-height: 2;
+}
+.sidebar .chapter li a.active {
+    color: var(--sm-accent);
+    font-weight: 600;
+}
+
+/* ---------- 徽章/状态条（页脚等） ---------- */
+
+.content .badge,
+.content mark {
+    background: var(--sm-badge-bg);
+    color: var(--sm-badge-fg);
+    border-radius: 4px;
+    padding: 0.15em 0.4em;
+}
+
+/* ---------- 打印（print.html）同样适用 ---------- */
+
+@media print {
+    .content main {
+        font-size: 12pt;
+    }
+    .content p,
+    .content li,
+    .content blockquote {
+        line-height: 1.7;
+    }
+}

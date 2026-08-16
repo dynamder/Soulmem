@@ -1,0 +1,18 @@
+[book]
+title = "SoulMem 文档"
+description = "SoulMem 角色扮演记忆系统 - 完整技术文档"
+authors = ["SoulMem Team"]
+language = "zh"
+
+[build]
+create-missing = false
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/dynamder/SoulMem"
+edit-url-template = "https://github.com/dynamder/SoulMem/edit/dev/book/src/{path}"
+additional-css = ["css/soulmem-theme.css"]
+additional-js = ["mermaid.min.js", "mermaid-init.js"]
+
+[preprocessor.mermaid]
