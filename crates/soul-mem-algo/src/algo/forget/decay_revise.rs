@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use jieba_rs::Jieba;
 use soul_mem_core::memory_links::MemoryLink;
 use soul_mem_core::memory_note::{MemoryNote, MemoryType, situation_mem::SituationType};
+use soul_mem_runtime::cluster::memory_cluster::{GraphMemoryLink, MemoryCluster};
 use std::future::Future;
 
 use super::decay_calculator::{
@@ -168,12 +169,115 @@ pub fn compute_and_update_missing_degree(
     md
 }
 
-/// 衰减单条边：增量更新边的缺失度并写入字段，返回衰减后的强度。
-/// `missing_degree` 为节点侧计算的缺失度，作为边的衰减基准。
-pub fn decay_edge(link: &mut MemoryLink, current_time: DateTime<Utc>, missing_degree: f32) -> f64 {
-    link.set_missing_degree(missing_degree);
+/// 只读计算节点当前遗忘缺失度，不写回节点。
+///
+/// 用于检索中对大量节点计算权重（读锁下安全，O(1)/节点）。
+pub fn current_missing_degree(node: &MemoryNote, current_time: DateTime<Utc>) -> f32 {
+    update_missing_degree_incremental(
+        node.missing_degree(),
+        node.last_forget_time(),
+        current_time,
+        node.retrieval_count(),
+        DEFAULT_BASE_HALF_LIFE_HOURS,
+        DEFAULT_ACTIVE_FACTOR,
+        DEFAULT_MAX_ACTIVATION_CAP,
+    )
+}
+
+/// 只读计算边当前遗忘缺失度，不写回边。
+///
+/// 边无激活次数（retrieval_count = 0），衰减公式与节点一致。
+pub fn current_edge_missing_degree(link: &GraphMemoryLink, current_time: DateTime<Utc>) -> f32 {
+    update_missing_degree_incremental(
+        link.missing_degree(),
+        link.last_forget_time(),
+        current_time,
+        0,
+        DEFAULT_BASE_HALF_LIFE_HOURS,
+        DEFAULT_ACTIVE_FACTOR,
+        DEFAULT_MAX_ACTIVATION_CAP,
+    )
+}
+
+/// 检索权重占位符：当前为 `(1 - missing_degree)`，后续可替换为更精细的权重模型。
+pub fn weight_placeholder(missing_degree: f32) -> f64 {
+    (1.0 - missing_degree.clamp(0.0, 1.0)) as f64
+}
+
+/// 衰减单条边（core 层 `MemoryLink`）：边自身独立增量衰减，与节点无关。
+/// 返回衰减后的强度。
+pub fn decay_edge(link: &mut MemoryLink, current_time: DateTime<Utc>) -> f64 {
+    let md = update_missing_degree_incremental(
+        link.missing_degree(),
+        link.last_forget_time(),
+        current_time,
+        0,
+        DEFAULT_BASE_HALF_LIFE_HOURS,
+        DEFAULT_ACTIVE_FACTOR,
+        DEFAULT_MAX_ACTIVATION_CAP,
+    );
+    link.set_missing_degree(md);
     link.set_last_forget_time(current_time);
-    link.intensity * (1.0 - missing_degree as f64)
+    link.intensity * (1.0 - md as f64)
+}
+
+/// 衰减图中单条边（`GraphMemoryLink`）：边自身独立增量衰减，与节点无关。
+/// 返回衰减后的强度。
+pub fn decay_graph_edge(link: &mut GraphMemoryLink, current_time: DateTime<Utc>) -> f64 {
+    let md = update_missing_degree_incremental(
+        link.missing_degree(),
+        link.last_forget_time(),
+        current_time,
+        0,
+        DEFAULT_BASE_HALF_LIFE_HOURS,
+        DEFAULT_ACTIVE_FACTOR,
+        DEFAULT_MAX_ACTIVATION_CAP,
+    );
+    link.set_missing_degree(md);
+    link.set_last_forget_time(current_time);
+    link.intensity() * (1.0 - md as f64)
+}
+
+/// 计算并更新**所有**节点与边的遗忘缺失度，不触发任何遮罩 / LLM 操作。
+///
+/// 适用于检索前的批量刷新：对图中每个节点与边就地写入最新缺失度与计算时间。
+pub fn compute_all_missing_degrees(cluster: &mut MemoryCluster, current_time: DateTime<Utc>) {
+    let graph = cluster.graph_mut();
+    let node_indices: Vec<_> = graph.node_indices().collect();
+    let edge_indices: Vec<_> = graph.edge_indices().collect();
+
+    for node_idx in node_indices {
+        if let Some(embedded) = graph.node_weight_mut(node_idx) {
+            let node = &mut embedded.note;
+            let md = update_missing_degree_incremental(
+                node.missing_degree(),
+                node.last_forget_time(),
+                current_time,
+                node.retrieval_count(),
+                DEFAULT_BASE_HALF_LIFE_HOURS,
+                DEFAULT_ACTIVE_FACTOR,
+                DEFAULT_MAX_ACTIVATION_CAP,
+            );
+            node.set_missing_degree(md);
+            node.set_last_forget_time(current_time);
+        }
+    }
+
+    for edge_idx in edge_indices {
+        if let Some(link) = graph.edge_weight_mut(edge_idx) {
+            let md = update_missing_degree_incremental(
+                link.missing_degree(),
+                link.last_forget_time(),
+                current_time,
+                0,
+                DEFAULT_BASE_HALF_LIFE_HOURS,
+                DEFAULT_ACTIVE_FACTOR,
+                DEFAULT_MAX_ACTIVATION_CAP,
+            );
+            link.set_missing_degree(md);
+            link.set_last_forget_time(current_time);
+        }
+    }
 }
 
 /// 获取节点的概要文本（narrative 或 content）
@@ -392,21 +496,152 @@ mod tests {
         assert!(md2 > md1);
     }
 
-    /// 验证边缺失度衰减
+    /// 验证边缺失度独立衰减：不依赖节点缺失度，公式与节点一致
     #[test]
     fn test_edge_decay_stores_missing_degree() {
         use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType, sem_mem::SemMemLink};
+        let past = Utc.with_ymd_and_hms(2024, 6, 1, 0, 0, 0).unwrap();
+        let now = Utc.with_ymd_and_hms(2024, 6, 2, 0, 0, 0).unwrap(); // +24h
         let mut link = MemoryLink::new(
             Default::default(),
             Default::default(),
             MemoryLinkType::Sem(SemMemLink::new("related".to_string(), 1.0)),
         );
+        link.set_last_forget_time(past);
         assert_eq!(link.missing_degree(), 0.0);
-        let now = Utc::now();
-        let new_intensity = decay_edge(&mut link, now, 0.4);
-        assert_eq!(link.missing_degree(), 0.4);
+
+        let new_intensity = decay_edge(&mut link, now);
+        let expect_md = 1.0 - (-24.0_f32 / (24.0 / std::f32::consts::LN_2)).exp();
+        assert!((link.missing_degree() - expect_md).abs() < 0.01, "md={}", link.missing_degree());
         assert_eq!(link.last_forget_time(), now);
-        assert!((new_intensity - 0.6).abs() < 1e-6);
+        assert!((new_intensity - (1.0 - expect_md as f64)).abs() < 0.01);
+    }
+
+    /// 验证图中边（GraphMemoryLink）独立衰减
+    #[test]
+    fn test_graph_edge_decay() {
+        use soul_mem_runtime::cluster::memory_cluster::GraphMemoryLink;
+        use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType, sem_mem::SemMemLink};
+        let past = Utc.with_ymd_and_hms(2024, 6, 1, 0, 0, 0).unwrap();
+        let now = Utc.with_ymd_and_hms(2024, 6, 2, 0, 0, 0).unwrap();
+        let core_link = MemoryLink::new(
+            Default::default(),
+            Default::default(),
+            MemoryLinkType::Sem(SemMemLink::new("related".to_string(), 1.0)),
+        );
+        let mut link: GraphMemoryLink = core_link.into();
+        link.set_last_forget_time(past);
+
+        let new_intensity = decay_graph_edge(&mut link, now);
+        let expect_md = 1.0 - (-24.0_f32 / (24.0 / std::f32::consts::LN_2)).exp();
+        assert!((link.missing_degree() - expect_md).abs() < 0.01);
+        assert_eq!(link.last_forget_time(), now);
+        assert!((new_intensity - (1.0 - expect_md as f64)).abs() < 0.01);
+    }
+
+    /// 验证只读缺失度计算不写回节点、且结果与曲线一致
+    #[tokio::test]
+    async fn test_current_missing_degree_readonly() {
+        let past = Utc.with_ymd_and_hms(2024, 6, 1, 0, 0, 0).unwrap();
+        let now = Utc.with_ymd_and_hms(2024, 6, 2, 0, 0, 0).unwrap();
+        let node = make_old_semantic("测试节点", past);
+
+        let md = current_missing_degree(&node, now);
+        // 节点存储字段未被修改
+        assert_eq!(node.missing_degree(), 0.0);
+        assert_eq!(node.last_forget_time(), past);
+        // 与曲线值一致
+        let expect = compute_missing_degree(
+            past, 0, now,
+            DEFAULT_BASE_HALF_LIFE_HOURS, DEFAULT_ACTIVE_FACTOR, DEFAULT_MAX_ACTIVATION_CAP,
+        );
+        assert!((md - expect).abs() < 0.01);
+    }
+
+    /// 验证权重占位符返回 (1 - md)
+    #[test]
+    fn test_weight_placeholder() {
+        assert_eq!(weight_placeholder(0.0), 1.0);
+        assert_eq!(weight_placeholder(0.5), 0.5);
+        assert_eq!(weight_placeholder(1.0), 0.0);
+        assert_eq!(weight_placeholder(2.0), 0.0); // 越界被 clamp
+    }
+
+    /// 验证全图节点/边遗忘度批量计算（不触发遮罩）
+    #[test]
+    fn test_compute_all_missing_degrees() {
+        use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType, sem_mem::SemMemLink};
+        use soul_mem_core::memory_note::MemoryId;
+        use soul_mem_query::embedding::{
+            EmbeddingVec,
+            note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant},
+            sem::SemanticEmbedding,
+        };
+
+        let past = Utc.with_ymd_and_hms(2024, 6, 1, 0, 0, 0).unwrap();
+        let now = Utc.with_ymd_and_hms(2024, 6, 2, 0, 0, 0).unwrap();
+        let mut cluster = MemoryCluster::new();
+        let id1 = MemoryId::new();
+        let id2 = MemoryId::new();
+
+        let make_embedded = |id: MemoryId, content: &str| -> EmbeddedMemoryNote {
+            let mem_type = MemoryType::Semantic(SemMemory::new(
+                content.to_string(),
+                ConceptType::Entity,
+                "desc".to_string(),
+            ));
+            let note = MemoryNoteBuilder::new(mem_type)
+                .id(id)
+                .create_time(past)
+                .last_accessed_time(past)
+                .last_forget_time(past)
+                .build()
+                .unwrap();
+            let embedding = MemoryEmbedding::new(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                )),
+            );
+            EmbeddedMemoryNote { note, embedding }
+        };
+        cluster.add_single_node(make_embedded(id1, "节点A"));
+        cluster.add_single_node(make_embedded(id2, "节点B"));
+
+        // 添加一条边并使其 last_forget_time 回到 past
+        let mut link = MemoryLink::new(
+            id1, id2,
+            MemoryLinkType::Sem(SemMemLink::new("related".to_string(), 1.0)),
+        );
+        link.set_last_forget_time(past);
+        {
+            let graph = cluster.graph_mut();
+            for n in graph.node_weights_mut() {
+                if n.note().id() == id1 {
+                    n.note.links_mut().push(link.clone());
+                }
+            }
+        }
+        cluster.refresh_node(&id1);
+
+        // 全图批量计算（不遮罩）
+        compute_all_missing_degrees(&mut cluster, now);
+
+        let expect = 1.0 - (-24.0_f32 / (24.0 / std::f32::consts::LN_2)).exp();
+        let graph = cluster.graph();
+        for n in graph.node_weights() {
+            assert!((n.note().missing_degree() - expect).abs() < 0.01, "node md={}", n.note().missing_degree());
+            assert_eq!(n.note().last_forget_time(), now);
+        }
+        let mut edge_count = 0;
+        for e in graph.edge_weights() {
+            edge_count += 1;
+            assert!((e.missing_degree() - expect).abs() < 0.01, "edge md={}", e.missing_degree());
+            assert_eq!(e.last_forget_time(), now);
+        }
+        assert_eq!(edge_count, 1);
     }
 
     #[tokio::test]

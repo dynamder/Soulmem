@@ -1,4 +1,5 @@
 use parking_lot::RwLock;
+use chrono::{DateTime, Utc};
 use petgraph::Direction;
 use petgraph::prelude::{EdgeIndex, NodeIndex, StableDiGraph};
 use petgraph::visit::EdgeRef;
@@ -23,7 +24,24 @@ pub struct GraphMemoryLink {
     id: LinkId,
     link_type: MemoryLinkType,
     intensity: f64,
+    /// 遗忘缺失度（0.0 新鲜 ~ 1.0 完全遗忘），边独立衰减
+    #[serde(default = "default_missing_degree")]
+    missing_degree: f32,
+    /// 缺失度最近一次计算的时间，用于增量更新
+    #[serde(default = "default_last_forget_time")]
+    last_forget_time: DateTime<Utc>,
 }
+
+/// serde 默认：缺失度初始为 0
+fn default_missing_degree() -> f32 {
+    0.0
+}
+
+/// serde 默认：缺失度计算时间初始为当前
+fn default_last_forget_time() -> DateTime<Utc> {
+    Utc::now()
+}
+
 impl GraphMemoryLink {
     pub fn id(&self) -> LinkId {
         self.id
@@ -34,13 +52,29 @@ impl GraphMemoryLink {
     pub fn intensity(&self) -> f64 {
         self.intensity
     }
+    pub fn missing_degree(&self) -> f32 {
+        self.missing_degree
+    }
+    pub fn set_missing_degree(&mut self, missing_degree: f32) {
+        self.missing_degree = missing_degree.clamp(0.0, 1.0);
+    }
+    pub fn last_forget_time(&self) -> DateTime<Utc> {
+        self.last_forget_time
+    }
+    pub fn set_last_forget_time(&mut self, time: DateTime<Utc>) {
+        self.last_forget_time = time;
+    }
 }
 impl From<MemoryLink> for GraphMemoryLink {
     fn from(link: MemoryLink) -> Self {
+        let missing_degree = link.missing_degree();
+        let last_forget_time = link.last_forget_time();
         GraphMemoryLink {
             id: link.id(),
             intensity: link.intensity,
             link_type: link.into_link_type(), // extract the link type
+            missing_degree,
+            last_forget_time,
         }
     }
 }
