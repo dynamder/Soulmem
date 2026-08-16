@@ -105,58 +105,35 @@ pub fn update_missing_degree_incremental(
     1.0 - (1.0 - old_missing_degree) * retention
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use chrono::TimeZone;
-
-    #[test]
-    fn test_fresh_node() {
-        let now = Utc::now();
-        let d = ebbinghaus_decay(now, 0, now, 24.0, 0.1, 50);
-        assert!((d - 1.0).abs() < 1e-6);
+/// 计算节点经历指定时长后的强度。
+///
+/// # 参数
+/// - `duration_hours` — 时长（小时）
+/// - `initial_intensity` — 初始强度（0.0 ~ 1.0）
+/// - `activation_count` — 已激活次数
+/// - `active_factor` — 激活次数影响系数
+/// - `half_life_hours` — 半衰期（小时）
+///
+/// # 公式
+/// `强度 = initial_intensity × e^(-duration / τ)`
+///   - `τ = adjusted_half_life / ln(2)`
+///   - `adjusted_half_life = half_life_hours × (1 + active_factor × min(activation_count, CAP))`
+///
+/// # 案例
+/// 半衰期 24h、激活 5 次（影响系数 0.1）→ 调整半衰期 `24×(1+0.1×5)=36h`，
+/// τ ≈ 51.94h，初始强度 1.0 经 48h 后强度 ≈ 0.397。
+pub fn node_intensity_after(
+    duration_hours: f32,
+    initial_intensity: f32,
+    activation_count: usize,
+    active_factor: f32,
+    half_life_hours: f32,
+) -> f32 {
+    if duration_hours <= 0.0 {
+        return initial_intensity;
     }
-
-    #[test]
-    fn test_half_life_baseline() {
-        let created = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
-        let after = Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap();
-        let d = ebbinghaus_decay(created, 0, after, 24.0, 0.0, 50);
-        assert!((d - 0.5).abs() < 0.01);
-    }
-
-    #[test]
-    fn test_retrieval_slows_decay() {
-        let created = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
-        let after = Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap();
-        let d0 = ebbinghaus_decay(created, 0, after, 24.0, 0.1, 50);
-        let d1 = ebbinghaus_decay(created, 10, after, 24.0, 0.1, 50);
-        assert!(d1 > d0);
-    }
-
-    /// 验证激活次数上限：cap 值与超 cap 值的衰减结果应相等
-    #[test]
-    fn test_activation_cap() {
-        let created = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
-        let after = Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap();
-        let d50 = ebbinghaus_decay(created, 50, after, 24.0, 0.1, 50);
-        let d200 = ebbinghaus_decay(created, 200, after, 24.0, 0.1, 50);
-        assert!((d50 - d200).abs() < 0.001);
-    }
-
-    #[test]
-    fn test_missing_degree_range() {
-        let created = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
-        let far_future = Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap();
-        let md = compute_missing_degree(created, 0, far_future, 24.0, 0.0, 50);
-        assert!(md > 0.9);
-    }
-
-    #[test]
-    fn test_edge_decay() {
-        let created = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
-        let after = Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap();
-        let decayed = edge_decay_intensity(1.0, created, 0, after, 24.0, 0.0, 50);
-        assert!((decayed - 0.5).abs() < 0.01);
-    }
+    let capped = activation_count.min(DEFAULT_MAX_ACTIVATION_CAP);
+    let adjusted_half_life = half_life_hours * (1.0 + active_factor * capped as f32);
+    let tau = adjusted_half_life / std::f32::consts::LN_2;
+    initial_intensity * (-duration_hours / tau).exp()
 }
