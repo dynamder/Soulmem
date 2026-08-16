@@ -406,7 +406,7 @@ mod tests {
         cluster.add_single_node(make_embedded(
             id_sem,
             MemoryType::Semantic(SemMemory::new(
-                "语义记忆节点".to_string(), ConceptType::Entity, "desc".to_string(),
+                "十六夜咲夜是红魔馆的女仆长拥有操纵时间的能力".to_string(), ConceptType::Entity, "红魔馆的女仆长".to_string(),
             )),
             0.0,
         ));
@@ -414,7 +414,7 @@ mod tests {
             id_sit,
             MemoryType::Situation(SituationType::SpecificSituation(
                 SpecificSituation::new(
-                    "具体情境记忆叙述".to_string(), past,
+                    "午后蕾米莉亚大小姐在地下图书馆让帕秋莉小姐品尝我泡的红茶".to_string(), past,
                     Context::new(None, vec![], vec![], vec![],
                         Environment { atmosphere: "日常".to_string(), tone: "平静".to_string() }, vec![]),
                 ),
@@ -424,7 +424,7 @@ mod tests {
         cluster.add_single_node(make_embedded(
             id_proc,
             MemoryType::Procedure(ProcMemory::new(Action::new(
-                "程序性记忆动作".to_string(), ActionType::Think,
+                "红魔馆女仆长每日停止时间打扫洋馆再回收飞刀的工作流程".to_string(), ActionType::Think,
             ))),
             0.6,
         ));
@@ -639,7 +639,7 @@ mod real_llm_tests {
     // ------------------------------------------------------------------
     async fn run_part2_sem(client: Arc<LlmClient>, jieba: &Jieba) {
         let t0 = Instant::now();
-        let content = "Rust是一门由Mozilla主导研发的注重内存安全和零成本抽象的系统级编程语言也被称为Rust语言或Rust-lang它作为实体概念代表了现代系统编程的重要发展方向";
+        let content = "十六夜咲夜是红魔馆的女仆长拥有操纵时间的能力她可以停止时间在静止的世界中完成所有家务银质小刀是她惯用的武器大小姐为此深感满意";
         let mut node = build_sem_node(content, 20); // 20h 前衰减
         let before = get_summary(&node).unwrap();
         let t1 = Instant::now();
@@ -660,7 +660,7 @@ mod real_llm_tests {
     // ------------------------------------------------------------------
     async fn run_part2_situation(client: Arc<LlmClient>, jieba: &Jieba) {
         let t0 = Instant::now();
-        let narrative = "傍晚我在中山公园散步听到鸟鸣和风吹树叶的声音感受着温暖的阳光和宁静的氛围";
+        let narrative = "傍晚我在红魔馆的庭院为大小姐斟茶蕾米莉亚坐在阳台的红伞下望着雾之湖畔天色渐暗四周渐渐安静下来";
         let mut node = build_situation_node(narrative, 20); // 20h 前衰减
         let before = get_summary(&node).unwrap();
         let t1 = Instant::now();
@@ -680,7 +680,7 @@ mod real_llm_tests {
     // 第三部分：对一个原始文本做三组遮罩（遗忘度由低到高）
     // ------------------------------------------------------------------
     async fn run_part3_mask_levels(client: Arc<LlmClient>, jieba: &Jieba) {
-        let content = "机器学习是人工智能的核心分支通过数据训练模型实现预测和决策广泛应用于图像识别自然语言处理等领域";
+        let content = "红魔馆的女仆长十六夜咲夜擅长投掷银质小刀她害怕烫的食物是众所周知的猫舌大小姐为此常常感到无可奈何却又乐在其中";
         println!("【第三部分】遮罩测试（遗忘度由低到高）");
         println!("  原始文本: {}", content);
         println!();
