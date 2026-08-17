@@ -55,6 +55,10 @@
   - [抽象 PPR 检出心智模型落地报告](testing/reports/抽象PPR检出心智模型落地报告.md)
   - [检索算法改进轨迹报告](testing/reports/检索算法改进轨迹报告.md)
 
+# 第七部分 · 写作规范
+
+- [视觉元素使用规范](contributing/writing-style.md)
+
 # 附录
 
 - [研究笔记索引](research/README.md)

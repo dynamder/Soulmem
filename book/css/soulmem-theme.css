@@ -1,6 +1,7 @@
 /* ============================================================
    SoulMem 文档主题
    —— 更大的字号与行距、宽松的彩色表格、明暗主题双适配
+   —— 垂直节奏：分节留白（大段落）≥ 块级留白 ≥ 段落留白（小段落）
    ============================================================ */
 
 /* ---------- 基础：字号与行距 ---------- */
@@ -16,12 +17,6 @@
 .content blockquote {
     line-height: 1.85em;
 }
-.content p {
-    margin: 1.1em 0;
-}
-.content li {
-    margin: 0.45em 0;
-}
 
 /* 代码块行距 */
 .content pre {
@@ -29,7 +24,36 @@
     font-size: 1.45rem;
 }
 
-/* 标题：更大的字号与间距 */
+/* ---------- 垂直节奏（间距系统） ----------
+
+   正文里有两种层级：
+   · 小段落 —— 段落、列表项，间距最紧凑；
+   · 大段落 —— 引用/代码块/表格等独立块，以及 h2~h4 分节、分隔线。
+
+   原则：大段落之间的空白 ≥ 小段落之间的空白，否则相邻分节
+   会被误读为连续段落（连续性暗示错误）。相邻元素的外边距
+   会合并（取较大值），因此只要让标题与分隔线的上方留白
+   不小于段落间距，节奏即可自动成立——这正是过去用 <br>
+   手工撑间距想做的事，现在交给本文件统一负责。 */
+
+.content p {
+    margin: 1.1em 0;            /* 小段落：最紧凑 */
+}
+.content li {
+    margin: 0.45em 0;
+}
+.content ul,
+.content ol {
+    margin: 1.1em 0;
+}
+
+.content blockquote,
+.content pre,
+.content table {
+    margin: 1.5em 0;            /* 独立块：略松 */
+}
+
+/* 标题：顶部留白即分节边界（大段落） */
 .content h1 {
     font-size: 2.7rem;
     margin-top: 2.2em;
@@ -37,20 +61,33 @@
 }
 .content h2 {
     font-size: 2.2rem;
-    margin-top: 1.9em;
+    margin-top: 2.8em;          /* 章节级分界 */
     margin-bottom: 0.7em;
     padding-bottom: 0.35em;
     border-bottom: 2px solid;
 }
 .content h3 {
     font-size: 1.85rem;
-    margin-top: 1.6em;
+    margin-top: 2.4em;          /* 小节级分界 */
     margin-bottom: 0.6em;
 }
 .content h4 {
     font-size: 1.65rem;
-    margin-top: 1.4em;
+    margin-top: 2em;            /* 子节级分界 */
     margin-bottom: 0.5em;
+}
+
+/* 分隔线：与标题同级的分界强度 */
+.content hr {
+    border: none;
+    border-top: 1px solid var(--sm-hr);
+    margin: 2.4em 0;
+}
+
+/* 兜底：独立成行的 <br> 不再充当间距（间距由本文件统一负责；
+   段落内部的 <br>，如对话换行，不受影响） */
+.content main > br {
+    display: none;
 }
 
 /* ---------- 主题色变量（明暗双适配） ---------- */
@@ -63,6 +100,7 @@
     --sm-code-bg: #eef2ff;         /* 行内代码底 */
     --sm-code-fg: #3730a3;
     --sm-quote-bg: #eef2ff;
+    --sm-hr: #d4d4d8;              /* 分隔线 */
     --sm-table-header-a: #4f46e5;
     --sm-table-header-b: #7c3aed;
     --sm-table-hover: #eef2ff;
@@ -83,6 +121,7 @@
     --sm-code-bg: #1e293b;
     --sm-code-fg: #a5b4fc;
     --sm-quote-bg: #1e293b;
+    --sm-hr: #3f3f46;
     --sm-table-header-a: #4338ca;
     --sm-table-header-b: #6d28d9;
     --sm-table-hover: #1e293b;
@@ -143,7 +182,6 @@
     border-left: 4px solid var(--sm-accent);
     border-radius: 0 8px 8px 0;
     padding: 0.8em 1.2em;
-    margin: 1.2em 0;
 }
 .content blockquote p {
     margin: 0.4em 0;
@@ -158,7 +196,6 @@
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
     width: 100%;
-    margin: 1.4em 0;
 }
 .content table td,
 .content table th {
