@@ -1,6 +1,6 @@
 # Summary
 
-[关于本书](prefix/book_intention.md)
+[如何使用这本书](prefix/book_intention.md)
 
 # 第一部分 · 安装与部署
 

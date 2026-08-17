@@ -101,6 +101,8 @@
     --sm-code-fg: #3730a3;
     --sm-quote-bg: #eef2ff;
     --sm-hr: #d4d4d8;              /* 分隔线 */
+    --sm-example-bg: #fdf6ec;      /* 叙事容器底：暖色（琥珀 50） */
+    --sm-example-border: #d97706;  /* 叙事容器左边条：琥珀 600 */
     --sm-table-header-a: #4f46e5;
     --sm-table-header-b: #7c3aed;
     --sm-table-hover: #eef2ff;
@@ -122,6 +124,8 @@
     --sm-code-fg: #a5b4fc;
     --sm-quote-bg: #1e293b;
     --sm-hr: #3f3f46;
+    --sm-example-bg: #221c14;      /* 叙事容器底：暖黑 */
+    --sm-example-border: #f59e0b;  /* 叙事容器左边条：琥珀 500 */
     --sm-table-header-a: #4338ca;
     --sm-table-header-b: #6d28d9;
     --sm-table-hover: #1e293b;
@@ -185,6 +189,38 @@
 }
 .content blockquote p {
     margin: 0.4em 0;
+}
+
+/* ---------- 块引用标签卡片（内置五标签） ---------- */
+
+/* 标题中文化：隐藏英文标题文本，用伪元素显示中文 */
+.content .blockquote-tag-title {
+    font-size: 0;
+    line-height: 1;
+}
+.content .blockquote-tag-title::after {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.4;
+}
+.content .blockquote-tag-note .blockquote-tag-title::after      { content: "注释"; }
+.content .blockquote-tag-tip .blockquote-tag-title::after       { content: "建议"; }
+.content .blockquote-tag-important .blockquote-tag-title::after { content: "核心设计"; }
+.content .blockquote-tag-warning .blockquote-tag-title::after   { content: "争议"; }
+.content .blockquote-tag-caution .blockquote-tag-title::after   { content: "注意"; }
+
+/* 左边条按类别着色（覆盖默认主色条） */
+.content .blockquote-tag-note      { border-left-color: var(--blockquote-note-color); }
+.content .blockquote-tag-tip       { border-left-color: var(--blockquote-tip-color); }
+.content .blockquote-tag-important { border-left-color: var(--blockquote-important-color); }
+.content .blockquote-tag-warning   { border-left-color: var(--blockquote-warning-color); }
+.content .blockquote-tag-caution   { border-left-color: var(--blockquote-caution-color); }
+
+/* ---------- 叙事容器（未加标签的块引用） ---------- */
+
+.content blockquote:not(.blockquote-tag) {
+    background: var(--sm-example-bg);
+    border-left-color: var(--sm-example-border);
 }
 
 /* ---------- 表格：宽松 + 彩色 ---------- */
