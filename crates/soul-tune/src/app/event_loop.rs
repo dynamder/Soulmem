@@ -61,6 +61,7 @@ impl App {
             AppState::ConfigParams(s) => s.view(frame),
             AppState::TestRunning(s) => s.view(frame),
             AppState::TestResults(s) => s.view(frame),
+            AppState::ForgetObserver(s) => s.view(frame),
             AppState::CompareResults(s) => s.view(frame),
             AppState::BatchModeSelect(s) => s.view(frame),
             AppState::BatchRunning(s) => s.view(frame),
@@ -81,6 +82,7 @@ impl App {
             AppState::RetrieveModeSelect(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::SelectAlgo(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::TestResults(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::ForgetObserver(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::CompareResults(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::BatchModeSelect(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::CommandMode(s) => s.handle_key(key, &self.cmd_registry),
@@ -101,6 +103,9 @@ impl App {
     pub fn handle_mouse(&mut self, mouse: MouseEvent) {
         match &mut self.app_state {
             AppState::TestResults(s) => {
+                s.handle_event(ComponentEvent::Mouse(mouse));
+            }
+            AppState::ForgetObserver(s) => {
                 s.handle_event(ComponentEvent::Mouse(mouse));
             }
             AppState::CompareResults(s) => {

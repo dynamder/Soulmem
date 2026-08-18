@@ -18,6 +18,7 @@ use crate::states::params_config::ParamState;
 use crate::states::playtest::input::PlayTestInputState;
 use crate::states::playtest::judge::PlayTestJudgeState;
 use crate::states::playtest::run_state::PlayTestRunState;
+use crate::states::forget_observer::ForgetObserverState;
 use crate::states::results::ResultsState;
 use crate::states::retrieve_mode::RetrieveModeSelectState;
 use crate::states::running::RunningState;
@@ -33,6 +34,8 @@ pub enum AppState {
     ConfigParams(ParamState),
     TestRunning(RunningState),
     TestResults(ResultsState),
+    /// 遗忘测试观测页（Forget 算法跑完后进入，逐节点观测遗忘结果）
+    ForgetObserver(ForgetObserverState),
     CompareResults(CompareResultsState),
     PlayTestSelect(DatasetState),
     PlayTestInput(PlayTestInputState),
@@ -249,7 +252,13 @@ impl App {
                 false
             }
             Transition::ToTestResults(report) => {
-                self.app_state = AppState::TestResults(ResultsState::new(report));
+                // 遗忘算法跑完后进入专门的观测页（逐节点看原文/遮罩/LLM 回复），
+                // 其余算法走通用结果页
+                if matches!(report.config.algo, AlgoType::Forget(_)) {
+                    self.app_state = AppState::ForgetObserver(ForgetObserverState::new(report));
+                } else {
+                    self.app_state = AppState::TestResults(ResultsState::new(report));
+                }
                 false
             }
             Transition::ToCompareResults(report) => {
