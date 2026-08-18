@@ -1,21 +1,28 @@
 //! 遗忘算法测试套件。
 //!
 //! soul-tune 本身是 SoulMem 的测试框架，这里不再复刻算法分支里的单元小测试，
-//! 而是**直接驱动具体的遗忘算法管线**：
+//! 而是**直接驱动具体的遗忘算法管线**，且：
 //!
+//! - **数据**：从 fixtures 读取真实角色记忆图（`graph.json`），逐节点/逐边驱动遗忘；
+//! - **LLM**：复用 soul-tune 自身的 `LlamaServer`（llama.cpp server），
+//!   与 playtest 一致的 `SOUL_TUNE_LLAMA_URL`（直连）或
+//!   `SOUL_TUNE_CANDLE_MODEL_PATH`（自动拉起）约定；
+//! - **输出**：`Revised` 补全结果中直接贴出 LLM 的**原始回复**与遮罩输入。
+//!
+//! 管线调用（与检索侧的惰性遗忘调用路径一致）：
 //! 1. [`compute_all_missing_degrees`] —— 全图批量刷新节点与边的缺失度（增量公式）；
 //! 2. [`lazy_forget`] —— 对可遮罩节点（SemMemory / SpecificSituation）执行
-//!    衰减 → 分词遮罩 →（可选）LLM 推测修订，LLM 不可用时验证降级为 MaskOnly；
+//!    衰减 → 分词遮罩 →（LLM 可用时）llama-server 推测修订；不可用时验证降级为 MaskOnly；
 //! 3. [`decay_graph_edge`] / [`weight_placeholder`] —— 边独立衰减与检索权重占位；
 //! 4. [`update_missing_degree_incremental`] —— 增量缺失度与从头计算的一致性。
 //!
-//! 套件以 5 个场景用例驱动同一张记忆图在不同时间跨度下的真实遗忘流程，
-//! 产出逐节点明细与聚合指标（缺失度 / 遮罩率 / 动作分布 / 边强度 / 衰减曲线）。
+//! 5 个场景用例对同一张加载图施加不同的模拟老化时间跨度，
+//! 产出逐节点明细（含 LLM 原始回复）与聚合指标（缺失度/遮罩率/动作分布/边强度/衰减曲线）。
 
 use std::future::Future;
 use std::path::Path;
 use std::pin::Pin;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use chrono::{DateTime, Duration as ChronoDuration, Utc};
@@ -27,30 +34,22 @@ use soul_mem_algo::algo::forget::decay_calculator::{
 use soul_mem_algo::algo::forget::decay_revise::{
     compute_all_missing_degrees, current_missing_degree, decay_graph_edge, get_summary,
     lazy_forget, weight_placeholder, ForgetAction, DEFAULT_ACTIVE_FACTOR,
-    DEFAULT_BASE_HALF_LIFE_HOURS,
+    DEFAULT_BASE_HALF_LIFE_HOURS, REVISE_THRESHOLD,
 };
 use soul_mem_algo::algo::forget::mask::MASK_WORD;
-use soul_mem_core::memory_links::sem_mem::SemMemLink;
-use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType};
-use soul_mem_core::memory_note::proc_mem::{Action, ActionType, ProcMemory};
 use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
-use soul_mem_core::memory_note::situation_mem::{
-    Context, Environment, SituationType, SpecificSituation,
-};
-use soul_mem_core::memory_note::{MemoryId, MemoryNote, MemoryNoteBuilder, MemoryType};
-use soul_mem_query::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant};
-use soul_mem_query::embedding::sem::SemanticEmbedding;
-use soul_mem_query::embedding::EmbeddingVec;
+use soul_mem_core::memory_note::situation_mem::SituationType;
+use soul_mem_core::memory_note::{MemoryNote, MemoryNoteBuilder, MemoryType};
 use soul_mem_runtime::cluster::memory_cluster::MemoryCluster;
-use soul_mem_runtime::working_memory::llm::client::LlmClient;
-use soul_mem_runtime::working_memory::llm::config::LLMConfig;
 
+use crate::engine::llm::{LlmBackend, LlamaServer};
+use crate::engine::loader::load_graph_cluster;
 use crate::engine::suite::{
     chart_metric, key_value_metric, DetailRow, Series, SuiteReport, TestCaseOutcome, TestSuite,
 };
 
 // ========================================================================
-// LLM 调用闭包（与算法侧 lazy_forget 的签名对齐）
+// LLM 调用闭包（与算法侧 lazy_forget 的签名对齐，后端为 soul-tune 的 llama-server）
 // ========================================================================
 
 /// `lazy_forget` 要求的 LLM 调用闭包：`(system, user) -> Future<Result<String>>`
@@ -66,24 +65,33 @@ type LlmCall = Box<
     >,
 >;
 
-/// 使用真实 `LlmClient`（环境变量 API_KEY / API_BASE / MODEL）的闭包
-fn real_llm_closure(client: Arc<LlmClient>) -> LlmCall {
+/// 记忆补全的最大生成 token 数（与 playtest 的生成调用量级一致）
+const LLM_MAX_TOKENS: u32 = 1024;
+
+/// 每个 LLM 用例最多修订的节点数（按缺失度降序抽样，控制本地推理耗时）
+const MAX_LLM_REVISIONS: usize = 8;
+
+/// 使用 soul-tune 的 `LlamaServer`（与 playtest 相同后端）的闭包
+///
+/// 注意：`LlmBackend::chat` 是阻塞调用（reqwest::blocking），必须通过
+/// `spawn_blocking` 移到 tokio 阻塞线程池执行——直接在 `block_on` 的
+/// 异步上下文中调用会让 reqwest 内部创建的 runtime 在异步上下文里被
+/// drop，触发 "Cannot drop a runtime in a context where blocking is not allowed"。
+fn llama_closure(server: Arc<Mutex<LlamaServer>>) -> LlmCall {
     Box::new(move |system: &str, user: &str| {
-        let c = client.clone();
+        let s = server.clone();
         let sys = system.to_string();
         let usr = user.to_string();
         Box::pin(async move {
-            use async_openai::types::chat::{
-                ChatCompletionRequestSystemMessage, ChatCompletionRequestUserMessage,
-            };
-            let mut resp = c
-                .call_llm(vec![
-                    ChatCompletionRequestSystemMessage::from(sys).into(),
-                    ChatCompletionRequestUserMessage::from(usr).into(),
-                ])
-                .await
-                .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { e.into() })?;
-            Ok(resp.remove(0))
+            let result = tokio::task::spawn_blocking(move || {
+                let mut guard = s.lock().expect("llama-server 锁");
+                guard.chat(&sys, &usr, LLM_MAX_TOKENS)
+            })
+            .await
+            .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> {
+                format!("spawn_blocking 失败: {e}").into()
+            })?;
+            result.map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { e.into() })
         })
     })
 }
@@ -93,7 +101,7 @@ fn failing_llm_closure() -> LlmCall {
     Box::new(|_system: &str, _user: &str| {
         Box::pin(async {
             Err::<String, Box<dyn std::error::Error + Send + Sync>>(
-                "LLM 未配置（缺少 API_KEY / API_BASE / MODEL）".into(),
+                "LLM 未配置（llama-server 不可用）".into(),
             )
         })
     })
@@ -103,14 +111,14 @@ fn failing_llm_closure() -> LlmCall {
 // 测试场景定义
 // ========================================================================
 
-/// 遗忘场景：同一张记忆图在指定时间跨度（距上次遗忘操作的小时数）下跑真实管线
+/// 遗忘场景：对加载的真实角色图施加指定时间跨度（距上次遗忘操作的小时数）后跑真实管线
 #[derive(Debug, Clone, Copy)]
 pub struct ForgetCaseSpec {
     pub name: &'static str,
     pub description: &'static str,
-    /// 距离上次遗忘操作/访问的时间（小时），决定遗忘缺失度
+    /// 模拟老化小时数（距上次遗忘操作/访问），决定遗忘缺失度
     pub elapsed_hours: i64,
-    /// 是否允许调用 LLM（无 key 时自动降级为遮罩）
+    /// 是否允许调用 llama-server（不可用时自动降级为遮罩）
     pub want_llm: bool,
 }
 
@@ -124,19 +132,19 @@ pub const BUILTIN_CASES: [ForgetCaseSpec; 5] = [
     },
     ForgetCaseSpec {
         name: "medium",
-        description: "中遗忘强度（Δt=24h）：缺失度约半衰，遮罩开始触发",
+        description: "中遗忘强度（Δt=24h）：缺失度约半衰，遮罩触发",
         elapsed_hours: 24,
         want_llm: false,
     },
     ForgetCaseSpec {
         name: "high",
-        description: "高遗忘强度（Δt=72h）：触发 LLM 修订或降级遮罩",
+        description: "高遗忘强度（Δt=72h）：llama-server 修订高缺失度节点（抽样）",
         elapsed_hours: 72,
         want_llm: true,
     },
     ForgetCaseSpec {
         name: "mixed",
-        description: "混合时间跨度（各节点遗忘历史不同）：真实分布场景",
+        description: "混合时间跨度（按节点 8/24/72h）：真实分布场景",
         elapsed_hours: -1, // 特殊标记：按节点使用自定义跨度
         want_llm: true,
     },
@@ -163,6 +171,10 @@ pub struct NodeForgetStat {
     pub action: &'static str,
     /// 遮罩词数 / 总词数（未遮罩为 None）
     pub mask: Option<(usize, usize)>,
+    /// LLM 补全的遮罩输入文本（Revised 时）
+    pub masked_text: Option<String>,
+    /// LLM **原始回复**（Revised 时，未经任何处理）
+    pub llm_reply: Option<String>,
 }
 
 /// 单个用例（一次完整管线运行）的观测数据
@@ -172,6 +184,7 @@ pub struct ForgetCaseData {
     pub llm_available: bool,
     pub node_count: usize,
     pub edge_count: usize,
+    pub llm_revised: usize,
     pub action_histogram: Vec<(&'static str, usize)>,
     pub avg_missing_degree: f32,
     pub max_missing_degree: f32,
@@ -186,188 +199,153 @@ pub struct ForgetCaseData {
 // 遗忘测试套件
 // ========================================================================
 
-/// 遗忘 LLM 修订 system prompt（与算法默认一致的记忆重建角色）
+/// 遗忘 LLM 修订 system prompt（记忆重建角色，与算法默认一致）
 const FORGET_SYSTEM_PROMPT: &str = "You are a memory reconstruction assistant. \
     A segment of memory text has been partially masked, with [masked] placeholders. \
     Based on the context and the remaining fragments, infer and complete the missing parts \
     naturally. Output only the completed text, no explanation.";
 
 pub struct ForgetSuite {
+    /// 从 fixtures 加载的真实角色记忆图（蓝图，每个用例克隆后施加老化）
+    graph: MemoryCluster,
+    graph_name: String,
     jieba: Jieba,
-    /// 真实 LLM 客户端（环境变量就绪时）；否则 None → 遮罩降级路径
-    llm: Option<Arc<LlmClient>>,
+    /// llama-server 后端（与 playtest 一致）；None → 遮罩降级路径
+    llm: Option<Arc<Mutex<LlamaServer>>>,
     cases: Vec<ForgetCaseSpec>,
 }
 
 impl ForgetSuite {
-    /// 新建套件（内置角色化记忆图）。
+    /// 从 fixture graph JSON 加载真实角色图，并按环境变量启用 llama-server。
     ///
-    /// 保持无 LLM（幂等）：套件测试与确定性验证使用此构造；
-    /// 需要真实 LLM 修订时使用 [`Self::with_llm`]。
-    pub fn new() -> Self {
-        Self {
+    /// - `SOUL_TUNE_LLAMA_URL` 已设置 → 直连正在运行的 llama-server；
+    /// - 否则使用 `SOUL_TUNE_CANDLE_MODEL_PATH` 指定的 GGUF 自动拉起 llama-server
+    ///   （与 playtest 的 `LlamaServer::load` 约定完全一致）；
+    /// - 两者皆不可用 → 无 LLM，验证遮罩降级路径。
+    pub fn load(path: &Path) -> Result<Self, String> {
+        let (graph, _id_map) = load_graph_cluster(path)
+            .map_err(|e| format!("加载图 '{}' 失败: {}", path.display(), e))?;
+        let graph_name = path
+            .file_name()
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or_default();
+        let llm = Self::try_create_llm();
+        Ok(Self {
+            graph,
+            graph_name,
+            jieba: Jieba::new(),
+            llm,
+            cases: BUILTIN_CASES.to_vec(),
+        })
+    }
+
+    /// 仅加载图、不启用 LLM（测试 / 确定性验证使用）
+    #[allow(dead_code)] // 测试与外部调用方使用；非测试构建下无引用
+    pub fn load_without_llm(path: &Path) -> Result<Self, String> {
+        let (graph, _id_map) = load_graph_cluster(path)
+            .map_err(|e| format!("加载图 '{}' 失败: {}", path.display(), e))?;
+        let graph_name = path
+            .file_name()
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or_default();
+        Ok(Self {
+            graph,
+            graph_name,
             jieba: Jieba::new(),
             llm: None,
             cases: BUILTIN_CASES.to_vec(),
-        }
+        })
     }
 
-    /// 读取环境变量（API_KEY / API_BASE / MODEL）启用真实 LLM 修订；
-    /// 未配置时与 [`Self::new`] 等价（遮罩降级路径）。
-    pub fn with_llm() -> Self {
-        Self {
-            llm: Self::try_create_llm_client(),
-            ..Self::new()
-        }
-    }
-
-    /// 与 retrieve 套件保持一致的加载入口。
-    ///
-    /// 遗忘算法不依赖嵌入与查询文件，数据集路径当前仅作展示；
-    /// 套件使用内置角色化记忆图运行真实管线，保证离线可复现。
-    pub fn load(_path: &Path) -> Result<Self, String> {
-        Ok(Self::with_llm())
-    }
-
-    fn try_create_llm_client() -> Option<Arc<LlmClient>> {
-        let key = std::env::var("API_KEY").ok()?;
-        let base = std::env::var("API_BASE").ok()?;
-        let model = std::env::var("MODEL").ok()?;
-        Some(Arc::new(LlmClient::new(LLMConfig::new(
-            &key, &base, &model,
-        ))))
-    }
-
-    /// 构建内置场景图（节点创建于 240h 前，last_forget_time 由场景指定）
-    ///
-    /// `node_offsets`: 每类节点的距上次遗忘的小时数（None 表示使用场景统一跨度）
-    fn build_cluster(
-        &self,
-        elapsed_hours: i64,
-        node_offsets: Option<[(usize, i64); 3]>, // (索引, 小时)，索引 0/1/2 对应 sem/sit/proc
-    ) -> MemoryCluster {
-        let now = Utc::now();
-        let created = now - ChronoDuration::hours(24 * 10);
-
-        let offset_for = |index: usize| -> DateTime<Utc> {
-            let h = node_offsets
-                .and_then(|offs| offs.iter().find(|(i, _)| *i == index).map(|(_, h)| *h))
-                .unwrap_or(elapsed_hours);
-            now - ChronoDuration::hours(h)
+    fn try_create_llm() -> Option<Arc<Mutex<LlamaServer>>> {
+        let server = if std::env::var("SOUL_TUNE_LLAMA_URL").is_ok() {
+            LlamaServer::load("")
+        } else if let Ok(model) = std::env::var("SOUL_TUNE_CANDLE_MODEL_PATH") {
+            if model.trim().is_empty() {
+                return None;
+            }
+            LlamaServer::load(&model)
+        } else {
+            return None;
         };
-
-        let make_embedded = |note: MemoryNote| -> EmbeddedMemoryNote {
-            let embedding = MemoryEmbedding::new(
-                EmbeddingVec::zero(128),
-                MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
-                    EmbeddingVec::zero(128),
-                    EmbeddingVec::zero(128),
-                    EmbeddingVec::zero(128),
-                )),
-            );
-            EmbeddedMemoryNote { note, embedding }
-        };
-
-        let id_sem = MemoryId::new();
-        let id_sit = MemoryId::new();
-        let id_proc = MemoryId::new();
-
-        let sem = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory::new(
-            "十六夜咲夜是红魔馆的女仆长拥有操纵时间的能力她可以停止时间在静止的世界中完成所有家务银质小刀是她惯用的武器"
-                .to_string(),
-            ConceptType::Entity,
-            "红魔馆的女仆长".to_string(),
-        )))
-        .id(id_sem)
-        .create_time(created)
-        .last_accessed_time(created)
-        .last_forget_time(offset_for(0))
-        .build()
-        .expect("sem note");
-
-        let sit = MemoryNoteBuilder::new(MemoryType::Situation(SituationType::SpecificSituation(
-            SpecificSituation::new(
-                "傍晚我在红魔馆的庭院为大小姐斟茶蕾米莉亚坐在阳台的红伞下望着雾之湖畔天色渐暗四周渐渐安静下来".to_string(),
-                created,
-                Context::new(
-                    None, vec![], vec![], vec![],
-                    Environment { atmosphere: "日常".to_string(), tone: "平静".to_string() },
-                    vec![],
-                ),
-            ),
-        )))
-        .id(id_sit)
-        .create_time(created)
-        .last_accessed_time(created)
-        .last_forget_time(offset_for(1))
-        .build()
-        .expect("sit note");
-
-        let proc = MemoryNoteBuilder::new(MemoryType::Procedure(ProcMemory::new(Action::new(
-            "红魔馆女仆长每日停止时间打扫洋馆再回收飞刀的工作流程".to_string(),
-            ActionType::Think,
-        ))))
-        .id(id_proc)
-        .create_time(created)
-        .last_accessed_time(created)
-        .last_forget_time(offset_for(2))
-        .build()
-        .expect("proc note");
-
-        let mut cluster = MemoryCluster::new();
-        cluster.add_single_node(make_embedded(sem));
-        cluster.add_single_node(make_embedded(sit));
-        cluster.add_single_node(make_embedded(proc));
-
-        // 两条边：sem -> sit（关联），sit -> proc（引发）
-        // 混合场景（elapsed_hours<=0）下边统一使用 24h 跨度
-        let edge_hours = if elapsed_hours > 0 { elapsed_hours } else { 24 };
-        let mut link1 = MemoryLink::new(
-            id_sem,
-            id_sit,
-            MemoryLinkType::Sem(SemMemLink::new("关联".to_string(), 1.0)),
-        );
-        link1.set_last_forget_time(now - ChronoDuration::hours(edge_hours));
-        let mut link2 = MemoryLink::new(
-            id_sit,
-            id_proc,
-            MemoryLinkType::Sem(SemMemLink::new("引发".to_string(), 1.0)),
-        );
-        link2.set_last_forget_time(now - ChronoDuration::hours(edge_hours));
-
-        {
-            let graph = cluster.graph_mut();
-            for n in graph.node_weights_mut() {
-                if n.note().id() == id_sem {
-                    n.note.links_mut().push(link1.clone());
-                } else if n.note().id() == id_sit {
-                    n.note.links_mut().push(link2.clone());
-                }
+        match server {
+            Ok(s) => Some(Arc::new(Mutex::new(s))),
+            Err(e) => {
+                eprintln!("llama-server 不可用（{e}），降级为遮罩路径");
+                None
             }
         }
-        cluster.refresh_node(&id_sem);
-        cluster.refresh_node(&id_sit);
-        cluster
+    }
+
+    /// 模拟老化：把整张图的节点/边统一回拨 `last_forget_time`（缺失度归零），
+    /// 使真实 fixture 图在指定时间跨度下产生遗忘。
+    /// `mixed_offsets` 非空时按节点序号 i%3 轮转使用 8/24/72h。
+    fn apply_aging(
+        &self,
+        cluster: &mut MemoryCluster,
+        now: DateTime<Utc>,
+        hours: i64,
+        mixed_offsets: Option<[(usize, i64); 3]>,
+    ) {
+        let g = cluster.graph_mut();
+        let node_indices: Vec<_> = g.node_indices().collect();
+        for (i, idx) in node_indices.iter().enumerate() {
+            let h = mixed_offsets
+                .and_then(|offs| offs.iter().find(|(j, _)| *j == i % 3).map(|(_, h)| *h))
+                .unwrap_or(hours.max(1));
+            let t = now - ChronoDuration::hours(h);
+            let n = g.node_weight_mut(*idx).expect("node");
+            n.note.set_last_forget_time(t);
+            n.note.set_missing_degree(0.0);
+        }
+        let edge_hours = if hours > 0 { hours } else { 24 };
+        let t_edge = now - ChronoDuration::hours(edge_hours);
+        for ei in g.edge_indices().collect::<Vec<_>>() {
+            let l = g.edge_weight_mut(ei).expect("edge");
+            l.set_last_forget_time(t_edge);
+            l.set_missing_degree(0.0);
+        }
     }
 
     /// 运行一次完整的真实遗忘管线（与检索侧的惰性遗忘调用路径一致）：
-    /// 1. `compute_all_missing_degrees` 全图批量刷新节点+边缺失度；
-    /// 2. 逐节点 `lazy_forget`（SemMemory / SpecificSituation 触发遮罩/LLM）；
-    /// 3. 边强度 = 原始强度 × (1 - 缺失度)，检索权重占位 `weight_placeholder`。
+    /// 1. 克隆加载图并施加老化；
+    /// 2. `compute_all_missing_degrees` 全图批量刷新节点+边缺失度；
+    /// 3. 逐节点 `lazy_forget`：可遮罩节点中缺失度最高的前
+    ///    [`MAX_LLM_REVISIONS`] 个走 llama-server 修订，其余走遮罩/降级；
+    /// 4. `decay_graph_edge` 边独立衰减 + `weight_placeholder` 检索权重。
     fn run_pipeline(&self, spec: &ForgetCaseSpec) -> ForgetCaseData {
         let now = Utc::now();
-        // 混合场景：三节点分别 8h / 24h / 72h 前遗忘
-        let node_offsets = if spec.elapsed_hours == -1 {
+        let mut cluster = self.graph.clone();
+        let mixed_offsets = if spec.elapsed_hours == -1 {
             Some([(0usize, 8i64), (1, 24), (2, 72)])
         } else {
             None
         };
-        let mut cluster = self.build_cluster(spec.elapsed_hours, node_offsets);
+        self.apply_aging(&mut cluster, now, spec.elapsed_hours, mixed_offsets);
 
         let use_llm = self.llm.is_some() && spec.want_llm;
 
         // ── 步骤 1：全图批量刷新缺失度（节点 + 边）──
         compute_all_missing_degrees(&mut cluster, now);
+
+        // LLM 修订抽样：可遮罩且缺失度 ≥ REVISE_THRESHOLD 的节点，按缺失度降序取前 N
+        let revise_set: std::collections::HashSet<_> = {
+            let g = cluster.graph();
+            let mut candidates: Vec<_> = g
+                .node_indices()
+                .filter(|idx| {
+                    let n = g.node_weight(*idx).expect("node");
+                    is_maskable(n.note()) && n.note().missing_degree() >= REVISE_THRESHOLD
+                })
+                .map(|idx| (idx, g.node_weight(idx).expect("node").note().missing_degree()))
+                .collect();
+            candidates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+            candidates
+                .into_iter()
+                .take(MAX_LLM_REVISIONS)
+                .map(|(idx, _)| idx)
+                .collect()
+        };
 
         // ── 步骤 2：逐节点惰性遗忘 ──
         let runtime = tokio::runtime::Builder::new_multi_thread()
@@ -383,6 +361,7 @@ impl ForgetSuite {
         let mut passed = true;
         let mut total_md = 0.0f32;
         let mut max_md = 0.0f32;
+        let mut llm_revised = 0usize;
         let mut masked_words_total = 0usize;
         let mut total_words_total = 0usize;
         let mut hist: std::collections::BTreeMap<&'static str, usize> =
@@ -405,8 +384,8 @@ impl ForgetSuite {
                 let node = &mut g.node_weight_mut(idx).expect("node").note;
                 let orig = get_summary(node).unwrap_or_default();
                 let orig_words = mask_word_count(&self.jieba, &orig);
-                let closure: LlmCall = if use_llm {
-                    real_llm_closure(self.llm.as_ref().expect("llm").clone())
+                let closure: LlmCall = if use_llm && revise_set.contains(&idx) {
+                    llama_closure(self.llm.as_ref().expect("llm").clone())
                 } else {
                     failing_llm_closure()
                 };
@@ -421,40 +400,55 @@ impl ForgetSuite {
                 (act, after, orig_words)
             };
 
-            // 动作分类与遮罩词数
-            let (action_name, masked_words_this, mask_ratio_this) = match &action {
-                ForgetAction::NoAction => ("NoAction", 0usize, None),
-                ForgetAction::MaskOnly {
-                    masked_count,
-                    masked_text,
-                    ..
-                } => {
-                    let ratio = if orig_words > 0 {
-                        Some(*masked_count as f32 / orig_words as f32)
-                    } else {
-                        None
-                    };
-                    let _ = masked_text;
-                    ("MaskOnly", *masked_count, ratio)
-                }
-                ForgetAction::Revised { masked_text, .. } => {
-                    let masked = count_masked(masked_text);
-                    let ratio = if orig_words > 0 {
-                        Some(masked as f32 / orig_words as f32)
-                    } else {
-                        None
-                    };
-                    ("Revised", masked, ratio)
-                }
-            };
+            // 动作分类、遮罩统计与 LLM 原始回复
+            let (action_name, masked_words_this, mask_ratio_this, llm_reply, masked_text) =
+                match &action {
+                    ForgetAction::NoAction => ("NoAction", 0usize, None, None, None),
+                    ForgetAction::MaskOnly {
+                        masked_count,
+                        masked_text,
+                        ..
+                    } => {
+                        let ratio = if orig_words > 0 {
+                            Some(*masked_count as f32 / orig_words as f32)
+                        } else {
+                            None
+                        };
+                        (
+                            "MaskOnly",
+                            *masked_count,
+                            ratio,
+                            None,
+                            Some(masked_text.clone()),
+                        )
+                    }
+                    ForgetAction::Revised {
+                        masked_text, new_summary, ..
+                    } => {
+                        let masked = count_masked(masked_text);
+                        let ratio = if orig_words > 0 {
+                            Some(masked as f32 / orig_words as f32)
+                        } else {
+                            None
+                        };
+                        (
+                            "Revised",
+                            masked,
+                            ratio,
+                            Some(new_summary.clone()),
+                            Some(masked_text.clone()),
+                        )
+                    }
+                };
 
-            if matches!(type_name, "SemMemory" | "SpecificSituation") {
+            if is_maskable_type(type_name) {
                 if orig_words > 0 {
                     masked_words_total += masked_words_this;
                     total_words_total += orig_words;
                 }
-                // 纯遮罩路径下：遮罩比例应接近缺失度（±15% 容差）
-                if let ForgetAction::MaskOnly { .. } = &action {
+                // 文本足够长时：遮罩比例应接近缺失度（±15% 容差）；
+                // 过短文本取整误差大，跳过比例校验
+                if orig_words >= 8 {
                     if let Some(r) = mask_ratio_this {
                         if (r - after).abs() > 0.15 {
                             passed = false;
@@ -463,6 +457,9 @@ impl ForgetSuite {
                 }
             }
 
+            if action_name == "Revised" {
+                llm_revised += 1;
+            }
             *hist.entry(action_name).or_insert(0) += 1;
             total_md += after;
             max_md = max_md.max(after);
@@ -484,12 +481,10 @@ impl ForgetSuite {
                 md_before: before,
                 md_after: after,
                 action: action_name,
-                mask: mask_ratio_this.map(|r| {
-                    (
-                        (r * orig_words as f32).round() as usize,
-                        orig_words,
-                    )
-                }),
+                mask: mask_ratio_this
+                    .map(|r| ((r * orig_words as f32).round() as usize, orig_words)),
+                masked_text,
+                llm_reply,
             });
         }
 
@@ -557,6 +552,11 @@ impl ForgetSuite {
                 "{} [{}] md {:.3}→{:.3} 动作={}{}",
                 s.type_name, short_id, s.md_before, s.md_after, s.action, mask_txt
             ));
+            // LLM 补全：贴出遮罩输入与 LLM 原始回复
+            if let (Some(mt), Some(reply)) = (&s.masked_text, &s.llm_reply) {
+                detail_lines.push(format!("    遮罩输入: {}", mt));
+                detail_lines.push(format!("    LLM原始回复: {}", reply));
+            }
         }
 
         let mut metrics: Vec<(String, String, String)> = vec![
@@ -586,6 +586,13 @@ impl ForgetSuite {
                 format!("{:.2}%", avg_masked_ratio * 100.0),
             ),
         ];
+        if use_llm {
+            metrics.push((
+                "LLM".into(),
+                format!("{} llama-server 修订数(抽样)", spec.name),
+                llm_revised.to_string(),
+            ));
+        }
         for (k, v) in &hist_vec {
             metrics.push((
                 "遗忘动作".into(),
@@ -600,6 +607,7 @@ impl ForgetSuite {
             llm_available: use_llm,
             node_count,
             edge_count,
+            llm_revised,
             action_histogram: hist_vec,
             avg_missing_degree: avg_md,
             max_missing_degree: max_md,
@@ -675,6 +683,7 @@ impl ForgetSuite {
             llm_available: false,
             node_count: 1,
             edge_count: 0,
+            llm_revised: 0,
             action_histogram: vec![("NoAction", 1)],
             avg_missing_degree: inc_md,
             max_missing_degree: inc_md,
@@ -688,7 +697,8 @@ impl ForgetSuite {
 
 impl Default for ForgetSuite {
     fn default() -> Self {
-        Self::new()
+        // 无默认图：测试请通过 load / load_without_llm 加载 fixture 图
+        panic!("ForgetSuite 必须通过 load / load_without_llm 加载 fixture 图")
     }
 }
 
@@ -725,12 +735,18 @@ impl TestSuite for ForgetSuite {
         let mut detail_rows: Vec<DetailRow> = Vec::new();
         let mut decay_points: Vec<(f64, f64)> = Vec::new();
         let mut llm_available = false;
+        let mut total_llm_revised = 0usize;
+        let mut max_node_count = 0usize;
+        let mut max_edge_count = 0usize;
 
         for o in &outcomes {
             let Some(data) = o.data.downcast_ref::<ForgetCaseData>() else {
                 continue;
             };
             llm_available |= data.llm_available;
+            total_llm_revised += data.llm_revised;
+            max_node_count = max_node_count.max(data.node_count);
+            max_edge_count = max_edge_count.max(data.edge_count);
             for (group, label, value) in &data.metrics {
                 metrics.push(Box::new(key_value_metric(
                     label.clone(),
@@ -748,7 +764,7 @@ impl TestSuite for ForgetSuite {
             if let Some(h) = hours {
                 decay_points.push((h, data.avg_missing_degree as f64));
             }
-            // 用例汇总行（读取全部观测字段）
+            // 用例汇总行
             let hist_txt: String = data
                 .action_histogram
                 .iter()
@@ -757,7 +773,7 @@ impl TestSuite for ForgetSuite {
                 .join(" ");
             detail_rows.push(DetailRow {
                 text: format!(
-                    "[{}] 节点{} 边{} | 缺失度均值{:.3}/最大{:.3} | 遮罩率{:.1}% | 边强度{:.3} | {}",
+                    "[{}] 节点{} 边{} | 缺失度均值{:.3}/最大{:.3} | 遮罩率{:.1}% | 边强度{:.3} | LLM修订{} | {}",
                     data.case_name,
                     data.node_count,
                     data.edge_count,
@@ -765,6 +781,7 @@ impl TestSuite for ForgetSuite {
                     data.max_missing_degree,
                     data.avg_masked_ratio * 100.0,
                     data.avg_edge_intensity,
+                    data.llm_revised,
                     hist_txt,
                 ),
                 has_error: !o.passed,
@@ -792,15 +809,22 @@ impl TestSuite for ForgetSuite {
         }
 
         metrics.push(Box::new(key_value_metric(
+            "图".to_string(),
+            "图".to_string(),
+            format!(
+                "{}（节点 {} / 边 {}）",
+                self.graph_name, max_node_count, max_edge_count
+            ),
+        )));
+        metrics.push(Box::new(key_value_metric(
             "LLM 可用".to_string(),
             "LLM".to_string(),
             if llm_available {
-                "是（真实修订）".to_string()
+                format!("是（llama-server，修订 {} 节点）", total_llm_revised)
             } else {
                 "否（遮罩降级路径已验证）".to_string()
             },
         )));
-
         metrics.push(Box::new(key_value_metric(
             "通过率".to_string(),
             "汇总".to_string(),
@@ -819,7 +843,10 @@ impl TestSuite for ForgetSuite {
         SuiteReport {
             metrics,
             detail_header: format!(
-                "遗忘管线逐节点明细（通过 {}/{}，耗时 {:.2}s）",
+                "遗忘管线逐节点明细（图 {}：节点 {} / 边 {}，通过 {}/{}，耗时 {:.2}s）",
+                self.graph_name,
+                max_node_count,
+                max_edge_count,
                 passed,
                 total,
                 elapsed.as_secs_f64()
@@ -833,6 +860,17 @@ impl TestSuite for ForgetSuite {
 // ========================================================================
 // 内部辅助
 // ========================================================================
+
+fn is_maskable(note: &MemoryNote) -> bool {
+    matches!(
+        note.mem_type(),
+        MemoryType::Situation(SituationType::SpecificSituation(_)) | MemoryType::Semantic(_)
+    )
+}
+
+fn is_maskable_type(type_name: &'static str) -> bool {
+    matches!(type_name, "SemMemory" | "SpecificSituation")
+}
 
 fn forget_type_name(node: &MemoryNote) -> &'static str {
     match node.mem_type() {
@@ -872,16 +910,37 @@ fn compute_and_update(node: &mut MemoryNote, current_time: DateTime<Utc>) -> f32
 mod tests {
     use super::*;
     use soul_mem_algo::algo::forget::mask::mask_text;
+    use std::path::PathBuf;
+
+    /// 仓库内真实 fixture：格蕾修角色图
+    fn fixture_graph() -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("fixtures/example_data/格蕾修_https_zh_moegirl_org_cn_E6_A0_BC_E8_95_BE_E4_BF_AE/graph.json")
+    }
+
+    #[test]
+    fn test_loads_real_fixture_graph() {
+        let suite = ForgetSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        assert!(suite.llm.is_none());
+        let node_count = suite.graph.graph().node_count();
+        let edge_count = suite.graph.graph().edge_count();
+        assert!(node_count > 10, "真实图应有足够节点，实际 {}", node_count);
+        assert!(edge_count > 0, "真实图应有边，实际 {}", edge_count);
+    }
 
     #[test]
     fn test_suite_has_five_cases() {
-        let suite = ForgetSuite::new();
+        let suite = ForgetSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         assert_eq!(suite.case_count(), 5);
     }
 
     #[test]
     fn test_all_cases_pass_without_llm() {
-        let suite = ForgetSuite::new();
+        let suite = ForgetSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         assert!(suite.llm.is_none(), "测试环境不应配置 LLM");
         for i in 0..suite.case_count() {
             let outcome = suite.run_case(i);
@@ -896,7 +955,7 @@ mod tests {
 
     #[test]
     fn test_report_builds_metrics_and_rows() {
-        let suite = ForgetSuite::new();
+        let suite = ForgetSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         let n = suite.case_count();
         let outcomes: Vec<TestCaseOutcome> = (0..n).map(|i| suite.run_case(i)).collect();
         let passed = outcomes.iter().filter(|o| o.passed).count();
@@ -922,7 +981,7 @@ mod tests {
 
     #[test]
     fn test_incremental_consistency() {
-        let suite = ForgetSuite::new();
+        let suite = ForgetSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         let data = suite.run_incremental_case();
         assert!(data.passed, "增量一致性失败");
     }

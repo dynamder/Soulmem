@@ -8,8 +8,12 @@ use serde_json::Value;
 use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType};
 use soul_mem_core::memory_note::{MemoryId, MemoryNoteBuilder, MemoryType};
 use soul_mem_query::embedding::embedding_model::bge::BgeSmallZh;
-use soul_mem_query::embedding::note::EmbeddedMemoryNote;
-use soul_mem_query::embedding::Embeddable;
+use soul_mem_query::embedding::note::{
+    EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
+};
+use soul_mem_query::embedding::sem::SemanticEmbedding;
+use soul_mem_query::embedding::{Embeddable, EmbeddingVec};
+use soul_mem_runtime::cluster::memory_cluster::MemoryCluster;
 use soul_mem_runtime::working_memory::WorkingMemory;
 
 /// Download model files from HF mirror and place them in the correct cache
@@ -281,6 +285,69 @@ pub fn load_graph(
     })?;
 
     Ok((wm, id_map))
+}
+
+/// 从 graph JSON 加载并构建 MemoryCluster（免嵌入）。
+///
+/// 遗忘算法只依赖节点与边（不需要嵌入），这里直接以零向量嵌入构建，
+/// 复用与 [`load_graph`] 相同的 lenient 解析与 fixture 修复逻辑，
+/// 供遗忘套件直接驱动真实角色图。
+pub fn load_graph_cluster(
+    path: &Path,
+) -> Result<(MemoryCluster, HashMap<String, MemoryId>), Box<dyn std::error::Error>> {
+    let file = std::fs::File::open(path)?;
+    let reader = std::io::BufReader::new(file);
+    let mut raw_nodes: Vec<FixtureNode> = serde_json::from_reader(reader)?;
+
+    // 与 load_graph 相同的 fixture 数据修复
+    for node in &mut raw_nodes {
+        fix_mem_type(&mut node.mem_type);
+        for link in &mut node.mem_links {
+            fix_link_type(&mut link.link_type);
+        }
+    }
+
+    let mut id_map: HashMap<String, MemoryId> = HashMap::new();
+    for raw in &raw_nodes {
+        id_map.insert(raw.id.clone(), MemoryId::new());
+    }
+
+    let zero_embedding = MemoryEmbedding::new(
+        EmbeddingVec::zero(128),
+        MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+            EmbeddingVec::zero(128),
+            EmbeddingVec::zero(128),
+            EmbeddingVec::zero(128),
+        )),
+    );
+
+    let mut cluster = MemoryCluster::new();
+    for raw in &raw_nodes {
+        let mem_id = id_map[&raw.id];
+        let mem_type: MemoryType = serde_json::from_value(raw.mem_type.clone())?;
+
+        let mut links = Vec::new();
+        for l in &raw.mem_links {
+            let link_type: MemoryLinkType = serde_json::from_value(l.link_type.clone())?;
+            let from = id_map.get(&l.from).copied().unwrap_or(mem_id);
+            let to = id_map.get(&l.to).copied().unwrap_or(mem_id);
+            links.push(MemoryLink::from_tuple(from, to, link_type, l.intensity));
+        }
+
+        let note = MemoryNoteBuilder::new(mem_type)
+            .id(mem_id)
+            .tags(raw.tags.clone())
+            .mem_links(links)
+            .build()
+            .map_err(|e| format!("MemoryNoteBuilder failed: {e:?}"))?;
+
+        cluster.add_single_node(EmbeddedMemoryNote {
+            note,
+            embedding: zero_embedding.clone(),
+        });
+    }
+
+    Ok((cluster, id_map))
 }
 
 /// 嵌入缓存版本。嵌入实现（pooling 方式 / 查询指令）变化时递增，
