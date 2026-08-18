@@ -26,3 +26,14 @@ impl SemMemory {
         }
     }
 }
+
+impl Default for SemMemory {
+    fn default() -> Self {
+        Self {
+            content: String::new(),
+            aliases: Vec::new(),
+            concept_type: ConceptType::Entity,
+            description: String::new(),
+        }
+    }
+}

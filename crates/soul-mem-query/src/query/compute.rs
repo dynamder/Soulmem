@@ -433,6 +433,7 @@ mod tests {
             aliases: vec!["Rust".to_string()],
             concept_type: ConceptType::Entity,
             description: "一种注重安全性的系统编程语言".to_string(),
+            ..Default::default()
         };
 
         let sem_embedding = memory.embed(&model).unwrap();

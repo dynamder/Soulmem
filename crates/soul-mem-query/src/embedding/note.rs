@@ -190,6 +190,7 @@ mod tests {
             aliases: vec!["Rust".to_string()],
             concept_type: ConceptType::Entity,
             description: "系统编程语言".to_string(),
+            ..Default::default()
         });
 
         let note = MemoryNoteBuilder::new(mem_type)
@@ -213,6 +214,7 @@ mod tests {
             aliases: vec!["test".to_string()],
             concept_type: ConceptType::Entity,
             description: "测试描述".to_string(),
+            ..Default::default()
         });
 
         let variant_emb = mem_type.embed(&model).unwrap();

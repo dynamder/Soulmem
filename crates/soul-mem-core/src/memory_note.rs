@@ -50,7 +50,22 @@ pub struct MemoryNote {
     last_accessed_time: DateTime<Utc>, //记忆的最后访问时间
     mem_type: MemoryType,              //记忆的类型，存储类型特定内容
     mem_links: Vec<MemoryLink>,        //记忆的链接，用于关联其他记忆
+    #[serde(default = "default_missing_degree")]
+    missing_degree: f32, // 遗忘缺失度（0.0 新鲜 ~ 1.0 完全遗忘），所有节点类型通用
+    #[serde(default = "default_last_forget_time")]
+    last_forget_time: DateTime<Utc>, // 缺失度最近一次计算的时间，用于增量更新
 }
+
+/// serde 默认：缺失度初始为 0
+fn default_missing_degree() -> f32 {
+    0.0
+}
+
+/// serde 默认：缺失度计算时间初始为当前
+fn default_last_forget_time() -> DateTime<Utc> {
+    Utc::now()
+}
+
 impl MemoryNote {
     pub fn is_same_id(mem1: &MemoryNote, mem2: &MemoryNote) -> bool {
         mem1.id == mem2.id
@@ -73,8 +88,30 @@ impl MemoryNote {
     pub fn mem_type(&self) -> &MemoryType {
         &self.mem_type
     }
+    pub fn mem_type_mut(&mut self) -> &mut MemoryType {
+        &mut self.mem_type
+    }
     pub fn links(&self) -> &Vec<MemoryLink> {
         &self.mem_links
+    }
+    pub fn links_mut(&mut self) -> &mut Vec<MemoryLink> {
+        &mut self.mem_links
+    }
+    /// 当前存储的遗忘缺失度
+    pub fn missing_degree(&self) -> f32 {
+        self.missing_degree
+    }
+    /// 写入缺失度（自动限制在 0.0~1.0）
+    pub fn set_missing_degree(&mut self, missing_degree: f32) {
+        self.missing_degree = missing_degree.clamp(0.0, 1.0);
+    }
+    /// 缺失度最近一次计算的时间
+    pub fn last_forget_time(&self) -> DateTime<Utc> {
+        self.last_forget_time
+    }
+    /// 记录缺失度计算时间
+    pub fn set_last_forget_time(&mut self, time: DateTime<Utc>) {
+        self.last_forget_time = time;
     }
     pub fn retrieval_increment(&mut self) {
         self.retrieval_count += 1;
@@ -98,6 +135,8 @@ pub struct MemoryNoteBuilder {
     last_accessed_time: Option<DateTime<Utc>>,
     mem_type: MemoryType,
     mem_links: Option<Vec<MemoryLink>>,
+    missing_degree: Option<f32>,
+    last_forget_time: Option<DateTime<Utc>>,
 }
 impl MemoryNoteBuilder {
     pub fn new(mem_type: MemoryType) -> Self {
@@ -109,6 +148,8 @@ impl MemoryNoteBuilder {
             last_accessed_time: None,
             mem_type,
             mem_links: None,
+            missing_degree: None,
+            last_forget_time: None,
         }
     }
     pub fn id(mut self, id: impl Into<MemoryId>) -> Self {
@@ -135,6 +176,14 @@ impl MemoryNoteBuilder {
         self.mem_links = Some(mem_links.into());
         self
     }
+    pub fn missing_degree(mut self, missing_degree: f32) -> Self {
+        self.missing_degree = Some(missing_degree);
+        self
+    }
+    pub fn last_forget_time(mut self, last_forget_time: DateTime<Utc>) -> Self {
+        self.last_forget_time = Some(last_forget_time);
+        self
+    }
     pub fn build(self) -> Result<MemoryNote, MemoryNoteBuildError> {
         //允许对字段的自由控制，以便于调试和修正
         if self.last_accessed_time < self.create_time {
@@ -149,6 +198,8 @@ impl MemoryNoteBuilder {
             last_accessed_time: self.last_accessed_time.unwrap_or(time_now),
             mem_type: self.mem_type,
             mem_links: self.mem_links.unwrap_or_default(),
+            missing_degree: self.missing_degree.unwrap_or(0.0),
+            last_forget_time: self.last_forget_time.unwrap_or(time_now),
         })
     }
 }

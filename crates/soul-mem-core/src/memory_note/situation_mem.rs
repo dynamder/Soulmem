@@ -85,6 +85,16 @@ impl SpecificSituation {
     }
 }
 
+impl Default for SpecificSituation {
+    fn default() -> Self {
+        Self {
+            narrative: String::new(),
+            time_span: Utc::now(),
+            context: Context::default(),
+        }
+    }
+}
+
 //描述（地点、人物、情感、感官数据、环境、事件）
 #[derive(Debug, PartialEq, PartialOrd, Clone, Serialize, Deserialize)]
 pub struct Context {
@@ -152,6 +162,19 @@ impl Context {
     }
 }
 
+impl Default for Context {
+    fn default() -> Self {
+        Self {
+            location: None,
+            participants: Vec::new(),
+            emotions: Vec::new(),
+            sensory_data: Vec::new(),
+            environment: Environment::default(),
+            event: Vec::new(),
+        }
+    }
+}
+
 //事件（动作，动作强度，单个发起者，单个目标）（抽象）
 #[derive(Debug, PartialEq, PartialOrd, Clone, Serialize, Deserialize)]
 pub struct Event {
@@ -166,6 +189,15 @@ pub struct Event {
 pub struct Environment {
     pub atmosphere: String,
     pub tone: String,
+}
+
+impl Default for Environment {
+    fn default() -> Self {
+        Self {
+            atmosphere: String::new(),
+            tone: String::new(),
+        }
+    }
 }
 
 //智能体情绪（名称，强度）（描述）
