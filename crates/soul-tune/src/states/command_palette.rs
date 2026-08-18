@@ -9,7 +9,7 @@ use ratatui::widgets::{Block, Paragraph};
 use ratatui::Frame;
 use ratatui_textarea::TextArea;
 
-use crate::base::{AlgoType, RetrieveMode, Transition};
+use crate::base::{AlgoType, ForgetMode, RetrieveMode, Transition};
 use crate::cmd::CmdRegistry;
 use crate::widgets::scroll::ScrollState;
 use crate::widgets::{command_bar, status_bar};
@@ -345,7 +345,7 @@ impl CommandState {
                             AlgoType::Retrieve(RetrieveMode::Association)
                         }
                         "consolidate" | "c" => AlgoType::Consolidate,
-                        "forget" | "f" => AlgoType::Forget,
+                        "forget" | "f" => AlgoType::Forget(ForgetMode::Pipeline),
                         _ => return Transition::ToMain,
                     }
                 } else {

@@ -25,13 +25,34 @@ impl std::fmt::Display for RetrieveMode {
     }
 }
 
+/// 遗忘算法测试模式：三阶段独立验证
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ForgetMode {
+    /// 阶段 1：只验证遮罩（纯算法、无 LLM、确定性）
+    Mask,
+    /// 阶段 2：只验证遮罩补全（直接驱动 llama-server，贴 LLM 原始回复）
+    Revise,
+    /// 阶段 3：全管线（衰减 → 遮罩 → LLM 补全 → 边衰减）
+    Pipeline,
+}
+
+impl std::fmt::Display for ForgetMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ForgetMode::Mask => write!(f, "mask"),
+            ForgetMode::Revise => write!(f, "revise"),
+            ForgetMode::Pipeline => write!(f, "full"),
+        }
+    }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum AlgoType {
     Retrieve(RetrieveMode),
     Compare,
     PlayTest,
     Consolidate,
-    Forget,
+    Forget(ForgetMode),
 }
 
 impl std::fmt::Display for AlgoType {
@@ -41,7 +62,7 @@ impl std::fmt::Display for AlgoType {
             AlgoType::Compare => write!(f, "compare"),
             AlgoType::PlayTest => write!(f, "playtest"),
             AlgoType::Consolidate => write!(f, "consolidate"),
-            AlgoType::Forget => write!(f, "forget"),
+            AlgoType::Forget(mode) => write!(f, "forget/{}", mode),
         }
     }
 }

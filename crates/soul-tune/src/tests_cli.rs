@@ -1,4 +1,4 @@
-use crate::base::{AlgoType, RetrieveMode};
+use crate::base::{AlgoType, ForgetMode, RetrieveMode};
 
 #[test]
 fn test_algo_parsing_retrieve_embedding() {
@@ -41,7 +41,35 @@ fn test_algo_parsing_consolidate() {
 fn test_algo_parsing_forget() {
     let input = "forget";
     let algo = parse_retrieve_algo(input);
-    assert!(matches!(algo, Some(AlgoType::Forget)));
+    assert!(matches!(
+        algo,
+        Some(AlgoType::Forget(ForgetMode::Pipeline))
+    ));
+}
+
+#[test]
+fn test_algo_parsing_forget_mask() {
+    let input = "forget/mask";
+    let algo = parse_retrieve_algo(input);
+    assert!(matches!(algo, Some(AlgoType::Forget(ForgetMode::Mask))));
+    assert!(matches!(
+        parse_retrieve_algo("fm"),
+        Some(AlgoType::Forget(ForgetMode::Mask))
+    ));
+}
+
+#[test]
+fn test_algo_parsing_forget_revise() {
+    let input = "forget/revise";
+    let algo = parse_retrieve_algo(input);
+    assert!(matches!(
+        algo,
+        Some(AlgoType::Forget(ForgetMode::Revise))
+    ));
+    assert!(matches!(
+        parse_retrieve_algo("fr"),
+        Some(AlgoType::Forget(ForgetMode::Revise))
+    ));
 }
 
 #[test]
@@ -60,7 +88,9 @@ fn test_algo_display_roundtrip() {
         AlgoType::Compare,
         AlgoType::PlayTest,
         AlgoType::Consolidate,
-        AlgoType::Forget,
+        AlgoType::Forget(ForgetMode::Mask),
+        AlgoType::Forget(ForgetMode::Revise),
+        AlgoType::Forget(ForgetMode::Pipeline),
     ];
     for a in &algos {
         let s = a.to_string();
@@ -76,7 +106,9 @@ fn parse_retrieve_algo(s: &str) -> Option<AlgoType> {
         "retrieve/association" | "ra" => Some(AlgoType::Retrieve(RetrieveMode::Association)),
         "retrieve/full" | "rf" => Some(AlgoType::Retrieve(RetrieveMode::FullPipeline)),
         "consolidate" | "c" => Some(AlgoType::Consolidate),
-        "forget" | "f" => Some(AlgoType::Forget),
+        "forget" | "f" | "forget/full" | "ff" => Some(AlgoType::Forget(ForgetMode::Pipeline)),
+        "forget/mask" | "fm" => Some(AlgoType::Forget(ForgetMode::Mask)),
+        "forget/revise" | "fr" => Some(AlgoType::Forget(ForgetMode::Revise)),
         _ => None,
     }
 }

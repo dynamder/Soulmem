@@ -13,7 +13,7 @@ use std::collections::HashMap;
 use crate::base::{AlgoType, TestConfig, TestReport, Transition};
 use crate::component::{Component, ComponentEvent};
 use crate::engine::compare::build_compare_report;
-use crate::engine::forget::ForgetSuite;
+use crate::engine::forget::{ForgetMaskSuite, ForgetPipelineSuite, ForgetReviseSuite};
 use crate::engine::retrieve::RetrieveSuite;
 use crate::engine::suite::{SuiteReport, TestCaseOutcome, TestSuite};
 use crate::widgets::status_bar;
@@ -108,17 +108,33 @@ impl RunningState {
                                         )),
                                     }
                                 }
-                                AlgoType::Forget => match ForgetSuite::load(&path) {
-                                    Ok(s) => {
-                                        let n = s.case_count();
-                                        let desc = format!(
-                                            "遗忘算法套件就绪（内置角色化记忆图，共 {} 个用例）",
-                                            n
-                                        );
-                                        Ok((Box::new(s) as Box<dyn TestSuite>, n, desc))
+                                AlgoType::Forget(mode) => {
+                                    let loaded: Result<Box<dyn TestSuite>, String> =
+                                        match mode {
+                                            crate::base::ForgetMode::Mask => {
+                                                Ok(Box::new(ForgetMaskSuite::new()))
+                                            }
+                                            crate::base::ForgetMode::Revise => {
+                                                ForgetReviseSuite::load(&path)
+                                                    .map(|s| Box::new(s) as Box<dyn TestSuite>)
+                                            }
+                                            crate::base::ForgetMode::Pipeline => {
+                                                ForgetPipelineSuite::load(&path)
+                                                    .map(|s| Box::new(s) as Box<dyn TestSuite>)
+                                            }
+                                        };
+                                    match loaded {
+                                        Ok(s) => {
+                                            let n = s.case_count();
+                                            let desc = format!(
+                                                "遗忘算法套件就绪（{}，共 {} 个用例）",
+                                                mode, n
+                                            );
+                                            Ok((s, n, desc))
+                                        }
+                                        Err(e) => Err(format!("遗忘套件加载失败: {}", e)),
                                     }
-                                    Err(e) => Err(format!("遗忘套件加载失败: {}", e)),
-                                },
+                                }
                                 _ => Err(format!("{} 尚未实现", algo)),
                             }
                         }))

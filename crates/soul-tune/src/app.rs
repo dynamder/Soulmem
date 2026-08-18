@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use ratatui::crossterm::execute;
 use ratatui::DefaultTerminal;
 
-use crate::base::{AlgoType, RetrieveMode, Transition};
+use crate::base::{AlgoType, ForgetMode, RetrieveMode, Transition};
 use crate::cmd::CmdRegistry;
 use crate::engine::playtest::DialogueFile;
 use crate::states::batch::running::BatchRunState;
@@ -80,7 +80,8 @@ impl App {
                         "retrieve/full" | "rf" => AlgoType::Retrieve(RetrieveMode::FullPipeline),
                         "compare" => AlgoType::Compare,
                         "consolidate" | "c" => AlgoType::Consolidate,
-                        "forget" | "f" => AlgoType::Forget,
+                        // TUI 命令面板默认跑全管线（三阶段独立测试走 headless CLI）
+                        "forget" | "f" => AlgoType::Forget(ForgetMode::Pipeline),
                         _ => return None,
                     };
                     Some(SoulTuneEvent::StartTest(algo, None))

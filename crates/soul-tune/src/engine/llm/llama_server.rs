@@ -158,13 +158,21 @@ impl LlamaServer {
         }
 
         let data: serde_json::Value = resp.json().context("解析 LLM 响应 JSON 失败")?;
-        let text = data["choices"][0]["message"]["content"]
+        // Qwen3.x 在未禁用 thinking 时内容可能落在 reasoning_content；
+        // content 为空时兜底读取，两者皆空则显式报错（避免静默返回空串清空记忆）
+        let content = data["choices"][0]["message"]["content"].as_str().unwrap_or("");
+        let reasoning = data["choices"][0]["message"]["reasoning_content"]
             .as_str()
-            .unwrap_or("")
-            .trim()
-            .to_string();
-
-        Ok(text)
+            .unwrap_or("");
+        let text = if !content.trim().is_empty() {
+            content
+        } else {
+            reasoning
+        };
+        if text.trim().is_empty() {
+            anyhow::bail!("LLM 响应无有效内容: {}", data);
+        }
+        Ok(text.trim().to_string())
     }
 }
 

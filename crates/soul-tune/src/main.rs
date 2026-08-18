@@ -21,14 +21,14 @@ mod tests_cli;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use base::{AlgoType, RetrieveMode, TestReport};
+use base::{AlgoType, ForgetMode, RetrieveMode, TestReport};
 use engine::batch::{print_batch_result, run_batch, scan_question_jsons, summarize_action_metrics};
+use engine::forget::{ForgetMaskSuite, ForgetPipelineSuite, ForgetReviseSuite};
 use engine::llm::LlamaServer;
 use engine::playtest::trace::RetrievalTrace;
 use engine::playtest::{DialogueFile, PlayTestRunner, PlayTurnResult};
 use engine::retrieve::batch::process_one_dataset;
 use engine::retrieve::data::RetrieveCaseData;
-use engine::forget::ForgetSuite;
 use engine::retrieve::RetrieveSuite;
 use engine::suite::{MetricFormat, ReportMetric, TestCaseOutcome, TestSuite};
 use soul_mem_query::query::retrieve::MemoryRetrieveQueryVariant;
@@ -119,9 +119,11 @@ fn main() -> color_eyre::Result<()> {
             "retrieve/association" | "ra" => AlgoType::Retrieve(RetrieveMode::Association),
             "retrieve/full" | "rf" => AlgoType::Retrieve(RetrieveMode::FullPipeline),
             "consolidate" | "c" => AlgoType::Consolidate,
-            "forget" | "f" => AlgoType::Forget,
+            "forget" | "f" | "forget/full" | "ff" => AlgoType::Forget(ForgetMode::Pipeline),
+            "forget/mask" | "fm" => AlgoType::Forget(ForgetMode::Mask),
+            "forget/revise" | "fr" => AlgoType::Forget(ForgetMode::Revise),
             _ => {
-                eprintln!("未知算法: {} (可选: retrieve/embedding, retrieve/association, retrieve/full, consolidate, forget)", algo_str);
+                eprintln!("未知算法: {} (可选: retrieve/embedding, retrieve/association, retrieve/full, consolidate, forget, forget/mask, forget/revise, forget/full)", algo_str);
                 std::process::exit(1);
             }
         };
@@ -162,8 +164,13 @@ fn run_headless_single(algo: AlgoType, dataset_path: PathBuf) -> color_eyre::Res
             RetrieveSuite::load(&dataset_path, m)
                 .map_err(|e| color_eyre::eyre::eyre!("{}", e))?,
         ),
-        AlgoType::Forget => Box::new(
-            ForgetSuite::load(&dataset_path)
+        AlgoType::Forget(ForgetMode::Mask) => Box::new(ForgetMaskSuite::new()),
+        AlgoType::Forget(ForgetMode::Revise) => Box::new(
+            ForgetReviseSuite::load(&dataset_path)
+                .map_err(|e| color_eyre::eyre::eyre!("{}", e))?,
+        ),
+        AlgoType::Forget(ForgetMode::Pipeline) => Box::new(
+            ForgetPipelineSuite::load(&dataset_path)
                 .map_err(|e| color_eyre::eyre::eyre!("{}", e))?,
         ),
         _ => {
