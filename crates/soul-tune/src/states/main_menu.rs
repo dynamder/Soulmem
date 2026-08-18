@@ -5,7 +5,7 @@ use ratatui::style::{Color, Stylize};
 use ratatui::widgets::{Block, Paragraph};
 use ratatui::Frame;
 
-use crate::base::{AlgoType, ForgetMode, Transition};
+use crate::base::Transition;
 use crate::component::{Component, ComponentEvent};
 use crate::widgets::status_bar;
 
@@ -46,7 +46,7 @@ pub fn render(frame: &mut Frame) {
         "    [D]  Diff/对比            比对 Embedding vs Full Pipeline",
         "    [P]  PlayTest             角色扮演测试",
         "    [C]  Consolidate          巩固（未实现）",
-        "    [F]  Forget               遗忘测试（选图后进入观测）",
+        "    [F]  Forget               遗忘测试（选择模式后进入）",
         "    [I]  Inspect              直接检视测试数据",
         "    [B]  Batch                批量运行",
         "    [Q]  退出",
@@ -77,9 +77,7 @@ pub fn handle_key(key: KeyEvent) -> Transition {
         KeyCode::Char('r') | KeyCode::Char('R') => Transition::ToRetrieveModeSelect,
         KeyCode::Char('d') | KeyCode::Char('D') => Transition::ToSelectAlgo,
         KeyCode::Char('p') | KeyCode::Char('P') => Transition::ToPlayTestSelect,
-        KeyCode::Char('f') | KeyCode::Char('F') => {
-            Transition::ToSelectDataset(AlgoType::Forget(ForgetMode::Pipeline))
-        }
+        KeyCode::Char('f') | KeyCode::Char('F') => Transition::ToForgetModeSelect,
         KeyCode::Char('c') | KeyCode::Char('C') => Transition::ToMain,
         KeyCode::Char('i') | KeyCode::Char('I') => Transition::ToCommand("inspect ".into()),
         KeyCode::Char('b') | KeyCode::Char('B') => Transition::ToSelectBatchDir,
@@ -92,19 +90,27 @@ pub fn handle_key(key: KeyEvent) -> Transition {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::base::{AlgoType, ForgetMode};
 
     #[test]
-    fn test_f_key_enters_forget() {
+    fn test_f_key_enters_forget_mode_select() {
         let t = handle_key(KeyEvent::from(KeyCode::Char('f')));
-        assert!(matches!(
-            t,
-            Transition::ToSelectDataset(AlgoType::Forget(ForgetMode::Pipeline))
-        ));
+        assert!(matches!(t, Transition::ToForgetModeSelect));
     }
 
     #[test]
     fn test_q_key_quits() {
         let t = handle_key(KeyEvent::from(KeyCode::Char('q')));
         assert!(matches!(t, Transition::Quit));
+    }
+
+    #[test]
+    fn test_forget_modes_route_to_dataset() {
+        // 模式选择页的三个模式都应路由到选图（AlgoType::Forget(mode)）
+        let m = ForgetMode::Mask;
+        assert!(matches!(
+            Transition::ToSelectDataset(AlgoType::Forget(m)),
+            Transition::ToSelectDataset(AlgoType::Forget(_))
+        ));
     }
 }

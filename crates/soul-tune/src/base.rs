@@ -90,6 +90,7 @@ pub enum Transition {
     ToCommand(String),
     ToSelectDataset(AlgoType),
     ToRetrieveModeSelect,
+    ToForgetModeSelect,
     ToSelectAlgo,
     ToSelectCompareDataset,
     ToConfigParams(AlgoType, PathBuf),

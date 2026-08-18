@@ -19,6 +19,7 @@ use crate::states::playtest::input::PlayTestInputState;
 use crate::states::playtest::judge::PlayTestJudgeState;
 use crate::states::playtest::run_state::PlayTestRunState;
 use crate::states::forget_observer::ForgetObserverState;
+use crate::states::forget_mode::ForgetModeSelectState;
 use crate::states::results::ResultsState;
 use crate::states::retrieve_mode::RetrieveModeSelectState;
 use crate::states::running::RunningState;
@@ -30,6 +31,7 @@ pub enum AppState {
     CommandMode(CommandState),
     SelectDataset(DatasetState),
     RetrieveModeSelect(RetrieveModeSelectState),
+    ForgetModeSelect(ForgetModeSelectState),
     SelectAlgo(SelectAlgoState),
     ConfigParams(ParamState),
     TestRunning(RunningState),
@@ -144,6 +146,10 @@ impl App {
             }
             Transition::ToRetrieveModeSelect => {
                 self.app_state = AppState::RetrieveModeSelect(RetrieveModeSelectState::new());
+                false
+            }
+            Transition::ToForgetModeSelect => {
+                self.app_state = AppState::ForgetModeSelect(ForgetModeSelectState::new());
                 false
             }
             Transition::ToSelectAlgo => {

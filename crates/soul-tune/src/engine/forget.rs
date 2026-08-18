@@ -1306,6 +1306,9 @@ impl ForgetPipelineSuite {
             })
             .collect();
 
+        // 每节点的最终观测状态（观测页列表数据）
+        let mut final_nodes: Vec<NodeForgetStat> = Vec::new();
+
         let mut passed = true;
         let mut per_step_avg_md: Vec<f32> = Vec::new();
         let mut per_step_hist: Vec<(String, Vec<(&'static str, usize)>)> = Vec::new();
@@ -1452,6 +1455,31 @@ impl ForgetPipelineSuite {
                     detail_lines.push(format!("      遮罩输入: {}", mt));
                     detail_lines.push(format!("      LLM原始回复: {}", reply));
                 }
+
+                // 收集最终节点状态（供观测页逐节点查看，避免"节点 0/0"）
+                let masked_count = masked_text.as_ref().map(|mt| count_masked(mt)).unwrap_or(0);
+                let orig_words = mask_word_count(&self.jieba, &originals[i]);
+                let stat = NodeForgetStat {
+                    id: id.clone(),
+                    type_name,
+                    original: originals[i].clone(),
+                    md_before: before,
+                    md_after: after,
+                    action: action_name,
+                    mask: if masked_count > 0 {
+                        Some((masked_count, orig_words))
+                    } else {
+                        None
+                    },
+                    masked_text,
+                    llm_reply,
+                    effective,
+                };
+                if step == 0 {
+                    final_nodes.push(stat);
+                } else {
+                    final_nodes[i] = stat;
+                }
             }
 
             let avg_md = step_md_sum / node_indices.len().max(1) as f32;
@@ -1542,7 +1570,7 @@ impl ForgetPipelineSuite {
             max_missing_degree: max_md,
             avg_masked_ratio: 0.0,
             avg_edge_intensity: 0.0,
-            nodes: vec![],
+            nodes: final_nodes,
             detail_lines,
             metrics: out_metrics,
         }
@@ -2137,5 +2165,40 @@ mod tests {
         let suite = ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         let data = suite.run_incremental_case();
         assert!(data.passed, "增量一致性失败");
+    }
+
+    #[test]
+    fn test_observer_downcast_roundtrip() {
+        // 验证 TUI 观测页的数据通路：build_report 后 outcomes.data
+        // 仍可 downcast 回 ForgetCaseData 且 nodes 非空（节点 0/0 的回归测试）
+        let suite = ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        let n = suite.case_count();
+        let outcomes: Vec<TestCaseOutcome> = (0..n).map(|i| suite.run_case(i)).collect();
+        let passed = outcomes.iter().filter(|o| o.passed).count();
+        // 诊断：run_case 返回的 data 是否可直接识别
+        let direct_ok = outcomes[0].data.is::<ForgetCaseData>();
+        let report =
+            suite.build_report(outcomes, Duration::from_millis(10), n, passed, n - passed);
+        let report_ok = report
+            .outcomes
+            .first()
+            .map(|o| o.data.is::<ForgetCaseData>())
+            .unwrap_or(false);
+        assert!(direct_ok, "run_case 的 data 不是 ForgetCaseData");
+        assert!(report_ok, "build_report 后 data 不再是 ForgetCaseData");
+        assert_eq!(report.outcomes.len(), n);
+        for o in &report.outcomes {
+            let data = o
+                .data
+                .downcast_ref::<ForgetCaseData>()
+                .unwrap_or_else(|| panic!("downcast 失败: {}", o.case_name));
+            if matches!(data.case_name.as_str(), "low" | "medium" | "high" | "multi-step") {
+                assert!(
+                    !data.nodes.is_empty(),
+                    "{} 的节点数据为空（观测页将显示 0/0）",
+                    o.case_name
+                );
+            }
+        }
     }
 }

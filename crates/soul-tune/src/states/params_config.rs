@@ -33,28 +33,32 @@ pub struct ParamState {
 
 impl ParamState {
     pub fn new(algo_type: AlgoType, dataset_path: PathBuf, batch_mode: bool) -> Self {
-        let default_rows = vec![
-            ParamRow {
-                name: "top_k".into(),
-                value: String::new(),
-                description: "最大返回数量（留空=数据集默认）".into(),
-            },
-            ParamRow {
-                name: "threshold".into(),
-                value: String::new(),
-                description: "相似度阈值（留空=数据集默认）".into(),
-            },
-            ParamRow {
-                name: "damping".into(),
-                value: String::new(),
-                description: "PPR 阻尼因子".into(),
-            },
-            ParamRow {
-                name: "iterations".into(),
-                value: String::new(),
-                description: "迭代次数".into(),
-            },
-        ];
+        // 遗忘测试不需要检索参数（top_k/threshold 等），参数页留空直接提交
+        let default_rows = match algo_type {
+            AlgoType::Forget(_) => vec![],
+            _ => vec![
+                ParamRow {
+                    name: "top_k".into(),
+                    value: String::new(),
+                    description: "最大返回数量（留空=数据集默认）".into(),
+                },
+                ParamRow {
+                    name: "threshold".into(),
+                    value: String::new(),
+                    description: "相似度阈值（留空=数据集默认）".into(),
+                },
+                ParamRow {
+                    name: "damping".into(),
+                    value: String::new(),
+                    description: "PPR 阻尼因子".into(),
+                },
+                ParamRow {
+                    name: "iterations".into(),
+                    value: String::new(),
+                    description: "迭代次数".into(),
+                },
+            ],
+        };
         let textareas: Vec<TextArea> = default_rows.iter().map(|_| TextArea::default()).collect();
         Self {
             algo_type,

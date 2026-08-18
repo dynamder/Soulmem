@@ -57,6 +57,7 @@ impl App {
             AppState::SelectDataset(s) => s.view(frame),
             AppState::SelectBatchDir(s) => s.view(frame),
             AppState::RetrieveModeSelect(s) => s.view(frame),
+            AppState::ForgetModeSelect(s) => s.view(frame),
             AppState::SelectAlgo(s) => s.view(frame),
             AppState::ConfigParams(s) => s.view(frame),
             AppState::TestRunning(s) => s.view(frame),
@@ -80,6 +81,7 @@ impl App {
         let transition = match &mut self.app_state {
             AppState::Main(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::RetrieveModeSelect(s) => s.handle_event(ComponentEvent::Key(key)),
+            AppState::ForgetModeSelect(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::SelectAlgo(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::TestResults(s) => s.handle_event(ComponentEvent::Key(key)),
             AppState::ForgetObserver(s) => s.handle_event(ComponentEvent::Key(key)),

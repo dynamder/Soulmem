@@ -12,3 +12,4 @@ pub mod results;
 pub mod inspect;
 pub mod playtest;
 pub mod forget_observer;
+pub mod forget_mode;
