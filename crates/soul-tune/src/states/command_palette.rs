@@ -353,6 +353,10 @@ impl CommandState {
                 };
                 Transition::ToSelectDataset(algo)
             }
+            // 独立 forget 命令：`forget` 或 `f` 直接进入遗忘测试选图
+            "forget" | "f" => Transition::ToSelectDataset(AlgoType::Forget(ForgetMode::Pipeline)),
+            // 独立 forget 命令：`forget` 或 `f` 直接进入遗忘测试选图
+            "forget" | "f" => Transition::ToSelectDataset(AlgoType::Forget(ForgetMode::Pipeline)),
             "inspect" | "i" => {
                 if parts.len() > 1 {
                     let path = std::path::PathBuf::from(parts[1..].join(" "));
@@ -449,4 +453,45 @@ fn collect_fixture_entries() -> Vec<FixturePath> {
             kind: e.kind.clone(),
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// 独立 `forget` 命令应直接进入遗忘测试选图
+    #[test]
+    fn test_execute_forget_command() {
+        let mut cmd = CommandState::new();
+        cmd.input.insert_str("forget");
+        let registry = CmdRegistry::new();
+        let t = cmd.handle_key(KeyEvent::from(KeyCode::Enter), &registry);
+        assert!(matches!(
+            t,
+            Transition::ToSelectDataset(AlgoType::Forget(ForgetMode::Pipeline))
+        ));
+    }
+
+    /// `test forget` 子命令也应进入遗忘测试选图
+    #[test]
+    fn test_execute_test_forget_command() {
+        let mut cmd = CommandState::new();
+        cmd.input.insert_str("test forget");
+        let registry = CmdRegistry::new();
+        let t = cmd.handle_key(KeyEvent::from(KeyCode::Enter), &registry);
+        assert!(matches!(
+            t,
+            Transition::ToSelectDataset(AlgoType::Forget(ForgetMode::Pipeline))
+        ));
+    }
+
+    /// 未知命令应回主菜单（不 panic）
+    #[test]
+    fn test_execute_unknown_command_returns_main() {
+        let mut cmd = CommandState::new();
+        cmd.input.insert_str("nonexistent_algo");
+        let registry = CmdRegistry::new();
+        let t = cmd.handle_key(KeyEvent::from(KeyCode::Enter), &registry);
+        assert!(matches!(t, Transition::ToMain));
+    }
 }
