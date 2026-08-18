@@ -112,7 +112,8 @@ impl RunningState {
                                     let loaded: Result<Box<dyn TestSuite>, String> =
                                         match mode {
                                             crate::base::ForgetMode::Mask => {
-                                                Ok(Box::new(ForgetMaskSuite::new()))
+                                                ForgetMaskSuite::load(&path)
+                                                    .map(|s| Box::new(s) as Box<dyn TestSuite>)
                                             }
                                             crate::base::ForgetMode::Revise => {
                                                 ForgetReviseSuite::load(&path)

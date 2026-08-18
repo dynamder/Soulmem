@@ -24,6 +24,9 @@ use std::time::Duration;
 
 use chrono::{DateTime, Duration as ChronoDuration, Utc};
 use jieba_rs::Jieba;
+use rand::rngs::StdRng;
+use rand::seq::SliceRandom;
+use rand::{Rng, SeedableRng};
 
 use soul_mem_algo::algo::forget::decay_calculator::{
     compute_missing_degree, update_missing_degree_incremental, DEFAULT_MAX_ACTIVATION_CAP,
@@ -168,8 +171,45 @@ fn is_effective_revision(reply: &str) -> bool {
 /// 遮罩用例：对指定文本按指定缺失度执行 `mask_text`
 struct MaskCaseSpec {
     name: String,
-    text: &'static str,
+    text: String,
     missing_degree: f32,
+}
+
+/// 缺失度梯度
+const MASK_GRADIENTS: [f32; 6] = [0.0, 0.1, 0.2, 0.5, 0.87, 1.0];
+
+/// 从文本集构造遮罩用例（中/长 × 全梯度 + 短文本边界 + 确定性）
+fn build_mask_cases(texts: &[(&str, String)]) -> Vec<MaskCaseSpec> {
+    let mut cases = Vec::new();
+    // 中/长文本 × 全梯度：验证比例正确性
+    for (tag, text) in texts.iter().filter(|(tag, _)| *tag != "short") {
+        for md in MASK_GRADIENTS {
+            cases.push(MaskCaseSpec {
+                name: format!("{}-md{:.2}", tag, md),
+                text: text.clone(),
+                missing_degree: md,
+            });
+        }
+    }
+    // 短文本边界：验证不 panic、masked ≤ total
+    if let Some((_, short)) = texts.iter().find(|(tag, _)| *tag == "short") {
+        for md in [0.5, 0.87, 1.0] {
+            cases.push(MaskCaseSpec {
+                name: format!("short-md{:.2}", md),
+                text: short.clone(),
+                missing_degree: md,
+            });
+        }
+    }
+    // 确定性：同一输入两次结果一致（取最长文本）
+    if let Some((_, long)) = texts.iter().max_by(|a, b| a.1.chars().count().cmp(&b.1.chars().count())) {
+        cases.push(MaskCaseSpec {
+            name: "determinism".into(),
+            text: long.clone(),
+            missing_degree: 0.5,
+        });
+    }
+    cases
 }
 
 /// 内置文本集：短 / 中 / 长中文文本
@@ -188,9 +228,6 @@ const MASK_TEXTS: [(&str, &str); 3] = [
     ),
 ];
 
-/// 缺失度梯度
-const MASK_GRADIENTS: [f32; 6] = [0.0, 0.1, 0.2, 0.5, 0.87, 1.0];
-
 /// 遮罩用例的观测数据
 pub struct MaskCaseData {
     pub case_name: String,
@@ -205,37 +242,70 @@ pub struct ForgetMaskSuite {
 }
 
 impl ForgetMaskSuite {
+    /// 内置文本集套件（无图依赖，测试/快速验证使用）
     pub fn new() -> Self {
-        let mut cases = Vec::new();
-        // 中/长文本 × 全梯度：验证比例正确性
-        for (tag, text) in MASK_TEXTS[1..].iter().copied() {
-            for md in MASK_GRADIENTS {
-                cases.push(MaskCaseSpec {
-                    name: format!("{}-md{:.2}", tag, md),
-                    text,
-                    missing_degree: md,
-                });
+        let texts: Vec<(&str, String)> = MASK_TEXTS
+            .iter()
+            .map(|(tag, text)| (*tag, text.to_string()))
+            .collect();
+        Self {
+            jieba: Jieba::new(),
+            cases: build_mask_cases(&texts),
+        }
+    }
+
+    /// 从指定 fixture 图加载文本（与 Revise/Pipeline 同一数据源）。
+    ///
+    /// 从图中收集可遮罩节点（SemMemory / SpecificSituation）的文本，
+    /// 按词数分短/中/长三层各取一个代表性文本，构造遮罩用例。
+    pub fn load(path: &Path) -> Result<Self, String> {
+        let (cluster, _id_map) = load_graph_cluster(path)
+            .map_err(|e| format!("加载图 '{}' 失败: {}", path.display(), e))?;
+        let jieba = Jieba::new();
+        let mut short: Vec<String> = Vec::new();
+        let mut medium: Vec<String> = Vec::new();
+        let mut long: Vec<String> = Vec::new();
+        for n in cluster.graph().node_weights() {
+            if !is_maskable(n.note()) {
+                continue;
+            }
+            let text = get_summary(n.note()).unwrap_or_default();
+            if text.trim().is_empty() {
+                continue;
+            }
+            let words = mask_word_count(&jieba, &text);
+            if words < 8 {
+                short.push(text);
+            } else if words <= 20 {
+                medium.push(text);
+            } else {
+                long.push(text);
             }
         }
-        // 短文本边界：验证不 panic、masked ≤ total
-        for md in [0.5, 0.87, 1.0] {
-            cases.push(MaskCaseSpec {
-                name: format!("short-md{:.2}", md),
-                text: MASK_TEXTS[0].1,
-                missing_degree: md,
-            });
+        // 每层取最长的一个代表性文本（控制用例数量）
+        let longest = |mut v: Vec<String>| -> Option<String> {
+            v.sort_by_key(|s| std::cmp::Reverse(s.chars().count()));
+            v.into_iter().next()
+        };
+        let mut texts: Vec<(&str, String)> = Vec::new();
+        if let Some(t) = longest(short) {
+            texts.push(("short", t));
         }
-        // 确定性：同一输入两次结果一致
-        cases.push(MaskCaseSpec {
-            name: "determinism".into(),
-            text: MASK_TEXTS[2].1,
-            missing_degree: 0.5,
-        });
-        Self { jieba: Jieba::new(), cases }
+        if let Some(t) = longest(medium) {
+            texts.push(("medium", t));
+        }
+        if let Some(t) = longest(long) {
+            texts.push(("long", t));
+        }
+
+        Ok(Self {
+            jieba,
+            cases: build_mask_cases(&texts),
+        })
     }
 
     fn run_mask_case(&self, spec: &MaskCaseSpec) -> MaskCaseData {
-        let r1 = mask_text(spec.text, spec.missing_degree, &self.jieba);
+        let r1 = mask_text(&spec.text, spec.missing_degree, &self.jieba);
         let passed = {
             let mut ok = true;
             let ratio = if r1.total_count > 0 {
@@ -284,7 +354,7 @@ impl ForgetMaskSuite {
         detail_lines.push(format!("  遮罩: {}", r1.masked_text));
 
         // 确定性：同输入再跑一次
-        let r2 = mask_text(spec.text, spec.missing_degree, &self.jieba);
+        let r2 = mask_text(&spec.text, spec.missing_degree, &self.jieba);
         if spec.name == "determinism" {
             if r1.masked_text != r2.masked_text {
                 detail_lines.push("  确定性检查: 两次结果不一致！".into());
@@ -700,8 +770,8 @@ pub struct ForgetCaseSpec {
     pub want_llm: bool,
 }
 
-/// 全管线场景集：低/中/高遗忘强度 + 增量一致性
-pub const PIPELINE_CASES: [ForgetCaseSpec; 4] = [
+/// 全管线场景集：低/中/高遗忘强度 + 多步遗忘 + 激活测试 + 增量一致性
+pub const PIPELINE_CASES: [ForgetCaseSpec; 6] = [
     ForgetCaseSpec {
         name: "low",
         description: "低遗忘强度（Δt=8h）：全图批量刷新 + 惰性遗忘",
@@ -719,6 +789,18 @@ pub const PIPELINE_CASES: [ForgetCaseSpec; 4] = [
         description: "高遗忘强度（Δt=72h）：llama-server 修订长文本节点（抽样）",
         elapsed_hours: 72,
         want_llm: true,
+    },
+    ForgetCaseSpec {
+        name: "multi-step",
+        description: "多步遗忘：3 轮 × 24h 对全图每个节点逐步衰减/遮罩/修订",
+        elapsed_hours: -10, // 特殊标记：多步遗忘场景
+        want_llm: true,
+    },
+    ForgetCaseSpec {
+        name: "activation",
+        description: "激活测试：随机节点激活多次，验证整图遗忘状态符合设计",
+        elapsed_hours: -11, // 特殊标记：激活测试场景
+        want_llm: false,
     },
     ForgetCaseSpec {
         name: "incremental",
@@ -814,17 +896,18 @@ impl ForgetPipelineSuite {
         })
     }
 
-    /// 模拟老化：把整张图的节点/边统一回拨 `last_forget_time`（缺失度归零）
+    /// 模拟老化：把整张图的节点/边统一回拨 `last_forget_time`（缺失度归零）。
+    /// `hours=0` 表示就在 `now` 时刻（供多步遗忘的起始时间轴使用）。
     fn apply_aging(&self, cluster: &mut MemoryCluster, now: DateTime<Utc>, hours: i64) {
         let g = cluster.graph_mut();
         let node_indices: Vec<_> = g.node_indices().collect();
         for idx in node_indices {
-            let t = now - ChronoDuration::hours(hours.max(1));
+            let t = now - ChronoDuration::hours(hours.max(0));
             let n = g.node_weight_mut(idx).expect("node");
             n.note.set_last_forget_time(t);
             n.note.set_missing_degree(0.0);
         }
-        let t_edge = now - ChronoDuration::hours(hours.max(1));
+        let t_edge = now - ChronoDuration::hours(hours.max(0));
         for ei in g.edge_indices().collect::<Vec<_>>() {
             let l = g.edge_weight_mut(ei).expect("edge");
             l.set_last_forget_time(t_edge);
@@ -1175,6 +1258,424 @@ impl ForgetPipelineSuite {
         }
     }
 
+    /// 多步遗忘：3 轮 × 24h，对图中**每个受遗忘影响的节点**逐步执行
+    /// 衰减 → 遮罩 →（LLM 抽样）修订，收集每一步的输入输出与缺失度轨迹。
+    ///
+    /// 观测内容：
+    /// - 每节点的缺失度轨迹（md0 → md1 → md2 → md3，单调不减）；
+    /// - 每轮动作分布（NoAction / MaskOnly / Revised）与有效修订数；
+    /// - 内容退化轨迹：原始文本 → 每轮遮罩输入 → LLM 原始回复。
+    fn run_multi_step_case(&self) -> ForgetCaseData {
+        const STEPS: usize = 3;
+        const STEP_HOURS: i64 = 24;
+        let t0 = Utc::now() - ChronoDuration::hours(STEP_HOURS * (STEPS as i64));
+        let mut cluster = self.graph.clone();
+        let use_llm = self.llm.is_some();
+
+        // 初始化：所有节点/边在 t0 时刻刚被遗忘刷新（缺失度归零）
+        self.apply_aging(&mut cluster, t0, 0);
+
+        let runtime = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .expect("tokio runtime");
+        let node_indices: Vec<_> = {
+            let g = cluster.graph();
+            g.node_indices().collect()
+        };
+
+        // 原始文本（第一轮前的原文，供"原始输入输出"展示）
+        let originals: Vec<String> = node_indices
+            .iter()
+            .map(|idx| {
+                let g = cluster.graph();
+                get_summary(g.node_weight(*idx).expect("node").note()).unwrap_or_default()
+            })
+            .collect();
+
+        let mut passed = true;
+        let mut per_step_avg_md: Vec<f32> = Vec::new();
+        let mut per_step_hist: Vec<(String, Vec<(&'static str, usize)>)> = Vec::new();
+        let mut detail_lines = Vec::new();
+        let mut metrics: Vec<(String, String, String)> = Vec::new();
+        let mut total_effective = 0usize;
+        let mut total_revised = 0usize;
+
+        for step in 0..STEPS {
+            let now = t0 + ChronoDuration::hours(STEP_HOURS * ((step + 1) as i64));
+
+            // 先全图刷新缺失度（lazy_forget 内部也会刷新，但修订抽样需要
+            // 基于本轮的缺失度筛选）
+            compute_all_missing_degrees(&mut cluster, now);
+
+            // LLM 修订抽样（每轮重算：内容与缺失度都已演变）
+            let revise_set: std::collections::HashSet<_> = {
+                let g = cluster.graph();
+                let mut candidates: Vec<_> = g
+                    .node_indices()
+                    .filter(|idx| {
+                        let n = g.node_weight(*idx).expect("node");
+                        if !is_maskable(n.note()) {
+                            return false;
+                        }
+                        let words = get_summary(n.note())
+                            .map(|t| mask_word_count(&self.jieba, &t))
+                            .unwrap_or(0);
+                        n.note().missing_degree() >= REVISE_THRESHOLD
+                            && words >= PIPELINE_REVISE_MIN_WORDS
+                    })
+                    .map(|idx| {
+                        let n = g.node_weight(idx).expect("node");
+                        (idx, n.note().missing_degree())
+                    })
+                    .collect();
+                candidates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+                candidates
+                    .into_iter()
+                    .take(MAX_LLM_REVISIONS)
+                    .map(|(idx, _)| idx)
+                    .collect()
+            };
+
+            let mut step_md_sum = 0.0f32;
+            let mut step_hist: std::collections::BTreeMap<&'static str, usize> =
+                std::collections::BTreeMap::new();
+            let mut step_revised = 0usize;
+            let mut step_effective = 0usize;
+
+            for (i, idx) in node_indices.iter().enumerate() {
+                let (before, type_name, id) = {
+                    let g = cluster.graph();
+                    let n = g.node_weight(*idx).expect("node");
+                    (
+                        current_missing_degree(n.note(), now),
+                        forget_type_name(n.note()),
+                        n.note().id().to_string(),
+                    )
+                };
+
+                let (action, after) = {
+                    let g = cluster.graph_mut();
+                    let node = &mut g.node_weight_mut(*idx).expect("node").note;
+                    let closure: LlmCall = if use_llm && revise_set.contains(idx) {
+                        llama_closure(self.llm.as_ref().expect("llm").clone())
+                    } else {
+                        failing_llm_closure()
+                    };
+                    let act = runtime.block_on(lazy_forget(
+                        node,
+                        now,
+                        &self.jieba,
+                        Some(FORGET_SYSTEM_PROMPT),
+                        closure,
+                    ));
+                    (act, node.missing_degree())
+                };
+
+                let (action_name, masked_text, llm_reply, effective) = match &action {
+                    ForgetAction::NoAction => ("NoAction", None, None, false),
+                    ForgetAction::MaskOnly { masked_text, .. } => {
+                        ("MaskOnly", Some(masked_text.clone()), None, false)
+                    }
+                    ForgetAction::Revised {
+                        masked_text, new_summary, ..
+                    } => {
+                        let eff = is_effective_revision(new_summary);
+                        (
+                            "Revised",
+                            Some(masked_text.clone()),
+                            Some(new_summary.clone()),
+                            eff,
+                        )
+                    }
+                };
+
+                *step_hist.entry(action_name).or_insert(0) += 1;
+                step_md_sum += after;
+                if action_name == "Revised" {
+                    step_revised += 1;
+                    if effective {
+                        step_effective += 1;
+                    }
+                }
+
+                // 不变量：缺失度单调不减
+                if after + 1e-4 < before {
+                    passed = false;
+                }
+                if !(0.0..=1.0).contains(&after) {
+                    passed = false;
+                }
+
+                // 内容轨迹（首轮展示原始文本，每轮展示动作与缺失度）
+                if step == 0 {
+                    detail_lines.push(format!(
+                        "{} [{}] 原文: {}",
+                        type_name,
+                        id.chars().take(8).collect::<String>(),
+                        originals[i]
+                    ));
+                }
+                detail_lines.push(format!(
+                    "  步{} t+{}h {} [{}] md {:.3}→{:.3} 动作={}{}",
+                    step + 1,
+                    STEP_HOURS * ((step + 1) as i64),
+                    type_name,
+                    id.chars().take(8).collect::<String>(),
+                    before,
+                    after,
+                    action_name,
+                    if action_name == "Revised" {
+                        if effective {
+                            " [有效修订]"
+                        } else {
+                            " [无效修订!]"
+                        }
+                    } else {
+                        ""
+                    }
+                ));
+                if let (Some(mt), Some(reply)) = (&masked_text, &llm_reply) {
+                    detail_lines.push(format!("      遮罩输入: {}", mt));
+                    detail_lines.push(format!("      LLM原始回复: {}", reply));
+                }
+            }
+
+            let avg_md = step_md_sum / node_indices.len().max(1) as f32;
+            per_step_avg_md.push(avg_md);
+            per_step_hist.push((
+                format!("step{}", step + 1),
+                step_hist.iter().map(|(k, v)| (*k, *v)).collect(),
+            ));
+            total_revised += step_revised;
+            total_effective += step_effective;
+        }
+
+        // 汇总 metric
+        for (s, avg) in per_step_avg_md.iter().enumerate() {
+            metrics.push((
+                "多步遗忘".into(),
+                format!("step{} 平均缺失度", s + 1),
+                format!("{:.3}", avg),
+            ));
+        }
+        for (label, hist) in &per_step_hist {
+            for (k, v) in hist {
+                metrics.push((
+                    "多步遗忘动作".into(),
+                    format!("{} {}", label, k),
+                    v.to_string(),
+                ));
+            }
+        }
+        if use_llm {
+            metrics.push((
+                "多步遗忘".into(),
+                "LLM 修订/有效".into(),
+                format!("{}/{}", total_effective, total_revised),
+            ));
+        }
+        // 衰减曲线：轮次 vs 平均缺失度
+        let points: Vec<(f64, f64)> = per_step_avg_md
+            .iter()
+            .enumerate()
+            .map(|(i, md)| ((i + 1) as f64, *md as f64))
+            .collect();
+
+        // LLM 可用但全程零修订 → 明确失败
+        if use_llm && total_revised == 0 {
+            passed = false;
+        }
+
+        let node_count = node_indices.len();
+        let edge_count = {
+            let g = cluster.graph();
+            g.edge_count()
+        };
+        let max_md = per_step_avg_md.last().copied().unwrap_or(0.0);
+
+        let mut out_metrics = vec![
+            (
+                "多步遗忘".into(),
+                "平均缺失度(末步)".into(),
+                format!("{:.3}", max_md),
+            ),
+            (
+                "多步遗忘".into(),
+                "受影响的节点数".into(),
+                node_count.to_string(),
+            ),
+            (
+                "多步遗忘".into(),
+                "边数".into(),
+                edge_count.to_string(),
+            ),
+        ];
+        out_metrics.extend(metrics);
+
+        ForgetCaseData {
+            case_name: "multi-step".into(),
+            passed,
+            llm_available: use_llm,
+            node_count,
+            edge_count,
+            llm_revised: total_revised,
+            effective_revised: total_effective,
+            action_histogram: per_step_hist
+                .last()
+                .map(|(_, h)| h.clone())
+                .unwrap_or_default(),
+            avg_missing_degree: max_md,
+            max_missing_degree: max_md,
+            avg_masked_ratio: 0.0,
+            avg_edge_intensity: 0.0,
+            detail_lines,
+            metrics: out_metrics,
+        }
+    }
+
+    /// 激活测试：固定种子随机选节点激活多次（`retrieval_increment`），
+    /// 统一老化 72h 后验证**整图**的遗忘状态是否符合设计：
+    /// - 激活次数越多 → 半衰期越长 → 缺失度越低（负相关）；
+    /// - 每个节点的实测缺失度与理论值一致（±1e-3）。
+    fn run_activation_case(&self) -> ForgetCaseData {
+        let now = Utc::now();
+        const ELAPSED_HOURS: i64 = 72;
+        let mut cluster = self.graph.clone();
+        self.apply_aging(&mut cluster, now, ELAPSED_HOURS);
+
+        // 固定种子随机激活：给随机节点赋予 0..=12 次激活
+        let mut rng = StdRng::seed_from_u64(20260818);
+        let node_indices: Vec<_> = {
+            let g = cluster.graph();
+            g.node_indices().collect()
+        };
+        let mut shuffled: Vec<usize> = (0..node_indices.len()).collect();
+        shuffled.shuffle(&mut rng);
+        // 约 2/3 的节点获得随机激活次数
+        let activated_count = (node_indices.len() * 2 / 3).max(1);
+        let mut counts: std::collections::HashMap<usize, usize> = std::collections::HashMap::new();
+        for &i in shuffled.iter().take(activated_count) {
+            let c: usize = rng.random_range(1..=12);
+            counts.insert(i, c);
+        }
+
+        // 施加激活（retrieval_increment 会更新 last_accessed_time，不影响衰减公式）
+        {
+            let g = cluster.graph_mut();
+            for (i, idx) in node_indices.iter().enumerate() {
+                if let Some(&n) = counts.get(&i) {
+                    let node = &mut g.node_weight_mut(*idx).expect("node").note;
+                    for _ in 0..n {
+                        node.retrieval_increment();
+                    }
+                }
+            }
+        }
+
+        // 全图刷新缺失度
+        compute_all_missing_degrees(&mut cluster, now);
+
+        // 逐节点校验：实测 vs 理论
+        let mut passed = true;
+        let mut detail_lines = Vec::new();
+        let mut groups: std::collections::BTreeMap<u32, (f32, f32, usize)> =
+            std::collections::BTreeMap::new(); // 分组 -> (实测md和, 理论md和, 数)
+        let g = cluster.graph();
+        for (i, idx) in node_indices.iter().enumerate() {
+            let n = g.node_weight(*idx).expect("node");
+            let count = counts.get(&i).copied().unwrap_or(0);
+            let md_actual = n.note().missing_degree();
+            let md_theory = activation_theory_md(count, ELAPSED_HOURS as f32);
+
+            // 容差：浮点公式一致，1e-3 足够
+            if (md_actual - md_theory).abs() > 1e-3 {
+                passed = false;
+            }
+            if !(0.0..=1.0).contains(&md_actual) {
+                passed = false;
+            }
+
+            // 分组统计（0 / 1-3 / 4-7 / 8+）
+            let bucket = match count {
+                0 => 0u32,
+                1..=3 => 1,
+                4..=7 => 2,
+                _ => 3,
+            };
+            let e = groups.entry(bucket).or_insert((0.0, 0.0, 0));
+            e.0 += md_actual;
+            e.1 += md_theory;
+            e.2 += 1;
+
+            let short_id: String = n.note().id().to_string().chars().take(8).collect();
+            detail_lines.push(format!(
+                "{} 激活{}次 md实测{:.3} 理论{:.3} 偏差{:.5}",
+                short_id, count, md_actual, md_theory, md_actual - md_theory
+            ));
+        }
+
+        // 负相关断言：激活越多的分组，平均缺失度越低
+        let bucket_order = [0u32, 1, 2, 3];
+        let avg_md: Vec<(u32, f32)> = groups
+            .iter()
+            .map(|(k, (s, _, n))| (*k, s / *n as f32))
+            .collect();
+        for w in bucket_order.windows(2) {
+            let a = avg_md.iter().find(|(k, _)| *k == w[0]).map(|(_, v)| *v);
+            let b = avg_md.iter().find(|(k, _)| *k == w[1]).map(|(_, v)| *v);
+            if let (Some(a), Some(b)) = (a, b) {
+                // 相邻分组严格递减（激活多 → 缺失度低）
+                if b >= a - 1e-3 {
+                    passed = false;
+                }
+            }
+        }
+
+        let mut metrics: Vec<(String, String, String)> = Vec::new();
+        for (k, (s, t, n)) in &groups {
+            let label = match k {
+                0 => "激活0次".to_string(),
+                1 => "激活1-3次".to_string(),
+                2 => "激活4-7次".to_string(),
+                _ => "激活8+次".to_string(),
+            };
+            metrics.push((
+                "激活测试".into(),
+                format!("{} 平均缺失度(实测/理论)", label),
+                format!("{:.3}/{:.3}（{}节点）", s / *n as f32, t / *n as f32, n),
+            ));
+        }
+        metrics.push((
+            "激活测试".into(),
+            "半衰期延长设计".into(),
+            format!(
+                "激活10次: 24h→{}h；激活0次: 24h",
+                DEFAULT_BASE_HALF_LIFE_HOURS * (1.0 + DEFAULT_ACTIVE_FACTOR * 10.0)
+            ),
+        ));
+
+        ForgetCaseData {
+            case_name: "activation".into(),
+            passed,
+            llm_available: false,
+            node_count: node_indices.len(),
+            edge_count: {
+                let g = cluster.graph();
+                g.edge_count()
+            },
+            llm_revised: 0,
+            effective_revised: 0,
+            action_histogram: vec![],
+            avg_missing_degree: groups.get(&0).map(|(s, _, n)| s / *n as f32).unwrap_or(0.0),
+            max_missing_degree: 0.0,
+            avg_masked_ratio: 0.0,
+            avg_edge_intensity: 0.0,
+            detail_lines,
+            metrics,
+        }
+    }
+
     /// 增量一致性场景：两次 12h 增量更新 == 一次 24h 全量计算（误差 < 1e-3）
     fn run_incremental_case(&self) -> ForgetCaseData {
         let now = Utc::now();
@@ -1259,6 +1760,10 @@ impl TestSuite for ForgetPipelineSuite {
         let spec = &self.cases[index];
         let data = if spec.elapsed_hours == -1 {
             self.run_incremental_case()
+        } else if spec.elapsed_hours == -10 {
+            self.run_multi_step_case()
+        } else if spec.elapsed_hours == -11 {
+            self.run_activation_case()
         } else {
             self.run_pipeline(spec)
         };
@@ -1417,6 +1922,15 @@ fn is_maskable_type(type_name: &'static str) -> bool {
     matches!(type_name, "SemMemory" | "SpecificSituation")
 }
 
+/// 激活后的理论缺失度：半衰期随激活次数延长
+/// `md = 1 - e^(-elapsed·ln2 / (base_hl × (1 + active_factor × min(count, cap))))`
+fn activation_theory_md(retrieval_count: usize, elapsed_hours: f32) -> f32 {
+    let capped = (retrieval_count as f32).min(DEFAULT_MAX_ACTIVATION_CAP as f32);
+    let adjusted_hl = DEFAULT_BASE_HALF_LIFE_HOURS * (1.0 + DEFAULT_ACTIVE_FACTOR * capped);
+    let tau = adjusted_hl / std::f32::consts::LN_2;
+    1.0 - (-elapsed_hours / tau).exp()
+}
+
 fn compute_and_update(node: &mut MemoryNote, current_time: DateTime<Utc>) -> f32 {
     let md = update_missing_degree_incremental(
         node.missing_degree(),
@@ -1457,6 +1971,22 @@ mod tests {
     fn test_mask_suite_has_cases_and_all_pass() {
         let suite = ForgetMaskSuite::new();
         assert!(suite.case_count() >= 10);
+        for i in 0..suite.case_count() {
+            let outcome = suite.run_case(i);
+            assert!(
+                outcome.passed,
+                "遮罩用例 {} 失败: {}",
+                outcome.case_name,
+                outcome.description
+            );
+        }
+    }
+
+    #[test]
+    fn test_mask_suite_loads_fixture_and_all_pass() {
+        // 遮罩阶段也以 fixture 图为输入源
+        let suite = ForgetMaskSuite::load(&fixture_graph()).expect("加载 fixture 图");
+        assert!(suite.case_count() >= 12);
         for i in 0..suite.case_count() {
             let outcome = suite.run_case(i);
             assert!(
@@ -1545,6 +2075,32 @@ mod tests {
                 outcome.description
             );
         }
+    }
+
+    #[test]
+    fn test_pipeline_multi_step_without_llm() {
+        // 多步遗忘：无 LLM 时应全走遮罩降级且通过（缺失度单调不减）
+        let suite = ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        let data = suite.run_multi_step_case();
+        assert!(data.passed, "多步遗忘失败");
+        assert!(data.node_count > 10, "应覆盖全图节点");
+        assert!(!data.detail_lines.is_empty());
+        // 无 LLM 时不应有修订
+        assert_eq!(data.llm_revised, 0);
+    }
+
+    #[test]
+    fn test_pipeline_activation_reflects_design() {
+        // 激活测试：确定性（固定种子），激活多的节点缺失度更低，实测=理论
+        let suite = ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        let data = suite.run_activation_case();
+        assert!(data.passed, "激活测试失败");
+        // 理论公式自检：激活10次 vs 0次在72h的缺失度
+        let md0 = activation_theory_md(0, 72.0);
+        let md3 = activation_theory_md(3, 72.0);
+        let md10 = activation_theory_md(10, 72.0);
+        assert!(md10 < md3 && md3 < md0, "激活应减缓遗忘");
+        assert!((md0 - 0.875).abs() < 1e-2, "72h 无激活缺失度应≈0.875");
     }
 
     #[test]

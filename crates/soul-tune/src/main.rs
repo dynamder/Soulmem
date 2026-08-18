@@ -164,7 +164,10 @@ fn run_headless_single(algo: AlgoType, dataset_path: PathBuf) -> color_eyre::Res
             RetrieveSuite::load(&dataset_path, m)
                 .map_err(|e| color_eyre::eyre::eyre!("{}", e))?,
         ),
-        AlgoType::Forget(ForgetMode::Mask) => Box::new(ForgetMaskSuite::new()),
+        AlgoType::Forget(ForgetMode::Mask) => Box::new(
+            ForgetMaskSuite::load(&dataset_path)
+                .map_err(|e| color_eyre::eyre::eyre!("{}", e))?,
+        ),
         AlgoType::Forget(ForgetMode::Revise) => Box::new(
             ForgetReviseSuite::load(&dataset_path)
                 .map_err(|e| color_eyre::eyre::eyre!("{}", e))?,
