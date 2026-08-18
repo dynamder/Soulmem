@@ -19,7 +19,7 @@ use ratatui::Frame;
 
 use crate::base::{TestReport, Transition};
 use crate::component::{Component, ComponentEvent};
-use crate::engine::forget::{ForgetCaseData, NodeForgetStat};
+use crate::engine::forget::{ForgetCaseData, MaskCaseData, NodeForgetStat, ReviseCaseData};
 use crate::engine::suite::TestCaseOutcome;
 
 pub struct ForgetObserverState {
@@ -50,17 +50,44 @@ impl ForgetObserverState {
         &self.report.suite_report.outcomes
     }
 
-    fn case_data(&self) -> Option<&ForgetCaseData> {
-        self.outcomes()
-            .get(self.case_idx)
-            .and_then(|o| o.data.downcast_ref::<ForgetCaseData>())
+    /// 当前用例的可展示数据（支持三种模式的 outcome 类型）
+    fn view_data(&self) -> Option<ObserverCaseView> {
+        let o = self.outcomes().get(self.case_idx)?;
+        if let Some(d) = o.data.downcast_ref::<ForgetCaseData>() {
+            return Some(ObserverCaseView::Nodes(d));
+        }
+        if let Some(d) = o.data.downcast_ref::<MaskCaseData>() {
+            return Some(ObserverCaseView::Text {
+                metrics: &d.metrics,
+                detail_lines: &d.detail_lines,
+            });
+        }
+        if let Some(d) = o.data.downcast_ref::<ReviseCaseData>() {
+            return Some(ObserverCaseView::Text {
+                metrics: &d.metrics,
+                detail_lines: &d.detail_lines,
+            });
+        }
+        None
     }
 
     fn nodes(&self) -> Vec<&NodeForgetStat> {
-        self.case_data()
-            .map(|d| d.nodes.iter().collect())
-            .unwrap_or_default()
+        match self.view_data() {
+            Some(ObserverCaseView::Nodes(d)) => d.nodes.iter().collect(),
+            _ => Vec::new(),
+        }
     }
+}
+
+/// 观测页的用例展示视图：
+/// - Nodes：全管线（含节点列表）
+/// - Text：Mask / Revise / activation / incremental（指标 + 明细文本）
+enum ObserverCaseView<'a> {
+    Nodes(&'a ForgetCaseData),
+    Text {
+        metrics: &'a [(String, String, String)],
+        detail_lines: &'a [String],
+    },
 }
 
 /// 按动作着色：NoAction 灰 / MaskOnly 黄 / Revised 绿(有效) 红(无效)
@@ -280,23 +307,25 @@ impl Component for ForgetObserverState {
             .split(chunks[1]);
 
         let nodes = self.nodes();
+        let has_nodes = !nodes.is_empty();
 
-        // 左栏：节点列表
+        // 左栏：节点列表（无节点列表的用例显示"指标"占位）
         let list_items: Vec<ListItem> = nodes.iter().map(|n| ListItem::new(node_item_line(n))).collect();
         let mut list_state = ListState::default();
-        if !nodes.is_empty() {
+        if has_nodes {
             list_state.select(Some(self.node_idx.min(nodes.len() - 1)));
         }
-        let list = List::new(list_items)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(format!(
-                        " 节点 ({}/{}) ",
-                        if nodes.is_empty() { 0 } else { self.node_idx + 1 },
-                        nodes.len()
-                    )),
+        let list_title = if has_nodes {
+            format!(
+                " 节点 ({}/{}) ",
+                self.node_idx + 1,
+                nodes.len()
             )
+        } else {
+            " 指标（无节点列表） ".to_string()
+        };
+        let list = List::new(list_items)
+            .block(Block::default().borders(Borders::ALL).title(list_title))
             .highlight_style(
                 Style::default()
                     .bg(Color::DarkGray)
@@ -308,33 +337,59 @@ impl Component for ForgetObserverState {
         let detail_block = Block::default()
             .borders(Borders::ALL)
             .title(format!(" 详情: {} ", self.case_name()));
-        if let Some(node) = nodes.get(self.node_idx.min(nodes.len().saturating_sub(1))) {
-            frame.render_widget(
-                Paragraph::new(detail_lines(node))
-                    .block(detail_block)
-                    .wrap(Wrap { trim: false })
-                    .scroll((self.detail_scroll, 0)),
-                mid[1],
-            );
-        } else if let Some(d) = self.case_data() {
-            // activation / incremental 等无节点列表的用例：展示指标 + 明细文本
-            let mut lines: Vec<Line> = Vec::new();
-            for (group, label, value) in &d.metrics {
-                lines.push(Line::from(format!("{} | {}: {}", group, label, value)));
+        match self.view_data() {
+            Some(ObserverCaseView::Nodes(d)) if has_nodes => {
+                let node = nodes[self.node_idx.min(nodes.len() - 1)];
+                frame.render_widget(
+                    Paragraph::new(detail_lines(node))
+                        .block(detail_block)
+                        .wrap(Wrap { trim: false })
+                        .scroll((self.detail_scroll, 0)),
+                    mid[1],
+                );
             }
-            lines.push(Line::from(""));
-            for dl in &d.detail_lines {
-                lines.push(Line::from(dl.as_str()));
+            Some(ObserverCaseView::Nodes(d)) => {
+                // activation / incremental：指标 + 明细文本
+                let mut lines: Vec<Line> = Vec::new();
+                for (group, label, value) in &d.metrics {
+                    lines.push(Line::from(format!("{} | {}: {}", group, label, value)));
+                }
+                lines.push(Line::from(""));
+                for dl in &d.detail_lines {
+                    lines.push(Line::from(dl.as_str()));
+                }
+                frame.render_widget(
+                    Paragraph::new(lines)
+                        .block(detail_block)
+                        .wrap(Wrap { trim: false })
+                        .scroll((self.detail_scroll, 0)),
+                    mid[1],
+                );
             }
-            frame.render_widget(
-                Paragraph::new(lines)
-                    .block(detail_block)
-                    .wrap(Wrap { trim: false })
-                    .scroll((self.detail_scroll, 0)),
-                mid[1],
-            );
-        } else {
-            frame.render_widget(detail_block, mid[1]);
+            Some(ObserverCaseView::Text {
+                metrics,
+                detail_lines,
+            }) => {
+                // Mask / Revise：指标 + 明细文本
+                let mut lines: Vec<Line> = Vec::new();
+                for (group, label, value) in metrics {
+                    lines.push(Line::from(format!("{} | {}: {}", group, label, value)));
+                }
+                lines.push(Line::from(""));
+                for dl in detail_lines {
+                    lines.push(Line::from(dl.as_str()));
+                }
+                frame.render_widget(
+                    Paragraph::new(lines)
+                        .block(detail_block)
+                        .wrap(Wrap { trim: false })
+                        .scroll((self.detail_scroll, 0)),
+                    mid[1],
+                );
+            }
+            None => {
+                frame.render_widget(detail_block, mid[1]);
+            }
         }
 
         // ── 底部：按键提示 ──
@@ -406,5 +461,86 @@ mod tests {
             modifiers: ratatui::crossterm::event::KeyModifiers::NONE,
         }));
         assert!(matches!(t, Transition::None));
+    }
+
+    #[test]
+    fn test_view_data_supports_all_three_modes() {
+        // 三种模式的 outcome 都能被观测页识别（节点 0/0 回归测试）
+        let forget = ForgetCaseData {
+            case_name: "low".into(),
+            passed: true,
+            llm_available: false,
+            node_count: 1,
+            edge_count: 0,
+            llm_revised: 0,
+            effective_revised: 0,
+            action_histogram: vec![],
+            avg_missing_degree: 0.2,
+            max_missing_degree: 0.2,
+            avg_masked_ratio: 0.2,
+            avg_edge_intensity: 0.8,
+            nodes: vec![NodeForgetStat {
+                id: "id".into(),
+                type_name: "SemMemory",
+                original: "原文".into(),
+                md_before: 0.0,
+                md_after: 0.2,
+                action: "MaskOnly",
+                mask: Some((1, 5)),
+                masked_text: None,
+                llm_reply: None,
+                effective: false,
+            }],
+            detail_lines: vec![],
+            metrics: vec![],
+        };
+        let mask = MaskCaseData {
+            case_name: "mask-test".into(),
+            passed: true,
+            detail_lines: vec!["遮罩明细".into()],
+            metrics: vec![("遮罩".into(), "比例".into(), "50%".into())],
+        };
+        let revise = ReviseCaseData {
+            case_name: "revise-test".into(),
+            passed: true,
+            llm_available: true,
+            masked_text: "遮罩输入".into(),
+            llm_reply: "补全回复".into(),
+            detail_lines: vec!["补全明细".into()],
+            metrics: vec![("补全".into(), "字数".into(), "10".into())],
+        };
+
+        let mut report = dummy_report();
+        report.suite_report.outcomes = vec![
+            TestCaseOutcome {
+                case_name: "forget/full/low".into(),
+                description: String::new(),
+                passed: true,
+                data: Box::new(forget),
+            },
+            TestCaseOutcome {
+                case_name: "forget/mask/test".into(),
+                description: String::new(),
+                passed: true,
+                data: Box::new(mask),
+            },
+            TestCaseOutcome {
+                case_name: "forget/revise/test".into(),
+                description: String::new(),
+                passed: true,
+                data: Box::new(revise),
+            },
+        ];
+        let state = ForgetObserverState::new(report);
+        // 默认第一个用例：Pipeline 应有节点列表
+        assert!(matches!(state.view_data(), Some(ObserverCaseView::Nodes(_))));
+        assert_eq!(state.nodes().len(), 1);
+        // 切到 Mask 用例：应识别为 Text 视图
+        let mut state = state;
+        state.case_idx = 1;
+        assert!(matches!(state.view_data(), Some(ObserverCaseView::Text { .. })));
+        // 切到 Revise 用例：同样 Text 视图
+        state.case_idx = 2;
+        assert!(matches!(state.view_data(), Some(ObserverCaseView::Text { .. })));
     }
 }
