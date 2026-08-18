@@ -28,6 +28,7 @@ use engine::playtest::trace::RetrievalTrace;
 use engine::playtest::{DialogueFile, PlayTestRunner, PlayTurnResult};
 use engine::retrieve::batch::process_one_dataset;
 use engine::retrieve::data::RetrieveCaseData;
+use engine::forget::ForgetSuite;
 use engine::retrieve::RetrieveSuite;
 use engine::suite::{MetricFormat, ReportMetric, TestCaseOutcome, TestSuite};
 use soul_mem_query::query::retrieve::MemoryRetrieveQueryVariant;
@@ -125,15 +126,14 @@ fn main() -> color_eyre::Result<()> {
             }
         };
 
-        let mode = match algo {
-            AlgoType::Retrieve(m) => m,
-            _ => {
-                eprintln!("{} 尚未支持 headless 模式", algo);
-                std::process::exit(1);
-            }
-        };
-
         if is_batch {
+            let mode = match algo {
+                AlgoType::Retrieve(m) => m,
+                _ => {
+                    eprintln!("batch 模式仅支持 retrieve");
+                    std::process::exit(1);
+                }
+            };
             run_headless_batch(&dataset_path, mode);
         } else {
             run_headless_single(algo, dataset_path)?;
@@ -157,16 +157,20 @@ fn run_headless_single(algo: AlgoType, dataset_path: PathBuf) -> color_eyre::Res
     println!("算法: {}", algo);
     println!("数据集: {}\n", dataset_name);
 
-    let mode = match algo {
-        AlgoType::Retrieve(m) => m,
+    let suite: Box<dyn TestSuite> = match algo {
+        AlgoType::Retrieve(m) => Box::new(
+            RetrieveSuite::load(&dataset_path, m)
+                .map_err(|e| color_eyre::eyre::eyre!("{}", e))?,
+        ),
+        AlgoType::Forget => Box::new(
+            ForgetSuite::load(&dataset_path)
+                .map_err(|e| color_eyre::eyre::eyre!("{}", e))?,
+        ),
         _ => {
             eprintln!("{} 尚未支持 headless 模式", algo);
             std::process::exit(1);
         }
     };
-
-    let suite =
-        RetrieveSuite::load(&dataset_path, mode).map_err(|e| color_eyre::eyre::eyre!("{}", e))?;
 
     let n = suite.case_count();
     println!("共 {} 个测试用例\n", n);
