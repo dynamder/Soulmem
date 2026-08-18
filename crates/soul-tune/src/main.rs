@@ -3,6 +3,7 @@ mod base;
 mod cmd;
 mod component;
 mod engine;
+mod forget_tui;
 mod states;
 mod widgets;
 mod utils;
@@ -93,6 +94,15 @@ fn main() -> color_eyre::Result<()> {
 
     if args.len() >= 3 && args[1] == "playtest" {
         return run_headless_playtest(&args);
+    }
+
+    if args.len() >= 3 && args[1] == "forget-tui" {
+        let path = PathBuf::from(&args[2]);
+        if !path.exists() {
+            eprintln!("图文件不存在: {}", path.display());
+            std::process::exit(1);
+        }
+        return forget_tui::run(&path);
     }
 
     if args.len() >= 4 && args[1] == "run" {

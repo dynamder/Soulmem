@@ -819,9 +819,14 @@ pub const MAX_LLM_REVISIONS: usize = 8;
 pub struct NodeForgetStat {
     pub id: String,
     pub type_name: &'static str,
+    /// 图原文（遗忘管线执行前的原始记忆文本）
+    pub original: String,
+    /// 管线前缺失度 → 管线后缺失度
     pub md_before: f32,
     pub md_after: f32,
+    /// 触发的遗忘动作
     pub action: &'static str,
+    /// 遮罩词数 / 总词数（未遮罩为 None）
     pub mask: Option<(usize, usize)>,
     /// LLM 补全的遮罩输入文本（Revised 时）
     pub masked_text: Option<String>,
@@ -846,6 +851,8 @@ pub struct ForgetCaseData {
     pub max_missing_degree: f32,
     pub avg_masked_ratio: f32,
     pub avg_edge_intensity: f64,
+    /// 结构化节点观测（含图原文，供报告与 TUI 展示）
+    pub nodes: Vec<NodeForgetStat>,
     pub detail_lines: Vec<String>,
     pub metrics: Vec<(String, String, String)>,
 }
@@ -994,7 +1001,7 @@ impl ForgetPipelineSuite {
                 )
             };
 
-            let (action, after, orig_words) = {
+            let (action, after, orig_words, original) = {
                 let g = cluster.graph_mut();
                 let node = &mut g.node_weight_mut(idx).expect("node").note;
                 let orig = get_summary(node).unwrap_or_default();
@@ -1012,7 +1019,7 @@ impl ForgetPipelineSuite {
                     closure,
                 ));
                 let after = node.missing_degree();
-                (act, after, orig_words)
+                (act, after, orig_words, orig)
             };
 
             // 动作分类、遮罩统计与 LLM 原始回复
@@ -1097,6 +1104,7 @@ impl ForgetPipelineSuite {
             stats.push(NodeForgetStat {
                 id,
                 type_name,
+                original,
                 md_before: before,
                 md_after: after,
                 action: action_name,
@@ -1191,6 +1199,10 @@ impl ForgetPipelineSuite {
                     ""
                 }
             ));
+            // 附上图原文（人类测试员核对遗忘前内容）
+            if !s.original.is_empty() {
+                detail_lines.push(format!("    图原文: {}", s.original));
+            }
             // LLM 补全：贴出遮罩输入与 LLM 原始回复
             if let (Some(mt), Some(reply)) = (&s.masked_text, &s.llm_reply) {
                 detail_lines.push(format!("    遮罩输入: {}", mt));
@@ -1253,6 +1265,7 @@ impl ForgetPipelineSuite {
             max_missing_degree: max_md,
             avg_masked_ratio,
             avg_edge_intensity,
+            nodes: stats,
             detail_lines,
             metrics,
         }
@@ -1529,6 +1542,7 @@ impl ForgetPipelineSuite {
             max_missing_degree: max_md,
             avg_masked_ratio: 0.0,
             avg_edge_intensity: 0.0,
+            nodes: vec![],
             detail_lines,
             metrics: out_metrics,
         }
@@ -1670,6 +1684,7 @@ impl ForgetPipelineSuite {
             avg_missing_degree: groups.get(&0).map(|(s, _, n)| s / *n as f32).unwrap_or(0.0),
             max_missing_degree: 0.0,
             avg_masked_ratio: 0.0,
+            nodes: vec![],
             avg_edge_intensity: 0.0,
             detail_lines,
             metrics,
@@ -1745,6 +1760,7 @@ impl ForgetPipelineSuite {
             max_missing_degree: inc_md,
             avg_masked_ratio: 0.0,
             avg_edge_intensity: 0.0,
+            nodes: vec![],
             detail_lines,
             metrics,
         }
