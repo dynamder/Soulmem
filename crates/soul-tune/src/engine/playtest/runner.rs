@@ -21,9 +21,8 @@ use soul_mem_query::embedding::query::note::{
 };
 use soul_mem_query::embedding::{Embeddable, EmbeddingModel};
 use soul_mem_query::query::retrieve::{
-    EnvironmentQueryUnit, EventQueryUnit, LocationQueryUnit, MemoryRetrieveQuery,
-    MemoryRetrieveQueryVariant, ParticipantQueryUnit, PrioritizedMemoryRetrieveQuery,
-    SemanticQueryUnit, SituationQueryUnit,
+    EnvironmentQueryUnit, MemoryRetrieveQuery, MemoryRetrieveQueryVariant,
+    PrioritizedMemoryRetrieveQuery, SemanticQueryUnit, SituationQueryUnit,
 };
 use soul_mem_runtime::working_memory::WorkingMemory;
 
@@ -32,10 +31,7 @@ use crate::engine::llm::LlmBackend;
 use crate::engine::loader::{cached_load_graph, get_bge_model};
 use crate::engine::retrieve::data::NodeSummary;
 
-use super::repair::{
-    extract_balanced_array, extract_think_content, robust_json_extract, run_paw, strip_think_block,
-    RawQuery, RawSemUnit, RawSitUnit, RawVariant,
-};
+use super::repair::{extract_balanced_array, extract_balanced_object, run_paw, strip_think_block};
 use super::trace::{HitStage, QueryTrace, RetrievalTrace, TracedNode};
 
 #[derive(Debug, Clone, Deserialize)]
@@ -51,29 +47,52 @@ pub struct PlayConfig {
     pub merged_top_k: usize,
 }
 
-const CHAT_INSTRUCTION: &str = "注意：这是短信聊天场景，回复必须自然口语化，像真人发消息。\
-严禁使用括号描述动作、神态或心理活动，如（笑）、（叹气）、*摇头*等。\
-只输出对话内容，不加任何表演注释。\
-回复必须简短，一句话即可，不要重复用户的话，不要解释你的回复。";
+const CHAT_INSTRUCTION: &str = "这是即时通讯软件上的聊天场景：你通过聊天软件（IM）与对方互发消息；\
+对方是谁、你们是什么关系，由对话设定决定，按设定自然回应。\
+回复要像真人用聊天软件发消息一样自然、口语化，简短，通常一句话即可，不要重复用户的话。\
+严禁使用括号或星号描述动作、神态、心理活动（如（笑）、（叹气）、*摇头*），只输出消息内容。\
+不要解释你的回复，不要写长篇大论或旁白。";
 
-const ENTITY_EXTRACT_SLUG: &str = "soul-tune-entity-extract-v1";
+/// v2：输入加入对方身份（管线输入），且支持"无法准确命名的实体用简练特征描述"。
+/// slug 升级会触发 PAW 服务重新编译，避免命中 v1 的旧缓存函数。
+const ENTITY_EXTRACT_SLUG: &str = "soul-tune-entity-extract-v2";
 const ENTITY_EXTRACT_SPEC: &str = r#"You are an entity extraction tool for a character memory retrieval system.
-Extract all key entities from the user's message that the character needs to recall in order to respond naturally.
+Extract all key entities that the character needs to recall in order to respond naturally.
+
+The character knows the identity of the person they are talking to (对方身份).
+The partner's identity (name/称呼/关系/特征) is key information: always include the partner
+as an entity when the message relates to them, even if their name is not in the message.
 
 Extract:
-- Person names: people, characters, friends or foes mentioned or strongly implied
+- Person names: people, characters, friends or foes mentioned or strongly implied, including the partner (对方身份)
 - Location names: places, venues, regions
 - Concrete concepts: rules, terms, titles, skills
 - Items and objects: tools, weapons, artifacts
+- Unnameable entities: when something has no clear name but is described by its features,
+  output a concise descriptive noun phrase of its salient features, e.g. "红色方形的旋转物"
 
 Rules:
-- Each entity must be a concrete noun phrase, e.g. "弹幕规则", "神社", "博丽灵梦", "阴阳玉"
+- Each entity must be a concrete noun phrase, e.g. "弹幕规则", "神社", "博丽灵梦", "阴阳玉", "红色方形的旋转物"
 - Do NOT extract abstract categories like "爱好", "技能", "朋友"
-- Only include entities present in or strongly implied by the message
+- Only include entities present in or strongly implied by the message and the partner identity
 - Keep the original language of the message
+- For unnameable entities, describe salient features (color/shape/behavior/function) concisely as a noun phrase, not a full sentence
 
 Output format: a JSON array of strings, e.g. ["博丽灵梦", "神社", "弹幕规则"]
 Output ONLY the JSON array. No markdown, no explanations."#;
+
+const ATMOSPHERE_EXTRACT_SLUG: &str = "soul-tune-atmosphere-extract-v1";
+const ATMOSPHERE_EXTRACT_SPEC: &str = r#"You are an atmosphere extraction tool for a character memory retrieval system.
+Given the identity of the person the character is talking to and the recent conversation history,
+sense the CURRENT conversation atmosphere (氛围) and tone.
+
+Output a JSON object:
+{"atmosphere": "<一言概括当前会话氛围，如"深夜谈心"、"互相调侃"、"冷战">", "tone": "<对话语气，如"轻松"、"紧张"、"温暖">"}
+
+Rules:
+- Atmosphere and tone must come ONLY from the given dialogue context; do not invent emotions or details.
+- Keep each value to a short noun/adjective phrase (2-8 chars).
+- Output ONLY the JSON object. No markdown, no explanations."#;
 
 /// 生成后校验的兜底分常量（默认与 SimilarityConfig / PlayConfig 兜底分一致）：
 /// top-1 命中分低于该值的查询视为无对应记忆，直接丢弃。
@@ -85,14 +104,11 @@ pub const HISTORY_TURNS: usize = 6;
 /// 历史窗口最大消息数 = 轮数 × 2（对方 + 自己）。
 pub const HISTORY_MAX_MESSAGES: usize = HISTORY_TURNS * 2;
 
-/// 查询数量上限（4-8 的上界；下界由提示词引导，不强制）。
-pub const QUERY_MAX_COUNT: usize = 8;
+/// 实体查询 priority 基准：首个实体最高，逐条递减（保护排序靠前的重要实体）。
+pub const ENTITY_QUERY_PRIORITY_BASE: u32 = 10;
 
-/// 空回退：主查询全部被丢弃或为空时，用提取实体构造 Semantic 兜底查询的条数。
-pub const FALLBACK_ENTITY_TOP: usize = 3;
-
-/// 空回退查询的 priority（低于正常重要度，避免淹没主检索）。
-pub const FALLBACK_QUERY_PRIORITY: u32 = 2;
+/// 氛围查询 priority：低于最高优先实体，高于一般实体查询。
+pub const ATMOSPHERE_QUERY_PRIORITY: u32 = 9;
 
 /// priority 小偏移上限：分数接近（≤0.05）时保护重要查询的命中不被淹没，
 /// 分数差距较大时仍由分数主导。
@@ -181,118 +197,95 @@ fn push_history(history: &mut VecDeque<HistoryEntry>, role: &'static str, text: 
     }
 }
 
-/// 将解析后的查询数组截断到数量上限（4-8 中的上界 8）。
-fn cap_raw_queries(mut raw: Vec<RawQuery>) -> Vec<RawQuery> {
-    raw.truncate(QUERY_MAX_COUNT);
-    raw
-}
-
-/// 空回退：用提取的实体构造 Semantic 兜底查询（priority=2，取前 top 个实体）。
-/// 实体为空时返回空数组，检索阶段自然表现为"无检索"。
-fn build_fallback_queries(entities: &[String], top: usize) -> Vec<PrioritizedMemoryRetrieveQuery> {
+/// 实体查询：每个提取实体一条 Semantic 查询（tag=["实体"]），
+/// priority 从基准递减（首实体最高），过滤空白实体。
+fn build_entity_queries(entities: &[String]) -> Vec<PrioritizedMemoryRetrieveQuery> {
     entities
         .iter()
-        .filter(|e| !e.trim().is_empty())
-        .take(top)
-        .map(|e| {
+        .enumerate()
+        .filter(|(_, e)| !e.trim().is_empty())
+        .map(|(i, e)| {
             MemoryRetrieveQuery::new(
                 vec!["实体".to_string()],
                 MemoryRetrieveQueryVariant::Semantic(vec![
-                    SemanticQueryUnit::new().with_concept_identifier(e.clone()),
+                    SemanticQueryUnit::new().with_concept_identifier(e.trim().to_string()),
                 ]),
             )
-            .with_priority(FALLBACK_QUERY_PRIORITY)
+            .with_priority(ENTITY_QUERY_PRIORITY_BASE.saturating_sub(i as u32).max(1))
         })
         .collect()
 }
 
-fn raw_sem_to_query(u: RawSemUnit) -> SemanticQueryUnit {
-    let mut q = SemanticQueryUnit::new();
-    if let Some(c) = u.concept_identifier.filter(|c| !c.trim().is_empty()) {
-        q = q.with_concept_identifier(c);
-    }
-    if let Some(d) = u.description.filter(|d| !d.trim().is_empty()) {
-        q = q.with_description(d);
-    }
-    q
+/// PAW/LLM 气氛提取的输出：当前会话氛围（一句话概括）与语气。
+#[derive(Debug, Clone, Deserialize)]
+pub struct AtmosphereInfo {
+    #[serde(default)]
+    pub atmosphere: Option<String>,
+    #[serde(default)]
+    pub tone: Option<String>,
 }
 
-fn raw_sit_to_query(u: RawSitUnit) -> SituationQueryUnit {
-    let mut q = SituationQueryUnit::new();
-    if let Some(n) = u.narrative.filter(|n| !n.trim().is_empty()) {
-        q = q.with_narrative(n);
+impl AtmosphereInfo {
+    /// 氛围是否有效（atmosphere 字段非空）。
+    pub fn is_empty(&self) -> bool {
+        self.atmosphere
+            .as_ref()
+            .map(|a| a.trim().is_empty())
+            .unwrap_or(true)
     }
-    if let Some(locations) = u.location {
-        let units: Vec<LocationQueryUnit> = locations
-            .into_iter()
-            .filter_map(|l| {
-                l.name.filter(|n| !n.trim().is_empty()).map(|name| {
-                    let mut lu = LocationQueryUnit::new(name);
-                    if let Some(c) = l.coordinates.filter(|c| !c.trim().is_empty()) {
-                        lu = lu.with_coordinates(c);
-                    }
-                    lu
-                })
-            })
-            .collect();
-        if !units.is_empty() {
-            q = q.with_location(units);
-        }
+}
+
+/// 氛围查询：一条 Situation 查询，只携带 environment（atmosphere/tone），
+/// 不引用对话原文；驱动 compute.rs 的氛围评分通道（sit_env_atmosphere）。
+fn build_atmosphere_query(info: &AtmosphereInfo) -> Option<PrioritizedMemoryRetrieveQuery> {
+    if info.is_empty() {
+        return None;
     }
-    if let Some(participants) = u.participants {
-        let units: Vec<ParticipantQueryUnit> = participants
-            .into_iter()
-            .map(|p| {
-                let mut pu = ParticipantQueryUnit::new();
-                if let Some(n) = p.name.filter(|n| !n.trim().is_empty()) {
-                    pu = pu.with_name(n);
-                }
-                if let Some(r) = p.role.filter(|r| !r.trim().is_empty()) {
-                    pu = pu.with_role(r);
-                }
-                pu
-            })
-            .collect();
-        if !units.is_empty() {
-            q = q.with_participants(units);
-        }
+    let mut env = EnvironmentQueryUnit::new();
+    let mut any_env = false;
+    if let Some(a) = info.atmosphere.as_ref().filter(|a| !a.trim().is_empty()) {
+        env = env.with_atmosphere(a.trim());
+        any_env = true;
     }
-    if let Some(env) = u.environment {
-        let mut eu = EnvironmentQueryUnit::new();
-        let mut any = false;
-        if let Some(a) = env.atmosphere.filter(|a| !a.trim().is_empty()) {
-            eu = eu.with_atmosphere(a);
-            any = true;
-        }
-        if let Some(t) = env.tone.filter(|t| !t.trim().is_empty()) {
-            eu = eu.with_tone(t);
-            any = true;
-        }
-        if any {
-            q = q.with_environment(eu);
-        }
+    if let Some(t) = info.tone.as_ref().filter(|t| !t.trim().is_empty()) {
+        env = env.with_tone(t.trim());
+        any_env = true;
     }
-    if let Some(events) = u.event {
-        let units: Vec<EventQueryUnit> = events
-            .into_iter()
-            .filter_map(|e| {
-                e.action.filter(|a| !a.trim().is_empty()).map(|action| {
-                    let mut eu = EventQueryUnit::new(action);
-                    if let Some(i) = e.initiator.filter(|i| !i.trim().is_empty()) {
-                        eu = eu.with_initiator(i);
-                    }
-                    if let Some(t) = e.target.filter(|t| !t.trim().is_empty()) {
-                        eu = eu.with_target(t);
-                    }
-                    eu
-                })
-            })
-            .collect();
-        if !units.is_empty() {
-            q = q.with_event(units);
-        }
+    if !any_env {
+        return None;
     }
-    q
+    let sit = SituationQueryUnit::new().with_environment(env);
+    Some(
+        MemoryRetrieveQuery::new(
+            vec!["氛围".to_string()],
+            MemoryRetrieveQueryVariant::Situation(vec![sit]),
+        )
+        .with_priority(ATMOSPHERE_QUERY_PRIORITY),
+    )
+}
+
+/// 解析 PAW/LLM 输出的氛围 JSON：容忍前后杂讯与 markdown 围栏，丢弃无效氛围。
+fn parse_atmosphere(raw: &str) -> Option<AtmosphereInfo> {
+    let clean = strip_think_block(raw);
+    serde_json::from_str::<AtmosphereInfo>(&clean)
+        .ok()
+        .or_else(|| {
+            extract_balanced_object(&clean)
+                .and_then(|j| serde_json::from_str::<AtmosphereInfo>(&j).ok())
+        })
+        .filter(|a| !a.is_empty())
+}
+
+/// 查询的展示 JSON（GUI 树形渲染）：GUI 的 _QueryCard 期望顶层
+/// tags（复数）/ variant / priority / dropped。
+fn query_to_json(p: &PreparedQuery) -> serde_json::Value {
+    serde_json::json!({
+        "tags": p.query.query().tag(),
+        "tag": p.query.query().tag(),
+        "priority": p.query.priority(),
+        "dropped": p.dropped,
+        "variant": p.query.query().variant(),
+    })
 }
 
 /// Strip 思维链 content from response and trim to a uniform max length for fair comparison.
@@ -383,6 +376,9 @@ pub struct PlayTestRunner {
     pub id_names: Arc<HashMap<MemoryId, NodeSummary>>,
     pub config: PlayConfig,
     pub human_role: Option<String>,
+    /// 角色自身节点 id（sem_self）：身份只随系统提示词在会话开始时加载一次，
+    /// 回复的"相关记忆"中过滤该节点，避免身份信息每轮重复注入引发身份说教。
+    self_id: Option<MemoryId>,
     /// 最近对话历史（对方/自己消息交替），供查询生成提取会话氛围。
     history: Mutex<VecDeque<HistoryEntry>>,
 }
@@ -446,6 +442,7 @@ impl PlayTestRunner {
             id_names,
             config,
             human_role: None,
+            self_id: id_map.get("sem_self").copied(),
             history: Mutex::new(VecDeque::new()),
         })
     }
@@ -638,10 +635,22 @@ impl PlayTestRunner {
         }
     }
 
-    /// 通过 PAW 提取消息中的关键实体，用于增强查询生成提示词，防止检索漏掉关键实体。
+    /// 通过 PAW 提取消息中的关键实体（对方身份 + 用户消息为输入），
+    /// 随后由 [`build_entity_queries`] 直接生成实体查询。
+    /// 对方身份是管线输入：与对方相关的实体（称呼/关系/特征）即使未出现在消息中也应提取。
+    /// 无法准确命名的实体应输出简练的特征描述名词短语。
     /// PAW 不可用或提取为空时，暂时用主对话 LLM 顶上；均失败则返回空列表（不阻断流程）。
     fn extract_entities(&self, user_message: &str, llm: &mut dyn LlmBackend) -> Vec<String> {
-        let prompt = format!("消息内容：\n{}\n\n请提取关键实体：", user_message);
+        let partner = self
+            .human_role
+            .as_ref()
+            .map(|r| r.trim().to_string())
+            .filter(|r| !r.is_empty())
+            .unwrap_or_else(|| "（对方身份未指定）".to_string());
+        let prompt = format!(
+            "与你对话的人（对方身份）: {}\n消息内容：\n{}\n\n请提取关键实体（包括与对方身份相关的实体；无法准确命名的实体用简练特征描述）：",
+            partner, user_message
+        );
         let parse = |raw: &str| {
             serde_json::from_str::<Vec<String>>(raw)
                 .ok()
@@ -665,86 +674,43 @@ impl PlayTestRunner {
         parse(&raw)
     }
 
-    /// 构建查询生成提示词：两段式查询（实体概念 Semantic / 情境氛围 Situation）。
-    /// - Semantic：实体概念查询，来自对话中的关键实体，用角色视角的转述表述。
-    /// - Situation：情境/氛围查询。narrative 转述对方所说/所涉经历；environment 填会话氛围
-    ///   （从最近对话与消息的语气、话题、情绪提取，不依赖记忆）；event 可选，填话语中的事件模式。
-    /// 设计依据：compute.rs 对 environment/event 结构化字段已有评分通道，但查询侧此前
-    /// 只用 narrative（"只填 narrative"约束），氛围通道从未被使用。新心智模型中查询只分
-    /// 实体概念与环境氛围两部分，氛围只从对话上下文提取（不依赖记忆、不会编造），
-    /// 因此记忆锚点 hint 不再需要。
-    fn build_query_prompt(
+    /// 通过 PAW 提取当前会话氛围（用户角色 + 对话历史 + 当前消息），用于生成氛围查询。
+    /// PAW 不可用或解析为空时，暂时用主对话 LLM 顶上（管线不变，仅执行者由 PAW 换成 LLM）；
+    /// 均失败返回 None（该轮不生成氛围查询，不阻断流程）。
+    fn extract_atmosphere(
         &self,
         user_message: &str,
-        entities: &[String],
-        history: &[HistoryEntry],
-    ) -> String {
-        let partner_line = self
-            .human_role
-            .as_ref()
-            .map(|r| format!("与你对话的人（对方身份）: {}\n", r))
-            .unwrap_or_default();
-
-        // 对方身份（用于强制生成"对方身份相关"查询）；未指定时提示从对话推断。
-        let partner_role_hint = self
+        llm: &mut dyn LlmBackend,
+    ) -> Option<AtmosphereInfo> {
+        let history: Vec<HistoryEntry> = self.history.lock().unwrap().iter().cloned().collect();
+        let partner = self
             .human_role
             .as_ref()
             .map(|r| r.trim().to_string())
             .filter(|r| !r.is_empty())
-            .unwrap_or_else(|| "（对方身份未指定，请从对话中推断对方是谁）".to_string());
-
-        let entities_text = if entities.is_empty() {
-            String::new()
+            .unwrap_or_else(|| "（对方身份未指定）".to_string());
+        let history_text = if history.is_empty() {
+            String::from("（暂无对话历史）")
         } else {
-            format!("消息中的关键实体: {}", entities.join("、"))
-        };
-
-        // 最近对话小节：提供会话上下文，供提取氛围与事件模式；无历史时整节省略。
-        let history_section = if history.is_empty() {
-            String::new()
-        } else {
-            let lines = history
+            history
                 .iter()
                 .map(|h| format!("{}: {}", h.role, h.text))
                 .collect::<Vec<_>>()
-                .join("\n");
-            format!("【最近对话】\n{}\n\n", lines)
+                .join("\n")
         };
-
-        format!(
-            "当前场景：有人正在与你对话。\n\
-             {}\
-             {}对方说: \"{}\"{}\n\n\
-             请以角色自身的视角，回想回应这句话所需的相关记忆，输出一个 JSON 数组，4-8 条，每条代表一个回忆方向。\n\n\
-             【每条查询的字段】\n\
-             - tag: 类型+子类，如 [\"人物\", \"挚友\"]、[\"事件\", \"异变\"]、[\"概念\", \"规则\"]、[\"物品\", \"秘宝\"]、[\"地点\", \"神社\"]、[\"日常\", \"习惯\"]\n\
-             - variant: 二选一（**以 Semantic 实体名词式为主**）：\n\
-               * Semantic: 实体概念查询（首选，应占大部分）。concept_identifier 用角色视角的特征性别名/转述——**一个实体名词或名词短语**（人、物、地点、规则），就像身边人平时怎么称呼，不要照搬正式名称，也不要写成句子。description 可选补充说明。\n\
-               * Situation: 情境/氛围查询（仅当需要回忆具体经历时使用）。narrative 用一两句话转述对方所说或所涉及的经历（谁、发生了什么、结果如何）；environment 填写当前会话的氛围（从最近对话与消息的语气、话题、情绪提取，如\"深夜谈心\"\"互相调侃\"\"冷战\"）；event 可选，填写对方话语中体现的事件模式（动作、发起者、对象）。\n\
-             - priority: 整数，越大表示这条回忆越重要。\n\n\
-             【示例】\n\
-             [\n\
-               {{\"tag\": [\"人物\", \"挚友\"], \"variant\": {{\"Semantic\": [{{\"concept_identifier\": \"金发的魔法使\", \"description\": \"经常来神社蹭茶喝的魔法使\"}}]}}, \"priority\": 9}},\n\
-               {{\"tag\": [\"物品\", \"秘宝\"], \"variant\": {{\"Semantic\": [{{\"concept_identifier\": \"又硬又重的勾玉\", \"description\": \"神社里最硬的那块\"}}]}}, \"priority\": 7}},\n\
-               {{\"tag\": [\"事件\", \"异变\"], \"variant\": {{\"Situation\": [{{\"narrative\": \"吸血鬼因为讨厌太阳制造了红雾，灵梦冲进城堡教训了她一顿\", \"environment\": {{\"atmosphere\": \"紧张\", \"tone\": \"对峙\"}}}}]}}, \"priority\": 9}},\n\
-               {{\"tag\": [\"日常\", \"习惯\"], \"variant\": {{\"Situation\": [{{\"narrative\": \"灵梦每天在神社喝茶扫地，检查空空的赛钱箱\", \"environment\": {{\"atmosphere\": \"悠闲\", \"tone\": \"平淡\"}}}}]}}, \"priority\": 4}}\n\
-             ]\n\n\
-             【要点】\n\
-             - **以实体名词式查询为主**：大部分查询应为 Semantic 实体概念（名词短语），Situation 叙事查询只在明确需要回忆具体情境时使用，不要每条都写成叙事短句\n\
-             - **必须包含对方身份相关查询**：与你对话的人是{}。至少生成一条关于对方身份/称呼/你与对方关系的 Semantic 查询（concept_identifier 用对方身份的称呼或特征名），回想与对方的关系、共同经历、对方相关的人物，除非对话内容与对方身份完全无关\n\
-             - 所有查询必须与对方说/问的内容直接相关；宁少勿多，不要为了凑 4-8 条生成与对话无关的查询\n\
-             - 氛围与事件必须来自最近对话和对方消息，不要编造对话中不存在的氛围、事件或细节\n\
-             - Situation 的 narrative 必须是对话中涉及经历的转述：可以换措辞，但事实要素必须来自对话上下文\n\
-             - 同一概念可以用多个不同描述的查询覆盖不同角度，提升召回\n\
-             - 注意与你对话的人是谁：优先回想与对方的关系、共同经历和对方相关的人物记忆（除非对话内容明显无关）\n\
-             - 如果当前对话没有任何对应记忆，只输出 1-3 条实体/概念查询，或输出空数组 []\n\
-             只输出 JSON 数组，不要其他内容。",
-            partner_line,
-            history_section,
-            user_message,
-            entities_text,
-            partner_role_hint
-        )
+        let prompt = format!(
+            "与你对话的人（对方身份）: {}\n对方最近消息: \"{}\"\n\n【最近对话】\n{}\n\n请输出当前对话的氛围。",
+            partner, user_message, history_text
+        );
+        if let Some(raw) =
+            run_paw(ATMOSPHERE_EXTRACT_SLUG, ATMOSPHERE_EXTRACT_SPEC, &prompt, Some(128))
+        {
+            if let Some(info) = parse_atmosphere(&raw) {
+                return Some(info);
+            }
+        }
+        let raw = llm.chat(ATMOSPHERE_EXTRACT_SPEC, &prompt, 128).ok()?;
+        parse_atmosphere(&raw)
     }
 
     fn generate_queries(
@@ -752,29 +718,63 @@ impl PlayTestRunner {
         entry: &ConversationEntry,
         llm: &mut dyn LlmBackend,
     ) -> Result<(Vec<PreparedQuery>, String, Option<String>), String> {
-        // 第一步：PAW 提取关键实体，补充到提示词中防止漏掉关键实体
+        // 第一步：PAW 实体提取（用户角色 + 用户消息）→ 实体查询
         let entities = self.extract_entities(&entry.user_message, llm);
+        let entity_queries = build_entity_queries(&entities);
 
-        // 第二步：读取最近对话历史（hint 已移除，不再注入记忆片段；
-        // 氛围与事件模式只从对话上下文提取）。
-        let history: Vec<HistoryEntry> = self.history.lock().unwrap().iter().cloned().collect();
+        // 第二步：PAW 气氛提取（用户角色 + 对话历史 + 当前消息）→ 氛围查询
+        let atmosphere = self.extract_atmosphere(&entry.user_message, llm);
+        let atmosphere_query = atmosphere.as_ref().and_then(build_atmosphere_query);
 
-        // 第三步：构建两段式查询提示词（实体概念 + 情境/氛围）
-        let query_prompt = self.build_query_prompt(&entry.user_message, &entities, &history);
+        // 第三步：整合查询（实体查询 + 氛围查询）
+        let mut main_queries = entity_queries;
+        if let Some(aq) = atmosphere_query {
+            main_queries.push(aq);
+        }
 
-        let text = llm
-            .chat(&self.system_prompt, &query_prompt, 2048)
-            .map_err(|e| format!("LLM query gen failed: {}", e))?;
+        // 第四步：生成后校验（嵌入 + top-1 兜底分），嵌入结果缓存供检索复用
+        let prepared = self.prepare_queries(main_queries);
 
+        // 展示 JSON（GUI 树形渲染）：提取实体 / 实体查询 / 提取氛围 / 氛围查询 / 最终查询
+        let atmosphere_json = atmosphere.as_ref().map(|a| {
+            serde_json::json!({
+                "atmosphere": a.atmosphere.clone().unwrap_or_default(),
+                "tone": a.tone.clone().unwrap_or_default(),
+            })
+        });
+        let queries_json = serde_json::json!({
+            "提取实体": &entities,
+            "实体查询": prepared
+                .iter()
+                .filter(|p| matches!(p.query.query().variant(), MemoryRetrieveQueryVariant::Semantic(_)))
+                .map(query_to_json)
+                .collect::<Vec<_>>(),
+            "提取氛围": atmosphere_json,
+            "氛围查询": prepared
+                .iter()
+                .filter(|p| matches!(p.query.query().variant(), MemoryRetrieveQueryVariant::Situation(_)))
+                .map(query_to_json)
+                .collect::<Vec<_>>(),
+            "最终查询": prepared.iter().map(query_to_json).collect::<Vec<_>>(),
+            // GUI _QuerySection 期望的键：查询列表
+            "queries": prepared.iter().map(query_to_json).collect::<Vec<_>>(),
+        })
+        .to_string();
+
+        // 调试落盘：实体 / 氛围 / 查询与校验结果
         let debug_path = std::env::temp_dir().join("soul_tune_llm_output.txt");
         let entity_text = if entities.is_empty() {
             String::from("(无)")
         } else {
             entities.join("、")
         };
+        let atmosphere_text = match &atmosphere {
+            Some(a) => format!("atmosphere={:?} tone={:?}", a.atmosphere, a.tone),
+            None => String::from("(无)"),
+        };
         let debug_entry = format!(
-            "=== 用户: {} ===\n提取实体: {}\n查询提示词:\n{}\n完整输出:\n{}\n<|end|>\n\n",
-            entry.user_message, entity_text, query_prompt, text
+            "=== 用户: {} ===\n提取实体: {}\n提取氛围: {}\n查询JSON:\n{}\n\n",
+            entry.user_message, entity_text, atmosphere_text, queries_json
         );
         if let Ok(mut f) = std::fs::OpenOptions::new()
             .create(true)
@@ -785,120 +785,15 @@ impl PlayTestRunner {
             let _ = f.write_all(debug_entry.as_bytes());
         }
 
-        let think_content = extract_think_content(&text);
-        let clean = strip_think_block(&text);
-
-        let json_str = robust_json_extract(&clean, llm).ok_or_else(|| {
-            format!(
-                "No JSON array found in LLM output (think stripped): {}\n---完整原始输出---\n{}",
-                clean, text
-            )
-        })?;
-
-        if let Ok(mut f) = std::fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&debug_path)
-        {
-            use std::io::Write;
-            let _ = writeln!(f, "提取的 JSON:\n{}\n<|end_json|>\n\n", json_str);
-        }
-
-        let raw: Vec<RawQuery> = match serde_json::from_str(&json_str) {
-            Ok(v) => v,
-            Err(orig_err) => {
-                // 单个畸形 query 不应拖垮整轮：尝试逐条解析，跳过无效项，保留有效项。
-                let salvaged: Vec<RawQuery> =
-                    match serde_json::from_str::<Vec<serde_json::Value>>(&json_str) {
-                        Ok(items) => items
-                            .into_iter()
-                            .filter_map(|v| serde_json::from_value::<RawQuery>(v).ok())
-                            .collect(),
-                        Err(_) => Vec::new(),
-                    };
-                if !salvaged.is_empty() {
-                    salvaged
-                } else if let Some(repaired) = super::repair::repair_json(&json_str, llm) {
-                    if let Ok(v) = serde_json::from_str(&repaired) {
-                        v
-                    } else {
-                        return Err(format!(
-                            "Failed to parse LLM query JSON (PAW repair also failed): {}\n  提取的 JSON: {}\n  PAW修复后: {}\n  完整输出: {}",
-                            orig_err, json_str, repaired, text
-                        ));
-                    }
-                } else {
-                    return Err(format!(
-                        "Failed to parse LLM query JSON (PAW unavailable): {}\n  提取的 JSON: {}\n  完整输出: {}",
-                        orig_err, json_str, text
-                    ));
-                }
-            }
-        };
-
-        // 查询数量上限：4-8 中的上界 8（减少无效生成）
-        let raw = cap_raw_queries(raw);
-
-        let queries: Vec<PrioritizedMemoryRetrieveQuery> = raw
-            .into_iter()
-            .map(|r| {
-                let variant = match r.variant {
-                    RawVariant::Semantic { Semantic: units } => {
-                        MemoryRetrieveQueryVariant::Semantic(
-                            units.into_iter().map(raw_sem_to_query).collect(),
-                        )
-                    }
-                    RawVariant::Situation { Situation: units } => {
-                        MemoryRetrieveQueryVariant::Situation(
-                            units.into_iter().map(raw_sit_to_query).collect(),
-                        )
-                    }
-                    RawVariant::SemanticSingle(u) | RawVariant::BareSingle(u) => {
-                        MemoryRetrieveQueryVariant::Semantic(vec![raw_sem_to_query(u)])
-                    }
-                    RawVariant::SituationSingle(u) => {
-                        MemoryRetrieveQueryVariant::Situation(vec![raw_sit_to_query(u)])
-                    }
-                    RawVariant::BareArray(units) => MemoryRetrieveQueryVariant::Semantic(
-                        units.into_iter().map(raw_sem_to_query).collect(),
-                    ),
-                };
-                MemoryRetrieveQuery::new(r.tag, variant).with_priority(r.priority)
-            })
-            .collect();
-
-        // 第四步：生成后校验 + 空回退——逐条嵌入并检查 top-1 兜底分，低于兜底分
-        // 丢弃并在 trace/日志标记 dropped；嵌入结果缓存进查询对象，检索阶段直接
-        // 复用不二次嵌入。主查询全部被丢弃（或 LLM 返回空数组）时用提取实体兜底。
-        let prepared = self.prepare_queries(queries, &entities);
-
-        let dropped_count = prepared.iter().filter(|p| p.dropped).count();
-        if let Ok(mut f) = std::fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&debug_path)
-        {
-            use std::io::Write;
-            let _ = writeln!(
-                f,
-                "校验丢弃: {} 条 / 共 {} 条（含空回退）\n",
-                dropped_count,
-                prepared.len()
-            );
-        }
-
-        Ok((prepared, json_str, think_content))
+        Ok((prepared, queries_json, None))
     }
 
-    /// 生成后校验 + 空回退：
-    /// - 对主查询逐条嵌入并检查 top-1 兜底分，达标保留，否则丢弃并标记 dropped；
-    /// - 若主查询全部被丢弃（或为空数组），用提取实体构造 Semantic 兜底查询
-    ///   （priority=2，top-3 实体）并同样校验；仍全空才真正无检索。
+    /// 生成后校验：对主查询逐条嵌入并检查 top-1 兜底分，达标保留，否则丢弃并标记
+    /// dropped；嵌入结果缓存进查询对象，检索阶段直接复用不二次嵌入。
     /// 嵌入模型不可用时跳过校验（保持旧行为，检索阶段自行嵌入）。
     fn prepare_queries(
         &self,
         main_queries: Vec<PrioritizedMemoryRetrieveQuery>,
-        entities: &[String],
     ) -> Vec<PreparedQuery> {
         let model: Option<&dyn EmbeddingModel> = get_bge_model().ok().map(|m| m as &dyn EmbeddingModel);
         let mut prepared: Vec<PreparedQuery> = Vec::new();
@@ -918,27 +813,6 @@ impl PlayTestRunner {
                     embedding: None,
                     dropped: false,
                 }),
-            }
-        }
-
-        // 空回退：主查询全部被丢弃或为空时，用提取实体兜底
-        if !prepared.iter().any(|p| !p.dropped) {
-            for q in build_fallback_queries(entities, FALLBACK_ENTITY_TOP) {
-                match model {
-                    Some(m) => match self.validate_query(q.clone(), m) {
-                        Some(p) => prepared.push(p),
-                        None => prepared.push(PreparedQuery {
-                            query: q,
-                            embedding: None,
-                            dropped: true,
-                        }),
-                    },
-                    None => prepared.push(PreparedQuery {
-                        query: q,
-                        embedding: None,
-                        dropped: false,
-                    }),
-                }
             }
         }
 
@@ -1399,6 +1273,9 @@ impl PlayTestRunner {
         }
         nodes
             .iter()
+            // 身份节点（sem_self）已随系统提示词加载，回复的"相关记忆"中过滤，
+            // 避免模型把自我身份当"记忆"引用而进入身份说教模式。
+            .filter(|n| Some(n.id) != self.self_id)
             .map(|n| {
                 let summary = self
                     .id_names
@@ -1435,80 +1312,67 @@ impl PlayTestRunner {
 
 #[cfg(test)]
 mod tests {
-    use super::super::repair::{
-        RawEnvironmentUnit, RawEventUnit, RawLocationUnit, RawParticipantUnit,
-    };
     use super::*;
 
     #[test]
-    fn raw_sem_unit_maps_concept_and_description() {
-        let q = raw_sem_to_query(RawSemUnit {
-            concept_identifier: Some("弹幕规则".into()),
-            description: Some("补充".into()),
-        });
-        assert_eq!(q.concept_identifier(), Some("弹幕规则"));
-        assert_eq!(q.description(), Some("补充"));
+    fn build_entity_queries_priorities_descend_and_filter_empty() {
+        let queries = build_entity_queries(&[
+            "桑多涅".to_string(),
+            "  ".to_string(),
+            "哥伦比娅".to_string(),
+        ]);
+        assert_eq!(queries.len(), 2, "空白实体应被过滤");
+        assert_eq!(queries[0].priority(), ENTITY_QUERY_PRIORITY_BASE);
+        assert_eq!(queries[1].priority(), ENTITY_QUERY_PRIORITY_BASE - 1);
+        assert_eq!(queries[0].query().tag().first().map(|s| s.as_str()), Some("实体"));
+        if let MemoryRetrieveQueryVariant::Semantic(units) = queries[0].query().variant() {
+            assert_eq!(units[0].concept_identifier(), Some("桑多涅"));
+        } else {
+            panic!("实体查询应为 Semantic variant");
+        }
     }
 
     #[test]
-    fn raw_sem_unit_skips_empty_fields() {
-        let q = raw_sem_to_query(RawSemUnit {
-            concept_identifier: Some("  ".into()),
-            description: None,
-        });
-        assert_eq!(q.concept_identifier(), None);
-        assert_eq!(q.description(), None);
+    fn build_atmosphere_query_maps_environment_only() {
+        let info = AtmosphereInfo {
+            atmosphere: Some("深夜谈心".to_string()),
+            tone: Some("温暖".to_string()),
+        };
+        let q = build_atmosphere_query(&info).expect("有效氛围应产出查询");
+        assert_eq!(q.priority(), ATMOSPHERE_QUERY_PRIORITY);
+        assert_eq!(q.query().tag().first().map(|s| s.as_str()), Some("氛围"));
+        if let MemoryRetrieveQueryVariant::Situation(units) = q.query().variant() {
+            assert_eq!(units[0].narrative(), None, "氛围查询不应携带对话原文");
+            let env = units[0].environment().expect("应带 environment");
+            assert_eq!(env.atmosphere(), Some("深夜谈心"));
+            assert_eq!(env.tone(), Some("温暖"));
+        } else {
+            panic!("氛围查询应为 Situation variant");
+        }
     }
 
     #[test]
-    fn raw_sit_unit_maps_all_dimensions() {
-        let q = raw_sit_to_query(RawSitUnit {
-            narrative: Some("在漫展".into()),
-            location: Some(vec![RawLocationUnit {
-                name: Some("漫展".into()),
-                coordinates: Some("1,2".into()),
-            }]),
-            participants: Some(vec![RawParticipantUnit {
-                name: Some("某人".into()),
-                role: Some("朋友".into()),
-            }]),
-            environment: Some(RawEnvironmentUnit {
-                atmosphere: Some("热闹".into()),
-                tone: None,
-            }),
-            event: Some(vec![RawEventUnit {
-                action: Some("逛展".into()),
-                initiator: Some("某人".into()),
-                target: None,
-            }]),
-        });
-        assert_eq!(q.narrative().map(|s| s.as_str()), Some("在漫展"));
-        assert_eq!(q.location().unwrap()[0].name(), "漫展");
-        assert_eq!(q.participants().unwrap()[0].role(), Some("朋友"));
-        assert_eq!(q.environment().unwrap().atmosphere(), Some("热闹"));
-        assert_eq!(q.event().unwrap()[0].action(), "逛展");
-        assert_eq!(q.event().unwrap()[0].initiator(), Some("某人"));
+    fn build_atmosphere_query_empty_info_returns_none() {
+        let info = AtmosphereInfo {
+            atmosphere: Some("  ".to_string()),
+            tone: None,
+        };
+        assert!(build_atmosphere_query(&info).is_none());
     }
 
     #[test]
-    fn raw_sit_unit_drops_empty_sub_units() {
-        let q = raw_sit_to_query(RawSitUnit {
-            narrative: None,
-            location: Some(vec![RawLocationUnit {
-                name: None,
-                coordinates: None,
-            }]),
-            participants: None,
-            environment: None,
-            event: Some(vec![RawEventUnit {
-                action: None,
-                initiator: None,
-                target: None,
-            }]),
-        });
-        assert_eq!(q.narrative(), None);
-        assert_eq!(q.location(), None);
-        assert_eq!(q.event(), None);
+    fn parse_atmosphere_tolerates_noise_and_fences() {
+        let raw = "```json\n{\"atmosphere\": \"互相调侃\", \"tone\": \"轻松\"}\n```";
+        let info = parse_atmosphere(raw).expect("应解析出氛围");
+        assert_eq!(info.atmosphere.as_deref(), Some("互相调侃"));
+        assert_eq!(info.tone.as_deref(), Some("轻松"));
+    }
+
+    #[test]
+    fn parse_atmosphere_rejects_empty() {
+        assert!(parse_atmosphere("{}").is_none());
+        assert!(parse_atmosphere("{\"atmosphere\": \"\"}").is_none());
+        assert!(parse_atmosphere("no json here").is_none());
     }
 
     #[test]
@@ -1579,6 +1443,7 @@ mod tests {
             id_names: Arc::new(HashMap::new()),
             config: PlayConfig::default(),
             human_role: None,
+            self_id: None,
             history: Mutex::new(VecDeque::new()),
         }
     }
@@ -1601,86 +1466,6 @@ mod tests {
             ]),
         )
         .with_priority(priority)
-    }
-
-    #[test]
-    fn test_cap_raw_queries_limits_to_eight() {
-        let raw: Vec<RawQuery> = (0..12)
-            .map(|i| RawQuery {
-                tag: vec![format!("t{}", i)],
-                variant: RawVariant::Semantic {
-                    Semantic: vec![RawSemUnit {
-                        concept_identifier: Some(format!("c{}", i)),
-                        description: None,
-                    }],
-                },
-                priority: 1,
-            })
-            .collect();
-        let capped = cap_raw_queries(raw);
-        assert_eq!(capped.len(), QUERY_MAX_COUNT);
-        assert_eq!(capped[7].tag[0], "t7");
-    }
-
-    #[test]
-    fn test_build_fallback_queries_top3_priority2() {
-        let entities: Vec<String> = (0..5).map(|i| format!("实体{}", i)).collect();
-        let queries = build_fallback_queries(&entities, FALLBACK_ENTITY_TOP);
-        assert_eq!(queries.len(), FALLBACK_ENTITY_TOP);
-        for (i, q) in queries.iter().enumerate() {
-            assert_eq!(q.priority(), FALLBACK_QUERY_PRIORITY);
-            let expected = format!("实体{}", i);
-            if let MemoryRetrieveQueryVariant::Semantic(units) = q.query().variant() {
-                assert_eq!(
-                    units[0].concept_identifier(),
-                    Some(expected.as_str())
-                );
-            } else {
-                panic!("兜底查询应为 Semantic variant");
-            }
-        }
-    }
-
-    #[test]
-    fn test_build_query_prompt_two_part_with_history() {
-        let runner = empty_runner();
-        let history = vec![
-            HistoryEntry {
-                role: "对方",
-                text: "上次你说你画画很厉害".to_string(),
-            },
-            HistoryEntry {
-                role: "你",
-                text: "嗯，我平时喜欢画星空".to_string(),
-            },
-        ];
-        let prompt = runner.build_query_prompt("那能给我画一幅吗", &["画".to_string()], &history);
-        assert!(prompt.contains("【最近对话】"));
-        assert!(prompt.contains("对方: 上次你说你画画很厉害"));
-        assert!(prompt.contains("你: 嗯，我平时喜欢画星空"));
-        assert!(prompt.contains("对方说: \"那能给我画一幅吗\""));
-        assert!(prompt.contains("消息中的关键实体: 画"));
-        // 两段式：允许 environment/event，不再有"只填 narrative"约束
-        assert!(prompt.contains("environment 填写当前会话的氛围"));
-        assert!(prompt.contains("event 可选"));
-        assert!(!prompt.contains("只填 narrative 一个字段"));
-        assert!(!prompt.contains("不要填 location/participants/environment/event"));
-        // hint 已移除
-        assert!(!prompt.contains("【记忆线索】"));
-        // 防幻觉条款基于对话上下文
-        assert!(prompt.contains("氛围与事件必须来自最近对话和对方消息"));
-        assert!(prompt.contains("4-8 条"));
-        assert!(prompt.contains("如果当前对话没有任何对应记忆"));
-    }
-
-    #[test]
-    fn test_build_query_prompt_without_history_omits_section() {
-        let runner = empty_runner();
-        let prompt = runner.build_query_prompt("早上好", &[], &[]);
-        assert!(!prompt.contains("【最近对话】"), "无历史时应省略最近对话小节");
-        assert!(!prompt.contains("【记忆线索】"));
-        assert!(prompt.contains("4-8 条"));
-        assert!(prompt.contains("对方说: \"早上好\""));
     }
 
     #[test]
@@ -1752,7 +1537,7 @@ mod tests {
     #[test]
     fn test_prepare_queries_drops_below_floor_with_trace_marker() {
         let runner = load_geluoxiu_runner();
-        let prepared = runner.prepare_queries(vec![sem_query("量子力学", 5)], &[]);
+        let prepared = runner.prepare_queries(vec![sem_query("量子力学", 5)]);
         assert_eq!(prepared.len(), 1);
         assert!(prepared[0].dropped);
 
@@ -1764,42 +1549,18 @@ mod tests {
     }
 
     #[test]
-    fn test_prepare_queries_fallback_uses_entities_when_empty() {
+    fn test_prepare_queries_keeps_relevant() {
         let runner = load_geluoxiu_runner();
-        // 等价于 LLM 返回空数组：主查询为空 → 用实体兜底
-        let prepared = runner.prepare_queries(Vec::new(), &["格蕾修".to_string()]);
+        let prepared = runner.prepare_queries(vec![sem_query("格蕾修", 5)]);
         assert_eq!(prepared.len(), 1);
-        assert!(!prepared[0].dropped, "实体兜底查询应通过校验");
-        assert_eq!(prepared[0].query.priority(), FALLBACK_QUERY_PRIORITY);
-        if let MemoryRetrieveQueryVariant::Semantic(units) = prepared[0].query.query().variant() {
-            assert_eq!(units[0].concept_identifier(), Some("格蕾修"));
-        } else {
-            panic!("兜底查询应为 Semantic variant");
-        }
+        assert!(!prepared[0].dropped, "命中角色自身的查询应通过校验");
     }
 
     #[test]
-    fn test_prepare_queries_fallback_when_all_main_dropped() {
+    fn test_prepare_queries_empty_input_yields_empty_output() {
         let runner = load_geluoxiu_runner();
-        let prepared = runner.prepare_queries(
-            vec![sem_query("量子力学", 5)],
-            &["格蕾修".to_string()],
-        );
-        assert_eq!(prepared.len(), 2);
-        assert!(prepared[0].dropped, "主查询低于兜底分应被丢弃");
-        assert!(!prepared[1].dropped, "实体兜底查询应通过校验");
-        assert_eq!(prepared[1].query.priority(), FALLBACK_QUERY_PRIORITY);
-    }
-
-    #[test]
-    fn test_prepare_queries_skips_fallback_when_kept_exists() {
-        let runner = load_geluoxiu_runner();
-        let prepared = runner.prepare_queries(
-            vec![sem_query("格蕾修", 5)],
-            &["格蕾修".to_string()],
-        );
-        assert_eq!(prepared.len(), 1, "有保留查询时不应追加兜底");
-        assert!(!prepared[0].dropped);
+        let prepared = runner.prepare_queries(Vec::new());
+        assert!(prepared.is_empty(), "无主查询（实体/氛围均缺失）时不应凭空产生查询");
     }
 
     #[test]

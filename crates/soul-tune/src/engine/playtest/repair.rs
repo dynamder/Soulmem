@@ -75,6 +75,17 @@ pub(crate) fn extract_balanced_array(s: &str) -> Option<String> {
     None
 }
 
+/// 提取第一个平衡的 `{...}` 对象（容忍前后杂讯；返回原文片段）。
+pub(crate) fn extract_balanced_object(s: &str) -> Option<String> {
+    let start = s.find('{')?;
+    let (end, ok) = find_matching_brace(s, start);
+    if ok {
+        Some(s[start..=end].to_string())
+    } else {
+        None
+    }
+}
+
 fn strip_markdown_fences(s: &str) -> String {
     let lines: Vec<&str> = s.trim().lines().collect();
     let mut result: Vec<&str> = Vec::new();

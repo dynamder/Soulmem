@@ -136,17 +136,13 @@ pub fn probe_status() -> LlmStatus {
     if let Ok(u) = std::env::var("SOUL_TUNE_LLAMA_URL") {
         let u = u.trim().to_string();
         if !u.is_empty() {
+            let healthy = probe_health(&u);
             return LlmStatus {
                 available: true,
-                source: if probe_health(&u) {
-                    "running"
-                } else {
-                    "unavailable"
-                }
-                .into(),
+                source: if healthy { "running" } else { "unavailable" }.into(),
                 url: Some(u),
                 model_path: None,
-                reason: (!probe_health(&u)).then(|| "SOUL_TUNE_LLAMA_URL 配置但探活失败".into()),
+                reason: (!healthy).then(|| "SOUL_TUNE_LLAMA_URL 配置但探活失败".into()),
             };
         }
     }
