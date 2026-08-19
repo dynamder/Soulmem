@@ -38,3 +38,20 @@ target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)
+
+# === Rust native library (flutter_rust_bridge) ===
+# Build the cdylib with cargo and copy it next to the runner executable,
+# otherwise the app fails to start ("window can't display" — RustLib.init()
+# cannot load soul_tune_api.dll).
+# 仓库根 = windows/runner 的上一级再上一级（soul-tune-ui/..）
+set(SOUL_TUNE_CARGO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../..")
+# Debug/Profile -> debug（省略 --profile，debug 是保留名）；Release -> --release
+add_custom_command(TARGET ${BINARY_NAME} POST_BUILD
+  COMMAND cargo build -p soul-tune-api
+          --manifest-path "${SOUL_TUNE_CARGO_DIR}/Cargo.toml"
+          $<$<CONFIG:Release>:--release>
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "${SOUL_TUNE_CARGO_DIR}/target/$<IF:$<CONFIG:Release>,release,debug>/soul_tune_api.dll"
+          "$<TARGET_FILE_DIR:${BINARY_NAME}>"
+  COMMENT "Building & copying soul_tune_api.dll (Rust FRB bridge)"
+)

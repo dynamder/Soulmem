@@ -2,8 +2,6 @@ use serde::Serialize;
 use soul_mem_core::memory_note::MemoryId;
 use soul_mem_query::query::retrieve::MemoryRetrieveQueryVariant;
 
-use crate::engine::dataset::TestCaseConfig;
-
 #[derive(Debug, Clone)]
 pub struct RetrTestCase {
     pub scenario_id: String,

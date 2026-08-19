@@ -711,6 +711,62 @@ class NodeForgetStat {
   }
 }
 
+/// 单个节点在某时间步的遗忘观测（节点 × 时间步曲线的一个数据点）。
+class NodeStepStat {
+  final int hours; // x 轴：累计小时数（多步 24/48/72；单步为用例时间跨度）
+  final int step; // 步序号（0 起始）
+  final double md; // 该步后的缺失度（y 轴主指标）
+  final String action; // NoAction / MaskOnly / Revised
+  final String? maskedText; // LLM 补全的遮罩输入
+  final String? llmReply; // LLM 原始回复
+  final bool effective; // 是否有效修订
+
+  NodeStepStat({
+    required this.hours,
+    required this.step,
+    required this.md,
+    required this.action,
+    this.maskedText,
+    this.llmReply,
+    required this.effective,
+  });
+
+  factory NodeStepStat.fromJson(Map<String, dynamic> j) => NodeStepStat(
+        hours: j['hours'] as int? ?? 0,
+        step: j['step'] as int? ?? 0,
+        md: (j['md'] as num?)?.toDouble() ?? 0,
+        action: j['action'] as String? ?? '',
+        maskedText: j['masked_text'] as String?,
+        llmReply: j['llm_reply'] as String?,
+        effective: j['effective'] as bool? ?? false,
+      );
+}
+
+/// 单个节点的完整时间步长序列：遗忘以节点为单位，对节点内容按时间步变化。
+class NodeSeries {
+  final String id;
+  final String typeName;
+  final String original; // 图节点原文（遗忘前）
+  final List<NodeStepStat> steps; // 按 hours 升序
+
+  NodeSeries({
+    required this.id,
+    required this.typeName,
+    required this.original,
+    required this.steps,
+  });
+
+  factory NodeSeries.fromJson(Map<String, dynamic> j) => NodeSeries(
+        id: j['id'] as String? ?? '',
+        typeName: j['type_name'] as String? ?? '',
+        original: j['original'] as String? ?? '',
+        steps: (j['steps'] as List?)
+                ?.map((e) => NodeStepStat.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            const [],
+      );
+}
+
 sealed class ForgetObserverCase {
   const ForgetObserverCase();
 
@@ -743,13 +799,29 @@ sealed class ForgetObserverCase {
                 ?.map((e) => NodeForgetStat.fromJson(e as Map<String, dynamic>))
                 .toList() ??
             [],
+        nodeSeries: (j['node_series'] as List?)
+                ?.map((e) => NodeSeries.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            const [],
+        idealPoints: ((j['ideal_points'] as List?) ?? const [])
+            .map((e) {
+              final p = e as List;
+              if (p.length >= 2) {
+                return ((p[0] as num).toDouble(), (p[1] as num).toDouble());
+              }
+              return (0.0, 0.0);
+            })
+            .toList(),
       );
     }
     return ForgetObserverText(
       caseName: j['case_name'] as String? ?? '',
+      nodeId: j['node_id'] as String?,
       passed: j['passed'] as bool? ?? false,
       llmAvailable: j['llm_available'] as bool? ?? false,
-      maskedText: j['masked_text'] as String?,
+      original: j['original'] as String?,
+      masked: j['masked'] as String?,
+      maskRatio: (j['mask_ratio'] as num?)?.toDouble(),
       llmReply: j['llm_reply'] as String?,
       metrics: ((j['metrics'] as List?) ?? const [])
           .map((e) {
@@ -780,6 +852,10 @@ class ForgetObserverNodes extends ForgetObserverCase {
   /// 用例代表的时间跨度（low=8h / medium=24h / high=72h）
   final double? hours;
   final List<NodeForgetStat> nodes;
+  /// 逐节点时间步长序列：遗忘以节点为单位，节点内容按时间步变化
+  final List<NodeSeries> nodeSeries;
+  /// 理想艾宾浩斯曲线采样（x=小时, y=缺失度），与实测叠加对比
+  final List<(double, double)> idealPoints;
 
   ForgetObserverNodes({
     required this.caseName,
@@ -796,25 +872,37 @@ class ForgetObserverNodes extends ForgetObserverCase {
     required this.avgEdgeIntensity,
     this.hours,
     required this.nodes,
+    this.nodeSeries = const [],
+    this.idealPoints = const [],
   });
 }
 
 class ForgetObserverText extends ForgetObserverCase {
   @override
   final String caseName;
+  /// 源记忆节点 id（mask/revise 按此以节点为单位展示）
+  final String? nodeId;
   @override
   final bool passed;
   final bool llmAvailable;
-  final String? maskedText;
+  /// 原文（原文对照展示）
+  final String? original;
+  /// mask：遮罩结果文本；revise：遮罩输入
+  final String? masked;
+  /// 遮罩率（mask 模式）
+  final double? maskRatio;
   final String? llmReply;
   final List<(String, String, String)> metrics;
   final List<String> detailLines;
 
   ForgetObserverText({
     required this.caseName,
+    this.nodeId,
     required this.passed,
     required this.llmAvailable,
-    this.maskedText,
+    this.original,
+    this.masked,
+    this.maskRatio,
     this.llmReply,
     required this.metrics,
     required this.detailLines,
@@ -880,6 +968,8 @@ class InspectLink {
   final String linkTypeDesc;
   final double intensity;
   final bool isOutgoing;
+  /// 邻居节点在条目列表中的索引（点击链接可跳转）
+  final int targetIdx;
 
   InspectLink({
     required this.fromId,
@@ -887,6 +977,7 @@ class InspectLink {
     required this.linkTypeDesc,
     required this.intensity,
     required this.isOutgoing,
+    required this.targetIdx,
   });
 
   factory InspectLink.fromJson(Map<String, dynamic> j) => InspectLink(
@@ -895,6 +986,7 @@ class InspectLink {
         linkTypeDesc: j['link_type_desc'] as String? ?? '',
         intensity: (j['intensity'] as num?)?.toDouble() ?? 0,
         isOutgoing: j['is_outgoing'] as bool? ?? false,
+        targetIdx: j['target_idx'] as int? ?? 0,
       );
 }
 
@@ -1098,5 +1190,34 @@ class PlayTurn {
         full: j['full'] == null
             ? null
             : PlayRun.fromJson(j['full'] as Map<String, dynamic>),
+      );
+}
+
+// ── 模型来源（llama-server） ──
+
+/// 模型可用性状态：所有需要模型的地方共用同一套来源决策——
+/// 1. 复用运行中的 llama-server；2. 自动拉起本地缓存模型；3. 报错或降级。
+class ModelStatus {
+  final bool available;
+  /// running（复用运行中服务）| spawned（将自动拉起本地模型）| unavailable
+  final String source;
+  final String? url;
+  final String? modelPath;
+  final String? reason;
+
+  ModelStatus({
+    required this.available,
+    required this.source,
+    this.url,
+    this.modelPath,
+    this.reason,
+  });
+
+  factory ModelStatus.fromJson(Map<String, dynamic> j) => ModelStatus(
+        available: j['available'] as bool? ?? false,
+        source: j['source'] as String? ?? 'unavailable',
+        url: j['url'] as String?,
+        modelPath: j['model_path'] as String?,
+        reason: j['reason'] as String?,
       );
 }

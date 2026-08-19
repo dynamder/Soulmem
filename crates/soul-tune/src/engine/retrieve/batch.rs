@@ -3,10 +3,10 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
 use crate::base::RetrieveMode;
-use crate::engine::batch::{scan_question_jsons, DatasetResult};
+use crate::engine::batch::DatasetResult;
 use crate::engine::compare::build_compare_report;
 use crate::engine::retrieve::suite::RetrieveSuite;
-use crate::engine::suite::{TestCaseOutcome, TestSuite};
+use crate::engine::suite::TestSuite;
 
 #[derive(Clone)]
 pub struct CompareDatasetResult {

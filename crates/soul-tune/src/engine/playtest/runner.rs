@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet, VecDeque};
-use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex, OnceLock};
+use std::path::Path;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use serde::Deserialize;
@@ -685,6 +685,14 @@ impl PlayTestRunner {
             .map(|r| format!("与你对话的人（对方身份）: {}\n", r))
             .unwrap_or_default();
 
+        // 对方身份（用于强制生成"对方身份相关"查询）；未指定时提示从对话推断。
+        let partner_role_hint = self
+            .human_role
+            .as_ref()
+            .map(|r| r.trim().to_string())
+            .filter(|r| !r.is_empty())
+            .unwrap_or_else(|| "（对方身份未指定，请从对话中推断对方是谁）".to_string());
+
         let entities_text = if entities.is_empty() {
             String::new()
         } else {
@@ -710,9 +718,9 @@ impl PlayTestRunner {
              请以角色自身的视角，回想回应这句话所需的相关记忆，输出一个 JSON 数组，4-8 条，每条代表一个回忆方向。\n\n\
              【每条查询的字段】\n\
              - tag: 类型+子类，如 [\"人物\", \"挚友\"]、[\"事件\", \"异变\"]、[\"概念\", \"规则\"]、[\"物品\", \"秘宝\"]、[\"地点\", \"神社\"]、[\"日常\", \"习惯\"]\n\
-             - variant: 二选一：\n\
-               * Semantic: 实体概念查询。concept_identifier 用角色视角的特征性别名/转述——就像身边人平时怎么称呼这个人、这件东西、这条规则，不要照搬正式名称。description 可选补充说明。\n\
-               * Situation: 情境/氛围查询。narrative 用一两句话转述对方所说或所涉及的经历（谁、发生了什么、结果如何）；environment 填写当前会话的氛围（从最近对话与消息的语气、话题、情绪提取，如\"深夜谈心\"\"互相调侃\"\"冷战\"）；event 可选，填写对方话语中体现的事件模式（动作、发起者、对象）。可以只填 narrative，也可以 narrative + environment 组合。\n\
+             - variant: 二选一（**以 Semantic 实体名词式为主**）：\n\
+               * Semantic: 实体概念查询（首选，应占大部分）。concept_identifier 用角色视角的特征性别名/转述——**一个实体名词或名词短语**（人、物、地点、规则），就像身边人平时怎么称呼，不要照搬正式名称，也不要写成句子。description 可选补充说明。\n\
+               * Situation: 情境/氛围查询（仅当需要回忆具体经历时使用）。narrative 用一两句话转述对方所说或所涉及的经历（谁、发生了什么、结果如何）；environment 填写当前会话的氛围（从最近对话与消息的语气、话题、情绪提取，如\"深夜谈心\"\"互相调侃\"\"冷战\"）；event 可选，填写对方话语中体现的事件模式（动作、发起者、对象）。\n\
              - priority: 整数，越大表示这条回忆越重要。\n\n\
              【示例】\n\
              [\n\
@@ -722,6 +730,8 @@ impl PlayTestRunner {
                {{\"tag\": [\"日常\", \"习惯\"], \"variant\": {{\"Situation\": [{{\"narrative\": \"灵梦每天在神社喝茶扫地，检查空空的赛钱箱\", \"environment\": {{\"atmosphere\": \"悠闲\", \"tone\": \"平淡\"}}}}]}}, \"priority\": 4}}\n\
              ]\n\n\
              【要点】\n\
+             - **以实体名词式查询为主**：大部分查询应为 Semantic 实体概念（名词短语），Situation 叙事查询只在明确需要回忆具体情境时使用，不要每条都写成叙事短句\n\
+             - **必须包含对方身份相关查询**：与你对话的人是{}。至少生成一条关于对方身份/称呼/你与对方关系的 Semantic 查询（concept_identifier 用对方身份的称呼或特征名），回想与对方的关系、共同经历、对方相关的人物，除非对话内容与对方身份完全无关\n\
              - 所有查询必须与对方说/问的内容直接相关；宁少勿多，不要为了凑 4-8 条生成与对话无关的查询\n\
              - 氛围与事件必须来自最近对话和对方消息，不要编造对话中不存在的氛围、事件或细节\n\
              - Situation 的 narrative 必须是对话中涉及经历的转述：可以换措辞，但事实要素必须来自对话上下文\n\
@@ -729,7 +739,11 @@ impl PlayTestRunner {
              - 注意与你对话的人是谁：优先回想与对方的关系、共同经历和对方相关的人物记忆（除非对话内容明显无关）\n\
              - 如果当前对话没有任何对应记忆，只输出 1-3 条实体/概念查询，或输出空数组 []\n\
              只输出 JSON 数组，不要其他内容。",
-            partner_line, history_section, user_message, entities_text
+            partner_line,
+            history_section,
+            user_message,
+            entities_text,
+            partner_role_hint
         )
     }
 

@@ -22,6 +22,24 @@ impl LlmBackend for LlamaServer {
 }
 
 impl LlamaServer {
+    /// 直连一个**已运行**的 llama-server（不探测、不拉起；调用方负责确认健康）。
+    pub fn connect(url: &str) -> Result<Self> {
+        let client = reqwest::blocking::ClientBuilder::new()
+            .no_proxy()
+            .timeout(Duration::from_secs(120))
+            .build()
+            .context("创建 HTTP client 失败")?;
+        Ok(Self {
+            process: None,
+            client,
+            api_url: url.trim_end_matches('/').to_string(),
+        })
+    }
+
+    /// 加载 LLM 后端。来源决策（显式 URL / 显式模型 / 探活复用 / 目录扫描）由
+    /// [`super::resolver`] 统一处理；本函数只负责：显式 URL 直连（不可达则回退拉起）、
+    /// 拉起指定 model_path 的子进程。**不**做默认端口探活复用——调用方已决定"要这个模型"，
+    /// 避免复用到端口上其他模型导致行为漂移（如 CANDLE_MODEL_PATH 指定 Qwen3.5 却复用到别的服务）。
     pub fn load(model_path: &str) -> Result<Self> {
         let port = std::env::var("SOUL_TUNE_LLAMA_PORT")
             .ok()
@@ -31,16 +49,10 @@ impl LlamaServer {
         let api_url = format!("http://127.0.0.1:{}", port);
 
         if let Ok(url) = std::env::var("SOUL_TUNE_LLAMA_URL") {
-            let client = reqwest::blocking::ClientBuilder::new()
-                .no_proxy()
-                .timeout(Duration::from_secs(120))
-                .build()
-                .context("创建 HTTP client 失败")?;
-            return Ok(Self {
-                process: None,
-                client,
-                api_url: url,
-            });
+            if super::resolver::probe_health(&url) {
+                return Self::connect(&url);
+            }
+            // URL 已配置但不可达：回退到下方拉起本地模型
         }
 
         let server_path = std::env::var("SOUL_TUNE_LLAMA_SERVER_PATH")

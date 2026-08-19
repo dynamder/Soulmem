@@ -23,8 +23,8 @@ use soul_tune::base::{AlgoType, RetrieveMode};
 use soul_tune::engine::batch::{scan_question_jsons, BatchResult};
 use soul_tune::engine::compare::{build_compare_report, CompareReport};
 use soul_tune::engine::forget::{
-    ForgetCaseData, ForgetMaskSuite, ForgetPipelineSuite, ForgetReviseSuite, MaskCaseData,
-    NodeForgetStat, ReviseCaseData,
+    ideal_ebbinghaus_curve, ForgetCaseData, ForgetMaskSuite, ForgetPipelineSuite,
+    ForgetReviseSuite, MaskCaseData, NodeForgetStat, NodeSeries, ReviseCaseData,
 };
 use soul_tune::engine::llm::LlamaServer;
 use soul_tune::engine::playtest::runner::{ConversationEntry, PlayTestRunner};
@@ -378,7 +378,7 @@ pub fn run_batch(dir: String, mode: String, params_json: String, sink: StreamSin
 fn run_batch_impl(
     dir: &str,
     mode: &str,
-    params_json: &str,
+    _params_json: &str,
     sink: &StreamSink<String>,
 ) -> anyhow::Result<()> {
     let mode = match mode {
@@ -388,7 +388,6 @@ fn run_batch_impl(
         other => return Err(anyhow::anyhow!("未知检索模式: {other}")),
     };
     let dir_path = PathBuf::from(dir);
-    let params: HashMap<String, String> = serde_json::from_str(params_json).unwrap_or_default();
 
     CANCEL.store(false, Ordering::SeqCst);
     emit(sink, &BatchEvent::Scanning { dir: dir_path.to_string_lossy().to_string() });
@@ -696,6 +695,8 @@ struct InspectLinkJson {
     link_type_desc: String,
     intensity: f64,
     is_outgoing: bool,
+    /// 邻居节点在条目列表中的索引（GUI 点击链接跳转）
+    target_idx: usize,
 }
 
 #[derive(Serialize)]
@@ -741,6 +742,7 @@ pub fn inspect_entries_json(path: String) -> String {
                     link_type_desc: l.link_type_desc,
                     intensity: l.intensity,
                     is_outgoing: l.is_outgoing,
+                    target_idx: l.target_idx,
                 })
                 .collect(),
         })
@@ -824,12 +826,23 @@ enum ForgetObserverCaseJson {
         /// 用例代表的时间跨度（low=8h / medium=24h / high=72h，供节点演变曲线 x 轴）
         hours: Option<f64>,
         nodes: Vec<NodeForgetStat>,
+        /// 逐节点时间步长序列：遗忘以节点为单位，节点内容按时间步变化
+        node_series: Vec<NodeSeries>,
+        /// 理想艾宾浩斯曲线采样（x=小时, y=缺失度），与实测叠加对比
+        ideal_points: Vec<(f64, f64)>,
     },
     Text {
         case_name: String,
+        /// 源记忆节点 id（mask/revise 按此以节点为单位展示）
+        node_id: Option<String>,
         passed: bool,
         llm_available: bool,
-        masked_text: Option<String>,
+        /// 原文（mask/revise 均提供，供原文对照展示）
+        original: Option<String>,
+        /// mask：遮罩结果文本；revise：遮罩输入
+        masked: Option<String>,
+        /// 遮罩率（mask 模式）
+        mask_ratio: Option<f64>,
         llm_reply: Option<String>,
         metrics: Vec<(String, String, String)>,
         detail_lines: Vec<String>,
@@ -924,6 +937,14 @@ fn run_forget_impl(mode: &str, dataset: &str, sink: &StreamSink<String>) -> anyh
         .iter()
         .filter_map(|o| {
             if let Some(d) = o.data.downcast_ref::<ForgetCaseData>() {
+                // 理想艾宾浩斯曲线：以该用例节点序列的最大时间步为横轴范围
+                let max_hours = d
+                    .node_series
+                    .iter()
+                    .flat_map(|ns| ns.steps.iter().map(|s| s.hours))
+                    .max()
+                    .unwrap_or(0);
+                let ideal_points = ideal_ebbinghaus_curve(max_hours);
                 Some(ForgetObserverCaseJson::Nodes {
                     case_name: d.case_name.clone(),
                     passed: d.passed,
@@ -948,13 +969,18 @@ fn run_forget_impl(mode: &str, dataset: &str, sink: &StreamSink<String>) -> anyh
                         _ => None,
                     },
                     nodes: d.nodes.clone(),
+                    node_series: d.node_series.clone(),
+                    ideal_points,
                 })
             } else if let Some(d) = o.data.downcast_ref::<ReviseCaseData>() {
                 Some(ForgetObserverCaseJson::Text {
                     case_name: d.case_name.clone(),
+                    node_id: Some(d.node_id.clone()),
                     passed: d.passed,
                     llm_available: d.llm_available,
-                    masked_text: Some(d.masked_text.clone()),
+                    original: Some(d.original.clone()),
+                    masked: Some(d.masked_text.clone()),
+                    mask_ratio: None,
                     llm_reply: Some(d.llm_reply.clone()),
                     metrics: d.metrics.clone(),
                     detail_lines: d.detail_lines.clone(),
@@ -962,9 +988,16 @@ fn run_forget_impl(mode: &str, dataset: &str, sink: &StreamSink<String>) -> anyh
             } else if let Some(d) = o.data.downcast_ref::<MaskCaseData>() {
                 Some(ForgetObserverCaseJson::Text {
                     case_name: d.case_name.clone(),
+                    node_id: Some(d.node_id.clone()),
                     passed: d.passed,
                     llm_available: false,
-                    masked_text: None,
+                    original: Some(d.original.clone()),
+                    masked: Some(d.masked.clone()),
+                    mask_ratio: if d.total_count > 0 {
+                        Some(d.masked_count as f64 / d.total_count as f64)
+                    } else {
+                        None
+                    },
                     llm_reply: None,
                     metrics: d.metrics.clone(),
                     detail_lines: d.detail_lines.clone(),
@@ -996,6 +1029,37 @@ fn run_forget_impl(mode: &str, dataset: &str, sink: &StreamSink<String>) -> anyh
     Ok(())
 }
 
+// ======================= 模型来源（llama-server） =======================
+
+/// 模型来源状态（只探测、不启动）：
+/// - `running`：检测到**已运行**的 llama-server，直接复用；
+/// - `spawned`：无运行服务，将自动拉起本地缓存模型（`model_path`）；
+/// - `unavailable`：都没有，报错或降级（`reason` 说明）。
+#[derive(Serialize)]
+struct ModelStatusJson {
+    available: bool,
+    source: String,
+    url: Option<String>,
+    model_path: Option<String>,
+    reason: Option<String>,
+}
+
+/// 查询模型可用性：先探测运行中的 llama-server，无则查找本地缓存模型（不启动）。
+///
+/// 所有需要模型的地方共用同一套来源决策（见 `soul_tune::engine::llm::resolver`）。
+#[frb]
+pub fn model_status_json() -> String {
+    let s = soul_tune::engine::llm::probe_status();
+    serde_json::to_string(&ModelStatusJson {
+        available: s.available,
+        source: s.source,
+        url: s.url,
+        model_path: s.model_path,
+        reason: s.reason,
+    })
+    .unwrap_or_else(|_| "{}".to_string())
+}
+
 // ======================= 角色扮演（playtest） =======================
 
 struct PlaytestSession {
@@ -1003,6 +1067,8 @@ struct PlaytestSession {
     llm: LlamaServer,
     turn_index: usize,
     character_name: String,
+    /// 人工投票记录：turn_index → 0=embedding 更好 / 1=full 更好 / 2=持平
+    votes: HashMap<usize, u8>,
 }
 
 static PLAYTEST_SESSION: OnceLock<Mutex<Option<PlaytestSession>>> = OnceLock::new();
@@ -1011,16 +1077,17 @@ fn playtest_session() -> &'static Mutex<Option<PlaytestSession>> {
     PLAYTEST_SESSION.get_or_init(|| Mutex::new(None))
 }
 
-/// 启动 playtest：加载角色图 + llama-server。
+/// 启动 playtest：加载角色图 + LLM。
 /// 参数可以是图目录（须含 graph.json）或 graph.json 文件本身（取其父目录）。
-/// 需要环境变量 SOUL_TUNE_CANDLE_MODEL_PATH（自动拉起）或 SOUL_TUNE_LLAMA_URL（直连）。
+/// `user_role` 非空时作为对话中对方（人类）的身份注入。
+/// LLM 来源统一解析：先复用运行中的 llama-server，无则自动拉起本地缓存模型，
+/// 都没有则返回明确错误（见 `soul_tune::engine::llm::resolver`）。
 #[frb]
-pub fn playtest_start(graph_dir: String) -> String {
+pub fn playtest_start(graph_dir: String, user_role: String) -> String {
     let err = |msg: String| {
         serde_json::json!({ "ok": false, "character_name": "", "error": msg }).to_string()
     };
 
-    let graph_path = Path::new(&graph_dir);
     // 归一化：去除 \\?\ 前缀与首尾空白（file_picker 某些版本可能返回扩展路径）
     let graph_dir = graph_dir.trim().trim_start_matches("\\\\?\\");
     let graph_path = Path::new(graph_dir);
@@ -1047,23 +1114,29 @@ pub fn playtest_start(graph_dir: String) -> String {
         Ok(r) => r,
         Err(e) => return err(format!("加载角色图失败（{}）: {e}", resolved_dir.display())),
     };
+    let runner = if user_role.trim().is_empty() {
+        runner
+    } else {
+        runner.with_human_role(Some(user_role.trim().to_string()))
+    };
     let character_name = resolved_dir
         .file_name()
         .map(|n| n.to_string_lossy().to_string())
         .unwrap_or_else(|| "角色".to_string());
 
-    let model_path = match std::env::var("SOUL_TUNE_CANDLE_MODEL_PATH") {
-        Ok(p) => p,
-        Err(_) => {
-            return err(
-                "请设置环境变量 SOUL_TUNE_CANDLE_MODEL_PATH（或 SOUL_TUNE_LLAMA_URL 直连已运行的 llama-server）"
-                    .to_string(),
-            )
+    // 统一模型来源解析：复用运行中的 llama-server → 自动拉起本地缓存模型 → 报错
+    let resolution = soul_tune::engine::llm::resolve_llm();
+    let llm = match resolution.server {
+        Some(l) => l,
+        None => {
+            let reason = resolution
+                .status
+                .reason
+                .unwrap_or_else(|| "LLM 不可用".to_string());
+            return err(format!(
+                "LLM 不可用: {reason}（playtest 需要 LLM 生成查询与回复）"
+            ));
         }
-    };
-    let llm = match LlamaServer::load(&model_path) {
-        Ok(l) => l,
-        Err(e) => return err(format!("启动 llama-server 失败: {e}")),
     };
 
     *playtest_session().lock().unwrap() = Some(PlaytestSession {
@@ -1071,9 +1144,20 @@ pub fn playtest_start(graph_dir: String) -> String {
         llm,
         turn_index: 0,
         character_name: character_name.clone(),
+        votes: HashMap::new(),
     });
     serde_json::json!({ "ok": true, "character_name": character_name, "error": serde_json::Value::Null })
         .to_string()
+}
+
+/// 记录一轮对话的人工投票：0=embedding 更好 / 1=full 更好 / 2=持平。
+#[frb]
+pub fn playtest_vote(turn_index: usize, pick: u8) {
+    if let Ok(mut guard) = playtest_session().lock() {
+        if let Some(s) = guard.as_mut() {
+            s.votes.insert(turn_index, pick);
+        }
+    }
 }
 
 /// 结束 playtest 会话（关闭 llama-server 子进程）。

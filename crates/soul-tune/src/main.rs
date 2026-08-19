@@ -13,7 +13,6 @@ use base::{AlgoType, ForgetMode, RetrieveMode, TestReport};
 use engine::batch::{print_batch_result, run_batch, scan_question_jsons, summarize_action_metrics};
 use engine::forget::{ForgetMaskSuite, ForgetPipelineSuite, ForgetReviseSuite};
 use engine::inspect::{inspect_data, InspectFileType};
-use engine::llm::LlamaServer;
 use engine::playtest::trace::RetrievalTrace;
 use engine::playtest::{DialogueFile, PlayTestRunner, PlayTurnResult};
 use engine::retrieve::batch::process_one_dataset;
@@ -479,7 +478,7 @@ fn write_retrieve_log(outcomes: &[TestCaseOutcome]) {
 fn run_headless_playtest(args: &[String]) -> color_eyre::Result<()> {
     if args.len() < 4 {
         eprintln!("用法: soul-tune playtest <graph_dir> <dialogue_file>");
-        eprintln!("环境变量: SOUL_TUNE_CANDLE_MODEL_PATH 必须设置");
+        eprintln!("LLM 来源统一解析：复用运行中的 llama-server，或自动拉起本地缓存模型");
         std::process::exit(1);
     }
 
@@ -495,10 +494,24 @@ fn run_headless_playtest(args: &[String]) -> color_eyre::Result<()> {
         std::process::exit(1);
     }
 
-    let model_path = match std::env::var("SOUL_TUNE_CANDLE_MODEL_PATH") {
-        Ok(p) => p,
-        Err(_) => {
-            eprintln!("请设置环境变量 SOUL_TUNE_CANDLE_MODEL_PATH");
+    // 统一模型来源解析：复用运行中的 llama-server → 自动拉起本地缓存模型 → 报错
+    let resolution = crate::engine::llm::resolve_llm();
+    let (mut llm, model_desc) = match resolution.server {
+        Some(s) => {
+            let desc = resolution
+                .status
+                .model_path
+                .map(|p| format!("本地模型 {}", p))
+                .or_else(|| resolution.status.url.clone())
+                .unwrap_or_else(|| "（未知）".to_string());
+            (s, desc)
+        }
+        None => {
+            let reason = resolution
+                .status
+                .reason
+                .unwrap_or_else(|| "未找到可用的 LLM".to_string());
+            eprintln!("LLM 不可用: {reason}");
             std::process::exit(1);
         }
     };
@@ -516,7 +529,7 @@ fn run_headless_playtest(args: &[String]) -> color_eyre::Result<()> {
         "自身角色: {}",
         dialogue.role.as_deref().unwrap_or("（未设置）")
     );
-    println!("模型: {}\n", model_path);
+    println!("模型: {}\n", model_desc);
 
     println!("[1/3] 加载角色图...");
     let mut runner = PlayTestRunner::load(&graph_dir)
@@ -531,8 +544,6 @@ fn run_headless_playtest(args: &[String]) -> color_eyre::Result<()> {
     println!("  ✓ 图加载完成");
 
     println!("[2/3] 启动 LLM 服务...");
-    let mut llm = LlamaServer::load(&model_path)
-        .map_err(|e| color_eyre::eyre::eyre!("启动 LLM 失败: {}", e))?;
     println!("  ✓ LLM 服务就绪");
 
     println!("[3/3] 运行对话...\n");

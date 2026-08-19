@@ -91,6 +91,12 @@ Future<InspectEntries> inspectEntries(String path) async {
   return InspectEntries.fromJson(jsonDecode(raw) as Map<String, dynamic>);
 }
 
+/// 查询模型可用性：探测运行中的 llama-server，无则查找本地缓存模型（不启动）。
+Future<ModelStatus> modelStatus() async {
+  final raw = await api.modelStatusJson();
+  return ModelStatus.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+}
+
 Stream<ForgetEvent> runForget({
   required String mode,
   required String dataset,
@@ -100,12 +106,15 @@ Stream<ForgetEvent> runForget({
       .map((raw) => ForgetEvent.fromJson(_decode(raw)));
 }
 
-Future<PlaytestStartResult> playtestStart(String graphDir) async {
-  final raw = await api.playtestStart(graphDir: graphDir);
+Future<PlaytestStartResult> playtestStart(String graphDir, {String userRole = ''}) async {
+  final raw = await api.playtestStart(graphDir: graphDir, userRole: userRole);
   return PlaytestStartResult.fromJson(jsonDecode(raw) as Map<String, dynamic>);
 }
 
 Future<void> playtestFinish() => api.playtestFinish();
+
+Future<void> playtestVote(int turnIndex, int pick) =>
+    api.playtestVote(turnIndex: BigInt.from(turnIndex), pick: pick);
 
 Stream<PlayTurn> playtestTurn(String userMessage) {
   return api

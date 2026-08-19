@@ -447,8 +447,6 @@ async fn load_paw_fn(
         .ok()
 }
 
-use paw_rs::PawFnBuilder;
-
 use crate::engine::llm::LlmBackend;
 
 #[cfg(test)]

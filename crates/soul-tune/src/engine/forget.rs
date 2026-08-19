@@ -13,8 +13,8 @@
 //!    `compute_all_missing_degrees` → 逐节点 `lazy_forget`（衰减+遮罩+LLM 补全）→
 //!    边衰减。区分**真实修订**与降级遮罩，LLM 可用但有效修订为 0 时用例失败。
 //!
-//! LLM 后端与 playtest 完全一致：`SOUL_TUNE_LLAMA_URL`（直连已运行服务）或
-//! `SOUL_TUNE_CANDLE_MODEL_PATH`（自动拉起 llama-server）。
+//! LLM 后端与 playtest 完全一致：统一来源解析（见 `engine::llm::resolver`）——
+//! 先探测运行中的 llama-server，没有则自动拉起本地缓存模型，都没有则降级遮罩。
 
 use std::future::Future;
 use std::path::Path;
@@ -69,11 +69,18 @@ type LlmCall = Box<
 /// 记忆补全的最大生成 token 数（与 playtest 的生成调用量级一致）
 const LLM_MAX_TOKENS: u32 = 1024;
 
-/// 记忆重建 system prompt（记忆重建角色）
+/// 记忆重建 system prompt（记忆重建角色）。
+/// 与算法层 `llm_completion::DEFAULT_RECONSTRUCT_SYSTEM_PROMPT` 保持一致：
+/// 每个 [masked] 对应一个缺失 token，必须全部补全；全遮罩时输出固定遗忘句。
 const FORGET_SYSTEM_PROMPT: &str = "You are a memory reconstruction assistant. \
-    A segment of memory text has been partially masked, with [masked] placeholders. \
-    Based on the context and the remaining fragments, infer and complete the missing parts \
-    naturally. Output only the completed text, no explanation.";
+    A segment of memory text has been partially masked with [masked] placeholders. \
+    Each [masked] placeholder corresponds to exactly one missing word/token of the original text, \
+    so the number of placeholders tells you how much information is missing. \
+    Based on the remaining context, infer and fill in ALL placeholders naturally; \
+    the output must contain NO [masked] placeholders — every one must be completed. \
+    If the text is entirely masked with no remaining context to infer from, \
+    output exactly: \"I totally forget it and cannot recall anything.\" \
+    Output only the completed text, no explanation.";
 
 /// 使用 soul-tune 的 `LlamaServer`（与 playtest 相同后端）的闭包。
 ///
@@ -110,23 +117,18 @@ fn failing_llm_closure() -> LlmCall {
     })
 }
 
-/// 按 soul-tune 的 llama-server 约定创建 LLM 后端：
-/// `SOUL_TUNE_LLAMA_URL` 直连，否则 `SOUL_TUNE_CANDLE_MODEL_PATH` 自动拉起。
+/// 按统一来源解析创建 LLM 后端（见 [`crate::engine::llm::resolver`]）：
+/// 复用运行中的 llama-server → 自动拉起本地缓存模型 → 降级为 None（遮罩路径）。
 fn try_create_llm() -> Option<Arc<Mutex<LlamaServer>>> {
-    let server = if std::env::var("SOUL_TUNE_LLAMA_URL").is_ok() {
-        LlamaServer::load("")
-    } else if let Ok(model) = std::env::var("SOUL_TUNE_CANDLE_MODEL_PATH") {
-        if model.trim().is_empty() {
-            return None;
-        }
-        LlamaServer::load(&model)
-    } else {
-        return None;
-    };
-    match server {
-        Ok(s) => Some(Arc::new(Mutex::new(s))),
-        Err(e) => {
-            eprintln!("llama-server 不可用（{e}），降级为遮罩路径");
+    let resolution = crate::engine::llm::resolve_llm();
+    match resolution.server {
+        Some(s) => Some(Arc::new(Mutex::new(s))),
+        None => {
+            let reason = resolution
+                .status
+                .reason
+                .unwrap_or_else(|| "未知原因".to_string());
+            eprintln!("llama-server 不可用（{reason}），降级为遮罩路径");
             None
         }
     }
@@ -171,7 +173,10 @@ fn is_effective_revision(reply: &str) -> bool {
 
 /// 遮罩用例：对指定文本按指定缺失度执行 `mask_text`
 struct MaskCaseSpec {
+    /// 用例名：`{node_id}-md{md:.2}` 或 `{node_id}-determinism`
     name: String,
+    /// 源记忆节点 id（内置文本集时用文本标签 short/medium/long）
+    node_id: String,
     text: String,
     missing_degree: f32,
 }
@@ -179,33 +184,28 @@ struct MaskCaseSpec {
 /// 缺失度梯度
 const MASK_GRADIENTS: [f32; 6] = [0.0, 0.1, 0.2, 0.5, 0.87, 1.0];
 
-/// 从文本集构造遮罩用例（中/长 × 全梯度 + 短文本边界 + 确定性）
-fn build_mask_cases(texts: &[(&str, String)]) -> Vec<MaskCaseSpec> {
+/// 从节点列表构造遮罩用例：**每个节点 × 全梯度**（时间越长 → 缺失度越高 → 遮罩越多），
+/// 外加确定性用例（取最长文本）。以记忆节点 id 为单位，供观测按节点聚合。
+fn build_node_mask_cases(nodes: &[(String, String)]) -> Vec<MaskCaseSpec> {
     let mut cases = Vec::new();
-    // 中/长文本 × 全梯度：验证比例正确性
-    for (tag, text) in texts.iter().filter(|(tag, _)| *tag != "short") {
+    for (id, text) in nodes {
         for md in MASK_GRADIENTS {
             cases.push(MaskCaseSpec {
-                name: format!("{}-md{:.2}", tag, md),
+                name: format!("{id}-md{md:.2}"),
+                node_id: id.clone(),
                 text: text.clone(),
                 missing_degree: md,
             });
         }
     }
-    // 短文本边界：验证不 panic、masked ≤ total
-    if let Some((_, short)) = texts.iter().find(|(tag, _)| *tag == "short") {
-        for md in [0.5, 0.87, 1.0] {
-            cases.push(MaskCaseSpec {
-                name: format!("short-md{:.2}", md),
-                text: short.clone(),
-                missing_degree: md,
-            });
-        }
-    }
     // 确定性：同一输入两次结果一致（取最长文本）
-    if let Some((_, long)) = texts.iter().max_by(|a, b| a.1.chars().count().cmp(&b.1.chars().count())) {
+    if let Some((id, long)) = nodes
+        .iter()
+        .max_by(|a, b| a.1.chars().count().cmp(&b.1.chars().count()))
+    {
         cases.push(MaskCaseSpec {
-            name: "determinism".into(),
+            name: format!("{id}-determinism"),
+            node_id: id.clone(),
             text: long.clone(),
             missing_degree: 0.5,
         });
@@ -213,7 +213,7 @@ fn build_mask_cases(texts: &[(&str, String)]) -> Vec<MaskCaseSpec> {
     cases
 }
 
-/// 内置文本集：短 / 中 / 长中文文本
+/// 内置文本集：短 / 中 / 长中文文本（无图依赖，测试/快速验证使用）
 const MASK_TEXTS: [(&str, &str); 3] = [
     (
         "short",
@@ -233,7 +233,16 @@ const MASK_TEXTS: [(&str, &str); 3] = [
 #[derive(Serialize)]
 pub struct MaskCaseData {
     pub case_name: String,
+    /// 源记忆节点 id（观测按此聚合）
+    pub node_id: String,
     pub passed: bool,
+    /// 原文（遮罩前）
+    pub original: String,
+    /// 遮罩结果文本
+    pub masked: String,
+    /// 遮罩词数 / 总词数（供遮罩率）
+    pub masked_count: usize,
+    pub total_count: usize,
     pub detail_lines: Vec<String>,
     pub metrics: Vec<(String, String, String)>,
 }
@@ -246,27 +255,23 @@ pub struct ForgetMaskSuite {
 impl ForgetMaskSuite {
     /// 内置文本集套件（无图依赖，测试/快速验证使用）
     pub fn new() -> Self {
-        let texts: Vec<(&str, String)> = MASK_TEXTS
+        let nodes: Vec<(String, String)> = MASK_TEXTS
             .iter()
-            .map(|(tag, text)| (*tag, text.to_string()))
+            .map(|(tag, text)| (tag.to_string(), text.to_string()))
             .collect();
         Self {
             jieba: Jieba::new(),
-            cases: build_mask_cases(&texts),
+            cases: build_node_mask_cases(&nodes),
         }
     }
 
-    /// 从指定 fixture 图加载文本（与 Revise/Pipeline 同一数据源）。
-    ///
-    /// 从图中收集可遮罩节点（SemMemory / SpecificSituation）的文本，
-    /// 按词数分短/中/长三层各取一个代表性文本，构造遮罩用例。
+    /// 从指定 fixture 图加载：**收集全部可遮罩节点**（SemMemory / SpecificSituation），
+    /// 每个节点 × 全缺失度梯度构造用例 —— 观测以记忆节点 id 为单位展示遮罩演变。
     pub fn load(path: &Path) -> Result<Self, String> {
         let (cluster, _id_map) = load_graph_cluster(path)
             .map_err(|e| format!("加载图 '{}' 失败: {}", path.display(), e))?;
         let jieba = Jieba::new();
-        let mut short: Vec<String> = Vec::new();
-        let mut medium: Vec<String> = Vec::new();
-        let mut long: Vec<String> = Vec::new();
+        let mut nodes: Vec<(String, String)> = Vec::new();
         for n in cluster.graph().node_weights() {
             if !is_maskable(n.note()) {
                 continue;
@@ -275,34 +280,14 @@ impl ForgetMaskSuite {
             if text.trim().is_empty() {
                 continue;
             }
-            let words = mask_word_count(&jieba, &text);
-            if words < 8 {
-                short.push(text);
-            } else if words <= 20 {
-                medium.push(text);
-            } else {
-                long.push(text);
-            }
+            nodes.push((n.note().id().to_string(), text));
         }
-        // 每层取最长的一个代表性文本（控制用例数量）
-        let longest = |mut v: Vec<String>| -> Option<String> {
-            v.sort_by_key(|s| std::cmp::Reverse(s.chars().count()));
-            v.into_iter().next()
-        };
-        let mut texts: Vec<(&str, String)> = Vec::new();
-        if let Some(t) = longest(short) {
-            texts.push(("short", t));
-        }
-        if let Some(t) = longest(medium) {
-            texts.push(("medium", t));
-        }
-        if let Some(t) = longest(long) {
-            texts.push(("long", t));
-        }
+        // 确定性排序，保证可复现
+        nodes.sort_by(|a, b| a.0.cmp(&b.0));
 
         Ok(Self {
             jieba,
-            cases: build_mask_cases(&texts),
+            cases: build_node_mask_cases(&nodes),
         })
     }
 
@@ -357,7 +342,7 @@ impl ForgetMaskSuite {
 
         // 确定性：同输入再跑一次
         let r2 = mask_text(&spec.text, spec.missing_degree, &self.jieba);
-        if spec.name == "determinism" {
+        if spec.name.ends_with("-determinism") {
             if r1.masked_text != r2.masked_text {
                 detail_lines.push("  确定性检查: 两次结果不一致！".into());
             }
@@ -366,19 +351,24 @@ impl ForgetMaskSuite {
         let metrics = vec![
             (
                 "遮罩".into(),
-                format!("{} 遮罩率", spec.name),
+                format!("{} 遮罩率", spec.node_id),
                 format!("{:.0}%", if r1.total_count > 0 { r1.masked_count as f32 / r1.total_count as f32 * 100.0 } else { 0.0 }),
             ),
             (
                 "遮罩".into(),
-                format!("{} 词数", spec.name),
+                format!("{} 词数", spec.node_id),
                 format!("{}/{}", r1.masked_count, r1.total_count),
             ),
         ];
 
         MaskCaseData {
             case_name: spec.name.to_string(),
+            node_id: spec.node_id.clone(),
             passed,
+            original: spec.text.clone(),
+            masked: r1.masked_text.clone(),
+            masked_count: r1.masked_count,
+            total_count: r1.total_count,
             detail_lines,
             metrics,
         }
@@ -486,6 +476,10 @@ pub struct ReviseCaseData {
     pub case_name: String,
     pub passed: bool,
     pub llm_available: bool,
+    /// 源节点 id（供原文对照）
+    pub node_id: String,
+    /// 节点原文
+    pub original: String,
     /// LLM 遮罩输入
     pub masked_text: String,
     /// LLM **原始回复**
@@ -562,7 +556,7 @@ impl ForgetReviseSuite {
     /// 探活：用固定文本做一次最小补全调用，验证 llama-server 链路可用
     fn probe(&self) -> Result<String, String> {
         let Some(llm) = &self.llm else {
-            return Err("llama-server 未配置（SOUL_TUNE_LLAMA_URL 或 SOUL_TUNE_CANDLE_MODEL_PATH）".into());
+            return Err("llama-server 不可用（未检测到运行中的服务，也未找到本地缓存模型）".into());
         };
         let probe_user = "Masked text: 十六夜咲夜是红魔馆的 [masked] 拥有操纵时间的能力她可以 [masked] 时间";
         let runtime = tokio::runtime::Builder::new_multi_thread()
@@ -639,6 +633,8 @@ impl ForgetReviseSuite {
             case_name: sample.node_id.chars().take(8).collect(),
             passed,
             llm_available,
+            node_id: sample.node_id.clone(),
+            original: sample.original.clone(),
             masked_text: sample.masked.clone(),
             llm_reply: reply,
             detail_lines,
@@ -667,6 +663,8 @@ impl TestSuite for ForgetReviseSuite {
                 case_name: "probe".into(),
                 passed,
                 llm_available: self.llm.is_some(),
+                node_id: "probe".into(),
+                original: "（探活）".into(),
                 masked_text: "探活遮罩文本".into(),
                 llm_reply: reply,
                 detail_lines: vec![detail],
@@ -789,13 +787,13 @@ pub const PIPELINE_CASES: [ForgetCaseSpec; 6] = [
     },
     ForgetCaseSpec {
         name: "high",
-        description: "高遗忘强度（Δt=72h）：llama-server 修订长文本节点（抽样）",
+        description: "高遗忘强度（Δt=72h）：llama-server 修订全部满足条件的节点",
         elapsed_hours: 72,
         want_llm: true,
     },
     ForgetCaseSpec {
         name: "multi-step",
-        description: "多步遗忘：3 轮 × 24h 对全图每个节点逐步衰减/遮罩/修订",
+        description: "多步遗忘：3 轮 × 24h 对全图每个节点逐步衰减/遮罩/修订（全部满足条件者补全）",
         elapsed_hours: -10, // 特殊标记：多步遗忘场景
         want_llm: true,
     },
@@ -815,8 +813,6 @@ pub const PIPELINE_CASES: [ForgetCaseSpec; 6] = [
 
 /// 全管线 LLM 修订的最小词数（短文本被全遮后无上下文，LLM 无法补全）
 pub const PIPELINE_REVISE_MIN_WORDS: usize = 12;
-/// 每用例最多 LLM 修订节点数（按缺失度降序抽样）
-pub const MAX_LLM_REVISIONS: usize = 8;
 
 /// 单个节点的遗忘观测结果
 #[derive(Clone, Serialize)]
@@ -840,6 +836,50 @@ pub struct NodeForgetStat {
     pub effective: bool,
 }
 
+/// 单个节点在某时间步的遗忘观测（供"以节点为单位、时间步长为横轴"的曲线）。
+#[derive(Clone, Serialize)]
+pub struct NodeStepStat {
+    /// x 轴：距遗忘刷新的累计小时数（多步用例为 24/48/72；单步用例为 elapsed_hours）
+    pub hours: i64,
+    /// 步序号（0 起始；单步用例恒为 0）
+    pub step: usize,
+    /// 该时间步后的缺失度（y 轴主指标）
+    pub md: f32,
+    /// 该步触发的遗忘动作（NoAction / MaskOnly / Revised）
+    pub action: &'static str,
+    /// LLM 补全的遮罩输入文本（Revised / MaskOnly 时）
+    pub masked_text: Option<String>,
+    /// LLM **原始回复**（Revised 时，未经任何处理）
+    pub llm_reply: Option<String>,
+    /// 是否有效修订（回复非空且不含 [masked]）
+    pub effective: bool,
+}
+
+/// 单个节点的完整时间步长序列：遗忘以节点为单位，对节点内容按时间步变化。
+#[derive(Clone, Serialize)]
+pub struct NodeSeries {
+    pub id: String,
+    pub type_name: &'static str,
+    /// 图节点原文（遗忘管线执行前的原始记忆文本）
+    pub original: String,
+    /// 时间步序列（按 hours 升序）
+    pub steps: Vec<NodeStepStat>,
+}
+
+/// 理想艾宾浩斯遗忘曲线采样：`md(t) = 1 - exp(-t·ln2 / 基础半衰期)`，
+/// 从 0h 到 max_hours 每 2h 一个点，供观测图叠加对比"实测 vs 理想"。
+pub fn ideal_ebbinghaus_curve(max_hours: i64) -> Vec<(f64, f64)> {
+    let mut pts = Vec::new();
+    let mut h = 0i64;
+    while h <= max_hours {
+        let md = 1.0
+            - (-(h as f64) * std::f64::consts::LN_2 / DEFAULT_BASE_HALF_LIFE_HOURS as f64).exp();
+        pts.push((h as f64, md));
+        h += 2;
+    }
+    pts
+}
+
 /// 单个用例（一次完整管线运行）的观测数据
 #[derive(Serialize)]
 pub struct ForgetCaseData {
@@ -858,6 +898,8 @@ pub struct ForgetCaseData {
     pub avg_edge_intensity: f64,
     /// 结构化节点观测（含图原文，供报告与 TUI 展示）
     pub nodes: Vec<NodeForgetStat>,
+    /// 逐节点时间步长序列（遗忘观测核心数据：以节点为单位随时间步变化）
+    pub node_series: Vec<NodeSeries>,
     pub detail_lines: Vec<String>,
     pub metrics: Vec<(String, String, String)>,
 }
@@ -931,7 +973,7 @@ impl ForgetPipelineSuite {
     /// 1. 克隆加载图并施加老化；
     /// 2. `compute_all_missing_degrees` 全图批量刷新节点+边缺失度；
     /// 3. 逐节点 `lazy_forget`：可遮罩且**足够长**（词数 ≥ PIPELINE_REVISE_MIN_WORDS）
-    ///    且缺失度最高的一批节点走 llama-server 修订，其余走遮罩/降级；
+    ///    的节点**全部**走 llama-server 修订（不抽样），其余走遮罩/降级；
     /// 4. `decay_graph_edge` 边独立衰减 + `weight_placeholder` 检索权重。
     ///
     /// LLM 可用但有效修订为 0 → 用例失败（LLM 链路或输入有问题，不再假通过）。
@@ -945,12 +987,12 @@ impl ForgetPipelineSuite {
         // ── 步骤 1：全图批量刷新缺失度（节点 + 边）──
         compute_all_missing_degrees(&mut cluster, now);
 
-        // LLM 修订抽样：可遮罩、缺失度 ≥ REVISE_THRESHOLD、**词数足够**的节点，
-        // 按缺失度降序取前 N。排除短文本——被全遮后无上下文，LLM 无法补全。
+        // LLM 修订集：可遮罩、缺失度 ≥ REVISE_THRESHOLD、**词数足够**的节点——
+        // **全部**进入 LLM 补全（不抽样；测试时间不是约束，保证每个满足条件的节点都验证补全）。
+        // 排除短文本——被全遮后无上下文，LLM 无法补全。
         let revise_set: std::collections::HashSet<_> = {
             let g = cluster.graph();
-            let mut candidates: Vec<_> = g
-                .node_indices()
+            g.node_indices()
                 .filter(|idx| {
                     let n = g.node_weight(*idx).expect("node");
                     if !is_maskable(n.note()) {
@@ -959,18 +1001,9 @@ impl ForgetPipelineSuite {
                     let words = get_summary(n.note())
                         .map(|t| mask_word_count(&self.jieba, &t))
                         .unwrap_or(0);
-                    n.note().missing_degree() >= REVISE_THRESHOLD && words >= PIPELINE_REVISE_MIN_WORDS
+                    n.note().missing_degree() >= REVISE_THRESHOLD
+                        && words >= PIPELINE_REVISE_MIN_WORDS
                 })
-                .map(|idx| {
-                    let n = g.node_weight(idx).expect("node");
-                    (idx, n.note().missing_degree())
-                })
-                .collect();
-            candidates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
-            candidates
-                .into_iter()
-                .take(MAX_LLM_REVISIONS)
-                .map(|(idx, _)| idx)
                 .collect()
         };
 
@@ -1162,6 +1195,25 @@ impl ForgetPipelineSuite {
             passed = false;
         }
 
+        // ── 逐节点时间步长序列（单步用例：每个节点一个时间点，x=elapsed_hours）──
+        let node_series: Vec<NodeSeries> = stats
+            .iter()
+            .map(|s| NodeSeries {
+                id: s.id.clone(),
+                type_name: s.type_name,
+                original: s.original.clone(),
+                steps: vec![NodeStepStat {
+                    hours: spec.elapsed_hours.max(0),
+                    step: 0,
+                    md: s.md_after,
+                    action: s.action,
+                    masked_text: s.masked_text.clone(),
+                    llm_reply: s.llm_reply.clone(),
+                    effective: s.effective,
+                }],
+            })
+            .collect();
+
         // ── 汇总 ──
         let node_count = stats.len();
         let avg_md = if node_count > 0 {
@@ -1271,13 +1323,14 @@ impl ForgetPipelineSuite {
             avg_masked_ratio,
             avg_edge_intensity,
             nodes: stats,
+            node_series,
             detail_lines,
             metrics,
         }
     }
 
     /// 多步遗忘：3 轮 × 24h，对图中**每个受遗忘影响的节点**逐步执行
-    /// 衰减 → 遮罩 →（LLM 抽样）修订，收集每一步的输入输出与缺失度轨迹。
+    /// 衰减 → 遮罩 →（LLM 修订，全部满足条件者）补全，收集每一步的输入输出与缺失度轨迹。
     ///
     /// 观测内容：
     /// - 每节点的缺失度轨迹（md0 → md1 → md2 → md3，单调不减）；
@@ -1313,6 +1366,8 @@ impl ForgetPipelineSuite {
 
         // 每节点的最终观测状态（观测页列表数据）
         let mut final_nodes: Vec<NodeForgetStat> = Vec::new();
+        // 每节点的逐时间步序列（步 → 缺失度/动作/输入输出，供"节点 × 时间步"曲线）
+        let mut series_steps: Vec<Vec<NodeStepStat>> = vec![Vec::new(); node_indices.len()];
 
         let mut passed = true;
         let mut per_step_avg_md: Vec<f32> = Vec::new();
@@ -1325,15 +1380,15 @@ impl ForgetPipelineSuite {
         for step in 0..STEPS {
             let now = t0 + ChronoDuration::hours(STEP_HOURS * ((step + 1) as i64));
 
-            // 先全图刷新缺失度（lazy_forget 内部也会刷新，但修订抽样需要
+            // 先全图刷新缺失度（lazy_forget 内部也会刷新，但修订集需要
             // 基于本轮的缺失度筛选）
             compute_all_missing_degrees(&mut cluster, now);
 
-            // LLM 修订抽样（每轮重算：内容与缺失度都已演变）
+            // LLM 修订集（每轮重算：内容与缺失度都已演变）——全部满足条件的节点
+            // 都进入补全，不抽样（测试时间不是约束）。
             let revise_set: std::collections::HashSet<_> = {
                 let g = cluster.graph();
-                let mut candidates: Vec<_> = g
-                    .node_indices()
+                g.node_indices()
                     .filter(|idx| {
                         let n = g.node_weight(*idx).expect("node");
                         if !is_maskable(n.note()) {
@@ -1345,16 +1400,6 @@ impl ForgetPipelineSuite {
                         n.note().missing_degree() >= REVISE_THRESHOLD
                             && words >= PIPELINE_REVISE_MIN_WORDS
                     })
-                    .map(|idx| {
-                        let n = g.node_weight(idx).expect("node");
-                        (idx, n.note().missing_degree())
-                    })
-                    .collect();
-                candidates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
-                candidates
-                    .into_iter()
-                    .take(MAX_LLM_REVISIONS)
-                    .map(|(idx, _)| idx)
                     .collect()
             };
 
@@ -1461,6 +1506,17 @@ impl ForgetPipelineSuite {
                     detail_lines.push(format!("      LLM原始回复: {}", reply));
                 }
 
+                // 收集该节点本时间步的观测（供逐节点时间步曲线与数据点展开）
+                series_steps[i].push(NodeStepStat {
+                    hours: STEP_HOURS * ((step + 1) as i64),
+                    step,
+                    md: after,
+                    action: action_name,
+                    masked_text: masked_text.clone(),
+                    llm_reply: llm_reply.clone(),
+                    effective,
+                });
+
                 // 收集最终节点状态（供观测页逐节点查看，避免"节点 0/0"）
                 let masked_count = masked_text.as_ref().map(|mt| count_masked(mt)).unwrap_or(0);
                 let orig_words = mask_word_count(&self.jieba, &originals[i]);
@@ -1521,12 +1577,6 @@ impl ForgetPipelineSuite {
                 format!("{}/{}", total_effective, total_revised),
             ));
         }
-        // 衰减曲线：轮次 vs 平均缺失度
-        let points: Vec<(f64, f64)> = per_step_avg_md
-            .iter()
-            .enumerate()
-            .map(|(i, md)| ((i + 1) as f64, *md as f64))
-            .collect();
 
         // LLM 可用但全程零修订 → 明确失败
         if use_llm && total_revised == 0 {
@@ -1559,6 +1609,18 @@ impl ForgetPipelineSuite {
         ];
         out_metrics.extend(metrics);
 
+        // 逐节点时间步长序列（final_nodes[i] 携带节点元信息，series_steps[i] 为轨迹）
+        let node_series: Vec<NodeSeries> = final_nodes
+            .iter()
+            .enumerate()
+            .map(|(i, f)| NodeSeries {
+                id: f.id.clone(),
+                type_name: f.type_name,
+                original: f.original.clone(),
+                steps: series_steps[i].clone(),
+            })
+            .collect();
+
         ForgetCaseData {
             case_name: "multi-step".into(),
             passed,
@@ -1576,6 +1638,7 @@ impl ForgetPipelineSuite {
             avg_masked_ratio: 0.0,
             avg_edge_intensity: 0.0,
             nodes: final_nodes,
+            node_series,
             detail_lines,
             metrics: out_metrics,
         }
@@ -1702,6 +1765,46 @@ impl ForgetPipelineSuite {
             ),
         ));
 
+        // 逐节点观测：激活次数不同 → 半衰期不同 → 缺失度不同（曲线差异的真实来源）。
+        // 观测以记忆节点为单位，每个节点一个时间点（x=72h），md 随激活次数变化。
+        let nodes: Vec<NodeForgetStat> = node_indices
+            .iter()
+            .enumerate()
+            .map(|(i, idx)| {
+                let n = g.node_weight(*idx).expect("node");
+                let count = counts.get(&i).copied().unwrap_or(0);
+                NodeForgetStat {
+                    id: n.note().id().to_string(),
+                    type_name: forget_type_name(n.note()),
+                    original: get_summary(n.note()).unwrap_or_default(),
+                    md_before: 0.0,
+                    md_after: n.note().missing_degree(),
+                    action: if count > 0 { "Activated" } else { "NoAction" },
+                    mask: None,
+                    masked_text: None,
+                    llm_reply: None,
+                    effective: false,
+                }
+            })
+            .collect();
+        let node_series: Vec<NodeSeries> = nodes
+            .iter()
+            .map(|s| NodeSeries {
+                id: s.id.clone(),
+                type_name: s.type_name,
+                original: s.original.clone(),
+                steps: vec![NodeStepStat {
+                    hours: ELAPSED_HOURS,
+                    step: 0,
+                    md: s.md_after,
+                    action: s.action,
+                    masked_text: None,
+                    llm_reply: None,
+                    effective: false,
+                }],
+            })
+            .collect();
+
         ForgetCaseData {
             case_name: "activation".into(),
             passed,
@@ -1717,7 +1820,8 @@ impl ForgetPipelineSuite {
             avg_missing_degree: groups.get(&0).map(|(s, _, n)| s / *n as f32).unwrap_or(0.0),
             max_missing_degree: 0.0,
             avg_masked_ratio: 0.0,
-            nodes: vec![],
+            nodes,
+            node_series,
             avg_edge_intensity: 0.0,
             detail_lines,
             metrics,
@@ -1794,6 +1898,7 @@ impl ForgetPipelineSuite {
             avg_masked_ratio: 0.0,
             avg_edge_intensity: 0.0,
             nodes: vec![],
+            node_series: vec![],
             detail_lines,
             metrics,
         }

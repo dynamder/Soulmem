@@ -4,8 +4,7 @@ import '../models.dart';
 import '../theme.dart';
 import '../widgets/metric_panel.dart';
 import '../widgets/mini_bar_chart.dart';
-import '../widgets/pass_rate_donut.dart';
-import '../widgets/stat_card.dart';
+import '../widgets/results_rail.dart';
 import 'case_detail_page.dart';
 
 /// 结果页（GUI 化）：
@@ -72,51 +71,22 @@ class _ResultsPageState extends State<ResultsPage> {
       appBar: AppBar(
         title: Text(r.datasetName.isEmpty ? r.algo : '${r.algo} · ${r.datasetName}'),
       ),
-      body: Column(
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 摘要条：环形图 + 统计卡（紧凑）
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 2),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 100,
-                  height: 100,
-                  child: PassRateDonut(rate: r.passRate, size: 100),
-                ),
-                const SizedBox(width: 20),
-                Flexible(
-                  child: Wrap(
-                    spacing: 10,
-                    runSpacing: 8,
-                    children: [
-                      StatCard(label: '通过', value: '${r.passed}', valueColor: AppColors.pass),
-                      StatCard(label: '失败', value: '${r.failed}', valueColor: AppColors.fail),
-                      StatCard(label: '耗时', value: r.elapsedSecs.toStringAsFixed(2), unit: 's'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          ResultsRail(
+            passRate: r.passRate,
+            passed: r.passed,
+            failed: r.failed,
+            elapsedSecs: r.elapsedSecs,
+            tab: _tab,
+            tabs: const [
+              (label: '总览', icon: Icons.dashboard_outlined),
+              (label: '明细', icon: Icons.table_rows_outlined),
+            ],
+            onTab: (i) => setState(() => _tab = i),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: SegmentedButton<int>(
-              segments: const [
-                ButtonSegment(value: 0, label: Text('总览')),
-                ButtonSegment(value: 1, label: Text('明细')),
-              ],
-              selected: {_tab},
-              onSelectionChanged: (s) => setState(() => _tab = s.first),
-            ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: _tab == 0
-                ? _buildSummary()
-                : _buildDetail(),
-          ),
+          Expanded(child: _tab == 0 ? _buildSummary() : _buildDetail()),
         ],
       ),
     );

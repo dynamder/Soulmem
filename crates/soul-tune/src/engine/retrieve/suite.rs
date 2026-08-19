@@ -638,8 +638,8 @@ impl TestSuite for RetrieveSuite {
         &self,
         outcomes: Vec<TestCaseOutcome>,
         _elapsed: Duration,
-        total: usize,
-        passed: usize,
+        _total: usize,
+        _passed: usize,
         _failed: usize,
     ) -> SuiteReport {
         let mut by_weight: HashMap<(u32, u32), Vec<RetrieveCaseData>> = HashMap::new();
