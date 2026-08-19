@@ -5,9 +5,7 @@ use soul_mem_core::memory_note::{MemoryNote, MemoryType, situation_mem::Situatio
 use soul_mem_runtime::cluster::memory_cluster::{GraphMemoryLink, MemoryCluster};
 use std::future::Future;
 
-use super::decay_calculator::{
-    update_missing_degree_incremental, DEFAULT_MAX_ACTIVATION_CAP,
-};
+use super::decay_calculator::{DEFAULT_MAX_ACTIVATION_CAP, update_missing_degree_incremental};
 use super::mask;
 
 // ========================================================================
@@ -303,8 +301,8 @@ pub use super::llm_completion::align_sem_fields;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::decay_calculator::node_intensity_after;
+    use super::*;
     use chrono::TimeZone;
     use soul_mem_core::memory_note::proc_mem::{Action, ActionType, ProcMemory};
     use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
@@ -339,10 +337,15 @@ mod tests {
         // 半衰期 24h，激活 5 次（影响系数 0.1）→ 调整半衰期 = 24×(1+0.1×5) = 36h，
         // τ = 36/ln2 ≈ 51.94h，初始强度 1.0 经 48h 后强度 ≈ 0.397。
         println!("【第一部分】节点强度衰减");
-        println!("  输入: 时长={}h, 初始强度={}, 激活次数={}, 影响系数={}, 半衰期={}h",
-            duration_hours, initial_intensity, activation_count, active_factor, half_life_hours);
+        println!(
+            "  输入: 时长={}h, 初始强度={}, 激活次数={}, 影响系数={}, 半衰期={}h",
+            duration_hours, initial_intensity, activation_count, active_factor, half_life_hours
+        );
         println!("  输出: 节点强度 = {:.4}", intensity);
-        println!("  案例: 半衰期24h×激活5次(系数0.1)→调整半衰期36h→经48h强度≈{:.4}", intensity);
+        println!(
+            "  案例: 半衰期24h×激活5次(系数0.1)→调整半衰期36h→经48h强度≈{:.4}",
+            intensity
+        );
         println!("  计算用时: {:?}", elapsed);
         println!();
 
@@ -377,25 +380,26 @@ mod tests {
         let past = Utc.with_ymd_and_hms(2024, 6, 1, 0, 0, 0).unwrap();
         let now = Utc.with_ymd_and_hms(2024, 6, 2, 0, 0, 0).unwrap(); // 统一 Δt = 24h
 
-        let make_embedded = |id: MemoryId, mem_type: MemoryType, initial_md: f32| -> EmbeddedMemoryNote {
-            let note = MemoryNoteBuilder::new(mem_type)
-                .id(id)
-                .create_time(past)
-                .last_accessed_time(past)
-                .last_forget_time(past)
-                .missing_degree(initial_md)
-                .build()
-                .unwrap();
-            let embedding = MemoryEmbedding::new(
-                EmbeddingVec::zero(128),
-                MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+        let make_embedded =
+            |id: MemoryId, mem_type: MemoryType, initial_md: f32| -> EmbeddedMemoryNote {
+                let note = MemoryNoteBuilder::new(mem_type)
+                    .id(id)
+                    .create_time(past)
+                    .last_accessed_time(past)
+                    .last_forget_time(past)
+                    .missing_degree(initial_md)
+                    .build()
+                    .unwrap();
+                let embedding = MemoryEmbedding::new(
                     EmbeddingVec::zero(128),
-                    EmbeddingVec::zero(128),
-                    EmbeddingVec::zero(128),
-                )),
-            );
-            EmbeddedMemoryNote { note, embedding }
-        };
+                    MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                        EmbeddingVec::zero(128),
+                        EmbeddingVec::zero(128),
+                        EmbeddingVec::zero(128),
+                    )),
+                );
+                EmbeddedMemoryNote { note, embedding }
+            };
 
         // 三个节点，初始缺失度不一 → 初始强度(1-md)不一：1.0 / 0.7 / 0.4
         let id_sem = MemoryId::new();
@@ -406,32 +410,51 @@ mod tests {
         cluster.add_single_node(make_embedded(
             id_sem,
             MemoryType::Semantic(SemMemory::new(
-                "十六夜咲夜是红魔馆的女仆长拥有操纵时间的能力".to_string(), ConceptType::Entity, "红魔馆的女仆长".to_string(),
+                "十六夜咲夜是红魔馆的女仆长拥有操纵时间的能力".to_string(),
+                ConceptType::Entity,
+                "红魔馆的女仆长".to_string(),
             )),
             0.0,
         ));
         cluster.add_single_node(make_embedded(
             id_sit,
-            MemoryType::Situation(SituationType::SpecificSituation(
-                SpecificSituation::new(
-                    "午后蕾米莉亚大小姐在地下图书馆让帕秋莉小姐品尝我泡的红茶".to_string(), past,
-                    Context::new(None, vec![], vec![], vec![],
-                        Environment { atmosphere: "日常".to_string(), tone: "平静".to_string() }, vec![]),
+            MemoryType::Situation(SituationType::SpecificSituation(SpecificSituation::new(
+                "午后蕾米莉亚大小姐在地下图书馆让帕秋莉小姐品尝我泡的红茶".to_string(),
+                past,
+                Context::new(
+                    None,
+                    vec![],
+                    vec![],
+                    vec![],
+                    Environment {
+                        atmosphere: "日常".to_string(),
+                        tone: "平静".to_string(),
+                    },
+                    vec![],
                 ),
-            )),
+            ))),
             0.3,
         ));
         cluster.add_single_node(make_embedded(
             id_proc,
             MemoryType::Procedure(ProcMemory::new(Action::new(
-                "红魔馆女仆长每日停止时间打扫洋馆再回收飞刀的工作流程".to_string(), ActionType::Think,
+                "红魔馆女仆长每日停止时间打扫洋馆再回收飞刀的工作流程".to_string(),
+                ActionType::Think,
             ))),
             0.6,
         ));
 
         // 两条边，时间参数相同
-        let mut link1 = MemoryLink::new(id_sem, id_sit, MemoryLinkType::Sem(SemMemLink::new("关联".to_string(), 1.0)));
-        let mut link2 = MemoryLink::new(id_sit, id_proc, MemoryLinkType::Sem(SemMemLink::new("引发".to_string(), 1.0)));
+        let mut link1 = MemoryLink::new(
+            id_sem,
+            id_sit,
+            MemoryLinkType::Sem(SemMemLink::new("关联".to_string(), 1.0)),
+        );
+        let mut link2 = MemoryLink::new(
+            id_sit,
+            id_proc,
+            MemoryLinkType::Sem(SemMemLink::new("引发".to_string(), 1.0)),
+        );
         link1.set_last_forget_time(past);
         link2.set_last_forget_time(past);
         {
@@ -482,8 +505,14 @@ mod tests {
                 _ => "?",
             };
             let id_str = id.to_string();
-            println!("  │ {:<8} │ {:<12.4} │ {:<12.4} │ {:<12.4} │ {:<12} │",
-                &id_str[..8.min(id_str.len())], init_strength, final_strength, delta, type_name);
+            println!(
+                "  │ {:<8} │ {:<12.4} │ {:<12.4} │ {:<12.4} │ {:<12} │",
+                &id_str[..8.min(id_str.len())],
+                init_strength,
+                final_strength,
+                delta,
+                type_name
+            );
         }
         for e in graph.edge_weights() {
             let final_md_e = e.missing_degree();
@@ -491,18 +520,32 @@ mod tests {
             let final_strength = 1.0 - final_md_e;
             let delta = init_strength - final_strength;
             let id_str = e.id().to_string();
-            println!("  │ {:<8} │ {:<12.4} │ {:<12.4} │ {:<12.4} │ {:<12} │",
-                &id_str[..8.min(id_str.len())], init_strength, final_strength, delta, "Edge");
+            println!(
+                "  │ {:<8} │ {:<12.4} │ {:<12.4} │ {:<12.4} │ {:<12} │",
+                &id_str[..8.min(id_str.len())],
+                init_strength,
+                final_strength,
+                delta,
+                "Edge"
+            );
         }
         println!("  └──────────┴──────────────┴──────────────┴──────────────┴──────────────┘");
-        println!("  构建图用时: {:?}, 全图强度计算用时: {:?}", build_elapsed, compute_elapsed);
+        println!(
+            "  构建图用时: {:?}, 全图强度计算用时: {:?}",
+            build_elapsed, compute_elapsed
+        );
         println!();
 
         // 断言：所有节点缺失度已更新到 now 时刻，且大于初始值
         for (id, init) in &init_md {
-            let n = graph.node_weight(
-                graph.node_indices().find(|&i| graph.node_weight(i).map_or(false, |n| n.note().id() == *id)).unwrap(),
-            ).unwrap();
+            let n = graph
+                .node_weight(
+                    graph
+                        .node_indices()
+                        .find(|&i| graph.node_weight(i).map_or(false, |n| n.note().id() == *id))
+                        .unwrap(),
+                )
+                .unwrap();
             assert_eq!(n.note().last_forget_time(), now);
             assert!(n.note().missing_degree() > *init);
         }
@@ -519,8 +562,8 @@ mod tests {
 
 #[cfg(test)]
 mod real_llm_tests {
-    use super::*;
     use super::tests::part1_intensity_report;
+    use super::*;
     use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
     use soul_mem_core::memory_note::situation_mem::{Context, Environment, SpecificSituation};
     use soul_mem_core::memory_note::{MemoryNoteBuilder, MemoryType};
@@ -529,19 +572,24 @@ mod real_llm_tests {
     use std::sync::Arc;
     use std::time::Instant;
 
-    // 十六夜咲夜角色 prompts（测试专用，可自定义替换）
-    const SAKUYA_RECONSTRUCT: Option<&str> = Some(
-        "You are Sakuya Izayoi, the perfect and elegant maid of the Scarlet Devil Mansion. \
-        You have the ability to manipulate time. Your character card defines who you are, but certain sections \
-        have been deliberately removed — memories of specific individuals, particularly those connected to \
-        Eientei and the moon, are no longer part of your recorded past. A segment of your memory has been \
-        partially masked, where some words are replaced with [masked]. \
-        Output ONLY the original sentence with each [masked] slot filled in with a single plausible word or short phrase \
-        that best fits the context, keeping every non-masked word EXACTLY as it is — do not reorder, rephrase, \
-        rewrite, or generate a new sentence, and do not add or remove any other words. \
-        Stay in character as a composed maiden with a touch of elegance and pride. \
-        Output only the completed text, no explanation.",
-    );
+    /// 十六夜咲夜角色记忆重建提示词（测试专用，可自定义替换）。
+    /// 动态引用 `mask::MASK_WORD`，修改遮罩词定义时提示词自动同步。
+    fn sakuya_reconstruct_prompt() -> Option<String> {
+        let mask = mask::MASK_WORD.trim();
+        Some(format!(
+            "You are Sakuya Izayoi, the perfect and elegant maid of the Scarlet Devil Mansion. \
+            You have the ability to manipulate time. Your character card defines who you are, but certain sections \
+            have been deliberately removed — memories of specific individuals, particularly those connected to \
+            Eientei and the moon, are no longer part of your recorded past. A segment of your memory has been \
+            partially masked, where some words are replaced with {mask}. \
+            Output ONLY the original sentence with each {mask} slot filled in with a single plausible word or short phrase \
+            that best fits the context, keeping every non-masked word EXACTLY as it is — do not reorder, rephrase, \
+            rewrite, or generate a new sentence, and do not add or remove any other words. \
+            For Chinese text, join the Chinese words together without inserting any spaces between them in the output. \
+            Stay in character as a composed maiden with a touch of elegance and pride. \
+            Output only the completed text, no explanation."
+        ))
+    }
 
     fn try_create_llm_client() -> Option<LlmClient> {
         Some(LlmClient::new(LLMConfig::new(
@@ -606,8 +654,14 @@ mod real_llm_tests {
         let created = now - chrono::Duration::hours(24 * 10);
         let forget_time = now - chrono::Duration::hours(forget_ago_hours);
         let ctx = Context::new(
-            None, vec![], vec![], vec![],
-            Environment { atmosphere: "日常".to_string(), tone: "平静".to_string() },
+            None,
+            vec![],
+            vec![],
+            vec![],
+            Environment {
+                atmosphere: "日常".to_string(),
+                tone: "平静".to_string(),
+            },
             vec![],
         );
         MemoryNoteBuilder::new(MemoryType::Situation(SituationType::SpecificSituation(
@@ -625,7 +679,11 @@ mod real_llm_tests {
         println!("  【{}】缺失度 = {:.1}%", label, md * 100.0);
         println!("    原始文本: {}", before);
         match result {
-            ForgetAction::Revised { masked_text, new_summary, .. } => {
+            ForgetAction::Revised {
+                masked_text,
+                new_summary,
+                ..
+            } => {
                 println!("    遮罩文本: {}", masked_text);
                 println!("    推测文本: {}", new_summary);
             }
@@ -646,15 +704,29 @@ mod real_llm_tests {
         let before = get_summary(&node).unwrap();
         let t1 = Instant::now();
 
-        let result = lazy_forget(&mut node, Utc::now(), jieba, SAKUYA_RECONSTRUCT, make_llm_closure(client)).await;
+        let result = lazy_forget(
+            &mut node,
+            Utc::now(),
+            jieba,
+            sakuya_reconstruct_prompt().as_deref(),
+            make_llm_closure(client),
+        )
+        .await;
         let t2 = Instant::now();
         let md = node.missing_degree();
 
         println!("【第二部分 · SemMemory 完整遗忘流程】");
-        println!("  构建节点用时: {:?}, 衰减+遮罩+LLM 用时: {:?}", t1 - t0, t2 - t1);
+        println!(
+            "  构建节点用时: {:?}, 衰减+遮罩+LLM 用时: {:?}",
+            t1 - t0,
+            t2 - t1
+        );
         print_three_texts("SemMemory", &before, &result, md);
         println!();
-        assert!(matches!(result, ForgetAction::Revised { .. } | ForgetAction::MaskOnly { .. }));
+        assert!(matches!(
+            result,
+            ForgetAction::Revised { .. } | ForgetAction::MaskOnly { .. }
+        ));
     }
 
     // ------------------------------------------------------------------
@@ -667,15 +739,29 @@ mod real_llm_tests {
         let before = get_summary(&node).unwrap();
         let t1 = Instant::now();
 
-        let result = lazy_forget(&mut node, Utc::now(), jieba, SAKUYA_RECONSTRUCT, make_llm_closure(client)).await;
+        let result = lazy_forget(
+            &mut node,
+            Utc::now(),
+            jieba,
+            sakuya_reconstruct_prompt().as_deref(),
+            make_llm_closure(client),
+        )
+        .await;
         let t2 = Instant::now();
         let md = node.missing_degree();
 
         println!("【第二部分 · SpecificSituation 完整遗忘流程】");
-        println!("  构建节点用时: {:?}, 衰减+遮罩+LLM 用时: {:?}", t1 - t0, t2 - t1);
+        println!(
+            "  构建节点用时: {:?}, 衰减+遮罩+LLM 用时: {:?}",
+            t1 - t0,
+            t2 - t1
+        );
         print_three_texts("SpecificSituation", &before, &result, md);
         println!();
-        assert!(matches!(result, ForgetAction::Revised { .. } | ForgetAction::MaskOnly { .. }));
+        assert!(matches!(
+            result,
+            ForgetAction::Revised { .. } | ForgetAction::MaskOnly { .. }
+        ));
     }
 
     // ------------------------------------------------------------------
@@ -698,7 +784,14 @@ mod real_llm_tests {
             let mut node = build_sem_node(content, *ago);
             let before = get_summary(&node).unwrap();
             let t1 = Instant::now();
-            let result = lazy_forget(&mut node, Utc::now(), jieba, SAKUYA_RECONSTRUCT, make_llm_closure(client.clone())).await;
+            let result = lazy_forget(
+                &mut node,
+                Utc::now(),
+                jieba,
+                sakuya_reconstruct_prompt().as_deref(),
+                make_llm_closure(client.clone()),
+            )
+            .await;
             let t2 = Instant::now();
             let md = node.missing_degree();
 
@@ -770,6 +863,9 @@ mod real_llm_tests {
         println!("【开始第三部分】");
         run_part3_mask_levels(client, &jieba).await;
 
-        println!("========== 第五部分结束，总用时 {:?} ==========", overall_start.elapsed());
+        println!(
+            "========== 第五部分结束，总用时 {:?} ==========",
+            overall_start.elapsed()
+        );
     }
 }
