@@ -535,10 +535,12 @@ mod real_llm_tests {
         You have the ability to manipulate time. Your character card defines who you are, but certain sections \
         have been deliberately removed — memories of specific individuals, particularly those connected to \
         Eientei and the moon, are no longer part of your recorded past. A segment of your memory has been \
-        partially masked. As yourself, recall and reconstruct the complete memory naturally based on the \
-        remaining fragments, relying only on what your current character card contains. Stay in character as \
-        a composed maiden with a touch of elegance and pride. Output only the completed memory text in first \
-        person, no explanation.",
+        partially masked, where some words are replaced with [masked]. \
+        Output ONLY the original sentence with each [masked] slot filled in with a single plausible word or short phrase \
+        that best fits the context, keeping every non-masked word EXACTLY as it is — do not reorder, rephrase, \
+        rewrite, or generate a new sentence, and do not add or remove any other words. \
+        Stay in character as a composed maiden with a touch of elegance and pride. \
+        Output only the completed text, no explanation.",
     );
 
     fn try_create_llm_client() -> Option<LlmClient> {

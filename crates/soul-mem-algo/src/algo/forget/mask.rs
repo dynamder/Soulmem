@@ -1,11 +1,11 @@
 use jieba_rs::Jieba;
+use rand::SeedableRng;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
-use rand::SeedableRng;
 use std::collections::HashSet;
 
 /// 用于替换被遮罩词元的占位符
-pub const MASK_WORD: &str = " [masked] ";
+pub const MASK_WORD: &str = " ^& ";
 
 /// 遮罩操作的结果
 pub struct MaskResult {
