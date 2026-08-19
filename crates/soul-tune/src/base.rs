@@ -2,10 +2,6 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Duration;
 
-use ratatui::crossterm;
-
-use crate::engine::compare::CompareReport;
-use crate::engine::playtest::{DialogueFile, PlayTestResult};
 use crate::engine::suite::SuiteReport;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -82,50 +78,4 @@ pub struct TestReport {
     pub elapsed: Duration,
     pub suite_report: SuiteReport,
     pub error: Option<String>,
-}
-
-pub enum Transition {
-    None,
-    ToMain,
-    ToCommand(String),
-    ToSelectDataset(AlgoType),
-    ToRetrieveModeSelect,
-    ToForgetModeSelect,
-    ToSelectAlgo,
-    ToSelectCompareDataset,
-    ToConfigParams(AlgoType, PathBuf),
-    ToTestRunning(TestConfig),
-    ToTestResults(TestReport),
-    ToCompareResults(CompareReport),
-    ToPlayTestInput,
-    ToGraphBrowse,
-    ToGraphSelected(std::path::PathBuf),
-    ToPlayTestManualRun(DialogueFile),
-    ToPlayTestSelect,
-    ToPlayTestJudge(PlayTestResult),
-    ToSelectBatchDir,
-    ToBatchModeSelect(PathBuf),
-    ToBatchConfigParams(AlgoType, PathBuf),
-    ToBatchCompareRun(PathBuf, HashMap<String, String>),
-    ToBatchRun(PathBuf, RetrieveMode, HashMap<String, String>),
-    ToInspect(PathBuf),
-    Quit,
-}
-
-pub enum SoulTuneEvent {
-    CrossTerm(crossterm::event::Event),
-    StartTest(AlgoType, Option<PathBuf>),
-    TestComplete,
-    Quit,
-}
-
-impl From<crossterm::event::Event> for SoulTuneEvent {
-    fn from(event: crossterm::event::Event) -> Self {
-        Self::CrossTerm(event)
-    }
-}
-
-#[allow(dead_code)]
-pub trait EventHandler {
-    fn handle_event(&mut self, event: SoulTuneEvent) -> Option<SoulTuneEvent>;
 }

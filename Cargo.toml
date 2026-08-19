@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/soul-mem-algo","crates/soul-mem-core", "crates/soul-mem-query", "crates/soul-mem-runtime", "benches", "crates/soul-tune"]
+members = ["crates/soul-mem-algo","crates/soul-mem-core", "crates/soul-mem-query", "crates/soul-mem-runtime", "benches", "crates/soul-tune", "crates/soul-tune-api"]
 
 # esaxx-rs 硬编码 static_crt(true)(/MT)，与 llama-cpp-sys-2(/MD) 在 MSVC 链接冲突，
 # 本地补丁移除 static_crt 使整个依赖树统一使用 /MD 运行时。
@@ -33,5 +33,6 @@ dotenvy = "0.15"
 lto = true
 strip = true
 opt-level = 3
-panic = 'abort'
 codegen-units = 1
+# 注意：不使用 panic='abort'。FRB（crates/soul-tune-api）跨 FFI 需要 unwinding，
+# 且 panic 不允许在 per-package profile 覆盖，故全局保持默认 unwind。

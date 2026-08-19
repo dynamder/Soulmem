@@ -1,3 +1,4 @@
+use serde::Serialize;
 use soul_mem_core::memory_note::MemoryId;
 use soul_mem_query::query::retrieve::MemoryRetrieveQueryVariant;
 
@@ -21,7 +22,7 @@ pub struct TestCaseQuery {
     pub expected_actions: Vec<MemoryId>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct SubQuery {
     pub priority: u32,
     pub tags: Vec<String>,

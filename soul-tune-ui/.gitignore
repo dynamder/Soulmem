@@ -1,0 +1,18 @@
+# Flutter 构建产物
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# 生成的 FRB 绑定（由 codegen 生成，不入库）
+lib/src/rust/frb_generated.dart
+lib/src/rust/api.dart
+lib/src/rust/rust_bundle.dart
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# 其他
+*.log

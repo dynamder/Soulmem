@@ -1,0 +1,6 @@
+# flutter_rust_bridge 配置（在 soul-tune-ui/ 目录执行 `flutter_rust_bridge_codegen generate`）
+# 注意：Windows 下 rust_root 会被 canonicalize 为 \\?\ 扩展路径；rust_output 必须省略，
+# 让 codegen 由 rust_root 派生默认输出路径（否则前缀不一致报 "prefix not found"）。
+rust_input: crate::api
+rust_root: D:/Soul-Plan/SoulMem/crates/soul-tune-api/
+dart_output: D:/Soul-Plan/SoulMem/soul-tune-ui/lib/src/rust

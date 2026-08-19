@@ -7,6 +7,7 @@ pub mod retrieve;
 pub mod playtest;
 pub mod metrics;
 pub mod llm;
+pub mod inspect;
 
 pub mod consolidate;
 pub mod forget;

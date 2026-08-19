@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
+use serde::Serialize;
 use soul_mem_core::memory_note::MemoryId;
 
 use crate::engine::retrieve::data::RetrieveCaseData;
 use crate::engine::suite::TestCaseOutcome;
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct CompareCaseData {
     pub case_name: String,
     pub description: String,
@@ -26,7 +27,7 @@ pub struct CompareCaseData {
     pub expected_combined_ranking: Vec<MemoryId>,
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Serialize)]
 pub struct CompareAggregate {
     pub case_count: usize,
     pub avg_embedding_hit: f64,
@@ -37,7 +38,7 @@ pub struct CompareAggregate {
     pub mrr_improvement_count: usize,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct CompareReport {
     pub cases: Vec<CompareCaseData>,
     pub aggregate: CompareAggregate,

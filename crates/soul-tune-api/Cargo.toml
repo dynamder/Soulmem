@@ -1,0 +1,18 @@
+[package]
+name = "soul-tune-api"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "FRB 桥接层：JSON-over-FRB 暴露 soul-tune 真实测试能力给 Flutter GUI"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+flutter_rust_bridge = "=2.12.0"
+soul-tune = { path = "../soul-tune" }
+soul-mem-core = { path = "../soul-mem-core" }
+soul-mem-query = { path = "../soul-mem-query" }
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true

@@ -1,12 +1,16 @@
 use std::any::Any;
 use std::time::Duration;
 
-#[derive(Clone)]
+use serde::Serialize;
+
+#[derive(Debug, Clone, Serialize)]
 pub struct Series {
     pub label: String,
     pub points: Vec<(f64, f64)>,
 }
 
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
 pub enum MetricFormat {
     KeyValue {
         value: String,
@@ -18,21 +22,42 @@ pub enum MetricFormat {
     },
 }
 
-pub trait ReportMetric {
-    fn label(&self) -> String;
-    fn group(&self) -> String;
-    fn format(&self) -> MetricFormat;
+/// 可序列化的指标条目（替代原 trait 对象 `Box<dyn ReportMetric>`）。
+///
+/// 通过 `#[serde(flatten)]` 与内部标签枚举组合，JSON 形状为：
+/// `{"label":..,"group":..,"kind":"key_value"|"chart",...}`，
+/// 供 FRB 桥接层（JSON-over-FRB）直接跨边界传递。
+#[derive(Debug, Clone, Serialize)]
+pub struct MetricEntry {
+    pub label: String,
+    pub group: String,
+    #[serde(flatten)]
+    pub format: MetricFormat,
+}
+
+impl MetricEntry {
+    pub fn label(&self) -> String {
+        self.label.clone()
+    }
+    pub fn group(&self) -> String {
+        self.group.clone()
+    }
+    pub fn format(&self) -> MetricFormat {
+        self.format.clone()
+    }
 }
 
 pub fn key_value_metric(
     label: impl Into<String>,
     group: impl Into<String>,
     value: impl Into<String>,
-) -> impl ReportMetric {
-    KeyValueMetric {
+) -> MetricEntry {
+    MetricEntry {
         label: label.into(),
         group: group.into(),
-        value: value.into(),
+        format: MetricFormat::KeyValue {
+            value: value.into(),
+        },
     }
 }
 
@@ -42,57 +67,15 @@ pub fn chart_metric(
     x_label: impl Into<String>,
     y_label: impl Into<String>,
     datasets: Vec<Series>,
-) -> impl ReportMetric {
-    ChartMetric {
+) -> MetricEntry {
+    MetricEntry {
         label: label.into(),
         group: group.into(),
-        x_label: x_label.into(),
-        y_label: y_label.into(),
-        datasets,
-    }
-}
-
-struct KeyValueMetric {
-    label: String,
-    group: String,
-    value: String,
-}
-
-impl ReportMetric for KeyValueMetric {
-    fn label(&self) -> String {
-        self.label.clone()
-    }
-    fn group(&self) -> String {
-        self.group.clone()
-    }
-    fn format(&self) -> MetricFormat {
-        MetricFormat::KeyValue {
-            value: self.value.clone(),
-        }
-    }
-}
-
-struct ChartMetric {
-    label: String,
-    group: String,
-    x_label: String,
-    y_label: String,
-    datasets: Vec<Series>,
-}
-
-impl ReportMetric for ChartMetric {
-    fn label(&self) -> String {
-        self.label.clone()
-    }
-    fn group(&self) -> String {
-        self.group.clone()
-    }
-    fn format(&self) -> MetricFormat {
-        MetricFormat::Chart {
-            x_label: self.x_label.clone(),
-            y_label: self.y_label.clone(),
-            datasets: self.datasets.clone(),
-        }
+        format: MetricFormat::Chart {
+            x_label: x_label.into(),
+            y_label: y_label.into(),
+            datasets,
+        },
     }
 }
 
@@ -118,13 +101,14 @@ pub struct TestCaseOutcome {
     pub data: Box<dyn Any + Send>,
 }
 
+#[derive(Debug, Clone, Serialize)]
 pub struct DetailRow {
     pub text: String,
     pub has_error: bool,
 }
 
 pub struct SuiteReport {
-    pub metrics: Vec<Box<dyn ReportMetric>>,
+    pub metrics: Vec<MetricEntry>,
     pub detail_header: String,
     pub detail_rows: Vec<DetailRow>,
     pub outcomes: Vec<TestCaseOutcome>,
@@ -188,5 +172,15 @@ mod tests {
         };
         let v = outcome.data.downcast_ref::<i32>().unwrap();
         assert_eq!(*v, 42);
+    }
+
+    #[test]
+    fn test_metric_entry_serialize_shape() {
+        let m = key_value_metric("平均 MRR", "权重 tag=0.4, variant=0.6", "0.8123");
+        let json = serde_json::to_value(&m).unwrap();
+        assert_eq!(json["label"], "平均 MRR");
+        assert_eq!(json["group"], "权重 tag=0.4, variant=0.6");
+        assert_eq!(json["kind"], "key_value");
+        assert_eq!(json["value"], "0.8123");
     }
 }

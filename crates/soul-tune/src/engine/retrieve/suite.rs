@@ -680,7 +680,7 @@ impl TestSuite for RetrieveSuite {
             }
         }
 
-        let mut metrics: Vec<Box<dyn crate::engine::suite::ReportMetric>> = Vec::new();
+        let mut metrics: Vec<crate::engine::suite::MetricEntry> = Vec::new();
         let mut detail_rows = Vec::new();
 
         let mut keys: Vec<_> = by_weight.keys().copied().collect();
@@ -715,21 +715,21 @@ impl TestSuite for RetrieveSuite {
                 / n;
 
             let group_label = format!("权重 tag={:.1}, variant={:.1}", tag_w, var_w);
-            metrics.push(Box::new(key_value_metric(
+            metrics.push(key_value_metric(
                 "平均 MRR",
                 group_label.clone(),
                 format!("{:.4}", avg_mrr),
-            )));
-            metrics.push(Box::new(key_value_metric(
+            ));
+            metrics.push(key_value_metric(
                 "平均 Hit",
                 group_label.clone(),
                 format!("{:.2}", avg_hit),
-            )));
-            metrics.push(Box::new(key_value_metric(
+            ));
+            metrics.push(key_value_metric(
                 "平均 Recall@3",
                 group_label.clone(),
                 format!("{:.4}", avg_recall3),
-            )));
+            ));
             let abstract_total = group_data
                 .iter()
                 .filter(|d| d.has_expected_abstract)
@@ -745,22 +745,22 @@ impl TestSuite for RetrieveSuite {
                     .filter(|d| d.abstract_direct_hit == Some(true))
                     .count() as f64
                     / abstract_total as f64;
-                metrics.push(Box::new(key_value_metric(
+                metrics.push(key_value_metric(
                     "抽象检出率",
                     group_label.clone(),
                     format!("{:.2}", abstract_detected_rate),
-                )));
-                metrics.push(Box::new(key_value_metric(
+                ));
+                metrics.push(key_value_metric(
                     "抽象直接命中率",
                     group_label.clone(),
                     format!("{:.2}", abstract_direct_hit_rate),
-                )));
+                ));
             }
-            metrics.push(Box::new(key_value_metric(
+            metrics.push(key_value_metric(
                 "用例数",
                 group_label,
                 format!("{}", group_data.len()),
-            )));
+            ));
 
             for data in group_data {
                 let hit = data.combined_ranking_metrics.hit_rate;

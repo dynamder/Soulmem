@@ -1,18 +1,6 @@
-mod app;
 mod base;
-mod cmd;
-mod component;
 mod engine;
-mod states;
-mod widgets;
-mod utils;
 
-#[cfg(test)]
-mod tests_state_machine;
-#[cfg(test)]
-mod tests_widgets;
-#[cfg(test)]
-mod tests_states;
 #[cfg(test)]
 mod tests_playtest_mock;
 #[cfg(test)]
@@ -24,15 +12,15 @@ use std::sync::Arc;
 use base::{AlgoType, ForgetMode, RetrieveMode, TestReport};
 use engine::batch::{print_batch_result, run_batch, scan_question_jsons, summarize_action_metrics};
 use engine::forget::{ForgetMaskSuite, ForgetPipelineSuite, ForgetReviseSuite};
+use engine::inspect::{inspect_data, InspectFileType};
 use engine::llm::LlamaServer;
 use engine::playtest::trace::RetrievalTrace;
 use engine::playtest::{DialogueFile, PlayTestRunner, PlayTurnResult};
 use engine::retrieve::batch::process_one_dataset;
 use engine::retrieve::data::RetrieveCaseData;
 use engine::retrieve::RetrieveSuite;
-use engine::suite::{MetricFormat, ReportMetric, TestCaseOutcome, TestSuite};
+use engine::suite::{MetricEntry, MetricFormat, TestCaseOutcome, TestSuite};
 use soul_mem_query::query::retrieve::MemoryRetrieveQueryVariant;
-use states::inspect::{InspectFileType, InspectState};
 
 fn main() -> color_eyre::Result<()> {
     dotenvy::dotenv().ok();
@@ -45,7 +33,7 @@ fn main() -> color_eyre::Result<()> {
             eprintln!("路径不存在: {}", path_str);
             std::process::exit(1);
         }
-        let state = InspectState::new(path);
+        let state = inspect_data(path);
         println!("=== 检视数据集 ===");
         println!("文件: {}", state.file_path.display());
         println!(
@@ -141,9 +129,12 @@ fn main() -> color_eyre::Result<()> {
             run_headless_single(algo, dataset_path)?;
         }
     } else {
-        color_eyre::install()?;
-        let mut app = app::App::new()?;
-        app.run()?;
+        eprintln!("用法: soul-tune <inspect|playtest|run> ...");
+        eprintln!("  soul-tune inspect <graph.json|question.json>   检视数据集");
+        eprintln!("  soul-tune run <algo> <dataset> [--batch]      运行测试");
+        eprintln!("  soul-tune playtest <graph_dir> <dialogue>     角色扮演测试");
+        eprintln!("GUI 前端见 soul-tune-ui/（flutter run -d windows）");
+        std::process::exit(1);
     }
 
     Ok(())
@@ -619,11 +610,12 @@ fn print_report(report: &TestReport) {
         report.elapsed.as_secs_f64(),
     );
 
-    let mut groups: std::collections::BTreeMap<String, Vec<&dyn ReportMetric>> = std::collections::BTreeMap::new();
+    let mut groups: std::collections::BTreeMap<String, Vec<&MetricEntry>> = std::collections::BTreeMap::new();
     for metric in &report.suite_report.metrics {
-        groups.entry(metric.group().to_string())
+        groups
+            .entry(metric.group())
             .or_default()
-            .push(metric.as_ref());
+            .push(metric);
     }
 
     for (group, items) in &groups {

@@ -122,7 +122,7 @@ graph TD
     query["soul-mem-query<br/>Embedding 生成 / Query 类型 / 相似度计算<br/>✅ 已实现"]
     runtime["soul-mem-runtime<br/>WorkingMemory / SlidingWindow / Cluster / Record / LLM 摘要<br/>✅ 已实现"]
     algo["soul-mem-algo<br/>检索策略 RetrStrategy / DefaultPipeline 编排<br/>✅ 已实现"]
-    tune["soul-tune<br/>CLI 基准测试框架（TUI）<br/>✅ 已实现"]
+    tune["soul-tune<br/>测试框架（GUI + headless CLI）<br/>✅ 已实现"]
 
     core --> query
     core --> runtime

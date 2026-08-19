@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use serde::Serialize;
 use soul_mem_core::memory_note::MemoryId;
 
 use crate::engine::retrieve::dataset::SubQuery;
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct RankingMetrics {
     pub recall_at: Vec<(usize, f64)>,
     pub precision_at: Vec<(usize, f64)>,
@@ -14,7 +15,7 @@ pub struct RankingMetrics {
     pub hit_rate: f64,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct ActionMetrics {
     pub action_hit_rate: f64,
     pub action_recall_at: Vec<(usize, f64)>,
@@ -22,13 +23,13 @@ pub struct ActionMetrics {
     pub has_expected_actions: bool,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct PerQueryMetrics {
     pub query_index: usize,
     pub ranking_metrics: RankingMetrics,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct RetrieveCaseData {
     pub case_name: String,
     pub description: String,
@@ -51,7 +52,7 @@ pub struct RetrieveCaseData {
     pub sub_queries: Vec<SubQuery>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct NodeSummary {
     pub tags: Vec<String>,
     pub type_label: String,

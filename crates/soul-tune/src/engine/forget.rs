@@ -27,6 +27,7 @@ use jieba_rs::Jieba;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng};
+use serde::Serialize;
 
 use soul_mem_algo::algo::forget::decay_calculator::{
     compute_missing_degree, update_missing_degree_incremental, DEFAULT_MAX_ACTIVATION_CAP,
@@ -229,6 +230,7 @@ const MASK_TEXTS: [(&str, &str); 3] = [
 ];
 
 /// 遮罩用例的观测数据
+#[derive(Serialize)]
 pub struct MaskCaseData {
     pub case_name: String,
     pub passed: bool,
@@ -416,18 +418,18 @@ impl TestSuite for ForgetMaskSuite {
         passed: usize,
         _failed: usize,
     ) -> SuiteReport {
-        let mut metrics: Vec<Box<dyn crate::engine::suite::ReportMetric>> = Vec::new();
+        let mut metrics: Vec<crate::engine::suite::MetricEntry> = Vec::new();
         let mut detail_rows: Vec<DetailRow> = Vec::new();
         for o in &outcomes {
             let Some(data) = o.data.downcast_ref::<MaskCaseData>() else {
                 continue;
             };
             for (group, label, value) in &data.metrics {
-                metrics.push(Box::new(key_value_metric(
+                metrics.push(key_value_metric(
                     label.clone(),
                     group.clone(),
                     value.clone(),
-                )));
+                ));
             }
             for line in &data.detail_lines {
                 detail_rows.push(DetailRow {
@@ -436,7 +438,7 @@ impl TestSuite for ForgetMaskSuite {
                 });
             }
         }
-        metrics.push(Box::new(key_value_metric(
+        metrics.push(key_value_metric(
             "通过率".to_string(),
             "汇总".to_string(),
             format!(
@@ -449,7 +451,7 @@ impl TestSuite for ForgetMaskSuite {
                 passed,
                 total
             ),
-        )));
+        ));
         SuiteReport {
             metrics,
             detail_header: format!(
@@ -479,6 +481,7 @@ pub struct ReviseSample {
 }
 
 /// 补全用例的观测数据
+#[derive(Serialize)]
 pub struct ReviseCaseData {
     pub case_name: String,
     pub passed: bool,
@@ -696,7 +699,7 @@ impl TestSuite for ForgetReviseSuite {
         passed: usize,
         _failed: usize,
     ) -> SuiteReport {
-        let mut metrics: Vec<Box<dyn crate::engine::suite::ReportMetric>> = Vec::new();
+        let mut metrics: Vec<crate::engine::suite::MetricEntry> = Vec::new();
         let mut detail_rows: Vec<DetailRow> = Vec::new();
         let mut llm_available = false;
         for o in &outcomes {
@@ -705,11 +708,11 @@ impl TestSuite for ForgetReviseSuite {
             };
             llm_available |= data.llm_available;
             for (group, label, value) in &data.metrics {
-                metrics.push(Box::new(key_value_metric(
+                metrics.push(key_value_metric(
                     label.clone(),
                     group.clone(),
                     value.clone(),
-                )));
+                ));
             }
             for line in &data.detail_lines {
                 detail_rows.push(DetailRow {
@@ -718,7 +721,7 @@ impl TestSuite for ForgetReviseSuite {
                 });
             }
         }
-        metrics.push(Box::new(key_value_metric(
+        metrics.push(key_value_metric(
             "LLM 可用".to_string(),
             "LLM".to_string(),
             if llm_available {
@@ -726,8 +729,8 @@ impl TestSuite for ForgetReviseSuite {
             } else {
                 "否".to_string()
             },
-        )));
-        metrics.push(Box::new(key_value_metric(
+        ));
+        metrics.push(key_value_metric(
             "通过率".to_string(),
             "汇总".to_string(),
             format!(
@@ -740,7 +743,7 @@ impl TestSuite for ForgetReviseSuite {
                 passed,
                 total
             ),
-        )));
+        ));
         SuiteReport {
             metrics,
             detail_header: format!(
@@ -816,6 +819,7 @@ pub const PIPELINE_REVISE_MIN_WORDS: usize = 12;
 pub const MAX_LLM_REVISIONS: usize = 8;
 
 /// 单个节点的遗忘观测结果
+#[derive(Clone, Serialize)]
 pub struct NodeForgetStat {
     pub id: String,
     pub type_name: &'static str,
@@ -837,6 +841,7 @@ pub struct NodeForgetStat {
 }
 
 /// 单个用例（一次完整管线运行）的观测数据
+#[derive(Serialize)]
 pub struct ForgetCaseData {
     pub case_name: String,
     pub passed: bool,
@@ -1828,7 +1833,7 @@ impl TestSuite for ForgetPipelineSuite {
         passed: usize,
         _failed: usize,
     ) -> SuiteReport {
-        let mut metrics: Vec<Box<dyn crate::engine::suite::ReportMetric>> = Vec::new();
+        let mut metrics: Vec<crate::engine::suite::MetricEntry> = Vec::new();
         let mut detail_rows: Vec<DetailRow> = Vec::new();
         let mut decay_points: Vec<(f64, f64)> = Vec::new();
         let mut llm_available = false;
@@ -1847,11 +1852,11 @@ impl TestSuite for ForgetPipelineSuite {
             max_node_count = max_node_count.max(data.node_count);
             max_edge_count = max_edge_count.max(data.edge_count);
             for (group, label, value) in &data.metrics {
-                metrics.push(Box::new(key_value_metric(
+                metrics.push(key_value_metric(
                     label.clone(),
                     group.clone(),
                     value.clone(),
-                )));
+                ));
             }
             let hours = match data.case_name.as_str() {
                 "low" => Some(8.0),
@@ -1894,7 +1899,7 @@ impl TestSuite for ForgetPipelineSuite {
 
         decay_points.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
         if decay_points.len() >= 2 {
-            metrics.push(Box::new(chart_metric(
+            metrics.push(chart_metric(
                 "遗忘衰减曲线".to_string(),
                 "遗忘缺失度".to_string(),
                 "时间跨度(小时)".to_string(),
@@ -1903,18 +1908,18 @@ impl TestSuite for ForgetPipelineSuite {
                     label: "平均缺失度".to_string(),
                     points: decay_points,
                 }],
-            )));
+            ));
         }
 
-        metrics.push(Box::new(key_value_metric(
+        metrics.push(key_value_metric(
             "图".to_string(),
             "图".to_string(),
             format!(
                 "{}（节点 {} / 边 {}）",
                 self.graph_name, max_node_count, max_edge_count
             ),
-        )));
-        metrics.push(Box::new(key_value_metric(
+        ));
+        metrics.push(key_value_metric(
             "LLM 可用".to_string(),
             "LLM".to_string(),
             if llm_available {
@@ -1925,8 +1930,8 @@ impl TestSuite for ForgetPipelineSuite {
             } else {
                 "否（遮罩降级路径已验证）".to_string()
             },
-        )));
-        metrics.push(Box::new(key_value_metric(
+        ));
+        metrics.push(key_value_metric(
             "通过率".to_string(),
             "汇总".to_string(),
             format!(
@@ -1939,7 +1944,7 @@ impl TestSuite for ForgetPipelineSuite {
                 passed,
                 total
             ),
-        )));
+        ));
 
         SuiteReport {
             metrics,

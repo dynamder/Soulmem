@@ -120,7 +120,7 @@ pub fn run_batch(
         + Send
         + Sync
         + 'static,
-    on_progress: Option<&dyn Fn(usize, usize)>,
+    on_progress: Option<&dyn Fn(usize, usize) -> bool>,
 ) -> BatchResult {
     let start = Instant::now();
     let total = datasets.len();
@@ -157,7 +157,7 @@ pub fn run_batch(
     let mut results = Vec::with_capacity(total);
     let mut placed = 0usize;
     if let Some(cb) = on_progress {
-        cb(0, total);
+        let _ = cb(0, total);
     }
     for (idx, ds) in rx {
         placed += 1;
@@ -166,7 +166,10 @@ pub fn run_batch(
         total_failed += ds.failed;
         results.push((idx, ds));
         if let Some(cb) = on_progress {
-            cb(placed, total);
+            // 回调返回 false 表示调用方请求提前收束（如取消）
+            if !cb(placed, total) {
+                break;
+            }
         }
     }
 
