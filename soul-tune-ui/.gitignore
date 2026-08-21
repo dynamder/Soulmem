@@ -4,10 +4,8 @@ build/
 .flutter-plugins
 .flutter-plugins-dependencies
 
-# 生成的 FRB 绑定（由 codegen 生成，不入库）
-lib/src/rust/frb_generated.dart
-lib/src/rust/api.dart
-lib/src/rust/rust_bundle.dart
+# 生成的 FRB 绑定**入库**（flutter_rust_bridge 惯例）：clone 后无需 codegen 即可编译；
+# 改 api.rs 后需重新生成（`flutter_rust_bridge_codegen generate`），生成 diff 随代码提交
 
 # IDE
 .idea/
