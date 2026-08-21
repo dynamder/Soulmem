@@ -13,6 +13,12 @@
 //!    `compute_all_missing_degrees` → 逐节点 `lazy_forget`（衰减+遮罩+LLM 补全）→
 //!    边衰减。区分**真实修订**与降级遮罩，LLM 可用但有效修订为 0 时用例失败。
 //!
+//! Pipeline 内嵌的**激发测试（excitation，黑盒效果）**：图克隆两份配对对照，
+//! 按设计剂量梯度激发部分节点，验证"激发 → 遗忘被延缓"这一**可观察效果**
+//! （断言 E1~E6 见 [`ForgetPipelineSuite::run_excitation_case`]）。soul-tune 是
+//! 效果测试框架：不读取算法内部常量、不假设激发次数如何进入衰减公式，只通过
+//! 公开接口驱动与观测。设计文档见 `docs/architecture/激发测试设计.md`。
+//!
 //! LLM 后端与 playtest 完全一致：统一来源解析（见 `engine::llm::resolver`）——
 //! 先探测运行中的 llama-server，没有则自动拉起本地缓存模型，都没有则降级遮罩。
 
@@ -22,7 +28,7 @@ use std::pin::Pin;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use chrono::{DateTime, Duration as ChronoDuration, Utc};
+use chrono::{DateTime, Duration as ChronoDuration, TimeZone, Utc};
 use jieba_rs::Jieba;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
@@ -37,14 +43,15 @@ use soul_mem_algo::algo::forget::decay_revise::{
     lazy_forget, weight_placeholder, ForgetAction, DEFAULT_ACTIVE_FACTOR,
     DEFAULT_BASE_HALF_LIFE_HOURS, REVISE_THRESHOLD,
 };
+use soul_mem_algo::algo::forget::llm_completion::build_reconstruct_prompt;
 use soul_mem_algo::algo::forget::mask::{mask_text, MASK_WORD};
 use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
 use soul_mem_core::memory_note::situation_mem::SituationType;
-use soul_mem_core::memory_note::{MemoryNote, MemoryNoteBuilder, MemoryType};
+use soul_mem_core::memory_note::{MemoryId, MemoryNote, MemoryNoteBuilder, MemoryType};
 use soul_mem_runtime::cluster::memory_cluster::MemoryCluster;
 
 use crate::engine::llm::{LlmBackend, LlamaServer};
-use crate::engine::loader::load_graph_cluster;
+use crate::engine::loader::{build_reverse_id_map, load_graph_cluster};
 use crate::engine::suite::{
     chart_metric, key_value_metric, DetailRow, Series, SuiteReport, TestCaseOutcome, TestSuite,
 };
@@ -161,6 +168,12 @@ fn forget_type_name(node: &MemoryNote) -> &'static str {
     }
 }
 
+/// 语义 id 显示：优先 graph.json 可读 id（如 `sem_self`），缺失时回退 UUID。
+/// 避免观测/明细里展示每次运行都不同的随机 MemoryId。
+fn display_id(id_rev: &std::collections::HashMap<MemoryId, String>, id: MemoryId) -> String {
+    id_rev.get(&id).cloned().unwrap_or_else(|| id.to_string())
+}
+
 /// 有效修订：LLM 回复非空且不含 `[masked]` 占位符（真正补全而非复述遮罩）
 fn is_effective_revision(reply: &str) -> bool {
     let t = reply.trim();
@@ -268,8 +281,9 @@ impl ForgetMaskSuite {
     /// 从指定 fixture 图加载：**收集全部可遮罩节点**（SemMemory / SpecificSituation），
     /// 每个节点 × 全缺失度梯度构造用例 —— 观测以记忆节点 id 为单位展示遮罩演变。
     pub fn load(path: &Path) -> Result<Self, String> {
-        let (cluster, _id_map) = load_graph_cluster(path)
+        let (cluster, id_map) = load_graph_cluster(path)
             .map_err(|e| format!("加载图 '{}' 失败: {}", path.display(), e))?;
+        let id_rev = build_reverse_id_map(&id_map);
         let jieba = Jieba::new();
         let mut nodes: Vec<(String, String)> = Vec::new();
         for n in cluster.graph().node_weights() {
@@ -280,7 +294,8 @@ impl ForgetMaskSuite {
             if text.trim().is_empty() {
                 continue;
             }
-            nodes.push((n.note().id().to_string(), text));
+            // 语义 id：graph.json 可读 id，避免每次运行不同的 UUID
+            nodes.push((display_id(&id_rev, n.note().id()), text));
         }
         // 确定性排序，保证可复现
         nodes.sort_by(|a, b| a.0.cmp(&b.0));
@@ -460,14 +475,19 @@ impl TestSuite for ForgetMaskSuite {
 // 阶段 2：遮罩补全验证（ForgetReviseSuite）—— 直接驱动 llama-server
 // ========================================================================
 
-/// 补全样本：从 fixture 图选取的长文本节点
+/// 参与修订验证的遮罩水平梯度（缺失度）：低 / 中 / 高
+pub const REVISE_MASK_GRADIENTS: [f32; 3] = [0.2, 0.5, 0.87];
+
+/// 补全样本：从 fixture 图选取的可遗忘节点 × 遮罩水平梯度
 pub struct ReviseSample {
     pub node_id: String,
     pub type_name: &'static str,
     /// 原始文本
     pub original: String,
-    /// 遮罩后的文本（md=0.5）
+    /// 遮罩后的文本（按 `mask_md` 遮罩）
     pub masked: String,
+    /// 遮罩水平（缺失度梯度，观测页 x 轴）
+    pub mask_md: f32,
 }
 
 /// 补全用例的观测数据
@@ -488,10 +508,83 @@ pub struct ReviseCaseData {
     pub metrics: Vec<(String, String, String)>,
 }
 
-/// 参与补全验证的最小词数（保证遮罩后仍有上下文可推断）
-pub const REVISE_MIN_WORDS: usize = 20;
-/// 参与补全验证的最大样本数
-pub const REVISE_MAX_SAMPLES: usize = 6;
+/// 抽样模式的目标样本数（约 8 个：分层抽样）
+pub const REVISE_MAX_SAMPLES: usize = 8;
+
+/// 修订测试采样模式：全量（所有可遗忘节点）或分层抽样（固定种子，约 8 个）
+#[derive(Debug, Clone, Copy)]
+pub enum ReviseMode {
+    /// 对所有可遗忘（SemMemory / SpecificSituation）节点执行遮罩修订
+    Full,
+    /// 按节点类型分层抽样，固定种子可复现，总数约 [`REVISE_MAX_SAMPLES`]
+    Sampled(u64),
+}
+
+/// 构造修订样本：全量 = 全部可遗忘节点；抽样 = 按类型分层、固定种子层间轮转取约
+/// [`REVISE_MAX_SAMPLES`] 个节点。每个节点按 [`REVISE_MASK_GRADIENTS`] 全梯度展开
+/// （低/中/高遮罩水平各一个样本）。
+fn build_revise_samples(
+    jieba: &Jieba,
+    candidates: Vec<(String, &'static str, String, usize)>,
+    mode: ReviseMode,
+) -> Vec<ReviseSample> {
+    // 单个候选 × 全梯度展开
+    let expand = |c: &(String, &'static str, String, usize)| -> Vec<ReviseSample> {
+        REVISE_MASK_GRADIENTS
+            .iter()
+            .map(|&md| ReviseSample {
+                node_id: c.0.clone(),
+                type_name: c.1,
+                original: c.2.clone(),
+                masked: mask_text(&c.2, md, jieba).masked_text,
+                mask_md: md,
+            })
+            .collect()
+    };
+    match mode {
+        ReviseMode::Full => candidates.iter().flat_map(expand).collect(),
+        ReviseMode::Sampled(seed) => {
+            // 分层：按节点类型分组（保持候选顺序稳定）
+            let mut layers: Vec<(&'static str, Vec<usize>)> = Vec::new();
+            for (i, (_, ty, _, _)) in candidates.iter().enumerate() {
+                match layers.iter_mut().find(|(t, _)| t == ty) {
+                    Some((_, v)) => v.push(i),
+                    None => layers.push((ty, vec![i])),
+                }
+            }
+            let mut rng = StdRng::seed_from_u64(seed);
+            let mut pools: Vec<Vec<usize>> = layers
+                .iter()
+                .map(|(_, v)| {
+                    let mut p = v.clone();
+                    p.shuffle(&mut rng);
+                    p
+                })
+                .collect();
+            // 层间轮转取目标节点数，保证每层都有代表
+            let mut picked: Vec<usize> = Vec::new();
+            while picked.len() < REVISE_MAX_SAMPLES {
+                let mut progressed = false;
+                for p in &mut pools {
+                    if picked.len() >= REVISE_MAX_SAMPLES {
+                        break;
+                    }
+                    if let Some(i) = p.pop() {
+                        picked.push(i);
+                        progressed = true;
+                    }
+                }
+                if !progressed {
+                    break;
+                }
+            }
+            picked
+                .into_iter()
+                .flat_map(|i| expand(&candidates[i]))
+                .collect()
+        }
+    }
+}
 
 pub struct ForgetReviseSuite {
     jieba: Jieba,
@@ -501,51 +594,37 @@ pub struct ForgetReviseSuite {
 }
 
 impl ForgetReviseSuite {
-    /// 从 fixture 图加载长文本样本并尝试启用 llama-server
+    /// 从 fixture 图加载长文本样本并尝试启用 llama-server（默认全量模式）
     pub fn load(path: &Path) -> Result<Self, String> {
-        let mut suite = Self::load_without_llm(path)?;
+        let mut suite = Self::load_with_mode(path, ReviseMode::Full)?;
         suite.llm = try_create_llm();
         Ok(suite)
     }
 
-    /// 仅加载长文本样本、不启用 LLM（测试 / 确定性验证使用）
-    #[allow(dead_code)]
-    pub fn load_without_llm(path: &Path) -> Result<Self, String> {
-        let (cluster, _id_map) = load_graph_cluster(path)
+    /// 按采样模式加载长文本样本（不启用 LLM；GUI 全量/抽样由此入口驱动）
+    pub fn load_with_mode(path: &Path, mode: ReviseMode) -> Result<Self, String> {
+        let (cluster, id_map) = load_graph_cluster(path)
             .map_err(|e| format!("加载图 '{}' 失败: {}", path.display(), e))?;
+        let id_rev = build_reverse_id_map(&id_map);
         let jieba = Jieba::new();
-        let mut samples = Vec::new();
-        let g = cluster.graph();
-        let mut candidates: Vec<(String, &'static str, String, usize)> = g
-            .node_weights()
-            .filter_map(|n| {
-                if !is_maskable(n.note()) {
-                    return None;
-                }
-                let text = get_summary(n.note()).unwrap_or_default();
-                let words = mask_word_count(&jieba, &text);
-                if words < REVISE_MIN_WORDS {
-                    return None;
-                }
-                Some((
-                    n.note().id().to_string(),
-                    forget_type_name(n.note()),
-                    text,
-                    words,
-                ))
-            })
-            .collect();
-        // 按词数降序取前 N（最长的文本上下文最丰富）
-        candidates.sort_by(|a, b| b.3.cmp(&a.3));
-        for (id, ty, text, _words) in candidates.into_iter().take(REVISE_MAX_SAMPLES) {
-            let masked = mask_text(&text, 0.5, &jieba).masked_text;
-            samples.push(ReviseSample {
-                node_id: id,
-                type_name: ty,
-                original: text,
-                masked,
-            });
+        let mut candidates: Vec<(String, &'static str, String, usize)> = Vec::new();
+        for n in cluster.graph().node_weights() {
+            if !is_maskable(n.note()) {
+                continue;
+            }
+            let text = get_summary(n.note()).unwrap_or_default();
+            if text.trim().is_empty() {
+                continue;
+            }
+            let words = mask_word_count(&jieba, &text);
+            candidates.push((
+                display_id(&id_rev, n.note().id()),
+                forget_type_name(n.note()),
+                text,
+                words,
+            ));
         }
+        let samples = build_revise_samples(&jieba, candidates, mode);
         Ok(Self {
             jieba,
             llm: None,
@@ -553,20 +632,19 @@ impl ForgetReviseSuite {
         })
     }
 
-    /// 探活：用固定文本做一次最小补全调用，验证 llama-server 链路可用
-    fn probe(&self) -> Result<String, String> {
-        let Some(llm) = &self.llm else {
-            return Err("llama-server 不可用（未检测到运行中的服务，也未找到本地缓存模型）".into());
-        };
-        let probe_user = "Masked text: 十六夜咲夜是红魔馆的 [masked] 拥有操纵时间的能力她可以 [masked] 时间";
-        let runtime = tokio::runtime::Builder::new_multi_thread()
-            .enable_all()
-            .build()
-            .expect("tokio runtime");
-        let closure = llama_closure(llm.clone());
-        runtime
-            .block_on(closure(FORGET_SYSTEM_PROMPT, probe_user))
-            .map_err(|e| format!("llama-server 调用失败: {e}"))
+    /// 分层抽样模式（GUI 使用）：按种子分层抽约 [`REVISE_MAX_SAMPLES`] 个，并启用 llama-server。
+    /// 供 soul-tune-api 调用（跨 crate pub API，lib 内无直接调用者）。
+    #[allow(dead_code)]
+    pub fn load_sampled(path: &Path, seed: u64) -> Result<Self, String> {
+        let mut suite = Self::load_with_mode(path, ReviseMode::Sampled(seed))?;
+        suite.llm = try_create_llm();
+        Ok(suite)
+    }
+
+    /// 仅加载长文本样本、不启用 LLM（测试 / 确定性验证使用）
+    #[allow(dead_code)]
+    pub fn load_without_llm(path: &Path) -> Result<Self, String> {
+        Self::load_with_mode(path, ReviseMode::Full)
     }
 
     /// 单个补全用例：遮罩输入 → llama-server → 校验有效性与长度
@@ -579,8 +657,11 @@ impl ForgetReviseSuite {
                     .build()
                     .expect("tokio runtime");
                 let closure = llama_closure(llm.clone());
-                let user = format!("Masked text: {}", sample.masked);
-                match runtime.block_on(closure(FORGET_SYSTEM_PROMPT, &user)) {
+                // 与算法层 `reconstruct_summary` 完全一致的提示词（user 带占位符计数说明），
+                // 保证修订测试 = 真实管线行为
+                let (system, user) =
+                    build_reconstruct_prompt(&sample.masked, Some(FORGET_SYSTEM_PROMPT));
+                match runtime.block_on(closure(&system, &user)) {
                     Ok(r) => (r, None),
                     Err(e) => (String::new(), Some(format!("{e}"))),
                 }
@@ -624,13 +705,22 @@ impl ForgetReviseSuite {
         let metrics = vec![
             (
                 "补全".into(),
-                format!("{} 回复字数", sample.node_id.chars().take(8).collect::<String>()),
+                format!(
+                    "{} md{:.2} 回复字数",
+                    sample.node_id.chars().take(8).collect::<String>(),
+                    sample.mask_md
+                ),
                 if llm_err.is_none() { reply.chars().count().to_string() } else { "失败".into() },
             ),
         ];
 
         ReviseCaseData {
-            case_name: sample.node_id.chars().take(8).collect(),
+            // 用例名带遮罩水平（观测页按 节点 × 梯度 聚合，x 轴 = 缺失度）
+            case_name: format!(
+                "{}-md{:.2}",
+                sample.node_id.chars().take(8).collect::<String>(),
+                sample.mask_md
+            ),
             passed,
             llm_available,
             node_id: sample.node_id.clone(),
@@ -645,47 +735,17 @@ impl ForgetReviseSuite {
 
 impl TestSuite for ForgetReviseSuite {
     fn case_count(&self) -> usize {
-        // 1 个探活 + 每个样本 1 个补全用例
-        1 + self.samples.len()
+        self.samples.len()
     }
 
     fn run_case(&self, index: usize) -> TestCaseOutcome {
-        if index == 0 {
-            let probe_result = self.probe();
-            let (passed, reply, detail) = match probe_result {
-                Ok(r) => {
-                    let len = r.chars().count();
-                    (true, r, format!("探活成功，模型响应 {} 字", len))
-                }
-                Err(e) => (false, String::new(), format!("探活失败: {e}")),
-            };
-            let data = ReviseCaseData {
-                case_name: "probe".into(),
-                passed,
-                llm_available: self.llm.is_some(),
-                node_id: "probe".into(),
-                original: "（探活）".into(),
-                masked_text: "探活遮罩文本".into(),
-                llm_reply: reply,
-                detail_lines: vec![detail],
-                metrics: vec![],
-            };
-            let passed = data.passed;
-            TestCaseOutcome {
-                case_name: "forget/revise/probe".into(),
-                description: "llama-server 链路探活".into(),
-                passed,
-                data: Box::new(data),
-            }
-        } else {
-            let data = self.run_revise_case(&self.samples[index - 1]);
-            let passed = data.passed;
-            TestCaseOutcome {
-                case_name: format!("forget/revise/{}", data.case_name),
-                description: format!("遮罩补全验证: {}", data.case_name),
-                passed,
-                data: Box::new(data),
-            }
+        let data = self.run_revise_case(&self.samples[index]);
+        let passed = data.passed;
+        TestCaseOutcome {
+            case_name: format!("forget/revise/{}", data.case_name),
+            description: format!("遮罩补全验证: {}", data.case_name),
+            passed,
+            data: Box::new(data),
         }
     }
 
@@ -771,8 +831,8 @@ pub struct ForgetCaseSpec {
     pub want_llm: bool,
 }
 
-/// 全管线场景集：低/中/高遗忘强度 + 多步遗忘 + 激活测试 + 增量一致性
-pub const PIPELINE_CASES: [ForgetCaseSpec; 6] = [
+/// 全管线场景集：低/中/高遗忘强度 + 多步遗忘 + 激活测试 + 激发测试 + 增量一致性
+pub const PIPELINE_CASES: [ForgetCaseSpec; 9] = [
     ForgetCaseSpec {
         name: "low",
         description: "低遗忘强度（Δt=8h）：全图批量刷新 + 惰性遗忘",
@@ -804,6 +864,24 @@ pub const PIPELINE_CASES: [ForgetCaseSpec; 6] = [
         want_llm: false,
     },
     ForgetCaseSpec {
+        name: "excitation-early",
+        description: "激发测试·前置：t=0 全部激发，配对对照验证遗忘被延缓（黑盒效果）",
+        elapsed_hours: -12, // 特殊标记：激发测试场景（前置）
+        want_llm: false,
+    },
+    ForgetCaseSpec {
+        name: "excitation-spaced",
+        description: "激发测试·均布：24/48/72h 分批激发，事件研究验证遗忘被延缓",
+        elapsed_hours: -13, // 特殊标记：激发测试场景（均布）
+        want_llm: false,
+    },
+    ForgetCaseSpec {
+        name: "excitation-late",
+        description: "激发测试·后置：t=48h 全部激发，激发前无差异、激发后出现延缓",
+        elapsed_hours: -14, // 特殊标记：激发测试场景（后置）
+        want_llm: false,
+    },
+    ForgetCaseSpec {
         name: "incremental",
         description: "增量一致性：两次 12h 增量更新 == 一次 24h 全量计算",
         elapsed_hours: -1, // 特殊标记：增量一致性场景
@@ -813,6 +891,30 @@ pub const PIPELINE_CASES: [ForgetCaseSpec; 6] = [
 
 /// 全管线 LLM 修订的最小词数（短文本被全遮后无上下文，LLM 无法补全）
 pub const PIPELINE_REVISE_MIN_WORDS: usize = 12;
+
+/// 激发测试的三种时机子场景（黑盒效果：同一批总激发次数，激发时机不同）。
+///
+/// 测试**不假设**时机是否影响结果——三种场景各自独立跑一遍全部断言，
+/// 无论算法如何演化（次数制 / 回鲜制），"激发了就被延缓"的效果断言都必须成立。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ExcitationSchedule {
+    /// 前置：全部激发发生在 t=0（首个检查点之前）
+    Early,
+    /// 均布：按 24h / 48h / 72h 分三批激发
+    Spaced,
+    /// 后置：全部激发发生在 t=48h（第 2 个检查点）
+    Late,
+}
+
+impl ExcitationSchedule {
+    fn tag(self) -> &'static str {
+        match self {
+            ExcitationSchedule::Early => "early",
+            ExcitationSchedule::Spaced => "spaced",
+            ExcitationSchedule::Late => "late",
+        }
+    }
+}
 
 /// 单个节点的遗忘观测结果
 #[derive(Clone, Serialize)]
@@ -843,9 +945,12 @@ pub struct NodeStepStat {
     pub hours: i64,
     /// 步序号（0 起始；单步用例恒为 0）
     pub step: usize,
-    /// 该时间步后的缺失度（y 轴主指标）
+    /// 该时间步后的缺失度（y 轴主指标；激发测试为**激发组** md）
     pub md: f32,
-    /// 该步触发的遗忘动作（NoAction / MaskOnly / Revised）
+    /// 对照组（未激发）同刻缺失度：仅激发测试填充（配对对照），其余用例为 None。
+    /// 观测界面据此画"对照组 vs 激发组"双曲线，直观展示遗忘被延缓。
+    pub md_ctrl: Option<f32>,
+    /// 该步触发的遗忘动作（NoAction / MaskOnly / Revised；激发测试为 Activated / Control）
     pub action: &'static str,
     /// LLM 补全的遮罩输入文本（Revised / MaskOnly 时）
     pub masked_text: Option<String>,
@@ -911,12 +1016,14 @@ pub struct ForgetPipelineSuite {
     jieba: Jieba,
     llm: Option<Arc<Mutex<LlamaServer>>>,
     cases: Vec<ForgetCaseSpec>,
+    /// MemoryId → graph.json 语义 id 反向表（观测/明细展示可读 id，不用随机 UUID）
+    id_rev: std::collections::HashMap<MemoryId, String>,
 }
 
 impl ForgetPipelineSuite {
     /// 从 fixture graph JSON 加载真实角色图，并按环境变量启用 llama-server
     pub fn load(path: &Path) -> Result<Self, String> {
-        let (graph, _id_map) = load_graph_cluster(path)
+        let (graph, id_map) = load_graph_cluster(path)
             .map_err(|e| format!("加载图 '{}' 失败: {}", path.display(), e))?;
         let graph_name = path
             .file_name()
@@ -929,13 +1036,14 @@ impl ForgetPipelineSuite {
             jieba: Jieba::new(),
             llm,
             cases: PIPELINE_CASES.to_vec(),
+            id_rev: build_reverse_id_map(&id_map),
         })
     }
 
     /// 仅加载图、不启用 LLM（测试 / 确定性验证使用）
     #[allow(dead_code)]
     pub fn load_without_llm(path: &Path) -> Result<Self, String> {
-        let (graph, _id_map) = load_graph_cluster(path)
+        let (graph, id_map) = load_graph_cluster(path)
             .map_err(|e| format!("加载图 '{}' 失败: {}", path.display(), e))?;
         let graph_name = path
             .file_name()
@@ -947,7 +1055,21 @@ impl ForgetPipelineSuite {
             jieba: Jieba::new(),
             llm: None,
             cases: PIPELINE_CASES.to_vec(),
+            id_rev: build_reverse_id_map(&id_map),
         })
+    }
+
+    /// 仅激发测试（GUI 独立入口）：只加载 `excitation-*` 三个时机子场景
+    /// （前置/均布/后置），不启用 LLM——激发测试为纯效果验证（E1~E6），
+    /// 无需 LLM，保持确定性与快速响应。
+    pub fn load_excitation_only(path: &Path) -> Result<Self, String> {
+        let mut suite = Self::load_without_llm(path)?;
+        suite.cases = PIPELINE_CASES
+            .iter()
+            .filter(|c| c.name.starts_with("excitation-"))
+            .copied()
+            .collect();
+        Ok(suite)
     }
 
     /// 模拟老化：把整张图的节点/边统一回拨 `last_forget_time`（缺失度归零）。
@@ -1035,7 +1157,7 @@ impl ForgetPipelineSuite {
                 (
                     current_missing_degree(n.note(), now),
                     forget_type_name(n.note()),
-                    n.note().id().to_string(),
+                    display_id(&self.id_rev, n.note().id()),
                 )
             };
 
@@ -1206,6 +1328,7 @@ impl ForgetPipelineSuite {
                     hours: spec.elapsed_hours.max(0),
                     step: 0,
                     md: s.md_after,
+                    md_ctrl: None,
                     action: s.action,
                     masked_text: s.masked_text.clone(),
                     llm_reply: s.llm_reply.clone(),
@@ -1416,7 +1539,7 @@ impl ForgetPipelineSuite {
                     (
                         current_missing_degree(n.note(), now),
                         forget_type_name(n.note()),
-                        n.note().id().to_string(),
+                        display_id(&self.id_rev, n.note().id()),
                     )
                 };
 
@@ -1511,6 +1634,7 @@ impl ForgetPipelineSuite {
                     hours: STEP_HOURS * ((step + 1) as i64),
                     step,
                     md: after,
+                    md_ctrl: None,
                     action: action_name,
                     masked_text: masked_text.clone(),
                     llm_reply: llm_reply.clone(),
@@ -1718,7 +1842,7 @@ impl ForgetPipelineSuite {
             e.1 += md_theory;
             e.2 += 1;
 
-            let short_id: String = n.note().id().to_string().chars().take(8).collect();
+            let short_id: String = display_id(&self.id_rev, n.note().id()).chars().take(8).collect();
             detail_lines.push(format!(
                 "{} 激活{}次 md实测{:.3} 理论{:.3} 偏差{:.5}",
                 short_id, count, md_actual, md_theory, md_actual - md_theory
@@ -1774,7 +1898,7 @@ impl ForgetPipelineSuite {
                 let n = g.node_weight(*idx).expect("node");
                 let count = counts.get(&i).copied().unwrap_or(0);
                 NodeForgetStat {
-                    id: n.note().id().to_string(),
+                    id: display_id(&self.id_rev, n.note().id()),
                     type_name: forget_type_name(n.note()),
                     original: get_summary(n.note()).unwrap_or_default(),
                     md_before: 0.0,
@@ -1797,6 +1921,7 @@ impl ForgetPipelineSuite {
                     hours: ELAPSED_HOURS,
                     step: 0,
                     md: s.md_after,
+                    md_ctrl: None,
                     action: s.action,
                     masked_text: None,
                     llm_reply: None,
@@ -1823,6 +1948,627 @@ impl ForgetPipelineSuite {
             nodes,
             node_series,
             avg_edge_intensity: 0.0,
+            detail_lines,
+            metrics,
+        }
+    }
+
+    /// 激发测试（黑盒效果）：验证"记忆被激发/提取后，遗忘被延缓"这一**可观察效果**。
+    ///
+    /// 设计原则：soul-tune 是效果测试框架，不读取算法内部常量（如
+    /// `DEFAULT_ACTIVE_FACTOR` / 激活封顶值），不假设激发次数如何进入衰减公式，
+    /// 只通过公开接口驱动与观测：
+    /// - 激发：`MemoryNote::retrieval_increment()`；
+    /// - 老化：`apply_aging` 统一回拨 `last_forget_time`（测试框架侧，不触碰算法逻辑）；
+    /// - 观测：只读 `current_missing_degree`（不写回，全程同一条模拟时间轴）。
+    ///
+    /// 结构（三种时机子场景 [`ExcitationSchedule`] 各自独立跑一遍全部断言）：
+    /// 图克隆两份（对照/实验）→ 同一 72h 老化 → 实验组按设计剂量梯度
+    /// `{0,1,3,10,30,50,100}` 激发（固定种子洗牌分配，每个节点以自身为对照）→
+    /// 每 2h 一个检查点（36 点）逐节点配对观测。
+    ///
+    /// 统计口径：
+    /// - 只统计**参与遗忘**的节点（SemMemory / SpecificSituation），
+    ///   Procedure 不参与遗忘机制，从一开始就排除；
+    /// - 对照组（未激发基线）= 全体参与节点的未激发 md 平均；
+    /// - 激发组效果 = 仅被激发（dose>0）节点的平均 md / 延缓。
+    ///
+    /// 断言（全部基于可观察效果）：
+    /// - E1：被激发节点在 72h 检查点 `Δmd = md对照 − md实验 > 1e-3`（激发延缓遗忘）；
+    /// - E2：未激发（dose=0）节点 `|Δmd| < 1e-4`（激发无全局副作用）；
+    /// - E3：剂量组平均 md 随剂量单调下降；饱和点（50 与 100 次）效果相同（可观察封顶）；
+    /// - E4：`0≤md≤1`、激发后同刻 md 不上涨；
+    /// - E5：事件研究——已激发节点在激发后的检查点出现延缓，未激发的不出现；
+    /// - E6：确定性（单元测试中两次运行结果一致）。
+    ///
+    /// 质量门槛：dose ≥ 3 的组平均 Δmd(72h) ≥ 0.05（防止"理论上延缓、效果微不可察"）。
+    ///
+    /// 前瞻性接口建议（暂不改动算法，仅记录）：`retrieval_increment()` 把
+    /// `last_accessed_time` 写为真实 `Utc::now()`。当前衰减公式不使用该字段，
+    /// 因此本测试仍完全确定；若将来实现"激活回鲜"语义开始使用该字段，
+    /// soul-tune 应要求 core 层提供 `retrieve_at(DateTime<Utc>)` 保持模拟时钟可控。
+    fn run_excitation_case(&self, schedule: ExcitationSchedule) -> ForgetCaseData {
+        const ELAPSED_HOURS: i64 = 72;
+        const DOSES: [usize; 7] = [0, 1, 3, 10, 30, 50, 100];
+        const THRESHOLD_MD: f32 = 0.5; // 延缓指标：到达 md=0.5（"遗忘到一半"）的时间
+        // 观测检查点：每 2h 一个（36 点），曲线平滑（计算瞬时完成）。
+        // 关键展示点（detail 文本 / 事件研究摘要）单独定义，避免明细过长。
+        const KEY_HOURS: [i64; 3] = [24, 48, 72];
+        let checkpoints: Vec<i64> = (2..=ELAPSED_HOURS).step_by(2).collect();
+        let last_idx = checkpoints.len() - 1; // 72h 检查点索引
+
+        // 固定模拟时钟锚点：整个场景与真实时间无关，保证确定性（E6）
+        let sim_now = match Utc.with_ymd_and_hms(2026, 1, 1, 0, 0, 0) {
+            chrono::LocalResult::Single(t) => t,
+            _ => panic!("固定模拟时钟解析失败"),
+        };
+
+        // 图克隆两份，统一老化 72h（last_forget_time = sim_now − 72h，md 归零）
+        let mut ctrl = self.graph.clone();
+        let mut trt = self.graph.clone();
+        self.apply_aging(&mut ctrl, sim_now, ELAPSED_HOURS);
+        self.apply_aging(&mut trt, sim_now, ELAPSED_HOURS);
+
+        // 只保留**参与遗忘**的节点（SemMemory / SpecificSituation）。
+        // Procedure 类型不参与遗忘机制，从一开始就不纳入激发测试的统计与观测。
+        let node_indices: Vec<_> = {
+            let g = trt.graph();
+            g.node_indices()
+                .filter(|idx| {
+                    is_maskable_type(forget_type_name(&g.node_weight(*idx).expect("node").note))
+                })
+                .collect()
+        };
+        let n = node_indices.len();
+
+        // 设计剂量梯度：固定种子洗牌节点顺序后按剂量表循环分配（确定性、类型混合）
+        let mut rng = StdRng::seed_from_u64(0xE7C1_5EED);
+        let mut order: Vec<usize> = (0..n).collect();
+        order.shuffle(&mut rng);
+        let mut dose: Vec<usize> = vec![0; n];
+        for (k, &i) in order.iter().enumerate() {
+            dose[i] = DOSES[k % DOSES.len()];
+        }
+
+        // 节点元信息（id / 类型 / 原文），先取好避免后续反复借用图
+        let ids: Vec<String> = node_indices
+            .iter()
+            .map(|idx| {
+                display_id(
+                    &self.id_rev,
+                    trt.graph().node_weight(*idx).expect("node").note.id(),
+                )
+            })
+            .collect();
+        let type_names: Vec<&'static str> = node_indices
+            .iter()
+            .map(|idx| forget_type_name(&trt.graph().node_weight(*idx).expect("node").note))
+            .collect();
+        let originals: Vec<String> = node_indices
+            .iter()
+            .map(|idx| {
+                get_summary(&trt.graph().node_weight(*idx).expect("node").note)
+                    .unwrap_or_default()
+            })
+            .collect();
+
+        // 激发计划：batches = [(激活时刻, [(节点序号, 本次激发次数), ...])]。
+        // 激活时刻与观测检查点解耦：Early 全部在 t=0（首个检查点前应用），
+        // Spaced 在 24/48/72h 分三批，Late 全部在 t=48h。
+        let batches: Vec<(i64, Vec<(usize, usize)>)> = match schedule {
+            ExcitationSchedule::Early => vec![(
+                0,
+                (0..n).filter(|&i| dose[i] > 0).map(|i| (i, dose[i])).collect(),
+            )],
+            ExcitationSchedule::Spaced => {
+                let mut b24 = Vec::new();
+                let mut b48 = Vec::new();
+                let mut b72 = Vec::new();
+                for i in 0..n {
+                    let d = dose[i];
+                    if d == 0 {
+                        continue;
+                    }
+                    let (base, rem) = (d / 3, d % 3);
+                    let (b1, b2, b3) = (
+                        base + usize::from(rem >= 1),
+                        base + usize::from(rem >= 2),
+                        base,
+                    );
+                    if b1 > 0 {
+                        b24.push((i, b1));
+                    }
+                    if b2 > 0 {
+                        b48.push((i, b2));
+                    }
+                    if b3 > 0 {
+                        b72.push((i, b3));
+                    }
+                }
+                vec![(24, b24), (48, b48), (72, b72)]
+                    .into_iter()
+                    .filter(|(_, v)| !v.is_empty())
+                    .collect()
+            }
+            ExcitationSchedule::Late => vec![(
+                48,
+                (0..n).filter(|&i| dose[i] > 0).map(|i| (i, dose[i])).collect(),
+            )],
+        };
+
+        // 每节点首次激发时刻（用于 E5 事件研究："激发前无差异、激发后出现延缓"）
+        let mut activated_at: Vec<Option<i64>> = vec![None; n];
+        for (at, items) in &batches {
+            for &(i, _) in items {
+                if activated_at[i].is_none() {
+                    activated_at[i] = Some(*at);
+                }
+            }
+        }
+
+        let mut passed = true;
+        let mut detail_lines = Vec::new();
+        let mut metrics: Vec<(String, String, String)> = Vec::new();
+        // 每节点每检查点的只读观测（对照/实验）
+        let mut ctrl_series: Vec<Vec<f32>> = vec![Vec::with_capacity(checkpoints.len()); n];
+        let mut trt_series: Vec<Vec<f32>> = vec![Vec::with_capacity(checkpoints.len()); n];
+
+        // 循环前：应用激活时刻早于首个检查点的批次（Early 的 t=0）。
+        // t0 时刻所有节点 md=0，激发后仍为 0，E4 不涨断言恒成立；观测自首个检查点开始。
+        {
+            let t0 = sim_now - ChronoDuration::hours(ELAPSED_HOURS);
+            let early: Vec<(usize, usize)> = batches
+                .iter()
+                .filter(|(at, _)| *at < checkpoints[0])
+                .flat_map(|(_, items)| items.iter().copied())
+                .collect();
+            let md_before: Vec<f32> = early
+                .iter()
+                .map(|&(i, _)| {
+                    current_missing_degree(
+                        &trt.graph().node_weight(node_indices[i]).expect("node").note,
+                        t0,
+                    )
+                })
+                .collect();
+            {
+                let g = trt.graph_mut();
+                for &(i, cnt) in &early {
+                    let node = &mut g.node_weight_mut(node_indices[i]).expect("node").note;
+                    for _ in 0..cnt {
+                        node.retrieval_increment();
+                    }
+                }
+            }
+            for (j, &(i, _)) in early.iter().enumerate() {
+                let after = current_missing_degree(
+                    &trt.graph().node_weight(node_indices[i]).expect("node").note,
+                    t0,
+                );
+                if after > md_before[j] + 1e-4 {
+                    passed = false;
+                    detail_lines.push(format!(
+                        "E4失败: [{}] 激发后 md 上涨（t0）",
+                        ids[i].chars().take(8).collect::<String>()
+                    ));
+                }
+            }
+        }
+
+        for &t_hours in checkpoints.iter() {
+            let t = sim_now - ChronoDuration::hours(ELAPSED_HOURS - t_hours);
+
+            // 本时刻的激活批次（Spaced 24/48/72h、Late 48h；Early 已在循环前应用）
+            let batch: Vec<(usize, usize)> = batches
+                .iter()
+                .filter(|(at, _)| *at == t_hours)
+                .flat_map(|(_, items)| items.iter().copied())
+                .collect();
+
+            // E4 前置读：本批激发前，批次内节点的 md（只读）
+            let md_before_batch: Vec<f32> = batch
+                .iter()
+                .map(|&(i, _)| {
+                    current_missing_degree(
+                        &trt.graph().node_weight(node_indices[i]).expect("node").note,
+                        t,
+                    )
+                })
+                .collect();
+
+            // 施加本时刻的激发（公开接口；retrieval_increment 会把 last_accessed_time
+            // 写为真实 Utc::now()——当前衰减公式不使用该字段，故不影响确定性，见函数文档）
+            {
+                let g = trt.graph_mut();
+                for &(i, cnt) in &batch {
+                    let node = &mut g.node_weight_mut(node_indices[i]).expect("node").note;
+                    for _ in 0..cnt {
+                        node.retrieval_increment();
+                    }
+                }
+            }
+
+            // E4 后置读：激发后同刻 md 不得上涨
+            for (j, &(i, _)) in batch.iter().enumerate() {
+                let after = current_missing_degree(
+                    &trt.graph().node_weight(node_indices[i]).expect("node").note,
+                    t,
+                );
+                if after > md_before_batch[j] + 1e-4 {
+                    passed = false;
+                    detail_lines.push(format!(
+                        "E4失败: [{}] 激发后 md 上涨 {:.4} → {:.4}",
+                        ids[i].chars().take(8).collect::<String>(),
+                        md_before_batch[j],
+                        after
+                    ));
+                }
+            }
+
+            // 逐节点配对观测 + E5 事件研究 + 不变量
+            for (i, idx) in node_indices.iter().enumerate() {
+                let md_c =
+                    current_missing_degree(&ctrl.graph().node_weight(*idx).expect("node").note, t);
+                let md_t =
+                    current_missing_degree(&trt.graph().node_weight(*idx).expect("node").note, t);
+                ctrl_series[i].push(md_c);
+                trt_series[i].push(md_t);
+
+                // 不变量：md 必须在 [0,1]；对照（无激发）随时间单调不减
+                if !(0.0..=1.0).contains(&md_c) || !(0.0..=1.0).contains(&md_t) {
+                    passed = false;
+                }
+                if ctrl_series[i].len() >= 2
+                    && md_c + 1e-4 < ctrl_series[i][ctrl_series[i].len() - 2]
+                {
+                    passed = false;
+                    detail_lines.push(format!(
+                        "E4失败: [{}] 对照 md 随时间回退 {:.4} → {:.4}",
+                        ids[i].chars().take(8).collect::<String>(),
+                        ctrl_series[i][ctrl_series[i].len() - 2],
+                        md_c
+                    ));
+                }
+
+                // E5 事件研究：已激发节点出现延缓；未激发节点无差异
+                let delta = md_c - md_t;
+                let activated_by_now = activated_at[i].map_or(false, |at| at <= t_hours);
+                if activated_by_now {
+                    if delta <= 1e-3 {
+                        passed = false;
+                        detail_lines.push(format!(
+                            "E5失败: [{}] dose={} 检查点{}h 已激发但 Δmd={:.4} ≤ 1e-3",
+                            ids[i].chars().take(8).collect::<String>(),
+                            dose[i],
+                            t_hours,
+                            delta
+                        ));
+                    }
+                } else if delta.abs() > 1e-4 {
+                    passed = false;
+                    detail_lines.push(format!(
+                        "E5失败: [{}] 检查点{}h 未激发但 Δmd={:.4}",
+                        ids[i].chars().take(8).collect::<String>(),
+                        t_hours,
+                        delta
+                    ));
+                }
+            }
+        }
+
+        // 持久化最终缺失度（仅用于 missing_degree() 读取一致；断言全部基于只读观测）
+        compute_all_missing_degrees(&mut ctrl, sim_now);
+        compute_all_missing_degrees(&mut trt, sim_now);
+
+        // ── 剂量组统计（72h 检查点）──
+        let mut groups: std::collections::BTreeMap<usize, (f32, f32, usize)> =
+            std::collections::BTreeMap::new();
+        for i in 0..n {
+            let e = groups.entry(dose[i]).or_insert((0.0, 0.0, 0));
+            e.0 += ctrl_series[i][last_idx];
+            e.1 += trt_series[i][last_idx];
+            e.2 += 1;
+        }
+        let mut dose_means: Vec<(usize, f32, f32)> = groups
+            .iter()
+            .map(|(d, (sc, st, cnt))| (*d, sc / *cnt as f32, st / *cnt as f32))
+            .collect();
+        dose_means.sort_by_key(|(d, _, _)| *d);
+
+        // E1：每个被激发节点 72h Δmd > 1e-3
+        let mut activated_count = 0usize;
+        for i in 0..n {
+            if dose[i] == 0 {
+                continue;
+            }
+            activated_count += 1;
+            let delta = ctrl_series[i][last_idx] - trt_series[i][last_idx];
+            if delta <= 1e-3 {
+                passed = false;
+                detail_lines.push(format!(
+                    "E1失败: [{}] dose={} Δmd(72h)={:.4} ≤ 1e-3",
+                    ids[i].chars().take(8).collect::<String>(),
+                    dose[i],
+                    delta
+                ));
+            }
+        }
+
+        // E2：未激发节点无差异（激发无全局副作用）
+        for i in 0..n {
+            if dose[i] != 0 {
+                continue;
+            }
+            let delta = (ctrl_series[i][last_idx] - trt_series[i][last_idx]).abs();
+            if delta > 1e-4 {
+                passed = false;
+                detail_lines.push(format!(
+                    "E2失败: [{}] 未激发但 Δmd(72h)={:.4}",
+                    ids[i].chars().take(8).collect::<String>(),
+                    delta
+                ));
+            }
+        }
+
+        // E3：剂量-反应单调（允许饱和）；饱和点（50 与 100）效果相同 = 可观察封顶
+        for w in dose_means.windows(2) {
+            let (da, _, ma) = w[0];
+            let (db, _, mb) = w[1];
+            if mb > ma + 1e-3 {
+                passed = false;
+                detail_lines.push(format!(
+                    "E3失败: dose{} 平均 md {:.4} > dose{} {:.4}",
+                    da, ma, db, mb
+                ));
+            }
+            // 饱和点之前应严格递减（50 与 100 允许相同）
+            if db <= 50 && mb >= ma - 1e-3 {
+                passed = false;
+                detail_lines.push(format!(
+                    "E3失败: dose{}→{} 平均 md 未严格递减 {:.4} → {:.4}",
+                    da, db, ma, mb
+                ));
+            }
+        }
+        if let (Some(g50), Some(g100)) = (groups.get(&50), groups.get(&100)) {
+            let (m50, m100) = (g50.1 / g50.2 as f32, g100.1 / g100.2 as f32);
+            if (m50 - m100).abs() > 1e-3 {
+                passed = false;
+                detail_lines.push(format!(
+                    "E3失败: 封顶 dose50={:.4} vs dose100={:.4} 应相同",
+                    m50, m100
+                ));
+            }
+        }
+
+        // 质量门槛：dose ≥ 3 组平均 Δmd(72h) ≥ 0.05
+        for (d, sc, st) in &dose_means {
+            if *d >= 3 {
+                let delta = sc - st;
+                if delta < 0.05 {
+                    passed = false;
+                    detail_lines.push(format!(
+                        "质量门槛失败: dose={} 平均 Δmd={:.4} < 0.05",
+                        d, delta
+                    ));
+                }
+            }
+        }
+
+        // ── 延缓指标（时间域）：到达 md=0.5 的时间（线性插值），延缓 = 实验 − 对照 ──
+        let mut delays: Vec<Option<f32>> = Vec::with_capacity(n);
+        let mut trt_crossed: Vec<bool> = Vec::with_capacity(n);
+        for i in 0..n {
+            let t_ctrl = crossing_time(&ctrl_series[i], &checkpoints, THRESHOLD_MD);
+            let t_trt = crossing_time(&trt_series[i], &checkpoints, THRESHOLD_MD);
+            trt_crossed.push(t_trt.is_some());
+            match (t_ctrl, t_trt) {
+                (Some(a), Some(b)) => delays.push(Some(b - a)),
+                // 实验组未达阈值：报告窗口内下限（对照已越过阈值）
+                (Some(a), None) => delays.push(Some(ELAPSED_HOURS as f32 - a)),
+                _ => delays.push(None),
+            }
+        }
+
+        // ── 汇总与报告 ──
+        // metrics 只放**总体指标**：主视觉（对照/激发平均曲线）由观测数据在 UI 端
+        // 聚合，这里只出 4 个关键数值；逐剂量组 / 事件研究 / 逐节点明细下沉 detail_lines。
+        let mut hist: std::collections::BTreeMap<&'static str, usize> =
+            std::collections::BTreeMap::new();
+        hist.insert("Activated", activated_count);
+        hist.insert("Control", n - activated_count);
+
+        // 口径：对照组平均 = 全体参与遗忘节点的未激发 md；激发组平均 = 仅被激发节点。
+        let act_idxs: Vec<usize> = (0..n).filter(|&i| dose[i] > 0).collect();
+        let avg_ctrl_md = ctrl_series.iter().map(|s| s[last_idx]).sum::<f32>() / n.max(1) as f32;
+        let avg_trt_md = act_idxs
+            .iter()
+            .map(|&i| trt_series[i][last_idx])
+            .sum::<f32>()
+            / act_idxs.len().max(1) as f32;
+
+        metrics.push((
+            "激发测试".into(),
+            "72h 平均缺失度 对照/激发".into(),
+            format!(
+                "{:.3}/{:.3}（Δ{:.3}，{}个被激发节点）",
+                avg_ctrl_md,
+                avg_trt_md,
+                avg_ctrl_md - avg_trt_md,
+                act_idxs.len()
+            ),
+        ));
+        let hs: Vec<f32> = act_idxs.iter().filter_map(|&i| delays[i]).collect();
+        if !hs.is_empty() {
+            let mean = hs.iter().sum::<f32>() / hs.len() as f32;
+            let min = hs.iter().cloned().fold(f32::INFINITY, f32::min);
+            metrics.push((
+                "激发测试".into(),
+                "平均延缓(md→0.5，均值/最小)".into(),
+                format!("{:.1}h / {:.1}h", mean, min),
+            ));
+        }
+        if let (Some(g50), Some(g100)) = (groups.get(&50), groups.get(&100)) {
+            metrics.push((
+                "激发测试".into(),
+                "封顶 dose50 vs dose100".into(),
+                format!(
+                    "Δmd={:.4}（应≈0：可观察封顶）",
+                    (g50.1 / g50.2 as f32 - g100.1 / g100.2 as f32).abs()
+                ),
+            ));
+        }
+
+        // ── 观测明细（detail_lines）：剂量组摘要 → 事件研究摘要 → 逐节点 ──
+        for (d, sc, st) in &dose_means {
+            let cnt = groups.get(d).map(|e| e.2).unwrap_or(0);
+            detail_lines.push(format!(
+                "剂量组 dose={}: 平均缺失度 对照 {:.3} / 激发 {:.3}（Δ{:.3}，{}节点）",
+                d, sc, st, sc - st, cnt
+            ));
+        }
+        for d in [1usize, 3, 10, 30, 50, 100] {
+            let idxs: Vec<usize> = (0..n).filter(|&i| dose[i] == d).collect();
+            if idxs.is_empty() {
+                continue;
+            }
+            let hs: Vec<f32> = idxs.iter().filter_map(|&i| delays[i]).collect();
+            if hs.is_empty() {
+                continue;
+            }
+            let mean = hs.iter().sum::<f32>() / hs.len() as f32;
+            let min = hs.iter().cloned().fold(f32::INFINITY, f32::min);
+            let unreached = idxs.iter().filter(|&&i| !trt_crossed[i]).count();
+            detail_lines.push(format!(
+                "剂量组 dose={}: 延缓(md→0.5) 均值 {:.1}h / 最小 {:.1}h（{}节点，激发组未达阈值{}个）",
+                d, mean, min, idxs.len(), unreached
+            ));
+        }
+        // 事件研究摘要：只展示关键检查点（24/48/72h），避免明细过长
+        for &t_hours in KEY_HOURS.iter() {
+            let Some(k) = checkpoints.iter().position(|h| *h == t_hours) else {
+                continue;
+            };
+            let mut sum_act = 0.0f32;
+            let mut cnt_act = 0usize;
+            let mut sum_inact = 0.0f32;
+            let mut cnt_inact = 0usize;
+            for i in 0..n {
+                let delta = (ctrl_series[i][k] - trt_series[i][k]).abs();
+                if activated_at[i].map_or(false, |at| at <= t_hours) {
+                    sum_act += delta;
+                    cnt_act += 1;
+                } else {
+                    sum_inact += delta;
+                    cnt_inact += 1;
+                }
+            }
+            detail_lines.push(format!(
+                "事件研究 t={}h：已激发节点平均|Δmd| {:.4}（{}节点）· 未激发节点平均|Δmd| {:.4}（{}节点）",
+                t_hours,
+                if cnt_act > 0 { sum_act / cnt_act as f32 } else { 0.0 },
+                cnt_act,
+                if cnt_inact > 0 { sum_inact / cnt_inact as f32 } else { 0.0 },
+                cnt_inact,
+            ));
+        }
+
+        // 逐节点明细：配对对照、激发时刻、延缓时长（md 只展示关键检查点）
+        for i in 0..n {
+            let act_txt = match activated_at[i] {
+                Some(at) => format!("激发@{}h", at),
+                None => "未激发".into(),
+            };
+            let delay_txt = match (delays[i], trt_crossed[i]) {
+                (Some(h), true) => format!("延缓{:.1}h", h),
+                (Some(h), false) => format!("延缓≥{:.1}h(激发组未达md=0.5)", h),
+                _ => "—".into(),
+            };
+            let fmt_series = |series: &[f32]| {
+                KEY_HOURS
+                    .iter()
+                    .filter_map(|h| {
+                        checkpoints
+                            .iter()
+                            .position(|c| c == h)
+                            .map(|idx| format!("{}h:{:.3}", h, series[idx]))
+                    })
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            };
+            let ctrl_txt = fmt_series(&ctrl_series[i]);
+            let trt_txt = fmt_series(&trt_series[i]);
+            detail_lines.push(format!(
+                "[{}] dose={:<3} {} | md对照 {} | md激发 {} | {}",
+                ids[i].chars().take(8).collect::<String>(),
+                dose[i],
+                act_txt,
+                ctrl_txt,
+                trt_txt,
+                delay_txt
+            ));
+        }
+
+        let nodes: Vec<NodeForgetStat> = (0..n)
+            .map(|i| NodeForgetStat {
+                id: ids[i].clone(),
+                type_name: type_names[i],
+                original: originals[i].clone(),
+                md_before: ctrl_series[i][last_idx], // 对照（未激发）作为基线
+                md_after: trt_series[i][last_idx],
+                // 激发测试不执行遮罩/LLM：动作只区分 激发组(Activated) / 对照组(Control)
+                action: if dose[i] > 0 { "Activated" } else { "Control" },
+                mask: None,
+                masked_text: None,
+                llm_reply: None,
+                effective: false,
+            })
+            .collect();
+
+        let node_series: Vec<NodeSeries> = (0..n)
+            .map(|i| NodeSeries {
+                id: ids[i].clone(),
+                type_name: type_names[i],
+                original: originals[i].clone(),
+                steps: (0..checkpoints.len())
+                    .map(|k| NodeStepStat {
+                        hours: checkpoints[k],
+                        step: k,
+                        md: trt_series[i][k], // 激发组（y 主曲线）
+                        md_ctrl: Some(ctrl_series[i][k]), // 对照组（配对对照曲线）
+                        action: if activated_at[i].map_or(false, |at| at <= checkpoints[k]) {
+                            "Activated"
+                        } else {
+                            "Control"
+                        },
+                        masked_text: None,
+                        llm_reply: None,
+                        effective: false,
+                    })
+                    .collect(),
+            })
+            .collect();
+
+        let max_md = trt_series.iter().map(|s| s[last_idx]).fold(0.0f32, f32::max);
+
+        ForgetCaseData {
+            case_name: format!("excitation-{}", schedule.tag()),
+            passed,
+            llm_available: false,
+            node_count: n,
+            edge_count: {
+                let g = trt.graph();
+                g.edge_count()
+            },
+            llm_revised: 0,
+            effective_revised: 0,
+            action_histogram: hist.into_iter().collect(),
+            avg_missing_degree: avg_trt_md,
+            max_missing_degree: max_md,
+            avg_masked_ratio: 0.0,
+            avg_edge_intensity: 0.0,
+            nodes,
+            node_series,
             detail_lines,
             metrics,
         }
@@ -1918,6 +2664,12 @@ impl TestSuite for ForgetPipelineSuite {
             self.run_multi_step_case()
         } else if spec.elapsed_hours == -11 {
             self.run_activation_case()
+        } else if spec.elapsed_hours == -12 {
+            self.run_excitation_case(ExcitationSchedule::Early)
+        } else if spec.elapsed_hours == -13 {
+            self.run_excitation_case(ExcitationSchedule::Spaced)
+        } else if spec.elapsed_hours == -14 {
+            self.run_excitation_case(ExcitationSchedule::Late)
         } else {
             self.run_pipeline(spec)
         };
@@ -2085,6 +2837,23 @@ fn activation_theory_md(retrieval_count: usize, elapsed_hours: f32) -> f32 {
     1.0 - (-elapsed_hours / tau).exp()
 }
 
+/// 线性插值求缺失度到达阈值的时间（观测点含 t=0 处 md=0 的锚点，序列单调不减）。
+/// 观测窗口内未达阈值返回 `None`（用于"实验组未达阈值"的报告与下限计算）。
+fn crossing_time(mds: &[f32], hours: &[i64], threshold: f32) -> Option<f32> {
+    let mut prev_h = 0i64;
+    let mut prev_md = 0.0f32;
+    for (h, &md) in hours.iter().zip(mds) {
+        if md >= threshold {
+            let span = (md - prev_md).max(1e-6);
+            let frac = ((threshold - prev_md) / span).clamp(0.0, 1.0);
+            return Some(prev_h as f32 + (*h as f32 - prev_h as f32) * frac);
+        }
+        prev_h = *h;
+        prev_md = md;
+    }
+    None
+}
+
 fn compute_and_update(node: &mut MemoryNote, current_time: DateTime<Utc>) -> f32 {
     let md = update_missing_degree_incremental(
         node.missing_degree(),
@@ -2178,31 +2947,92 @@ mod tests {
         assert_eq!(a.masked_text, b.masked_text);
     }
 
-    // ── 阶段 2：Revise（无 LLM 时探活失败但用例不 panic）──
+    // ── 阶段 2：Revise（无 LLM 时用例失败但不 panic）──
 
     #[test]
     fn test_revise_suite_loads_fixture_samples() {
         let suite =
             ForgetReviseSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         assert!(suite.llm.is_none(), "测试环境不应配置 LLM");
-        assert!(!suite.samples.is_empty(), "长文本样本不应为空");
-        // 样本都足够长
+        assert!(!suite.samples.is_empty(), "全量模式应覆盖全部可遗忘节点");
+        // 全量覆盖：可遗忘节点（SemMemory/SpecificSituation）全部进入
+        let (cluster, _) = load_graph_cluster(&fixture_graph()).expect("加载 fixture 图");
+        let maskable = cluster
+            .graph()
+            .node_weights()
+            .filter(|n| is_maskable(n.note()) && !get_summary(n.note()).unwrap_or_default().trim().is_empty())
+            .count();
+        assert_eq!(
+            suite.samples.len(),
+            maskable * REVISE_MASK_GRADIENTS.len(),
+            "全量模式应覆盖全部可遗忘节点 × 全梯度（{} × {}）",
+            maskable,
+            REVISE_MASK_GRADIENTS.len()
+        );
         let jieba = Jieba::new();
         for s in &suite.samples {
+            assert!(!s.original.trim().is_empty(), "样本原文不应为空");
             assert!(
-                mask_word_count(&jieba, &s.original) >= REVISE_MIN_WORDS,
-                "样本词数不足"
+                REVISE_MASK_GRADIENTS.contains(&s.mask_md),
+                "样本应带合法遮罩梯度"
             );
-            assert!(s.masked.contains(MASK_WORD.trim()), "样本应含遮罩");
+            // 极短文本（如单字节点）在低梯度下 round(md×词数)=0，mask 模块不遮罩
+            // （返回原文，无占位符）——属正确行为；有遮罩时必含占位符
+            let words = mask_word_count(&jieba, &s.original);
+            let expect_mask = (s.mask_md * words as f32).round() as usize > 0;
+            if expect_mask {
+                assert!(s.masked.contains(MASK_WORD.trim()), "样本应含遮罩");
+            }
         }
     }
 
     #[test]
-    fn test_revise_probe_fails_without_llm() {
+    fn test_revise_sampled_stays_within_budget() {
+        // 抽样模式：约 8 个节点 × 全梯度、可复现（固定种子）、每类都有代表
+        let a = ForgetReviseSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        let all_types: std::collections::HashSet<&'static str> =
+            a.samples.iter().map(|s| s.type_name).collect();
+        let s1 =
+            ForgetReviseSuite::load_with_mode(&fixture_graph(), ReviseMode::Sampled(42))
+                .expect("加载 fixture 图");
+        let s2 =
+            ForgetReviseSuite::load_with_mode(&fixture_graph(), ReviseMode::Sampled(42))
+                .expect("加载 fixture 图");
+        assert!(
+            s1.samples.len() <= REVISE_MAX_SAMPLES * REVISE_MASK_GRADIENTS.len()
+                && s1.samples.len() > 0,
+            "抽样应约 {} 节点 × {} 梯度，实际 {}",
+            REVISE_MAX_SAMPLES,
+            REVISE_MASK_GRADIENTS.len(),
+            s1.samples.len()
+        );
+        // 每类可遗忘节点至少 1 个代表
+        let sampled_types: std::collections::HashSet<&'static str> =
+            s1.samples.iter().map(|s| s.type_name).collect();
+        for t in &all_types {
+            assert!(sampled_types.contains(t), "抽样缺少类型 {t} 的代表");
+        }
+        // 固定种子可复现（节点 × 梯度 序列一致）
+        let ids1: Vec<(String, u32)> = s1
+            .samples
+            .iter()
+            .map(|s| (s.node_id.clone(), s.mask_md.to_bits()))
+            .collect();
+        let ids2: Vec<(String, u32)> = s2
+            .samples
+            .iter()
+            .map(|s| (s.node_id.clone(), s.mask_md.to_bits()))
+            .collect();
+        assert_eq!(ids1, ids2, "固定种子抽样应可复现");
+    }
+
+    #[test]
+    fn test_revise_case_fails_without_llm() {
         let suite =
             ForgetReviseSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
-        let outcome = suite.run_case(0); // probe
-        assert!(!outcome.passed, "无 LLM 时探活应失败");
+        let outcome = suite.run_case(0); // 第一个样本（无 probe）
+        assert!(!outcome.passed, "无 LLM 时补全用例应失败");
+        assert_ne!(outcome.case_name, "forget/revise/probe", "probe 应已移除");
     }
 
     // ── 阶段 3：Pipeline（无 LLM 全绿，降级路径）──
@@ -2258,6 +3088,80 @@ mod tests {
     }
 
     #[test]
+    fn test_pipeline_excitation_delays_forgetting() {
+        // 激发测试（黑盒效果）：三种时机子场景各自独立验证"激发 → 遗忘被延缓"
+        let suite =
+            ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        for s in [
+            ExcitationSchedule::Early,
+            ExcitationSchedule::Spaced,
+            ExcitationSchedule::Late,
+        ] {
+            let data = suite.run_excitation_case(s);
+            assert!(data.passed, "激发测试 {:?} 失败", s);
+            assert!(!data.nodes.is_empty(), "激发测试应覆盖全图节点");
+            assert!(!data.detail_lines.is_empty());
+            let hist = &data.action_histogram;
+            assert!(
+                hist.iter().any(|(k, v)| *k == "Activated" && *v > 0),
+                "应存在被激发节点"
+            );
+            assert!(
+                hist.iter().any(|(k, v)| *k == "Control" && *v > 0),
+                "应存在未激发对照组节点"
+            );
+            // 延缓指标已产出（时间域：到达 md=0.5）
+            assert!(
+                data.metrics.iter().any(|(_, label, _)| label.contains("延缓")),
+                "应产出延缓指标"
+            );
+        }
+    }
+
+    #[test]
+    fn test_pipeline_excitation_deterministic() {
+        // E6：同一场景两次运行结果完全一致（固定模拟时钟 + 固定种子）
+        let suite =
+            ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        let a = suite.run_excitation_case(ExcitationSchedule::Spaced);
+        let b = suite.run_excitation_case(ExcitationSchedule::Spaced);
+        assert_eq!(a.passed, b.passed);
+        assert_eq!(a.node_count, b.node_count);
+        for (x, y) in a.nodes.iter().zip(b.nodes.iter()) {
+            assert!(
+                (x.md_after - y.md_after).abs() < 1e-6,
+                "非确定性: {} md 两次运行 {:.6} vs {:.6}",
+                x.id,
+                x.md_after,
+                y.md_after
+            );
+        }
+    }
+
+    #[test]
+    fn test_pipeline_excitation_only_loads_three_cases() {
+        // GUI 独立模式入口（api.rs mode="excitation"）：只加载 excitation-* 三个
+        // 时机子场景，不启用 LLM，全部通过
+        let suite =
+            ForgetPipelineSuite::load_excitation_only(&fixture_graph()).expect("加载 fixture 图");
+        assert_eq!(suite.cases.len(), 3, "应只加载 3 个激发用例");
+        assert!(
+            suite.cases.iter().all(|c| c.name.starts_with("excitation-")),
+            "用例应全部为 excitation-*"
+        );
+        assert!(suite.llm.is_none(), "激发测试不应启用 LLM");
+        for i in 0..suite.case_count() {
+            let outcome = suite.run_case(i);
+            assert!(
+                outcome.passed,
+                "激发用例 {} 失败: {}",
+                outcome.case_name,
+                outcome.description
+            );
+        }
+    }
+
+    #[test]
     fn test_pipeline_report_builds_metrics_and_rows() {
         let suite = ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         let n = suite.case_count();
@@ -2302,7 +3206,16 @@ mod tests {
                 .data
                 .downcast_ref::<ForgetCaseData>()
                 .unwrap_or_else(|| panic!("downcast 失败: {}", o.case_name));
-            if matches!(data.case_name.as_str(), "low" | "medium" | "high" | "multi-step") {
+            if matches!(
+                data.case_name.as_str(),
+                "low"
+                    | "medium"
+                    | "high"
+                    | "multi-step"
+                    | "excitation-early"
+                    | "excitation-spaced"
+                    | "excitation-late"
+            ) {
                 assert!(
                     !data.nodes.is_empty(),
                     "{} 的节点数据为空（观测页将显示 0/0）",

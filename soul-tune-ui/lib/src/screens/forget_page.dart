@@ -12,7 +12,20 @@ import '../widgets/mini_bar_chart.dart';
 import '../widgets/model_status_banner.dart';
 import '../widgets/results_rail.dart';
 
-/// 遗忘测试配置页：模式（mask/revise/pipeline）+ 图数据集路径。
+/// 遗忘模式 → 中文显示名（mask/revise[/full|/sample]/pipeline/excitation）。
+String forgetModeLabel(String mode) {
+  if (mode.startsWith('revise/sample')) return '遮罩补全·分层抽样';
+  if (mode.startsWith('revise/full')) return '遮罩补全·全量';
+  return switch (mode) {
+    'mask' => '遮罩 mask',
+    'revise' => '遮罩补全 revise',
+    'pipeline' => '全管线 pipeline',
+    'excitation' => '激发测试 excitation',
+    _ => mode,
+  };
+}
+
+/// 遗忘测试配置页：模式（mask/revise/pipeline/excitation）+ 图数据集路径。
 class ForgetConfigPage extends StatefulWidget {
   const ForgetConfigPage({super.key});
 
@@ -22,10 +35,14 @@ class ForgetConfigPage extends StatefulWidget {
 
 class _ForgetConfigPageState extends State<ForgetConfigPage> {
   String _mode = 'pipeline';
+  // 修订测试：全量 / 分层抽样（固定种子可复现）
+  String _reviseScope = 'sample';
+  final _seedCtrl = TextEditingController(text: '20260820');
   final _pathCtrl = TextEditingController();
 
   @override
   void dispose() {
+    _seedCtrl.dispose();
     _pathCtrl.dispose();
     super.dispose();
   }
@@ -44,10 +61,17 @@ class _ForgetConfigPageState extends State<ForgetConfigPage> {
 
   void _start() {
     if (!_canStart) return;
+    // 修订测试：全量 → revise/full；抽样 → revise/sample:<seed>
+    var finalMode = _mode;
+    if (_mode == 'revise') {
+      finalMode = _reviseScope == 'full'
+          ? 'revise/full'
+          : 'revise/sample:${_seedCtrl.text.trim()}';
+    }
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ForgetRunPage(mode: _mode, dataset: _pathCtrl.text.trim()),
+        builder: (_) => ForgetRunPage(mode: finalMode, dataset: _pathCtrl.text.trim()),
       ),
     );
   }
@@ -57,6 +81,7 @@ class _ForgetConfigPageState extends State<ForgetConfigPage> {
     final modeDesc = switch (_mode) {
       'mask' => '只验证遮罩模块（纯算法、确定性，无需 LLM）',
       'revise' => '只验证遮罩补全（LLM 来源见下方状态）',
+      'excitation' => '激发测试：配对对照验证"激发 → 遗忘被延缓"（纯效果 E1~E6、确定性、无需 LLM）',
       _ => '全管线：衰减 → 遮罩 → LLM 补全 → 边衰减（LLM 可用时逐节点修订）',
     };
     return Scaffold(
@@ -76,12 +101,44 @@ class _ForgetConfigPageState extends State<ForgetConfigPage> {
                   ButtonSegment(value: 'mask', label: Text('遮罩 mask')),
                   ButtonSegment(value: 'revise', label: Text('遮罩补全 revise')),
                   ButtonSegment(value: 'pipeline', label: Text('全管线 pipeline')),
+                  ButtonSegment(value: 'excitation', label: Text('激发测试 excitation')),
                 ],
                 selected: {_mode},
                 onSelectionChanged: (s) => setState(() => _mode = s.first),
               ),
               const SizedBox(height: 8),
               Text(modeDesc, style: const TextStyle(color: AppColors.subtle, fontSize: 12)),
+              // 修订测试：全量 / 分层抽样（种子）
+              if (_mode == 'revise') ...[
+                const SizedBox(height: 16),
+                Text('修订采样', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(value: 'sample', label: Text('分层抽样（约8个）', style: TextStyle(fontSize: 11))),
+                    ButtonSegment(value: 'full', label: Text('全量（全部可遗忘节点）', style: TextStyle(fontSize: 11))),
+                  ],
+                  selected: {_reviseScope},
+                  showSelectedIcon: false,
+                  style: const ButtonStyle(
+                      visualDensity: VisualDensity.compact,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                  onSelectionChanged: (s) => setState(() => _reviseScope = s.first),
+                ),
+                if (_reviseScope == 'sample') ...[
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _seedCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: '抽样种子',
+                      hintText: '固定种子保证抽样可复现',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                ],
+              ],
               const SizedBox(height: 24),
               Text('角色图数据集', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
@@ -199,7 +256,7 @@ class _ForgetRunPageState extends State<ForgetRunPage> {
   Widget build(BuildContext context) {
     final ratio = _total == 0 ? 0.0 : _done / _total;
     return Scaffold(
-      appBar: AppBar(title: Text('遗忘测试 · ${widget.mode}')),
+      appBar: AppBar(title: Text('遗忘测试 · ${forgetModeLabel(widget.mode)}')),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 640),
@@ -271,6 +328,8 @@ class _ForgetRunPageState extends State<ForgetRunPage> {
 class _CurvePoint {
   final double x;
   final double y;
+  /// 对照组（未激发）同刻 y 值：激发测试的双曲线对比用（对照虚线），其余模式为 null
+  final double? yCtrl;
   /// 数据点标签（如 "24h" / "md0.50"）
   final String label;
   final String action;
@@ -282,6 +341,7 @@ class _CurvePoint {
   _CurvePoint({
     required this.x,
     required this.y,
+    this.yCtrl,
     required this.label,
     required this.action,
     this.effective = false,
@@ -300,6 +360,8 @@ class _NodeCurve {
   final List<(double, double)> ideal; // 理想曲线采样（pipeline: 艾宾浩斯；mask: y=x）
   final String xLabel; // 横轴名（时间步长（小时）/ 缺失度）
   final String yLabel; // 纵轴名（缺失度 / 遮罩率）
+  /// 来源用例（如 excitation-early），用于三时机叠加时区分颜色/图例
+  final String sourceCase;
 
   _NodeCurve({
     required this.id,
@@ -309,6 +371,7 @@ class _NodeCurve {
     required this.ideal,
     required this.xLabel,
     required this.yLabel,
+    this.sourceCase = '',
   });
 
   _CurvePoint get last => points.last;
@@ -319,6 +382,9 @@ class _NodeCurve {
 
   /// 是否参与了遗忘（任一数据点触发过遮罩/修订/激活；NoAction 仅更新缺失度）
   bool get participated => points.any((p) => p.action != 'NoAction');
+
+  /// 是否携带对照组曲线（激发测试：对照 vs 激发双线）
+  bool get hasCtrl => points.any((p) => p.yCtrl != null);
 
   String get actionSummary {
     final counts = <String, int>{};
@@ -343,23 +409,33 @@ class _ForgetResultsPageState extends State<ForgetResultsPage> {
   String? _selectedNodeId;
   int _selectedStep = -1; // 选中的数据点（-1=自动选时间步最小的第一个点）
   bool _showAllNodes = false; // 观测列表：仅显示参与遗忘的节点 / 显示全部
+  String? _selectedCase; // 激发测试三时机：当前观测的用例（excitation-early/spaced/late）
+  bool _overlayTiming = false; // 三时机视图模式：false=分图（每时机一张），true=叠加（同一节点 4 线）
 
   ForgetReport get report => widget.report;
 
-  /// pipeline：合并全部用例的逐节点时间步序列（按 id 聚合、按小时排序去重）。
-  /// 每个节点**一个条目**，内部一条折线展示趋势（x=时间步长，y=缺失度）。
-  List<_NodeCurve> get _curves {
+  /// pipeline：合并（或按指定用例过滤）逐节点时间步序列（按 id 聚合、按小时排序去重）。
+  /// `caseName == null` 合并全部用例；激发测试三时机（early/spaced/late）按用例
+  /// 分别观测——同一节点在不同时机下的曲线需要能区分（次数制下应重合，语义
+  /// 升级后可能分化）。
+  List<_NodeCurve> _curvesFor(String? caseName) {
     final byId = <String, List<({NodeStepStat stat, int sourceLen})>>{};
     final meta = <String, (String, String)>{};
+    final nodeCase = <String, String>{}; // 节点 id → 来源用例（三时机叠加时区分）
+    final excitationIds = <String>{}; // 来自激发测试用例的节点：不叠加理想曲线
     var bestIdeal = <(double, double)>[];
     var foundSeries = false;
 
     for (final c in report.cases) {
       if (c is! ForgetObserverNodes) continue;
+      if (caseName != null && c.caseName != caseName) continue;
       if (c.idealPoints.length > bestIdeal.length) bestIdeal = c.idealPoints;
+      final isExcitation = c.caseName.startsWith('excitation-');
       for (final ns in c.nodeSeries) {
         foundSeries = true;
         meta[ns.id] = (ns.typeName, ns.original);
+        nodeCase[ns.id] = c.caseName;
+        if (isExcitation) excitationIds.add(ns.id);
         final list = byId.putIfAbsent(ns.id, () => []);
         for (final s in ns.steps) {
           final idx = list.indexWhere((e) => e.stat.hours == s.hours);
@@ -388,11 +464,13 @@ class _ForgetResultsPageState extends State<ForgetResultsPage> {
         id: entry.key,
         typeName: typeName,
         original: original,
+        sourceCase: nodeCase[entry.key] ?? '',
         points: [
           for (final s in steps)
             _CurvePoint(
               x: s.hours.toDouble(),
               y: s.md,
+              yCtrl: s.mdCtrl,
               label: '${s.hours}h',
               action: s.action,
               effective: s.effective,
@@ -400,7 +478,7 @@ class _ForgetResultsPageState extends State<ForgetResultsPage> {
               llmReply: s.llmReply,
             ),
         ],
-        ideal: bestIdeal,
+        ideal: excitationIds.contains(entry.key) ? const [] : bestIdeal,
         xLabel: '时间步长（小时）',
         yLabel: '缺失度',
       ));
@@ -502,6 +580,54 @@ class _ForgetResultsPageState extends State<ForgetResultsPage> {
     return i < 0 ? caseName : caseName.substring(0, i);
   }
 
+  /// revise：按**记忆节点**分组，x=缺失度梯度（低/中/高），y=字符 n-gram 保留率
+  /// （回复 vs 原文）。每个节点一条折线，直观展示"遮罩越深 → 信息保留越少"；
+  /// 点展开可见该梯度下的 原文/遮罩输入/LLM 回复。
+  List<_NodeCurve> get _reviseCurves {
+    final byNode = <String, List<ForgetObserverText>>{};
+    final meta = <String, (String, String)>{};
+    for (final tc in report.cases.whereType<ForgetObserverText>()) {
+      // 仅保留带缺失度梯度的修订用例（caseName 形如 "{id}-md0.50"）
+      if (!tc.caseName.contains('-md')) continue;
+      final key = tc.nodeId ?? _maskTextKey(tc.caseName);
+      byNode.putIfAbsent(key, () => []).add(tc);
+      meta[key] = ('遮罩修订', tc.original ?? '');
+    }
+    final curves = <_NodeCurve>[];
+    for (final entry in byNode.entries) {
+      final list = entry.value
+        ..sort((a, b) => _maskMd(a.caseName).compareTo(_maskMd(b.caseName)));
+      if (list.isEmpty) continue;
+      final (typeName, original) = meta[entry.key] ?? ('遮罩修订', '');
+      curves.add(_NodeCurve(
+        id: entry.key,
+        typeName: typeName,
+        original: original,
+        points: [
+          for (final tc in list)
+            _CurvePoint(
+              x: _maskMd(tc.caseName),
+              y: (tc.llmReply != null && (tc.original?.isNotEmpty ?? false))
+                  ? charNgramOverlap(tc.original!, tc.llmReply!)
+                  : 0,
+              label: 'md${_maskMd(tc.caseName).toStringAsFixed(2)}',
+              action:
+                  _ReviseSummaryCard._isEffective(tc.llmReply) ? 'Revised' : 'NoAction',
+              effective: _ReviseSummaryCard._isEffective(tc.llmReply),
+              original: tc.original,
+              maskedText: tc.masked,
+              llmReply: tc.llmReply,
+            ),
+        ],
+        ideal: const [],
+        xLabel: '缺失度梯度',
+        yLabel: 'n-gram 保留率',
+      ));
+    }
+    curves.sort((a, b) => a.id.compareTo(b.id));
+    return curves;
+  }
+
   /// 从用例名提取缺失度梯度（如 "medium-md0.50" → 0.5）。
   static double _maskMd(String caseName) {
     final m = RegExp(r'md(\d+(?:\.\d+)?)').firstMatch(caseName);
@@ -515,7 +641,7 @@ class _ForgetResultsPageState extends State<ForgetResultsPage> {
   Widget build(BuildContext context) {
     final r = report;
     return Scaffold(
-      appBar: AppBar(title: Text('遗忘结果 · ${r.mode} · ${r.datasetName}')),
+      appBar: AppBar(title: Text('遗忘结果 · ${forgetModeLabel(r.mode)} · ${r.datasetName}')),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -538,6 +664,73 @@ class _ForgetResultsPageState extends State<ForgetResultsPage> {
   }
 
   Widget _buildSummary() {
+    switch (report.mode) {
+      case 'excitation':
+        return _excitationSummary();
+      case 'mask':
+        return _maskSummary();
+      case 'revise':
+      case 'revise/full':
+      case 'revise/sample':
+        return _reviseSummary();
+      default:
+        return report.mode.startsWith('revise')
+            ? _reviseSummary()
+            : _pipelineSummary();
+    }
+  }
+
+  /// 激发测试汇总：说明卡 + 三时机对比 + 对照/激发平均曲线（主视觉）+ 关键数值。
+  Widget _excitationSummary() {
+    final avg = _excitationAvgCurves();
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text('激发测试 · 总体指标', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 10),
+        const _ExcitationIntroCard(),
+        const SizedBox(height: 12),
+        _ExcitationTimingTable(cases: report.cases),
+        const SizedBox(height: 12),
+        _ExcitationCurveChart(ctrlPts: avg.ctrl, trtPts: avg.trt),
+        const SizedBox(height: 12),
+        _ExcitationMetricList(metrics: report.metrics),
+      ],
+    );
+  }
+
+  /// 遮罩测试汇总：主视觉 = 遮罩率 vs 缺失度曲线（含对角线参考）。
+  Widget _maskSummary() {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text('遮罩测试 · 总体', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 10),
+        _MaskRatioChart(cases: report.cases),
+        const SizedBox(height: 12),
+        MetricPanel(metrics: report.metrics),
+      ],
+    );
+  }
+
+  /// 遮罩补全汇总：n-gram 保留率 vs 缺失度（主视觉）+ 补全质量卡 + 指标。
+  Widget _reviseSummary() {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text('遮罩补全 · 总体', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 10),
+        _ReviseNgramChart(cases: report.cases),
+        const SizedBox(height: 12),
+        _ReviseSummaryCard(cases: report.cases),
+        const SizedBox(height: 12),
+        MetricPanel(metrics: report.metrics),
+      ],
+    );
+  }
+
+  /// 全管线汇总（现状）：关键指标 + 逐用例通过/失败。
+  Widget _pipelineSummary() {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -552,6 +745,28 @@ class _ForgetResultsPageState extends State<ForgetResultsPage> {
     );
   }
 
+  /// 激发测试：对照组 / 激发组的**平均缺失度曲线**（按检查点小时聚合所有参与节点）。
+  /// 数据来自观测层的 node_series（含 md_ctrl 对照组），UI 端直接聚合，无需改 Rust 结构。
+  ({List<(double, double)> ctrl, List<(double, double)> trt}) _excitationAvgCurves() {
+    final sumCtrl = <int, double>{};
+    final sumTrt = <int, double>{};
+    final cnts = <int, int>{};
+    for (final c in report.cases.whereType<ForgetObserverNodes>()) {
+      for (final ns in c.nodeSeries) {
+        for (final s in ns.steps) {
+          sumCtrl[s.hours] = (sumCtrl[s.hours] ?? 0) + (s.mdCtrl ?? s.md);
+          sumTrt[s.hours] = (sumTrt[s.hours] ?? 0) + s.md;
+          cnts[s.hours] = (cnts[s.hours] ?? 0) + 1;
+        }
+      }
+    }
+    final hours = cnts.keys.toList()..sort();
+    return (
+      ctrl: [for (final h in hours) (h.toDouble(), sumCtrl[h]! / cnts[h]!)],
+      trt: [for (final h in hours) (h.toDouble(), sumTrt[h]! / cnts[h]!)],
+    );
+  }
+
   Widget _buildObserver() {
     // 三种模式统一"以记忆节点为单位"：
     // - pipeline：节点 × 时间步长（小时）曲线，理想 = 艾宾浩斯
@@ -562,11 +777,16 @@ class _ForgetResultsPageState extends State<ForgetResultsPage> {
         final curves = _maskCurves;
         if (curves.isNotEmpty) return _buildNodeCentric(curves);
       case 'revise':
-        final textCases = report.cases.whereType<ForgetObserverText>().toList();
-        if (textCases.isNotEmpty) return _buildReviseObserver(textCases);
-      default:
-        final curves = _curves;
+      case 'revise/full':
+      case 'revise/sample':
+        final curves = _reviseCurves;
         if (curves.isNotEmpty) return _buildNodeCentric(curves);
+      default:
+        if (report.mode.startsWith('revise')) {
+          final curves = _reviseCurves;
+          if (curves.isNotEmpty) return _buildNodeCentric(curves);
+        }
+        return _buildNodeObserver();
     }
     final hasNodeCases =
         report.cases.any((c) => c is ForgetObserverNodes && c.nodeCount > 0);
@@ -578,139 +798,54 @@ class _ForgetResultsPageState extends State<ForgetResultsPage> {
     );
   }
 
-  // ── revise：左节点列表 + 右 原文/遮罩输入/LLM 回复 对照 ──
-  Widget _buildReviseObserver(List<ForgetObserverText> textCases) {
-    var idx = 0;
-    final parsed = int.tryParse(_selectedNodeId ?? '');
-    if (parsed != null && parsed >= 0 && parsed < textCases.length) idx = parsed;
-    final c = textCases[idx];
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          width: 300,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerLow,
-            border: Border(
-              right: BorderSide(
-                  color: Theme.of(context).colorScheme.outlineVariant, width: 0.5),
-            ),
-          ),
-          child: ListView.builder(
-            itemCount: textCases.length,
-            itemBuilder: (context, i) {
-              final tc = textCases[i];
-              final sub = tc.maskRatio != null
-                  ? '遮罩率 ${(tc.maskRatio! * 100).toStringAsFixed(0)}%'
-                  : (tc.llmReply != null
-                      ? '回复 ${tc.llmReply!.runes.length} 字'
-                      : '');
-              return ListTile(
-                dense: true,
-                selected: i == idx,
-                selectedTileColor:
-                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-                leading: Icon(
-                  tc.passed ? Icons.check_circle_outline : Icons.cancel_outlined,
-                  size: 16,
-                  color: tc.passed ? AppColors.pass : AppColors.fail,
-                ),
-                title: Text(tc.caseName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, fontFamily: 'monospace')),
-                subtitle: Text(sub, style: const TextStyle(fontSize: 10)),
-                onTap: () => setState(() => _selectedNodeId = '$i'),
-              );
-            },
-          ),
-        ),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              if (!c.llmAvailable && c.masked != null)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 8),
-                  child: Text('LLM 不可用（未检测到 llama-server / 本地模型，已降级）',
-                      style: TextStyle(color: AppColors.warn, fontSize: 12)),
-                ),
-              if (c.metrics.isNotEmpty)
-                Card(
-                  elevation: 0,
-                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Wrap(
-                      spacing: 16,
-                      runSpacing: 6,
-                      children: [
-                        for (final (_, l, v) in c.metrics)
-                          Text('$l: $v',
-                              style:
-                                  const TextStyle(fontFamily: 'monospace', fontSize: 12)),
-                      ],
-                    ),
-                  ),
-                ),
-              if (c.original != null) ...[
-                const SizedBox(height: 10),
-                _CompareBlock(
-                  title: '图节点原文',
-                  text: c.original!,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ],
-              if (c.masked != null) ...[
-                const SizedBox(height: 10),
-                _CompareBlock(
-                  title: c.llmReply != null ? '遮罩输入' : '遮罩结果',
-                  text: c.masked!,
-                  color: AppColors.warn,
-                  ratio: c.maskRatio,
-                ),
-              ],
-              if (c.llmReply != null) ...[
-                const SizedBox(height: 10),
-                _CompareBlock(
-                  title: 'LLM 原始回复',
-                  text: c.llmReply!,
-                  color: AppColors.pass,
-                ),
-              ],
-              if (c.detailLines.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Card(
-                  elevation: 0,
-                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        for (final l in c.detailLines)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 1),
-                            child: Text(l,
-                                style: const TextStyle(
-                                    fontFamily: 'monospace', fontSize: 11, height: 1.4)),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
+  /// 激发测试时机后缀 → 中文标签。
+  static String _timingLabel(String suffix) => switch (suffix) {
+        'early' => '前置',
+        'spaced' => '均布',
+        'late' => '后置',
+        _ => suffix,
+      };
+
+  /// 三时机激发线的颜色：early=靛蓝（主），spaced=绿，late=琥珀，对照组=青绿虚线。
+  static Color _timingColor(String caseName) => switch (caseName) {
+        'excitation-spaced' => AppColors.pass,
+        'excitation-late' => AppColors.warn,
+        _ => AppColors.running,
+      };
+
+  /// 激发测试三时机视图：分图（每时机一张，左栏切换）或叠加（同一节点 4 线）。
+  Widget _buildNodeObserver() {
+    final timingCases = report.cases
+        .whereType<ForgetObserverNodes>()
+        .where((c) => c.caseName.startsWith('excitation-'))
+        .toList();
+    final hasTiming = timingCases.length > 1;
+    if (!hasTiming) {
+      return _buildNodeCentric(_curvesFor(null));
+    }
+    // 分图模式：单时机（左栏切换器选择）
+    if (!_overlayTiming) {
+      if (_selectedCase == null || !timingCases.any((c) => c.caseName == _selectedCase)) {
+        _selectedCase = timingCases.first.caseName;
+      }
+      return _buildNodeCentric(_curvesFor(_selectedCase));
+    }
+    // 叠加模式：同一节点 4 条曲线（对照虚线 + 三时机激发实线）
+    final byCase = <String, List<_NodeCurve>>{};
+    for (final c in timingCases) {
+      byCase[c.caseName] = _curvesFor(c.caseName);
+    }
+    final mainCase = timingCases.first.caseName;
+    final overlays = <_NodeCurve>[];
+    for (final c in timingCases.skip(1)) {
+      overlays.addAll(byCase[c.caseName] ?? const []);
+    }
+    return _buildNodeCentric(byCase[mainCase] ?? const [], overlays: overlays);
   }
 
   // ── 节点为中心：左节点列表 + 右"节点 × 时间步"曲线与数据点展开（pipeline/mask 通用）──
-  Widget _buildNodeCentric(List<_NodeCurve> curves) {
+  Widget _buildNodeCentric(List<_NodeCurve> curves,
+      {List<_NodeCurve> overlays = const []}) {
     // 默认只显示"参与遗忘"的节点（触发过遮罩/修订/激活）；可切换显示全部
     final visible = _showAllNodes
         ? curves
@@ -743,6 +878,55 @@ class _ForgetResultsPageState extends State<ForgetResultsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // 激发测试三时机视图：模式切换（分图/叠加）+ 分图时的时机切换
+              if (curves.any((c) => c.sourceCase.startsWith('excitation-'))) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 2),
+                  child: SegmentedButton<bool>(
+                    segments: const [
+                      ButtonSegment(value: false, label: Text('分图·单时机', style: TextStyle(fontSize: 11))),
+                      ButtonSegment(value: true, label: Text('叠加·4曲线', style: TextStyle(fontSize: 11))),
+                    ],
+                    selected: {_overlayTiming},
+                    showSelectedIcon: false,
+                    style: const ButtonStyle(
+                        visualDensity: VisualDensity.compact,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                    onSelectionChanged: (s) => setState(() {
+                      _overlayTiming = s.first;
+                      _selectedNodeId = null;
+                      _selectedStep = -1;
+                    }),
+                  ),
+                ),
+                // 分图模式：时机切换
+                if (!_overlayTiming && _selectedCase != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 2),
+                    child: SegmentedButton<String>(
+                      segments: [
+                        for (final suffix in ['early', 'spaced', 'late'])
+                          if (report.cases.any((c) =>
+                              c is ForgetObserverNodes &&
+                              c.caseName == 'excitation-$suffix'))
+                            ButtonSegment(
+                                value: 'excitation-$suffix',
+                                label: Text(_timingLabel(suffix),
+                                    style: const TextStyle(fontSize: 11))),
+                      ],
+                      selected: {_selectedCase!},
+                      showSelectedIcon: false,
+                      style: const ButtonStyle(
+                          visualDensity: VisualDensity.compact,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                      onSelectionChanged: (s) => setState(() {
+                        _selectedCase = s.first;
+                        _selectedNodeId = null;
+                        _selectedStep = -1;
+                      }),
+                    ),
+                  ),
+              ],
               // 过滤开关
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 6, 8, 2),
@@ -769,6 +953,8 @@ class _ForgetResultsPageState extends State<ForgetResultsPage> {
                     final fg = switch (a.last.action) {
                       'Revised' => a.last.effective ? AppColors.pass : AppColors.fail,
                       'MaskOnly' => AppColors.warn,
+                      'Activated' => AppColors.pass,
+                      'Control' => AppColors.ctrl,
                       _ => AppColors.subtle,
                     };
                     final short = a.id.length > 12 ? a.id.substring(0, 12) : a.id;
@@ -781,6 +967,7 @@ class _ForgetResultsPageState extends State<ForgetResultsPage> {
                         switch (a.last.action) {
                           'Revised' => Icons.healing_outlined,
                           'MaskOnly' => Icons.visibility_off_outlined,
+                          'Activated' => Icons.bolt,
                           _ => Icons.check_circle_outline,
                         },
                         size: 16,
@@ -811,6 +998,10 @@ class _ForgetResultsPageState extends State<ForgetResultsPage> {
         Expanded(
           child: _NodeEvolutionView(
             curve: selected,
+            overlays: [
+              for (final o in overlays)
+                if (o.id == selected.id) o,
+            ],
             selectedStep: _selectedStep,
             onSelectStep: (i) => setState(() => _selectedStep = i),
           ),
@@ -820,14 +1011,778 @@ class _ForgetResultsPageState extends State<ForgetResultsPage> {
   }
 }
 
+/// 三时机对比表：把 excitation-early/spaced/late 三个用例的关键数值并列，
+/// 观测"同一批剂量、不同激发时机"的效果是否分化（当前次数制应一致；
+/// 若将来算法引入"回鲜"语义，三列将开始分化——本表即语义变化观测窗）。
+class _ExcitationTimingTable extends StatelessWidget {
+  final List<ForgetObserverCase> cases;
+  const _ExcitationTimingTable({required this.cases});
+
+  /// 列定义：case 后缀 → 中文标签
+  static const _cols = <String, String>{
+    'early': '前置 t=0',
+    'spaced': '均布 24/48/72h',
+    'late': '后置 t=48h',
+  };
+
+  /// 从用例 metrics（三元组 group/label/value）按 label 关键词取值
+  static String? _metricOf(ForgetObserverNodes c, String key) {
+    for (final (_, label, value) in c.metrics) {
+      if (label.contains(key)) return value;
+    }
+    return null;
+  }
+
+  static String? _delayOf(ForgetObserverNodes c) {
+    final v = _metricOf(c, '延缓');
+    if (v == null) return null;
+    return v.split(' / ').first.trim(); // "31.5h / 2.4h" → "31.5h"
+  }
+
+  static String? _deltaOf(ForgetObserverNodes c) {
+    final v = _metricOf(c, '平均缺失度');
+    final m = v == null ? null : RegExp(r'Δ([\d.]+)').firstMatch(v);
+    return m?.group(1);
+  }
+
+  static String? _capOf(ForgetObserverNodes c) {
+    final v = _metricOf(c, '封顶');
+    final m = v == null ? null : RegExp(r'Δmd=([\d.]+)').firstMatch(v);
+    return m?.group(1);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final byCol = <String, ForgetObserverNodes>{};
+    for (final c in cases.whereType<ForgetObserverNodes>()) {
+      for (final suffix in _cols.keys) {
+        if (c.caseName == 'excitation-$suffix') byCol[suffix] = c;
+      }
+    }
+    if (byCol.isEmpty) return const SizedBox.shrink();
+
+    // 行定义：(标题, 提取函数)
+    final rows = <(String, String? Function(ForgetObserverNodes))>[
+      ('平均延缓(至md=0.5)', _delayOf),
+      ('72h 平均缺失度 Δ', _deltaOf),
+      ('封顶 dose50/100 Δmd', _capOf),
+    ];
+
+    Widget cell(String text, {bool bold = false, bool header = false}) {
+      final style = header
+          ? Theme.of(context).textTheme.labelSmall
+          : Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
+                fontFamily: bold ? 'monospace' : null,
+              );
+      return Expanded(
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: style,
+        ),
+      );
+    }
+
+    return Card(
+      elevation: 0,
+      color: scheme.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('三时机对比（同一批剂量，激发时机不同）',
+                style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                SizedBox(width: 150, child: Text('指标', style: Theme.of(context).textTheme.labelSmall)),
+                for (final suffix in _cols.keys) cell(_cols[suffix]!, header: true),
+              ],
+            ),
+            const SizedBox(height: 6),
+            for (final (title, extract) in rows) ...[
+              Divider(height: 1, color: scheme.outlineVariant.withValues(alpha: 0.4)),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    SizedBox(width: 150, child: Text(title, style: Theme.of(context).textTheme.bodySmall)),
+                    for (final suffix in _cols.keys)
+                      cell(byCol[suffix] == null ? '—' : (extract(byCol[suffix]!) ?? '—'),
+                          bold: true),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 遮罩测试汇总主视觉：平均遮罩率 vs 缺失度（x=梯度 0→1，y=平均遮罩率），
+/// 叠加 y=x 对角线作参考（当前实现遮罩率≈缺失度；实现演化后仅作参考，不设断言）。
+class _MaskRatioChart extends StatelessWidget {
+  final List<ForgetObserverCase> cases;
+  const _MaskRatioChart({required this.cases});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    // 聚合：按缺失度梯度分组求平均遮罩率
+    final sumRatio = <double, double>{};
+    final counts = <double, int>{};
+    for (final c in cases.whereType<ForgetObserverText>()) {
+      if (!c.caseName.contains('-md')) continue; // 排除 determinism 等非梯度用例
+      final md = _maskMd(c.caseName);
+      sumRatio[md] = (sumRatio[md] ?? 0) + (c.maskRatio ?? 0);
+      counts[md] = (counts[md] ?? 0) + 1;
+    }
+    final mds = sumRatio.keys.toList()..sort();
+    if (mds.isEmpty) return const SizedBox.shrink();
+    final pts = <(double, double)>[
+      for (final md in mds) (md, sumRatio[md]! / counts[md]!),
+    ];
+    return Card(
+      elevation: 0,
+      color: scheme.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Text('平均遮罩率 vs 缺失度',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                ),
+                const _LegendDot(color: AppColors.running, label: '实测'),
+                const SizedBox(width: 12),
+                const _LegendDot(color: AppColors.warn, label: '参考 y=x'),
+              ],
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 220,
+              child: CustomPaint(
+                size: Size.infinite,
+                painter: _MaskRatioPainter(points: pts),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 从用例名提取缺失度梯度（如 "medium-md0.50" → 0.5）。
+  static double _maskMd(String caseName) {
+    final m = RegExp(r'md(\d+(?:\.\d+)?)').firstMatch(caseName);
+    return m == null ? 0.0 : double.parse(m.group(1)!);
+  }
+}
+
+class _MaskRatioPainter extends CustomPainter {
+  final List<(double, double)> points;
+  _MaskRatioPainter({required this.points});
+
+  static const _left = 46.0, _right = 12.0, _top = 14.0, _bottom = 30.0;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final plotW = size.width - _left - _right;
+    final plotH = size.height - _top - _bottom;
+    double x(double v) => _left + v.clamp(0.0, 1.0) * plotW;
+    double y(double v) => _top + (1.0 - v.clamp(0.0, 1.0)) * plotH;
+
+    final gridPaint = Paint()..color = const Color(0x22FFFFFF)..strokeWidth = 1;
+    final labelStyle =
+        TextStyle(color: const Color(0xAA9E9E9E), fontSize: 9.5, fontFamily: 'monospace');
+    for (var v = 0.0; v <= 1.0 + 1e-9; v += 0.25) {
+      final yy = y(v);
+      canvas.drawLine(Offset(_left, yy), Offset(size.width - _right, yy), gridPaint);
+      final tp = TextPainter(
+          text: TextSpan(text: v.toStringAsFixed(2), style: labelStyle),
+          textDirection: TextDirection.ltr)
+        ..layout();
+      tp.paint(canvas, Offset(2, yy - tp.height / 2));
+      final xx = x(v);
+      canvas.drawLine(Offset(xx, _top), Offset(xx, size.height - _bottom), gridPaint);
+      final tp2 = TextPainter(
+          text: TextSpan(text: v.toStringAsFixed(2), style: labelStyle),
+          textDirection: TextDirection.ltr)
+        ..layout();
+      tp2.paint(canvas, Offset(xx - tp2.width / 2, size.height - _bottom + 6));
+    }
+
+    // 参考对角线 y=x（虚线）
+    final diag = Path()
+      ..moveTo(x(0), y(0))
+      ..lineTo(x(1), y(1));
+    _drawDashed(canvas, diag,
+        Paint()
+          ..color = AppColors.warn.withValues(alpha: 0.75)
+          ..strokeWidth = 1.6
+          ..style = PaintingStyle.stroke);
+
+    // 实测折线 + 点
+    if (points.length >= 2) {
+      final line = Paint()
+        ..color = AppColors.running
+        ..strokeWidth = 2.2
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      final path = Path();
+      for (var i = 0; i < points.length; i++) {
+        final p = Offset(x(points[i].$1), y(points[i].$2));
+        if (i == 0) {
+          path.moveTo(p.dx, p.dy);
+        } else {
+          path.lineTo(p.dx, p.dy);
+        }
+      }
+      canvas.drawPath(path, line);
+    }
+    final dot = Paint()..color = AppColors.running;
+    for (final (mx, my) in points) {
+      canvas.drawCircle(Offset(x(mx), y(my)), 4, dot);
+    }
+  }
+
+  void _drawDashed(Canvas canvas, Path path, Paint paint) {
+    for (final metric in path.computeMetrics()) {
+      var dist = 0.0;
+      const dashLen = 7.0, gapLen = 5.0;
+      while (dist < metric.length) {
+        final end = math.min(dist + dashLen, metric.length);
+        canvas.drawPath(metric.extractPath(dist, end), paint);
+        dist = end + gapLen;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_MaskRatioPainter old) => old.points != points;
+}
+
+/// 修订测试汇总主视觉：平均字符 n-gram 保留率（回复 vs 原文）随缺失度梯度变化折线。
+/// 遮罩越深 → 上下文越少 → 信息保留率越低（同义改写会低估，仅作趋势参考）。
+class _ReviseNgramChart extends StatelessWidget {
+  final List<ForgetObserverCase> cases;
+  const _ReviseNgramChart({required this.cases});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final sumRatio = <double, double>{};
+    final counts = <double, int>{};
+    for (final c in cases.whereType<ForgetObserverText>()) {
+      if (!c.caseName.contains('-md')) continue;
+      if (c.llmReply == null || (c.original?.isEmpty ?? true)) continue;
+      final md = _ForgetResultsPageState._maskMd(c.caseName);
+      sumRatio[md] = (sumRatio[md] ?? 0) + charNgramOverlap(c.original!, c.llmReply!);
+      counts[md] = (counts[md] ?? 0) + 1;
+    }
+    final mds = sumRatio.keys.toList()..sort();
+    if (mds.isEmpty) return const SizedBox.shrink();
+    final pts = <(double, double)>[
+      for (final md in mds) (md, sumRatio[md]! / counts[md]!),
+    ];
+    return Card(
+      elevation: 0,
+      color: scheme.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Text('平均 n-gram 保留率 vs 缺失度',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                ),
+                const _LegendDot(color: AppColors.running, label: 'n-gram 保留率'),
+              ],
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 220,
+              child: CustomPaint(
+                size: Size.infinite,
+                painter: _ReviseNgramPainter(points: pts),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReviseNgramPainter extends CustomPainter {
+  final List<(double, double)> points;
+  _ReviseNgramPainter({required this.points});
+
+  static const _left = 46.0, _right = 12.0, _top = 14.0, _bottom = 30.0;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final plotW = size.width - _left - _right;
+    final plotH = size.height - _top - _bottom;
+    double x(double v) => _left + v.clamp(0.0, 1.0) * plotW;
+    double y(double v) => _top + (1.0 - v.clamp(0.0, 1.0)) * plotH;
+
+    final gridPaint = Paint()..color = const Color(0x22FFFFFF)..strokeWidth = 1;
+    final labelStyle =
+        TextStyle(color: const Color(0xAA9E9E9E), fontSize: 9.5, fontFamily: 'monospace');
+    for (var v = 0.0; v <= 1.0 + 1e-9; v += 0.25) {
+      final yy = y(v);
+      canvas.drawLine(Offset(_left, yy), Offset(size.width - _right, yy), gridPaint);
+      final tp = TextPainter(
+          text: TextSpan(text: v.toStringAsFixed(2), style: labelStyle),
+          textDirection: TextDirection.ltr)
+        ..layout();
+      tp.paint(canvas, Offset(2, yy - tp.height / 2));
+      final xx = x(v);
+      canvas.drawLine(Offset(xx, _top), Offset(xx, size.height - _bottom), gridPaint);
+      final tp2 = TextPainter(
+          text: TextSpan(text: v.toStringAsFixed(2), style: labelStyle),
+          textDirection: TextDirection.ltr)
+        ..layout();
+      tp2.paint(canvas, Offset(xx - tp2.width / 2, size.height - _bottom + 6));
+    }
+
+    if (points.length >= 2) {
+      final line = Paint()
+        ..color = AppColors.running
+        ..strokeWidth = 2.2
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      final path = Path();
+      for (var i = 0; i < points.length; i++) {
+        final p = Offset(x(points[i].$1), y(points[i].$2));
+        if (i == 0) {
+          path.moveTo(p.dx, p.dy);
+        } else {
+          path.lineTo(p.dx, p.dy);
+        }
+      }
+      canvas.drawPath(path, line);
+    }
+    final dot = Paint()..color = AppColors.running;
+    for (final (mx, my) in points) {
+      canvas.drawCircle(Offset(x(mx), y(my)), 4, dot);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ReviseNgramPainter old) => old.points != points;
+}
+
+/// 遮罩补全汇总：有效修订率 + 回复长度对比（原文 vs 回复，字符数）。
+class _ReviseSummaryCard extends StatelessWidget {
+  final List<ForgetObserverCase> cases;
+  const _ReviseSummaryCard({required this.cases});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final samples = cases.whereType<ForgetObserverText>().toList();
+    final effective = samples.where((c) => _isEffective(c.llmReply)).length;
+    final withReply = samples.where((c) => c.llmReply != null).length;
+    final avgReplyLen = withReply == 0
+        ? 0.0
+        : samples.map((c) => (c.llmReply?.runes.length ?? 0)).reduce((a, b) => a + b) /
+            withReply;
+    // 平均字符 n-gram 重合率（回复 vs 原文，参考指标）
+    final ngramSum = samples
+        .where((c) => c.llmReply != null && (c.original?.isNotEmpty ?? false))
+        .map((c) => charNgramOverlap(c.original!, c.llmReply!))
+        .fold<double>(0, (a, b) => a + b);
+    final ngramCount = samples
+        .where((c) => c.llmReply != null && (c.original?.isNotEmpty ?? false))
+        .length;
+
+    return Card(
+      elevation: 0,
+      color: scheme.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text('补全质量',
+                      style: Theme.of(context).textTheme.titleSmall),
+                ),
+                Text(
+                  '有效修订 $effective/${samples.length} · 平均回复 ${avgReplyLen.toStringAsFixed(0)} 字'
+                  '${ngramCount > 0 ? ' · n-gram 重合 ${(ngramSum / ngramCount * 100).toStringAsFixed(0)}%' : ''}',
+                  style: const TextStyle(
+                      fontFamily: 'monospace', fontSize: 12, color: AppColors.subtle),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (samples.isEmpty)
+              const Text('（无样本）', style: TextStyle(color: AppColors.subtle))
+            else
+              for (final c in samples)
+                _ReviseLengthRow(sample: c),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static bool _isEffective(String? reply) {
+    if (reply == null) return false;
+    final t = reply.trim();
+    return t.isNotEmpty && !t.contains('[masked]');
+  }
+}
+
+/// 字符 n-gram 重合率（参考指标）：回复 vs 原文的表层保留程度。
+/// 同义改写会低估重合率，仅作趋势参考，不设断言。
+double charNgramOverlap(String a, String b, {int n = 3}) {
+  Set<String> grams(String s) {
+    final chars = s.runes.toList();
+    if (chars.length < n) return {s};
+    return {
+      for (var i = 0; i + n <= chars.length; i++)
+        String.fromCharCodes(chars.sublist(i, i + n))
+    };
+  }
+
+  final ga = grams(a);
+  if (ga.isEmpty) return 0;
+  return ga.intersection(grams(b)).length / ga.length;
+}
+
+class _ReviseLengthRow extends StatelessWidget {
+  final ForgetObserverText sample;
+  const _ReviseLengthRow({required this.sample});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final originalLen = sample.original?.runes.length ?? 0;
+    final replyLen = sample.llmReply?.runes.length ?? 0;
+    final effective = _ReviseSummaryCard._isEffective(sample.llmReply);
+    final maxLen = math.max(originalLen, replyLen).clamp(1, double.infinity).toDouble();
+
+    Widget bar(double len, Color color) => Expanded(
+          child: FractionallySizedBox(
+            alignment: Alignment.centerLeft,
+            widthFactor: len / maxLen,
+            child: Container(
+                height: 6,
+                decoration:
+                    BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
+          ),
+        );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${sample.caseName} · 原文 $originalLen 字 → 回复 $replyLen 字',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                ),
+              ),
+              Icon(
+                effective ? Icons.check_circle_outline : Icons.cancel_outlined,
+                size: 14,
+                color: effective ? AppColors.pass : AppColors.fail,
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              SizedBox(width: 40, child: Text('原文', style: const TextStyle(fontSize: 10, color: AppColors.subtle))),
+              bar(originalLen.toDouble(), AppColors.subtle.withValues(alpha: 0.6)),
+              const SizedBox(width: 8),
+              SizedBox(width: 40, child: Text('回复', style: const TextStyle(fontSize: 10, color: AppColors.subtle))),
+              bar(replyLen.toDouble(), effective ? AppColors.pass : AppColors.fail),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 激发测试说明卡：测试目的 + 读图方法（简洁）。
+class _ExcitationIntroCard extends StatelessWidget {
+  const _ExcitationIntroCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      elevation: 0,
+      color: scheme.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Text(
+          '验证"激发 → 遗忘被延缓"：同一角色图克隆两份，一份按设计剂量激发、一份不激发，72h 内逐节点配对观测。'
+          '实线（激发）低于虚线（对照）= 延缓生效。',
+          style: Theme.of(context)
+              .textTheme
+              .bodySmall
+              ?.copyWith(color: scheme.onSurfaceVariant, height: 1.5),
+        ),
+      ),
+    );
+  }
+}
+
+/// 激发测试主视觉：对照组 / 激发组平均缺失度曲线（36 点，双系列）。
+class _ExcitationCurveChart extends StatelessWidget {
+  final List<(double, double)> ctrlPts;
+  final List<(double, double)> trtPts;
+  const _ExcitationCurveChart({required this.ctrlPts, required this.trtPts});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      elevation: 0,
+      color: scheme.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Text('平均缺失度 · 激发 vs 对照',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                ),
+                const _LegendDot(color: AppColors.running, label: '激发'),
+                const SizedBox(width: 12),
+                const _LegendDot(color: AppColors.ctrl, label: '对照'),
+              ],
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 220,
+              child: CustomPaint(
+                size: Size.infinite,
+                painter: _ExcitationCurvePainter(ctrlPts: ctrlPts, trtPts: trtPts),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 双系列曲线绘制：y = 平均缺失度（0..1），x = 小时（0..72）。
+class _ExcitationCurvePainter extends CustomPainter {
+  final List<(double, double)> ctrlPts;
+  final List<(double, double)> trtPts;
+  _ExcitationCurvePainter({required this.ctrlPts, required this.trtPts});
+
+  static const _left = 46.0, _right = 12.0, _top = 14.0, _bottom = 30.0;
+  static const _maxX = 72.0;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final plotW = size.width - _left - _right;
+    final plotH = size.height - _top - _bottom;
+    double x(double v) => _left + v / _maxX * plotW;
+    double y(double v) => _top + (1.0 - v.clamp(0.0, 1.0)) * plotH;
+
+    final gridPaint = Paint()..color = const Color(0x22FFFFFF)..strokeWidth = 1;
+    final labelStyle =
+        TextStyle(color: const Color(0xAA9E9E9E), fontSize: 9.5, fontFamily: 'monospace');
+    for (var v = 0.0; v <= 1.0 + 1e-9; v += 0.25) {
+      final yy = y(v);
+      canvas.drawLine(Offset(_left, yy), Offset(size.width - _right, yy), gridPaint);
+      final tp = TextPainter(
+          text: TextSpan(text: v.toStringAsFixed(2), style: labelStyle),
+          textDirection: TextDirection.ltr)
+        ..layout();
+      tp.paint(canvas, Offset(2, yy - tp.height / 2));
+    }
+    for (var h = 0.0; h <= _maxX + 1e-9; h += 24) {
+      final xx = x(h);
+      canvas.drawLine(Offset(xx, _top), Offset(xx, size.height - _bottom), gridPaint);
+      final tp = TextPainter(
+          text: TextSpan(text: '${h.round()}h', style: labelStyle),
+          textDirection: TextDirection.ltr)
+        ..layout();
+      tp.paint(canvas, Offset(xx - tp.width / 2, size.height - _bottom + 6));
+    }
+    // 轴标题
+    final axisStyle = const TextStyle(
+        color: Color(0xAA9E9E9E), fontSize: 10, fontFamily: 'monospace');
+    final yTitle = TextPainter(
+        text: TextSpan(text: '平均缺失度', style: axisStyle), textDirection: TextDirection.ltr)
+      ..layout();
+    yTitle.paint(canvas, const Offset(6, 2));
+    final xTitle = TextPainter(
+        text: TextSpan(text: '时间（小时）', style: axisStyle), textDirection: TextDirection.ltr)
+      ..layout();
+    xTitle.paint(
+        canvas, Offset(size.width - _right - xTitle.width, size.height - _bottom + 18));
+
+    void drawSeries(List<(double, double)> pts, Color color, double width, {bool dash = false}) {
+      if (pts.length < 2) return;
+      final paint = Paint()
+        ..color = color
+        ..strokeWidth = width
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      final path = Path();
+      for (var i = 0; i < pts.length; i++) {
+        final p = Offset(x(pts[i].$1), y(pts[i].$2));
+        if (i == 0) {
+          path.moveTo(p.dx, p.dy);
+        } else {
+          path.lineTo(p.dx, p.dy);
+        }
+      }
+      if (dash) {
+        for (final metric in path.computeMetrics()) {
+          var dist = 0.0;
+          const dashLen = 7.0, gapLen = 5.0;
+          while (dist < metric.length) {
+            final end = math.min(dist + dashLen, metric.length);
+            canvas.drawPath(metric.extractPath(dist, end), paint);
+            dist = end + gapLen;
+          }
+        }
+      } else {
+        canvas.drawPath(path, paint);
+      }
+    }
+
+    drawSeries(ctrlPts, AppColors.ctrl.withValues(alpha: 0.9), 2.0, dash: true);
+    drawSeries(trtPts, AppColors.running, 2.4);
+  }
+
+  @override
+  bool shouldRepaint(_ExcitationCurvePainter old) =>
+      old.ctrlPts != ctrlPts || old.trtPts != trtPts;
+}
+
+/// 激发测试指标的悬停释义（按 label 关键词匹配）。
+String? _excitationMetricTip(String label) {
+  if (label.contains('平均缺失度')) {
+    return '缺失度 md：0=新鲜，1=完全遗忘。对照=不激发时的自然遗忘，激发=被激发后；Δ 越大延缓越明显。';
+  }
+  if (label.contains('延缓')) {
+    return '激发组比对照组晚多少小时到达 md=0.5（遗忘到一半），即半衰期延长的实际效果。';
+  }
+  if (label.contains('封顶')) {
+    return '激活次数超过 50 次后不再额外延缓遗忘（算法设计边界）：50 次与 100 次效果应相同。';
+  }
+  return null;
+}
+
+/// 激发测试汇总：以"指标一行"的紧凑列表展示总体指标（label 左、value 右，悬停释义）。
+class _ExcitationMetricList extends StatelessWidget {
+  final List<MetricEntry> metrics;
+  const _ExcitationMetricList({super.key, required this.metrics});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    if (metrics.isEmpty) {
+      return const Text('（无指标）', style: TextStyle(color: AppColors.subtle));
+    }
+    return Card(
+      elevation: 0,
+      color: scheme.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Column(
+          children: [
+            for (var i = 0; i < metrics.length; i++) ...[
+              if (i > 0)
+                Divider(height: 1, color: scheme.outlineVariant.withValues(alpha: 0.5)),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Expanded(
+                      child: Tooltip(
+                        message: _excitationMetricTip(metrics[i].label) ?? metrics[i].label,
+                        waitDuration: const Duration(milliseconds: 300),
+                        child: Text(
+                          metrics[i].label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: scheme.onSurfaceVariant),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      metrics[i].value ?? '',
+                      textAlign: TextAlign.right,
+                      style: const TextStyle(
+                          fontFamily: 'monospace', fontSize: 15, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// 节点演变视图：x（时间步长/缺失度）× y（指标）曲线 + 理想曲线叠加 +
 /// 可点击数据点 → 展开该数据点的原始输出与节点原文（pipeline/mask 通用）。
 class _NodeEvolutionView extends StatelessWidget {
   final _NodeCurve curve;
+  /// 同一节点的其他时机激发曲线（三时机叠加视图：对照 + 3 条激发线）
+  final List<_NodeCurve> overlays;
   final int selectedStep;
   final ValueChanged<int> onSelectStep;
   const _NodeEvolutionView({
     required this.curve,
+    this.overlays = const [],
     required this.selectedStep,
     required this.onSelectStep,
   });
@@ -837,6 +1792,12 @@ class _NodeEvolutionView extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final points = curve.points;
     final pt = points[selectedStep.clamp(0, points.length - 1)];
+    final timingSuffix = (String? caseName) {
+      if (caseName == null) return '';
+      return caseName.startsWith('excitation-')
+          ? caseName.substring('excitation-'.length)
+          : '';
+    };
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -871,15 +1832,35 @@ class _NodeEvolutionView extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        '${curve.id} · 实测 vs 理想曲线',
+                        overlays.isNotEmpty
+                            ? '${curve.id} · 对照 vs 三时机激发'
+                            : (curve.hasCtrl
+                                ? '${curve.id} · 激发 vs 对照'
+                                : '${curve.id} · 实测 vs 理想曲线'),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                       ),
                     ),
-                    const _LegendDot(color: AppColors.running, label: '实测'),
-                    const SizedBox(width: 12),
-                    const _LegendDot(color: AppColors.warn, label: '理想'),
+                    if (curve.hasCtrl) ...[
+                      const _LegendDot(color: AppColors.ctrl, label: '对照'),
+                      const SizedBox(width: 12),
+                      _LegendDot(
+                          color: _ForgetResultsPageState._timingColor(curve.sourceCase),
+                          label: '激发·${timingSuffix(curve.sourceCase)}'),
+                      for (final o in overlays) ...[
+                        const SizedBox(width: 12),
+                        _LegendDot(
+                            color: _ForgetResultsPageState._timingColor(o.sourceCase),
+                            label: '激发·${timingSuffix(o.sourceCase)}'),
+                      ],
+                    ] else ...[
+                      const _LegendDot(color: AppColors.running, label: '实测'),
+                      if (curve.ideal.isNotEmpty) ...[
+                        const SizedBox(width: 12),
+                        const _LegendDot(color: AppColors.warn, label: '理想'),
+                      ],
+                    ],
                     const SizedBox(width: 12),
                     _LegendDot(color: scheme.primary, label: '点击数据点展开'),
                   ],
@@ -889,6 +1870,7 @@ class _NodeEvolutionView extends StatelessWidget {
                   height: 300,
                   child: _TrendChart(
                     curve: curve,
+                    overlays: overlays,
                     selected: selectedStep,
                     onSelect: onSelectStep,
                   ),
@@ -936,10 +1918,13 @@ class _LegendDot extends StatelessWidget {
 /// 理想曲线虚线叠加（pipeline=艾宾浩斯 / mask=对角线）；每个实测点可点击。
 class _TrendChart extends StatelessWidget {
   final _NodeCurve curve;
+  /// 同一节点的其他时机激发曲线（三时机叠加视图）
+  final List<_NodeCurve> overlays;
   final int selected;
   final ValueChanged<int> onSelect;
   const _TrendChart({
     required this.curve,
+    this.overlays = const [],
     required this.selected,
     required this.onSelect,
   });
@@ -960,9 +1945,34 @@ class _TrendChart extends StatelessWidget {
             children: [
               CustomPaint(
                 size: size,
-                painter: _TrendPainter(geo: geo, curve: curve, selected: selected),
+                painter: _TrendPainter(
+                    geo: geo, curve: curve, overlays: overlays, selected: selected),
               ),
-              // 实测数据点（可点击）
+              // 对照组数据点（虚线：激发测试的未激发基线，落在 yCtrl 上）
+              if (curve.hasCtrl)
+                for (var i = 0; i < points.length; i++)
+                  if (points[i].yCtrl != null)
+                    Positioned(
+                      left: geo.x(points[i].x) - 6,
+                      top: geo.y(points[i].yCtrl!) - 6,
+                      width: 12,
+                      height: 12,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => onSelect(i),
+                        child: Center(
+                          child: Container(
+                            width: selected == i ? 10 : 8,
+                            height: selected == i ? 10 : 8,
+                            decoration: BoxDecoration(
+                              color: AppColors.ctrl,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+              // 激发组/实测数据点（可点击）
               for (var i = 0; i < points.length; i++)
                 Positioned(
                   left: geo.x(points[i].x) - 9,
@@ -977,7 +1987,7 @@ class _TrendChart extends StatelessWidget {
                         width: selected == i ? 14 : 10,
                         height: selected == i ? 14 : 10,
                         decoration: BoxDecoration(
-                          color: _pointColor(points[i]),
+                          color: curve.hasCtrl ? AppColors.running : _pointColor(points[i]),
                           shape: BoxShape.circle,
                           border: selected == i
                               ? Border.all(
@@ -985,6 +1995,27 @@ class _TrendChart extends StatelessWidget {
                               : null,
                         ),
                       ),
+                    ),
+                  ),
+                ),
+              // 选中点标注（最顶层 widget，避免被数据点圆点遮挡）
+              if (selected >= 0 && selected < points.length)
+                Positioned(
+                  left: geo.x(points[selected].x) + 12,
+                  top: (geo.y(points[selected].y) - 22).clamp(0.0, size.height - 40.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.running,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '${points[selected].label} · ${curve.yLabel} ${points[selected].y.toStringAsFixed(3)}',
+                      style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          fontFamily: 'monospace'),
                     ),
                   ),
                 ),
@@ -999,6 +2030,8 @@ class _TrendChart extends StatelessWidget {
     return switch (p.action) {
       'Revised' => p.effective ? AppColors.pass : AppColors.fail,
       'MaskOnly' => AppColors.warn,
+      'Activated' => AppColors.pass,
+      'Control' => AppColors.ctrl,
       _ => AppColors.subtle,
     };
   }
@@ -1019,12 +2052,19 @@ class _ChartGeo {
   double y(double v) => top + (1.0 - v) * plotH; // v ∈ [0,1]
 }
 
-/// 背景绘制：网格、轴标签、理想虚线、实测折线、选中点标注。
+/// 背景绘制：网格、轴标签、理想虚线、对照组虚线、多时机激发折线。
 class _TrendPainter extends CustomPainter {
   final _ChartGeo geo;
   final _NodeCurve curve;
+  /// 同一节点的其他时机激发曲线（三时机叠加视图）
+  final List<_NodeCurve> overlays;
   final int selected;
-  _TrendPainter({required this.geo, required this.curve, required this.selected});
+  _TrendPainter({
+    required this.geo,
+    required this.curve,
+    this.overlays = const [],
+    required this.selected,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1104,10 +2144,54 @@ class _TrendPainter extends CustomPainter {
       _drawDashed(canvas, path, dash);
     }
 
-    // ── 实测折线 ──
+    // ── 对照组曲线（虚线，激发测试：未激发基线）──
+    if (curve.hasCtrl) {
+      final ctrlDash = Paint()
+        ..color = AppColors.ctrl.withValues(alpha: 0.9)
+        ..strokeWidth = 2.0
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      final ctrlPath = Path();
+      final ctrlPoints = curve.points;
+      for (var i = 0; i < ctrlPoints.length; i++) {
+        final yc = ctrlPoints[i].yCtrl;
+        if (yc == null) continue;
+        final p = Offset(geo.x(ctrlPoints[i].x), geo.y(yc));
+        if (i == 0 || ctrlPoints[i - 1].yCtrl == null) {
+          ctrlPath.moveTo(p.dx, p.dy);
+        } else {
+          ctrlPath.lineTo(p.dx, p.dy);
+        }
+      }
+      _drawDashed(canvas, ctrlPath, ctrlDash);
+    }
+
+    // ── 其他时机激发曲线（三时机叠加视图，主激发线之前的底层）──
+    for (final ov in overlays) {
+      final ovLine = Paint()
+        ..color =
+            _ForgetResultsPageState._timingColor(ov.sourceCase).withValues(alpha: 0.85)
+        ..strokeWidth = 2.0
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      final ovPath = Path();
+      for (var i = 0; i < ov.points.length; i++) {
+        final p = Offset(geo.x(ov.points[i].x), geo.y(ov.points[i].y));
+        if (i == 0) {
+          ovPath.moveTo(p.dx, p.dy);
+        } else {
+          ovPath.lineTo(p.dx, p.dy);
+        }
+      }
+      canvas.drawPath(ovPath, ovLine);
+    }
+
+    // ── 实测折线（主时机/主曲线）──
     final line = Paint()
-      ..color = AppColors.running
-      ..strokeWidth = 2.2
+      ..color = _ForgetResultsPageState._timingColor(curve.sourceCase)
+      ..strokeWidth = 2.4
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
@@ -1122,34 +2206,6 @@ class _TrendPainter extends CustomPainter {
       }
     }
     canvas.drawPath(path, line);
-
-    // 选中点标注（标签 · y值）
-    if (selected >= 0 && selected < points.length) {
-      final s = points[selected];
-      final p = Offset(geo.x(s.x), geo.y(s.y));
-      final halo = Paint()..color = AppColors.running.withValues(alpha: 0.25);
-      canvas.drawCircle(p, 12, halo);
-      final label = '${s.label} · ${curve.yLabel} ${s.y.toStringAsFixed(3)}';
-      final tp = TextPainter(
-        text: TextSpan(
-          text: label,
-          style: const TextStyle(
-              color: Colors.black87, fontSize: 10, fontWeight: FontWeight.w700, fontFamily: 'monospace'),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      final bgRect = Rect.fromLTWH(
-        p.dx + 12,
-        p.dy - tp.height - 4,
-        tp.width + 10,
-        tp.height + 6,
-      );
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(bgRect, const Radius.circular(4)),
-        Paint()..color = AppColors.running,
-      );
-      tp.paint(canvas, Offset(bgRect.left + 5, bgRect.top + 3));
-    }
   }
 
   void _drawDashed(Canvas canvas, Path path, Paint paint) {
@@ -1166,7 +2222,9 @@ class _TrendPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_TrendPainter old) =>
-      old.curve != curve || old.selected != selected;
+      old.curve != curve ||
+      old.selected != selected ||
+      old.overlays.length != overlays.length;
 }
 
 /// 数据点展开详情：该点的遮罩结果/LLM 原始输出 + 图节点原文。
@@ -1186,6 +2244,8 @@ class _PointDetailCard extends StatelessWidget {
     final actionColor = switch (point.action) {
       'Revised' => point.effective ? AppColors.pass : AppColors.fail,
       'MaskOnly' => AppColors.warn,
+      'Activated' => AppColors.pass,
+      'Control' => AppColors.ctrl,
       _ => AppColors.subtle,
     };
     final original = (point.original != null && point.original!.trim().isNotEmpty)
@@ -1224,8 +2284,12 @@ class _PointDetailCard extends StatelessWidget {
                           color: point.effective ? AppColors.pass : AppColors.fail)),
                 ],
                 const Spacer(),
-                Text('$yLabel ${point.y.toStringAsFixed(3)}',
-                    style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+                Text(
+                  point.yCtrl != null
+                      ? '$yLabel 激发 ${point.y.toStringAsFixed(3)} / 对照 ${point.yCtrl!.toStringAsFixed(3)}'
+                      : '$yLabel ${point.y.toStringAsFixed(3)}',
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                ),
               ],
             ),
             const SizedBox(height: 10),
@@ -1294,60 +2358,6 @@ class _DetailSection extends StatelessWidget {
           style: const TextStyle(fontSize: 12, height: 1.5),
         ),
       ],
-    );
-  }
-}
-
-/// 原文对照块：标题（带色）+ 可选遮罩率 + 文本。
-class _CompareBlock extends StatelessWidget {
-  final String title;
-  final String text;
-  final Color color;
-  final double? ratio;
-  const _CompareBlock({
-    required this.title,
-    required this.text,
-    required this.color,
-    this.ratio,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Card(
-      elevation: 0,
-      color: scheme.surfaceContainerHigh,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 3,
-                  height: 12,
-                  decoration: BoxDecoration(
-                      color: color, borderRadius: BorderRadius.circular(2)),
-                ),
-                const SizedBox(width: 8),
-                Text(title,
-                    style:
-                        TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 13)),
-                if (ratio != null) ...[
-                  const SizedBox(width: 10),
-                  Text('遮罩率 ${(ratio! * 100).toStringAsFixed(0)}%',
-                      style: const TextStyle(
-                          fontFamily: 'monospace', fontSize: 12, color: AppColors.subtle)),
-                ],
-              ],
-            ),
-            const SizedBox(height: 8),
-            SelectableText(text, style: const TextStyle(height: 1.5, fontSize: 13)),
-          ],
-        ),
-      ),
     );
   }
 }

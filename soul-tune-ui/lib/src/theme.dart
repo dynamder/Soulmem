@@ -19,6 +19,10 @@ class AppColors {
   static const running = Color(0xFF9FA8DA);
   static const runningBg = Color(0x1A9FA8DA);
 
+  // 对照组（柔和青绿：激发测试中"未激发基线"曲线）
+  static const ctrl = Color(0xFF80CBC4);
+  static const ctrlBg = Color(0x1A80CBC4);
+
   // 中性灰（次级文本/占位）
   static const subtle = Color(0xFF9E9E9E);
 

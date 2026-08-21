@@ -715,8 +715,9 @@ class NodeForgetStat {
 class NodeStepStat {
   final int hours; // x 轴：累计小时数（多步 24/48/72；单步为用例时间跨度）
   final int step; // 步序号（0 起始）
-  final double md; // 该步后的缺失度（y 轴主指标）
-  final String action; // NoAction / MaskOnly / Revised
+  final double md; // 该步后的缺失度（y 轴主指标；激发测试为激发组 md）
+  final double? mdCtrl; // 对照组（未激发）同刻缺失度：仅激发测试填充，用于"对照 vs 激发"双曲线
+  final String action; // NoAction / MaskOnly / Revised；激发测试为 Activated / Control
   final String? maskedText; // LLM 补全的遮罩输入
   final String? llmReply; // LLM 原始回复
   final bool effective; // 是否有效修订
@@ -725,6 +726,7 @@ class NodeStepStat {
     required this.hours,
     required this.step,
     required this.md,
+    this.mdCtrl,
     required this.action,
     this.maskedText,
     this.llmReply,
@@ -735,6 +737,7 @@ class NodeStepStat {
         hours: j['hours'] as int? ?? 0,
         step: j['step'] as int? ?? 0,
         md: (j['md'] as num?)?.toDouble() ?? 0,
+        mdCtrl: (j['md_ctrl'] as num?)?.toDouble(),
         action: j['action'] as String? ?? '',
         maskedText: j['masked_text'] as String?,
         llmReply: j['llm_reply'] as String?,
@@ -812,6 +815,12 @@ sealed class ForgetObserverCase {
               return (0.0, 0.0);
             })
             .toList(),
+        metrics: ((j['metrics'] as List?) ?? const [])
+            .map((e) {
+              final m = e as List;
+              return (m[0] as String, m[1] as String, m[2] as String);
+            })
+            .toList(),
       );
     }
     return ForgetObserverText(
@@ -856,6 +865,8 @@ class ForgetObserverNodes extends ForgetObserverCase {
   final List<NodeSeries> nodeSeries;
   /// 理想艾宾浩斯曲线采样（x=小时, y=缺失度），与实测叠加对比
   final List<(double, double)> idealPoints;
+  /// 该用例的指标（激发测试按 case 聚合三时机对比时使用）
+  final List<(String, String, String)> metrics;
 
   ForgetObserverNodes({
     required this.caseName,
@@ -874,6 +885,7 @@ class ForgetObserverNodes extends ForgetObserverCase {
     required this.nodes,
     this.nodeSeries = const [],
     this.idealPoints = const [],
+    this.metrics = const [],
   });
 }
 

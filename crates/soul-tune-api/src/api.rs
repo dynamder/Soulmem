@@ -830,6 +830,8 @@ enum ForgetObserverCaseJson {
         node_series: Vec<NodeSeries>,
         /// 理想艾宾浩斯曲线采样（x=小时, y=缺失度），与实测叠加对比
         ideal_points: Vec<(f64, f64)>,
+        /// 该用例的指标（激发测试按 case 聚合三时机对比时使用）
+        metrics: Vec<(String, String, String)>,
     },
     Text {
         case_name: String,
@@ -864,7 +866,8 @@ struct ForgetReportJson {
     cases: Vec<ForgetObserverCaseJson>,
 }
 
-/// 运行遗忘套件（mask=遮罩 / revise=遮罩补全 / pipeline=全管线）。
+/// 运行遗忘套件（mask=遮罩 / revise[=/full|=/sample[:seed]]=遮罩补全 /
+/// pipeline=全管线 / excitation=激发测试）。
 #[frb]
 pub fn run_forget(mode: String, dataset: String, sink: StreamSink<String>) {
     std::thread::spawn(move || {
@@ -887,13 +890,29 @@ fn run_forget_impl(mode: &str, dataset: &str, sink: &StreamSink<String>) -> anyh
             ForgetMaskSuite::load(&dataset_path)
                 .map_err(|e| anyhow::anyhow!("加载遮罩套件失败: {e}"))?,
         ),
-        "revise" => Box::new(
+        "revise" | "revise/full" => Box::new(
             ForgetReviseSuite::load(&dataset_path)
                 .map_err(|e| anyhow::anyhow!("加载遮罩补全套件失败: {e}"))?,
         ),
+        // revise/sample[:seed]：分层抽样（默认种子 20260820），启用 LLM
+        m if m.starts_with("revise/sample") => {
+            let seed = m
+                .split(':')
+                .nth(1)
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(20260820u64);
+            Box::new(
+                ForgetReviseSuite::load_sampled(&dataset_path, seed)
+                    .map_err(|e| anyhow::anyhow!("加载遮罩补全套件失败: {e}"))?,
+            )
+        }
         "pipeline" | "full" => Box::new(
             ForgetPipelineSuite::load(&dataset_path)
                 .map_err(|e| anyhow::anyhow!("加载全管线套件失败: {e}"))?,
+        ),
+        "excitation" => Box::new(
+            ForgetPipelineSuite::load_excitation_only(&dataset_path)
+                .map_err(|e| anyhow::anyhow!("加载激发测试套件失败: {e}"))?,
         ),
         other => return Err(anyhow::anyhow!("未知遗忘模式: {other}")),
     };
@@ -944,7 +963,13 @@ fn run_forget_impl(mode: &str, dataset: &str, sink: &StreamSink<String>) -> anyh
                     .flat_map(|ns| ns.steps.iter().map(|s| s.hours))
                     .max()
                     .unwrap_or(0);
-                let ideal_points = ideal_ebbinghaus_curve(max_hours);
+                // 激发测试的基线是"未激发对照组"（md_ctrl），理想艾宾浩斯曲线
+                // （零激活理论公式）对它无意义且有误导，故不输出。
+                let ideal_points = if d.case_name.starts_with("excitation-") {
+                    vec![]
+                } else {
+                    ideal_ebbinghaus_curve(max_hours)
+                };
                 Some(ForgetObserverCaseJson::Nodes {
                     case_name: d.case_name.clone(),
                     passed: d.passed,
@@ -971,6 +996,7 @@ fn run_forget_impl(mode: &str, dataset: &str, sink: &StreamSink<String>) -> anyh
                     nodes: d.nodes.clone(),
                     node_series: d.node_series.clone(),
                     ideal_points,
+                    metrics: d.metrics.clone(),
                 })
             } else if let Some(d) = o.data.downcast_ref::<ReviseCaseData>() {
                 Some(ForgetObserverCaseJson::Text {

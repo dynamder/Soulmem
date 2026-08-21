@@ -350,6 +350,17 @@ pub fn load_graph_cluster(
     Ok((cluster, id_map))
 }
 
+/// 构建语义 id 反向表：`MemoryId → graph.json 可读 id`。
+///
+/// `load_graph_cluster` 为每个 fixture 节点生成随机 `MemoryId`（每次运行不同），
+/// UI 若直接显示 UUID 会每次变化、无法人工辨识。反向表用于把节点 id 还原为
+/// graph.json 中的语义化字符串 id（如 `sem_self` / `situation_xxx`）。
+pub fn build_reverse_id_map(
+    id_map: &HashMap<String, MemoryId>,
+) -> HashMap<MemoryId, String> {
+    id_map.iter().map(|(k, v)| (*v, k.clone())).collect()
+}
+
 /// 嵌入缓存版本。嵌入实现（pooling 方式 / 查询指令）变化时递增，
 /// 版本不符的旧缓存会自动丢弃并重新嵌入。
 const EMBEDDING_CACHE_VERSION: u32 = 2;
