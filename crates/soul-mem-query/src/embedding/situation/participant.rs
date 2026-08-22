@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::embedding::{
-    mean_pooling, raw_linear_blend, Embeddable, EmbeddingCalcResult, EmbeddingVec,
+    Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling, raw_linear_blend,
 };
 use soul_mem_core::memory_note::situation_mem::Participant;
 
@@ -48,7 +48,7 @@ impl Embeddable for Participant {
         model: &dyn crate::embedding::EmbeddingModel,
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
         let [name_vec, role_vec] = model
-            .infer_batch(&vec![self.name.as_str(), self.role.as_str()])?
+            .infer_batch(&[self.name.as_str(), self.role.as_str()])?
             .try_into()
             .unwrap(); //SAFEUNWRAP: 可以确定此处的Vec长度为2
         let fused_vec = raw_linear_blend(&name_vec, &role_vec, 0.7).unwrap(); //SAFEUNWRAP: 此处两向量的维度必然相同

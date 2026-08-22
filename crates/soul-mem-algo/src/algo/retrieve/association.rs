@@ -246,10 +246,9 @@ impl DynWeightFuncBuilder {
               edge: &MemClusterEdgeRef,
               _query: Option<&PrioritizedMemoryRetrieveQuery>| {
             if let Some(target_weight) = graph.node_weight(edge.target()) {
-                match target_weight.note().mem_type() {
-                    // Proc类型不能被ppr联想，将由触发的情境进行贝叶斯推理
-                    MemoryType::Procedure(_) => return OrdFloat::from_f64(0.0),
-                    _ => {}
+                // Proc类型不能被ppr联想，将由触发的情境进行贝叶斯推理
+                if let MemoryType::Procedure(_) = target_weight.note().mem_type() {
+                    return OrdFloat::from_f64(0.0);
                 }
             }
             let intensity = edge.weight().intensity();

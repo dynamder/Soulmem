@@ -159,7 +159,7 @@ where
         self.0.lt(&other.0)
     }
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.0.partial_cmp(&other.0)
+        Some(self.cmp(other))
     }
 }
 impl<F> Ord for OrdFloat<F>
@@ -168,5 +168,19 @@ where
 {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.0.cmp(&other.0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_partial_cmp_consistent_with_ord() {
+        let small: OrdFloat<f64> = OrdFloat::from_f64(1.0);
+        let large: OrdFloat<f64> = OrdFloat::from_f64(2.0);
+        assert_eq!(small.partial_cmp(&large), Some(std::cmp::Ordering::Less));
+        assert_eq!(large.partial_cmp(&small), Some(std::cmp::Ordering::Greater));
+        assert_eq!(small.partial_cmp(&small), Some(std::cmp::Ordering::Equal));
     }
 }

@@ -67,17 +67,17 @@ impl Embeddable for Event {
         model: &dyn crate::embedding::EmbeddingModel,
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
         let [action_vec] = model
-            .infer_batch(&vec![self.action.as_str()])?
+            .infer_batch(&[self.action.as_str()])?
             .try_into()
             .unwrap(); // SAFEUNWRAP: 此处长度必为1
 
         let [initiator_vec] = model
-            .infer_batch(&vec![self.initiator.as_str()])?
+            .infer_batch(&[self.initiator.as_str()])?
             .try_into()
             .unwrap(); // SAFEUNWRAP: 此处长度必为1
 
         let [target_vec] = model
-            .infer_batch(&vec![self.target.as_str()])?
+            .infer_batch(&[self.target.as_str()])?
             .try_into()
             .unwrap(); // SAFEUNWRAP: 此处长度必为1
 

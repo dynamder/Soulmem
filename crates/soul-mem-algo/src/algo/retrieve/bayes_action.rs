@@ -81,27 +81,22 @@ impl RetrStrategy for RetrBayesAction {
                     for link in links {
                         let neighbor_idx = link.target();
 
-                        mem_cluster
-                            .graph()
-                            .node_weight(neighbor_idx)
-                            .map(|embed_note| {
-                                let note_id = embed_note.note().id();
-                                let link_type = link.weight().link_type();
+                        if let Some(embed_note) = mem_cluster.graph().node_weight(neighbor_idx) {
+                            let note_id = embed_note.note().id();
+                            let link_type = link.weight().link_type();
 
-                                if let MemoryType::Procedure(_) = embed_note.note().mem_type()
-                                    && let MemoryLinkType::Proc(link_weight) = link_type
-                                {
-                                    match link_weight {
-                                        ProcMemLink::TrigToAction(TrigToAction {
-                                            prob, ..
-                                        }) => {
-                                            possible_actions
-                                                .get_mut(&note_id)
-                                                .map(|v| *v += prob * weight);
+                            if let MemoryType::Procedure(_) = embed_note.note().mem_type()
+                                && let MemoryLinkType::Proc(link_weight) = link_type
+                            {
+                                match link_weight {
+                                    ProcMemLink::TrigToAction(TrigToAction { prob, .. }) => {
+                                        if let Some(v) = possible_actions.get_mut(&note_id) {
+                                            *v += prob * weight;
                                         }
                                     }
                                 }
-                            });
+                            }
+                        }
                     }
                 }
             });
@@ -112,6 +107,30 @@ impl RetrStrategy for RetrBayesAction {
             actions_vec.into_iter().take(request.top_k).collect()
         })
     }
+}
+
+fn get_possible_actions(
+    cluster: &MemoryCluster,
+    source: &[(MemoryId, f64)],
+) -> HashMap<MemoryId, f64> {
+    source
+        .iter()
+        .filter_map(|&(id, _weight)| {
+            let idx = cluster.get_mem_index(id)?;
+            let action_neighbors = cluster
+                .graph()
+                .neighbors_directed(idx, Outgoing)
+                .filter_map(|node_idx| {
+                    let note = cluster.graph().node_weight(node_idx)?;
+                    match note.note().mem_type() {
+                        MemoryType::Procedure(_) => Some((note.note().id(), 0.0)),
+                        _ => None,
+                    }
+                });
+            Some(action_neighbors)
+        })
+        .flatten()
+        .collect()
 }
 
 #[cfg(test)]
@@ -187,13 +206,14 @@ mod tests {
     #[test]
     fn test_retr_bayes_action_basic() {
         let (wm, source_id, action_id) = create_mock_working_memory_with_actions();
-        let request = BayesActionRequest::new(Arc::new(wm), vec![(source_id, 1.0)]);
+        // 权重取 0.8（而非 1.0），使 prob * weight 与 prob / weight 可区分
+        let request = BayesActionRequest::new(Arc::new(wm), vec![(source_id, 0.8)]);
         let result = RetrBayesAction {}.retrieve(request);
 
         assert!(!result.is_empty());
         let (id, score) = &result[0];
         assert_eq!(id, &action_id);
-        assert!(*score > 0.0);
+        assert_eq!(*score, 0.4);
     }
 
     #[test]
@@ -222,28 +242,4 @@ mod tests {
 
         assert!(result.contains_key(&action_id));
     }
-}
-
-fn get_possible_actions(
-    cluster: &MemoryCluster,
-    source: &[(MemoryId, f64)],
-) -> HashMap<MemoryId, f64> {
-    source
-        .iter()
-        .filter_map(|&(id, _weight)| {
-            let idx = cluster.get_mem_index(id)?;
-            let action_neighbors = cluster
-                .graph()
-                .neighbors_directed(idx, Outgoing)
-                .filter_map(|node_idx| {
-                    let note = cluster.graph().node_weight(node_idx)?;
-                    match note.note().mem_type() {
-                        MemoryType::Procedure(_) => Some((note.note().id(), 0.0)),
-                        _ => None,
-                    }
-                });
-            Some(action_neighbors)
-        })
-        .flatten()
-        .collect()
 }

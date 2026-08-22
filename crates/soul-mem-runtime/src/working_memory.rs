@@ -70,9 +70,9 @@ impl WorkingMemory {
         self.memory_cluster
             .write(|cluster| cluster.add_single_node(node));
 
-        if !self.records.contains_key(&node_id) {
-            self.records.insert(node_id, Record::new(node_id));
-        }
+        self.records
+            .entry(node_id)
+            .or_insert_with(|| Record::new(node_id));
     }
 
     /// 移除节点，同时移除对应的记录
@@ -109,5 +109,46 @@ impl WorkingMemory {
 
     pub fn records_mut(&mut self) -> &mut HashMap<MemoryId, Record> {
         &mut self.records
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
+    use soul_mem_core::memory_note::{MemoryNoteBuilder, MemoryType};
+    use soul_mem_query::embedding::EmbeddingVec;
+    use soul_mem_query::embedding::note::{MemoryEmbedding, MemoryEmbeddingVariant};
+    use soul_mem_query::embedding::sem::SemanticEmbedding;
+
+    fn mock_node(id: MemoryId) -> EmbeddedMemoryNote {
+        let note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+            content: "node".to_string(),
+            aliases: vec![],
+            concept_type: ConceptType::Entity,
+            description: String::new(),
+        }))
+        .id(id)
+        .build()
+        .unwrap();
+        let embedding = MemoryEmbedding::new(
+            EmbeddingVec::zero(4),
+            MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                EmbeddingVec::zero(4),
+                EmbeddingVec::zero(4),
+                EmbeddingVec::zero(4),
+            )),
+        );
+        EmbeddedMemoryNote { note, embedding }
+    }
+
+    #[test]
+    fn test_add_node_registers_record_and_cluster_node() {
+        let mut wm = WorkingMemory::new(10);
+        let id = MemoryId::new();
+        wm.add_node(mock_node(id));
+
+        assert!(wm.records().contains_key(&id));
+        assert!(wm.memory_cluster().read_or_compute(|c| c.contains_node(id)));
     }
 }
