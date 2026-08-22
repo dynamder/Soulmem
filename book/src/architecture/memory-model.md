@@ -1,11 +1,15 @@
 # 记忆模型
 
-> 本文档基于 `soul-mem-core` 的当前代码（`feature/test_framework` 分支工作区）描述记忆的
-> 数据结构模型。三类记忆 + 通用节点/链接结构，详见 [soul-mem-core](../crates/soul-mem-core.md)。
+记忆以图的方式组织——这个概念在 [核心概念 · 记忆图](../concepts/memory-graph.md) 里已经讲过：节点是记忆，边是关联。这一章回答另一个问题：**记忆图在代码里长什么样？**
+
+我们从 `soul-mem-core` 的当前代码（`feature/test_framework` 分支工作区）出发，描述记忆的**数据结构模型**：三类记忆的节点结构、通用的节点/链接结构、以及图的构建方式。更完整的模块级说明见 [soul-mem-core](../crates/soul-mem-core.md)。
+
+> [!note]
+> 本文档只讲数据结构：节点有哪些字段、边有哪些类型、图如何构建。图上的算法（PPR 联想、遗忘衰减、巩固）见 [深入实现](../algorithm/retrieve.md) 相关章节。
 
 ## 1. 三类记忆
 
-记忆以图方式组织，总记忆图分为三类子图，相互关联：
+总记忆图分为三类子图，相互关联：
 
 ```mermaid
 graph LR
@@ -20,9 +24,9 @@ graph LR
 
 - **具体情境 `SpecificSituation`**：`narrative`（叙述）+ `time_span`（时间）+ `context`（上下文）。
 - **抽象情境 `AbstractSituation`**：`Location` / `Participant` / `Environment` / `Event`
-  四类抽象元素之一，作为具象情境的二级索引与子图间接口节点。
+  四类抽象元素之一，作为具象情境的**二级索引**与子图间接口节点。
 
-`Context` 的六个字段：
+`Context` 的六个字段（结构定义于 `soul-mem-core/src/memory_note/situation_mem.rs`）：
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|:---:|------|
@@ -106,8 +110,9 @@ pub enum MemoryLinkType {
 
 - core 层"边随节点存储"（`mem_links` 内嵌出边，边以 ID 引用两端节点）。
 - 运行时由 `soul-mem-runtime` 的 `MemoryCluster` 构建真实图：
-  `petgraph::StableDiGraph<EmbeddedMemoryNote, GraphMemoryLink>`，并维护
-  `mem_id_to_index` / `link_id_to_index` 映射与 `incompletely_linked_note` 待链接缓冲。
+  `petgraph::StableDiGraph<EmbeddedMemoryNote, GraphMemoryLink>`（`EmbeddedMemoryNote` =
+  记忆 + 嵌入向量），并维护 `mem_id_to_index` / `link_id_to_index` 映射与
+  `incompletely_linked_note` 待链接缓冲；通过 `MemoryClusterHandle` 并发访问。
 
 ## 3. 长期记忆与工作记忆
 
@@ -126,3 +131,7 @@ pub enum MemoryLinkType {
 | 语义边 | verb + intensity + confidence | intensity 上移为公共字段 |
 | 程序性记忆 | trigger/action 两类节点（待定） | 仅 Action 节点 + TrigToAction 边 |
 | 抽象情境 | 独立抽象节点（二级索引） | AbstractSituation 枚举（四类抽象元素） |
+
+---
+
+下一章：[编排与数据流](orchestration.md)——这些数据结构如何被串联成一个可以运行的系统。
