@@ -1,6 +1,6 @@
 use crate::embedding::{
     sem::SemanticEmbedding, situation::SituationEmbedding, Embeddable, EmbeddingCalcResult,
-    EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
+    EmbeddingGenError, EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
 };
 use serde::{Deserialize, Serialize};
 use soul_mem_core::memory_note::{MemoryNote, MemoryType};
@@ -150,7 +150,13 @@ impl Embeddable for MemoryNote {
     type EmbeddingFused = EmbeddedMemoryNote;
     fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<Self::EmbeddingGen> {
         let tag_strs: Vec<_> = self.tags().iter().map(|s| s.as_str()).collect();
-        let tag_vec = model.infer_and_fuse(&tag_strs)?;
+        let tag_vec = if tag_strs.is_empty() {
+            let fallback = serde_json::to_string(self.mem_type())
+                .map_err(|error| EmbeddingGenError::Anyhow(error.into()))?;
+            model.infer_with_chunk(&fallback)?
+        } else {
+            model.infer_and_fuse(&tag_strs)?
+        };
 
         let mem_type_vec = self.mem_type().embed(model)?;
         Ok(MemoryEmbedding {
@@ -175,6 +181,47 @@ mod tests {
     use crate::embedding::embedding_model::bge::BgeSmallZh;
     use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
     use soul_mem_core::memory_note::MemoryNoteBuilder;
+
+    struct TestEmbeddingModel;
+
+    impl EmbeddingModel for TestEmbeddingModel {
+        fn infer_batch(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>> {
+            Ok(input.iter().map(|_| EmbeddingVec::new(vec![1.0])).collect())
+        }
+
+        fn infer_with_chunk(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec> {
+            if input.is_empty() {
+                return Err(EmbeddingGenError::InvalidInput);
+            }
+            Ok(EmbeddingVec::new(vec![1.0]))
+        }
+
+        fn infer_and_fuse(&self, input: &[&str]) -> EmbeddingGenResult<EmbeddingVec> {
+            if input.is_empty() {
+                return Err(EmbeddingGenError::InvalidInput);
+            }
+            Ok(EmbeddingVec::new(vec![1.0]))
+        }
+
+        fn max_input_token(&self) -> usize {
+            512
+        }
+    }
+
+    #[test]
+    fn test_memory_note_embedding_without_tags() {
+        let mem_type = soul_mem_core::memory_note::MemoryType::Semantic(SemMemory {
+            content: "测试内容".to_string(),
+            aliases: Vec::new(),
+            concept_type: ConceptType::Entity,
+            description: "测试描述".to_string(),
+        });
+        let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+
+        let embedding = note.embed(&TestEmbeddingModel).unwrap();
+
+        assert_eq!(embedding.tag().shape(), 1);
+    }
 
     #[test]
     fn test_memory_note_embedding() {

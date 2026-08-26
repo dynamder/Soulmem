@@ -88,6 +88,22 @@ impl MemoryLink {
             intensity,
         }
     }
+
+    pub fn from_tuple_with_id(
+        id: LinkId,
+        from: MemoryId,
+        to: MemoryId,
+        link_type: MemoryLinkType,
+        intensity: f64,
+    ) -> Self {
+        MemoryLink {
+            id,
+            from,
+            to,
+            link_type,
+            intensity,
+        }
+    }
     pub fn into_link_type(self) -> MemoryLinkType {
         self.link_type
     }

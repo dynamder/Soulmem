@@ -1,14 +1,12 @@
-use crate::working_memory::llm::{
-    client::LlmClient,
-    prompt::{PromptBuilder, PromptHistoryBuilder},
-};
+use crate::working_memory::llm::prompt::{PromptBuilder, PromptHistoryBuilder};
 use anyhow::Result;
 use async_openai::types::chat::{
     ChatCompletionRequestAssistantMessage, ChatCompletionRequestMessage,
     ChatCompletionRequestSystemMessage, ChatCompletionRequestUserMessage, Role,
 };
-use dotenvy::dotenv;
+use dotenvy::from_filename;
 use parking_lot::RwLock as ParkRwLock;
+use soul_mem_query::consolidation::service::ConsolidationLlm;
 
 use std::sync::Arc;
 use std::{collections::VecDeque, sync::atomic::AtomicUsize};
@@ -30,7 +28,7 @@ impl Default for SlidingWindow {
 impl SlidingWindow {
     //新建
     pub fn new(capacity: usize) -> Self {
-        dotenv().ok();
+        from_filename("soulmem.env").ok();
         Self {
             window: Arc::new(ParkRwLock::new(VecDeque::with_capacity(capacity + 1))),
             capacity: AtomicUsize::from(capacity),
@@ -39,7 +37,7 @@ impl SlidingWindow {
         }
     }
     //信息滑入
-    pub async fn push(&self, value: &str, role: &str, client: &LlmClient) -> Result<()> {
+    pub async fn push(&self, value: &str, role: &str, client: &dyn ConsolidationLlm) -> Result<()> {
         let mut text = Information::new(value, role);
         text = self.auto_tag(text);
 
@@ -62,14 +60,14 @@ impl SlidingWindow {
         Ok(())
     }
     //信息滑出，若信息被标记则进行摘要
-    pub async fn pop(&self, client: &LlmClient) -> Result<()> {
+    pub async fn pop(&self, client: &dyn ConsolidationLlm) -> Result<()> {
         let target = {
             let mut window = self.window.write();
             window.pop_front()
         };
         if let Some(value) = target {
             if value.is_tagged() {
-                let _ = self.summarize(client).await?;
+                self.summarize(client, Some(&value)).await?;
             }
         }
         Ok(())
@@ -147,7 +145,7 @@ impl SlidingWindow {
         value
     }
     //整合摘要记忆和窗口信息
-    fn prepare_prompt(&self) -> Vec<ChatCompletionRequestMessage> {
+    fn prepare_prompt(&self, evicted: Option<&Information>) -> Vec<ChatCompletionRequestMessage> {
         let system_prompt = std::iter::once(
             ChatCompletionRequestSystemMessage::from(
                 "You are a summary and compact agent. Based on the following conversation (which is happened before), provide a new summary.\n Only Output the summary content, no other text."
@@ -155,6 +153,7 @@ impl SlidingWindow {
         );
 
         let snapshot = std::iter::once(self.summary.read().build_raw_prompt())
+            .chain(evicted.map(PromptBuilder::build_raw_prompt))
             .chain(self.window.read().iter().map(|msg| msg.build_raw_prompt()))
             .fold(String::new(), |acc, item| {
                 acc + &format!("[{}]: {}\n", item.0, item.1)
@@ -168,9 +167,13 @@ impl SlidingWindow {
     }
 
     //将摘要记忆和当前滑动窗口信息合并提供LLM
-    async fn summarize(&self, client: &LlmClient) -> Result<()> {
-        let prompt_history = self.prepare_prompt();
-        let mut response = client.call_llm(prompt_history).await?;
+    async fn summarize(
+        &self,
+        client: &dyn ConsolidationLlm,
+        evicted: Option<&Information>,
+    ) -> Result<()> {
+        let prompt_history = self.prepare_prompt(evicted);
+        let mut response = client.call(prompt_history).await?;
         if response.is_empty() {
             return Err(anyhow::anyhow!("Expected at least 1 response, got empty"));
         }
@@ -352,18 +355,54 @@ impl PromptBuilder for Summary {
 
 #[cfg(test)]
 mod slidingwindow_test {
-    use std::time::Duration;
+    use std::{sync::Arc, time::Duration};
 
+    use anyhow::Result;
+    use async_trait::async_trait;
     use dotenvy::var;
+    use parking_lot::Mutex;
     use tokio::time::sleep;
 
-    use crate::working_memory::llm::config::LLMConfig;
+    use crate::working_memory::llm::{client::LlmClient, config::LLMConfig};
 
     use super::*;
 
+    struct CapturingLlm {
+        prompt: Arc<Mutex<Option<String>>>,
+    }
+
+    #[async_trait]
+    impl ConsolidationLlm for CapturingLlm {
+        async fn call(&self, messages: Vec<ChatCompletionRequestMessage>) -> Result<Vec<String>> {
+            *self.prompt.lock() = Some(format!("{messages:?}"));
+            Ok(vec!["测试摘要".to_string()])
+        }
+    }
+
+    #[tokio::test]
+    async fn summary_includes_the_evicted_tagged_message() {
+        let prompt = Arc::new(Mutex::new(None));
+        let client = CapturingLlm {
+            prompt: prompt.clone(),
+        };
+        let window = SlidingWindow::new(1);
+
+        window
+            .push("第一条用户消息", "user", &client)
+            .await
+            .unwrap();
+        window
+            .push("第二条用户消息", "user", &client)
+            .await
+            .unwrap();
+
+        assert!(prompt.lock().as_deref().unwrap().contains("第一条用户消息"));
+        assert_eq!(window.get_summary_text().await, "测试摘要");
+    }
+
     #[tokio::test]
     async fn sliding_window_test_push() {
-        dotenvy::dotenv().ok();
+        dotenvy::from_filename("soulmem.env").ok();
         let client = LlmClient::new(LLMConfig::new(
             &var("API_KEY").unwrap_or_default(),
             &var("API_BASE").unwrap_or_default(),
@@ -393,7 +432,7 @@ mod slidingwindow_test {
     }
     #[tokio::test]
     async fn sliding_window_test_pop() {
-        dotenvy::dotenv().ok();
+        dotenvy::from_filename("soulmem.env").ok();
         let client = LlmClient::new(LLMConfig::new(
             &var("API_KEY").unwrap_or_default(),
             &var("API_BASE").unwrap_or_default(),
@@ -421,7 +460,7 @@ mod slidingwindow_test {
     }
     #[tokio::test]
     async fn sliding_window_test_summary() {
-        dotenvy::dotenv().ok();
+        dotenvy::from_filename("soulmem.env").ok();
         let client = LlmClient::new(LLMConfig::new(
             &var("API_KEY").unwrap_or_default(),
             &var("API_BASE").unwrap_or_default(),
@@ -448,7 +487,7 @@ mod slidingwindow_test {
 
     // #[tokio::test]
     // async fn sliding_window_test_summary2(){
-    //     dotenvy::dotenv().ok();
+    //     dotenvy::from_filename("soulmem.env").ok();
     //     let client = LlmClient::new(LLMConfig::new(&var("API_KEY").unwrap_or_default(), &var("API_BASE").unwrap_or_default(),
     //         &var("MODEL").unwrap_or_default()));
     //     let mut window = SlidingWindow::new(3);
@@ -467,7 +506,7 @@ mod slidingwindow_test {
 
     #[tokio::test]
     async fn test_concurrent_push() {
-        dotenvy::dotenv().ok();
+        dotenvy::from_filename("soulmem.env").ok();
         let client1 = LlmClient::new(LLMConfig::new(
             &var("API_KEY").unwrap_or_default(),
             &var("API_BASE").unwrap_or_default(),
@@ -504,7 +543,7 @@ mod slidingwindow_test {
 
     #[tokio::test]
     async fn test_concurrent_read_write() {
-        dotenvy::dotenv().ok();
+        dotenvy::from_filename("soulmem.env").ok();
         let client = LlmClient::new(LLMConfig::new(
             &var("API_KEY").unwrap_or_default(),
             &var("API_BASE").unwrap_or_default(),
@@ -536,7 +575,7 @@ mod slidingwindow_test {
 
     #[tokio::test]
     async fn test_concurrent_pop_and_read() {
-        dotenvy::dotenv().ok();
+        dotenvy::from_filename("soulmem.env").ok();
         let client = LlmClient::new(LLMConfig::new(
             &var("API_KEY").unwrap_or_default(),
             &var("API_BASE").unwrap_or_default(),
@@ -566,7 +605,7 @@ mod slidingwindow_test {
 
     #[tokio::test]
     async fn test_clone_is_thread_safe() {
-        dotenvy::dotenv().ok();
+        dotenvy::from_filename("soulmem.env").ok();
         let client1 = LlmClient::new(LLMConfig::new(
             &var("API_KEY").unwrap_or_default(),
             &var("API_BASE").unwrap_or_default(),

@@ -1,4 +1,4 @@
-// 数据库抽象接口，也就是仓储 trait
+// 数据库抽象接口，仓储 trait
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
@@ -11,8 +11,8 @@ use soul_mem_core::{
 use super::{
     error::StorageResult,
     model::{
-        EventStats, EventWindow, FeedbackEventRecord, MemoryLinkRecord, MemoryNoteRecord,
-        RetrievalEventRecord, SimilarityHit, SimilarityQuery,
+        ConsolidationBatchResult, EventStats, EventWindow, FeedbackEventRecord, MemoryLinkRecord,
+        MemoryNoteRecord, RetrievalEventRecord, SimilarityHit, SimilarityQuery,
     },
 };
 
@@ -27,6 +27,22 @@ pub trait MemoryRepository: Send + Sync {
         note: &MemoryNote,
         embedding: Vec<f32>,
     ) -> StorageResult<MemoryNoteRecord>;
+
+    async fn save_note_bundles(
+        &self,
+        bundles: &[(MemoryNote, Vec<f32>)],
+    ) -> StorageResult<Vec<MemoryNoteRecord>>;
+
+    async fn save_consolidation_batch(
+        &self,
+        bundles: &[(MemoryNote, Vec<f32>)],
+        links: &[MemoryLink],
+    ) -> StorageResult<ConsolidationBatchResult>;
+
+    async fn find_note_by_content(
+        &self,
+        note: &MemoryNote,
+    ) -> StorageResult<Option<MemoryNoteRecord>>;
 
     async fn upsert_notes(&self, notes: &[MemoryNote]) -> StorageResult<Vec<MemoryNoteRecord>>;
 

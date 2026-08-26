@@ -1,6 +1,6 @@
 use anyhow::{Result, anyhow};
-
-use crate::memory::working_memory::llm::client::LlmClient;
+use async_openai::types::chat::ChatCompletionRequestMessage;
+use async_trait::async_trait;
 
 use super::{
     dto::ConsolidationOutput,
@@ -10,6 +10,18 @@ use super::{
 
 pub struct ConsolidationService;
 
+#[async_trait]
+pub trait ConsolidationLlm: Send + Sync {
+    async fn call(&self, messages: Vec<ChatCompletionRequestMessage>) -> Result<Vec<String>>;
+
+    async fn call_structured(
+        &self,
+        messages: Vec<ChatCompletionRequestMessage>,
+    ) -> Result<Vec<String>> {
+        self.call(messages).await
+    }
+}
+
 impl ConsolidationService {
     pub fn new() -> Self {
         Self
@@ -17,12 +29,15 @@ impl ConsolidationService {
 
     pub async fn split_summary_to_output(
         &self,
-        llm: &LlmClient,
+        llm: &dyn ConsolidationLlm,
         summary_text: &str,
         hot_memories: &[String],
     ) -> Result<ConsolidationOutput> {
         let prompt = ConsolidationPrompt::new(summary_text, hot_memories.to_vec());
-        let raw = llm.call_llm(prompt.into_messages()).await?.join("\n");
+        let raw = llm
+            .call_structured(prompt.into_messages())
+            .await?
+            .join("\n");
 
         let output = parse_output(&raw)?;
         output.validate()?;
@@ -31,7 +46,7 @@ impl ConsolidationService {
 
     pub async fn split_summary_and_map(
         &self,
-        llm: &LlmClient,
+        llm: &dyn ConsolidationLlm,
         summary_text: &str,
         hot_memories: &[String],
     ) -> Result<MappedConsolidation> {
@@ -72,5 +87,8 @@ fn parse_output(raw: &str) -> Result<ConsolidationOutput> {
         }
     }
 
-    Err(anyhow!("LLM output is not valid consolidation JSON"))
+    let preview: String = text.chars().take(800).collect();
+    Err(anyhow!(
+        "LLM output is not valid consolidation JSON; received: {preview:?}"
+    ))
 }

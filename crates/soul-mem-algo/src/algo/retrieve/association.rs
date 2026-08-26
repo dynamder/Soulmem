@@ -255,7 +255,7 @@ impl DynWeightFuncBuilder {
             let intensity = edge.weight().intensity();
             let (confidence_boost, type_boost) = match edge.weight().link_type() {
                 MemoryLinkType::Proc(_) => (0.0, 0.0), // Proc类型记忆不提升置信度, 设想一定程度抑制直接的Proc提取。
-                MemoryLinkType::Situation(_) => (0.8, self.type_preference[1]), //TODO: 调整数值，暂时设定为0.8，不设定为0或1，因为这会导致Situation类型记忆占据优势或劣势
+                MemoryLinkType::Sit(_) => (0.8, self.type_preference[1]), //TODO: 调整数值，暂时设定为0.8，不设定为0或1，因为这会导致Situation类型记忆占据优势或劣势
                 MemoryLinkType::Sem(mem) => (mem.confidence, self.type_preference[0]),
             };
             let normalize_factor = intensity_factor + confidence_factor + type_boost;
@@ -371,7 +371,6 @@ mod tests {
     #[test]
     fn test_retr_association_basic() {
         let (wm, ids) = create_mock_working_memory_with_links();
-        println!("wm: {:?}, ids: {:?}", wm, ids);
         let config = AssociationConfig::default();
         let request = config.into_request(Arc::new(wm), vec![(ids[0], 1.0)]);
         let result = RetrAssociation {}.retrieve(request);

@@ -82,6 +82,22 @@ impl MemoryNote {
     pub fn add_link(&mut self, link: MemoryLink) {
         self.mem_links.push(link);
     }
+    pub fn merge_tags(&mut self, tags: impl IntoIterator<Item = String>) {
+        for tag in tags {
+            if !self.tags.contains(&tag) {
+                self.tags.push(tag);
+            }
+        }
+    }
+    pub fn merge_aliases(&mut self, aliases: impl IntoIterator<Item = String>) {
+        if let MemoryType::Semantic(semantic) = &mut self.mem_type {
+            for alias in aliases {
+                if !semantic.aliases.contains(&alias) {
+                    semantic.aliases.push(alias);
+                }
+            }
+        }
+    }
     pub fn retrieval_increment(&mut self) {
         self.retrieval_count += 1;
         self.last_accessed_time = Utc::now();

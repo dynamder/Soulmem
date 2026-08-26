@@ -1,162 +1,262 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
+  "additionalProperties": false,
   "required": ["nodes", "edges"],
   "properties": {
     "nodes": {
       "type": "array",
       "minItems": 1,
       "items": {
-        "type": "object",
-        "required": ["node_id", "memory_type", "payload"],
-        "properties": {
-          "node_id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "memory_type": {
-            "type": "string",
-            "enum": ["semantic", "situation", "procedure"]
-          },
-          "payload": {
-            "type": "object"
-          }
-        },
-        "allOf": [
-          {
-            "if": {
-              "properties": {
-                "memory_type": {
-                  "const": "situation"
-                }
-              }
-            },
-            "then": {
-              "properties": {
-                "payload": {
-                  "oneOf": [
-                    {
-                      "type": "object",
-                      "required": ["kind", "name", "coordinates"],
-                      "properties": {
-                        "kind": {
-                          "type": "string",
-                          "const": "abstract_location"
-                        },
-                        "name": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "coordinates": {
-                          "type": "string",
-                          "minLength": 1
-                        }
-                      }
-                    },
-                    {
-                      "type": "object",
-                      "required": ["kind", "name", "role"],
-                      "properties": {
-                        "kind": {
-                          "type": "string",
-                          "const": "abstract_participant"
-                        },
-                        "name": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "role": {
-                          "type": "string",
-                          "minLength": 1
-                        }
-                      }
-                    },
-                    {
-                      "type": "object",
-                      "required": ["kind", "atmosphere", "tone"],
-                      "properties": {
-                        "kind": {
-                          "type": "string",
-                          "const": "abstract_environment"
-                        },
-                        "atmosphere": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "tone": {
-                          "type": "string",
-                          "minLength": 1
-                        }
-                      }
-                    },
-                    {
-                      "type": "object",
-                      "required": [
-                        "kind",
-                        "action",
-                        "action_intensity",
-                        "initiator",
-                        "target"
-                      ],
-                      "properties": {
-                        "kind": {
-                          "type": "string",
-                          "const": "abstract_event"
-                        },
-                        "action": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "action_intensity": {
-                          "type": "number"
-                        },
-                        "initiator": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "target": {
-                          "type": "string",
-                          "minLength": 1
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          }
+        "oneOf": [
+          { "$ref": "#/$defs/semantic_node" },
+          { "$ref": "#/$defs/procedure_node" },
+          { "$ref": "#/$defs/situation_node" }
         ]
       }
     },
     "edges": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["from", "to", "relation", "intensity", "confidence"],
-        "properties": {
-          "from": {
-            "type": "string",
-            "minLength": 1
-          },
-          "to": {
-            "type": "string",
-            "minLength": 1
-          },
-          "relation": {
-            "type": "string",
-            "minLength": 1
-          },
-          "intensity": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1
-          },
-          "confidence": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1
-          }
+      "items": { "$ref": "#/$defs/edge" }
+    }
+  },
+  "$defs": {
+    "semantic_node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_id", "memory_type", "payload"],
+      "properties": {
+        "node_id": { "$ref": "#/$defs/non_empty_string" },
+        "memory_type": { "const": "semantic" },
+        "payload": { "$ref": "#/$defs/semantic_payload" }
+      }
+    },
+    "semantic_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content", "aliases", "description", "concept_type"],
+      "properties": {
+        "content": { "$ref": "#/$defs/non_empty_string" },
+        "aliases": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/non_empty_string" }
+        },
+        "description": { "$ref": "#/$defs/non_empty_string" },
+        "concept_type": {
+          "type": "string",
+          "enum": ["entity", "abstract"]
         }
       }
+    },
+    "procedure_node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_id", "memory_type", "payload"],
+      "properties": {
+        "node_id": { "$ref": "#/$defs/non_empty_string" },
+        "memory_type": { "const": "procedure" },
+        "payload": { "$ref": "#/$defs/procedure_payload" }
+      }
+    },
+    "procedure_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content", "action_type"],
+      "properties": {
+        "content": { "$ref": "#/$defs/non_empty_string" },
+        "action_type": {
+          "type": "string",
+          "enum": ["speak", "think", "skill"]
+        }
+      }
+    },
+    "situation_node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_id", "memory_type", "payload"],
+      "properties": {
+        "node_id": { "$ref": "#/$defs/non_empty_string" },
+        "memory_type": { "const": "situation" },
+        "payload": {
+          "oneOf": [
+            { "$ref": "#/$defs/abstract_location_payload" },
+            { "$ref": "#/$defs/abstract_participant_payload" },
+            { "$ref": "#/$defs/abstract_environment_payload" },
+            { "$ref": "#/$defs/abstract_event_payload" },
+            { "$ref": "#/$defs/specific_situation_payload" }
+          ]
+        }
+      }
+    },
+    "abstract_location_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "name", "coordinates"],
+      "properties": {
+        "kind": { "const": "abstract_location" },
+        "name": { "$ref": "#/$defs/non_empty_string" },
+        "coordinates": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "abstract_participant_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "name", "role"],
+      "properties": {
+        "kind": { "const": "abstract_participant" },
+        "name": { "$ref": "#/$defs/non_empty_string" },
+        "role": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "abstract_environment_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "atmosphere", "tone"],
+      "properties": {
+        "kind": { "const": "abstract_environment" },
+        "atmosphere": { "$ref": "#/$defs/non_empty_string" },
+        "tone": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "abstract_event_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "action", "action_intensity", "initiator", "target"],
+      "properties": {
+        "kind": { "const": "abstract_event" },
+        "action": { "$ref": "#/$defs/non_empty_string" },
+        "action_intensity": { "$ref": "#/$defs/unit_number" },
+        "initiator": { "$ref": "#/$defs/non_empty_string" },
+        "target": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "specific_situation_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "narrative", "time_span", "context"],
+      "properties": {
+        "kind": { "const": "specific_situation" },
+        "narrative": { "$ref": "#/$defs/non_empty_string" },
+        "time_span": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "context": { "$ref": "#/$defs/situation_context" }
+      }
+    },
+    "situation_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "location",
+        "participants",
+        "emotions",
+        "sensory_data",
+        "environment",
+        "event"
+      ],
+      "properties": {
+        "location": {
+          "oneOf": [
+            { "$ref": "#/$defs/location" },
+            { "type": "null" }
+          ]
+        },
+        "participants": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/participant" }
+        },
+        "emotions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/emotion" }
+        },
+        "sensory_data": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sensory_data" }
+        },
+        "environment": { "$ref": "#/$defs/environment" },
+        "event": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/event" }
+        }
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "coordinates"],
+      "properties": {
+        "name": { "$ref": "#/$defs/non_empty_string" },
+        "coordinates": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "participant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "role"],
+      "properties": {
+        "name": { "$ref": "#/$defs/non_empty_string" },
+        "role": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["atmosphere", "tone"],
+      "properties": {
+        "atmosphere": { "$ref": "#/$defs/non_empty_string" },
+        "tone": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "action_intensity", "initiator", "target"],
+      "properties": {
+        "action": { "$ref": "#/$defs/non_empty_string" },
+        "action_intensity": { "$ref": "#/$defs/unit_number" },
+        "initiator": { "$ref": "#/$defs/non_empty_string" },
+        "target": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "emotion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "intensity"],
+      "properties": {
+        "name": { "$ref": "#/$defs/non_empty_string" },
+        "intensity": { "$ref": "#/$defs/unit_number" }
+      }
+    },
+    "sensory_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "intensity"],
+      "properties": {
+        "name": { "$ref": "#/$defs/non_empty_string" },
+        "intensity": { "$ref": "#/$defs/unit_number" }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "relation", "intensity", "confidence"],
+      "properties": {
+        "from": { "$ref": "#/$defs/non_empty_string" },
+        "to": { "$ref": "#/$defs/non_empty_string" },
+        "relation": { "$ref": "#/$defs/non_empty_string" },
+        "intensity": { "$ref": "#/$defs/unit_number" },
+        "confidence": { "$ref": "#/$defs/unit_number" }
+      }
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "unit_number": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
     }
   }
 }

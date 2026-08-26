@@ -47,6 +47,16 @@ pub enum MemoryLinkKind {
     Procedure,
 }
 
+impl MemoryLinkKind {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Semantic => "semantic",
+            Self::Situation => "situation",
+            Self::Procedure => "procedure",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct MemoryNoteRecord {
     pub id: String,
@@ -55,6 +65,8 @@ pub struct MemoryNoteRecord {
     pub create_time: DateTime<Utc>,
     pub last_accessed_time: DateTime<Utc>,
     pub kind: MemoryNoteKind,
+    #[serde(default)]
+    pub identity_content: String,
     pub embedding: Option<Vec<f32>>,
     pub payload: Value,
 }
@@ -78,6 +90,8 @@ impl MemoryNoteRecord {
             },
         };
 
+        let identity_content = Self::build_identity_content(&kind, &payload)?;
+
         Ok(Self {
             id: note.id().to_string(),
             tags: note.tags().to_vec(),
@@ -85,9 +99,35 @@ impl MemoryNoteRecord {
             create_time: note.creation_time(),
             last_accessed_time: note.last_accessed_time(),
             kind,
+            identity_content,
             embedding: None,
             payload,
         })
+    }
+
+    pub fn build_identity_content(kind: &MemoryNoteKind, payload: &Value) -> StorageResult<String> {
+        let content = match kind {
+            MemoryNoteKind::Semantic => payload.get("content").and_then(Value::as_str),
+            MemoryNoteKind::Procedure => payload.pointer("/action/content").and_then(Value::as_str),
+            MemoryNoteKind::SituationAbstract | MemoryNoteKind::SituationSpecific => None,
+        };
+
+        match content {
+            Some(content) if !content.trim().is_empty() => Ok(content.trim().to_string()),
+            Some(_) => Err(StorageError::invalid_data(
+                "memory note identity content must not be empty",
+            )),
+            None if matches!(
+                kind,
+                MemoryNoteKind::SituationAbstract | MemoryNoteKind::SituationSpecific
+            ) =>
+            {
+                Ok(serde_json::to_string(payload)?)
+            }
+            None => Err(StorageError::invalid_data(
+                "memory note payload is missing identity content",
+            )),
+        }
     }
 
     pub fn parse_memory_id(&self) -> StorageResult<MemoryId> {
@@ -149,18 +189,29 @@ pub struct MemoryLinkRecord {
     pub from: String,
     pub to: String,
     pub intensity: f64,
+    pub confidence: Option<f32>,
     pub kind: MemoryLinkKind,
     pub payload: Value,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct ConsolidationBatchResult {
+    pub notes: Vec<MemoryNoteRecord>,
+    pub links: Vec<MemoryLinkRecord>,
+}
+
 impl MemoryLinkRecord {
     pub fn from_link(link: &MemoryLink) -> StorageResult<Self> {
-        let (kind, payload) = match link.link_type() {
-            MemoryLinkType::Sem(sem) => (MemoryLinkKind::Semantic, serde_json::to_value(sem)?),
-            MemoryLinkType::Sit(sit) => (MemoryLinkKind::Situation, serde_json::to_value(sit)?),
-            MemoryLinkType::Proc(proc_mem) => {
-                (MemoryLinkKind::Procedure, serde_json::to_value(proc_mem)?)
+        let (kind, payload, confidence) = match link.link_type() {
+            MemoryLinkType::Sem(sem) => (
+                MemoryLinkKind::Semantic,
+                json!({ "verb": sem.verb }),
+                Some(sem.confidence),
+            ),
+            MemoryLinkType::Sit(sit) => {
+                (MemoryLinkKind::Situation, serde_json::to_value(sit)?, None)
             }
+            MemoryLinkType::Proc(_) => (MemoryLinkKind::Procedure, json!({}), None),
         };
 
         Ok(Self {
@@ -168,6 +219,7 @@ impl MemoryLinkRecord {
             from: link.from().to_string(),
             to: link.to().to_string(),
             intensity: link.intensity,
+            confidence,
             kind,
             payload,
         })
@@ -188,21 +240,35 @@ impl MemoryLinkRecord {
     fn to_link_type(&self) -> StorageResult<MemoryLinkType> {
         match self.kind {
             MemoryLinkKind::Semantic => {
-                Ok(MemoryLinkType::Sem(serde_json::from_value::<SemMemLink>(
-                    self.payload.clone(),
-                )?))
+                let verb = self
+                    .payload
+                    .get("verb")
+                    .and_then(Value::as_str)
+                    .filter(|verb| !verb.trim().is_empty())
+                    .ok_or_else(|| {
+                        StorageError::invalid_data("semantic memory_link payload is missing `verb`")
+                    })?;
+                Ok(MemoryLinkType::Sem(SemMemLink::new(
+                    verb.to_string(),
+                    self.confidence.unwrap_or(self.intensity as f32),
+                )))
             }
             MemoryLinkKind::Situation => {
                 Ok(MemoryLinkType::Sit(serde_json::from_value::<
                     SituationMemLink,
                 >(self.payload.clone())?))
             }
-            MemoryLinkKind::Procedure => {
-                Ok(MemoryLinkType::Proc(serde_json::from_value::<ProcMemLink>(
-                    self.payload.clone(),
-                )?))
-            }
+            MemoryLinkKind::Procedure => Ok(MemoryLinkType::Proc(ProcMemLink::TrigToAction(
+                soul_mem_core::memory_links::proc_mem::TrigToAction::new(self.intensity),
+            ))),
         }
+    }
+
+    pub fn has_same_identity_as(&self, other: &Self) -> bool {
+        self.from == other.from
+            && self.to == other.to
+            && self.kind == other.kind
+            && self.payload == other.payload
     }
 }
 
@@ -361,6 +427,7 @@ mod tests {
 
         let record = MemoryNoteRecord::from_note(&note).expect("convert to record");
         assert_eq!(record.kind, MemoryNoteKind::Semantic);
+        assert_eq!(record.identity_content, "Rust");
         assert_eq!(record.tags, vec!["lang".to_string()]);
         assert!(record.parse_memory_id().is_ok());
     }
@@ -406,16 +473,47 @@ mod tests {
         .expect("build target note")
         .id();
 
-        let link = MemoryLink::new(
+        let mut link = MemoryLink::new(
             from,
             to,
-            MemoryLinkType::Sem(SemMemLink::new("mentions".to_string(), 0.8, 0.9)),
+            MemoryLinkType::Sem(SemMemLink::new("mentions".to_string(), 0.9)),
         );
+        link.intensity = 0.4;
 
         let record = MemoryLinkRecord::from_link(&link).expect("convert link to record");
+        assert_eq!(record.confidence, Some(0.9));
         let restored = record.to_link().expect("restore link");
 
         assert_eq!(restored, link);
+    }
+
+    #[test]
+    fn test_memory_link_identity_matches_unique_index() {
+        let from = Uuid::new_v4().into();
+        let to = Uuid::new_v4().into();
+        let mut first = MemoryLink::new(
+            from,
+            to,
+            MemoryLinkType::Sem(SemMemLink::new("uses".to_string(), 0.2)),
+        );
+        first.intensity = 0.2;
+        let mut second = MemoryLink::new(
+            from,
+            to,
+            MemoryLinkType::Sem(SemMemLink::new("uses".to_string(), 0.9)),
+        );
+        second.intensity = 0.9;
+
+        let first = MemoryLinkRecord::from_link(&first).expect("convert first link");
+        let second = MemoryLinkRecord::from_link(&second).expect("convert second link");
+
+        assert!(first.has_same_identity_as(&second));
+
+        let different_relation = MemoryLinkRecord {
+            payload: json!({ "verb": "depends_on" }),
+            ..second
+        };
+        assert!(!first.has_same_identity_as(&different_relation));
     }
 
     #[test]

@@ -46,7 +46,7 @@ pub enum EmbeddingCalcError {
 }
 
 #[async_trait]
-pub trait EmbeddingModel {
+pub trait EmbeddingModel: Send + Sync {
     fn infer_batch(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>>;
     fn infer_with_chunk(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec>;
     fn infer_and_fuse(&self, input: &[&str]) -> EmbeddingGenResult<EmbeddingVec>;

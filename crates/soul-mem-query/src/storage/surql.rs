@@ -7,9 +7,11 @@ pub const MEMORY_NOTE_SCHEMA: &[&str] = &[
     "DEFINE FIELD IF NOT EXISTS create_time ON TABLE memory_note TYPE datetime;",
     "DEFINE FIELD IF NOT EXISTS last_accessed_time ON TABLE memory_note TYPE datetime;",
     "DEFINE FIELD IF NOT EXISTS kind ON TABLE memory_note TYPE string;",
+    "DEFINE FIELD IF NOT EXISTS identity_content ON TABLE memory_note TYPE string;",
     "DEFINE FIELD IF NOT EXISTS embedding ON TABLE memory_note TYPE option<array<float>>;",
     "DEFINE FIELD IF NOT EXISTS payload ON TABLE memory_note TYPE object FLEXIBLE;",
     "DEFINE INDEX IF NOT EXISTS idx_memory_note_id ON TABLE memory_note COLUMNS id UNIQUE;",
+    "DEFINE INDEX IF NOT EXISTS idx_memory_note_identity ON TABLE memory_note COLUMNS kind, identity_content UNIQUE;",
     "DEFINE INDEX IF NOT EXISTS idx_memory_note_embedding ON TABLE memory_note FIELDS embedding HNSW DIMENSION 512 DIST COSINE TYPE F32;",
 ];
 
@@ -20,11 +22,13 @@ pub const MEMORY_LINK_SCHEMA: &[&str] = &[
     "DEFINE FIELD IF NOT EXISTS from ON TABLE memory_link TYPE string;",
     "DEFINE FIELD IF NOT EXISTS to ON TABLE memory_link TYPE string;",
     "DEFINE FIELD IF NOT EXISTS intensity ON TABLE memory_link TYPE number;",
+    "DEFINE FIELD IF NOT EXISTS confidence ON TABLE memory_link TYPE option<number>;",
     "DEFINE FIELD IF NOT EXISTS kind ON TABLE memory_link TYPE string;",
     "DEFINE FIELD IF NOT EXISTS payload ON TABLE memory_link TYPE object FLEXIBLE;",
     "DEFINE INDEX IF NOT EXISTS idx_memory_link_id ON TABLE memory_link COLUMNS id UNIQUE;",
     "DEFINE INDEX IF NOT EXISTS idx_memory_link_from ON TABLE memory_link COLUMNS from;",
     "DEFINE INDEX IF NOT EXISTS idx_memory_link_to ON TABLE memory_link COLUMNS to;",
+    "DEFINE INDEX OVERWRITE idx_memory_link_identity ON TABLE memory_link COLUMNS from, to, kind, payload UNIQUE;",
 ];
 
 // retrieval_event
@@ -71,6 +75,12 @@ pub const GET_NOTE_BY_ID: &str = r#"
 SELECT * FROM ONLY type::record($table, $record_id);
 "#;
 
+pub const FIND_NOTE_BY_IDENTITY: &str = r#"
+SELECT * FROM memory_note
+WHERE kind = $kind AND identity_content = $identity_content
+LIMIT 1;
+"#;
+
 pub const DELETE_NOTE_BY_ID: &str = r#"
 DELETE type::record($table, $record_id);
 "#;
@@ -81,6 +91,14 @@ UPDATE type::record($table, $record_id) MERGE { embedding: $embedding };
 
 pub const UPSERT_LINK: &str = r#"
 UPSERT type::record($table, $record_id) CONTENT $content;
+"#;
+
+pub const FIND_LINK_CANDIDATES: &str = r#"
+SELECT * FROM memory_link WHERE from = $from AND to = $to AND kind = $kind;
+"#;
+
+pub const UPDATE_LINK_WEIGHTS: &str = r#"
+UPDATE type::record($table, $record_id) MERGE { intensity: $intensity, confidence: $confidence };
 "#;
 
 pub const GET_LINK_BY_ID: &str = r#"
@@ -112,18 +130,15 @@ pub const INSERT_FEEDBACK_EVENT: &str = r#"
 CREATE type::record($table, $record_id) CONTENT $content;
 "#;
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_bootstrap_definitions_are_repeatable() {
-        assert!(
-            bootstrap_statements()
-                .iter()
-                .all(|statement| statement.contains("IF NOT EXISTS"))
-        );
+        assert!(bootstrap_statements().iter().all(|statement| {
+            statement.contains("IF NOT EXISTS") || statement.contains("OVERWRITE")
+        }));
     }
 
     #[test]
@@ -138,5 +153,14 @@ mod tests {
                 .iter()
                 .any(|statement| statement.contains("payload") && statement.contains("FLEXIBLE"))
         );
+    }
+
+    #[test]
+    fn test_link_identity_index_is_unique() {
+        assert!(MEMORY_LINK_SCHEMA.iter().any(|statement| {
+            statement.contains("idx_memory_link_identity")
+                && statement.contains("from, to, kind, payload")
+                && statement.contains("UNIQUE")
+        }));
     }
 }

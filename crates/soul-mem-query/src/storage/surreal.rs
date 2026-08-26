@@ -1,6 +1,6 @@
 // SurrealDB 的具体实现
 
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use async_trait::async_trait;
 use parking_lot::RwLock;
@@ -12,6 +12,7 @@ use soul_mem_core::{
 use surrealdb::{
     Surreal,
     engine::any::{Any, connect},
+    method::Transaction,
     opt::auth::Root,
     types::{RecordId, RecordIdKey, SerdeWrapper, SurrealValue, Value as SurrealValueData},
 };
@@ -20,8 +21,8 @@ use uuid::Uuid;
 use super::{
     error::{StorageError, StorageResult},
     model::{
-        EventWindow, FeedbackEventRecord, MemoryLinkRecord, MemoryNoteRecord, RetrievalEventRecord,
-        SimilarityHit, SimilarityQuery,
+        ConsolidationBatchResult, EventWindow, FeedbackEventRecord, MemoryLinkRecord,
+        MemoryNoteRecord, RetrievalEventRecord, SimilarityHit, SimilarityQuery,
     },
     repository::MemoryRepository,
     surql,
@@ -271,6 +272,33 @@ impl SurrealMemoryRepository {
         Ok(())
     }
 
+    fn is_unique_violation(message: &str) -> bool {
+        message.contains("already contains") || message.contains("already exists")
+    }
+
+    fn merge_note_aliases(existing: &mut serde_json::Value, incoming: &serde_json::Value) {
+        let Some(incoming_aliases) = incoming
+            .get("aliases")
+            .and_then(serde_json::Value::as_array)
+        else {
+            return;
+        };
+        let Some(existing_object) = existing.as_object_mut() else {
+            return;
+        };
+        let aliases = existing_object
+            .entry("aliases".to_string())
+            .or_insert_with(|| serde_json::Value::Array(Vec::new()));
+        let Some(existing_aliases) = aliases.as_array_mut() else {
+            return;
+        };
+        for alias in incoming_aliases {
+            if !existing_aliases.contains(alias) {
+                existing_aliases.push(alias.clone());
+            }
+        }
+    }
+
     // 把记录 ID 转成普通字符串。
     fn normalize_record_key(raw_id: &str) -> StorageResult<String> {
         if !raw_id.contains(':') {
@@ -362,6 +390,89 @@ impl SurrealMemoryRepository {
                 Ok(serde_json::from_value(json)?)
             })
             .collect()
+    }
+
+    // 同一关系已存在时仅更新强度，否则创建新关系。
+    async fn upsert_link_in_transaction(
+        transaction: &Transaction<Any>,
+        record: MemoryLinkRecord,
+    ) -> StorageResult<MemoryLinkRecord> {
+        let response = transaction
+            .query(surql::FIND_LINK_CANDIDATES)
+            .bind(("from", record.from.clone()))
+            .bind(("to", record.to.clone()))
+            .bind(("kind", record.kind.as_str()))
+            .await
+            .map_err(|err| {
+                StorageError::backend(format!(
+                    "failed to find matching memory_link in transaction: {err}"
+                ))
+            })?;
+        let mut response = response.check().map_err(|err| {
+            StorageError::backend(format!(
+                "SurrealDB returned an error while finding matching memory_link: {err}"
+            ))
+        })?;
+        let values = response.take(0).map_err(|err| {
+            StorageError::backend(format!("failed to decode matching memory_link rows: {err}"))
+        })?;
+
+        for mut existing in Self::decode_record_list::<MemoryLinkRecord>(values)? {
+            if !existing.has_same_identity_as(&record) {
+                continue;
+            }
+
+            let response = transaction
+                .query(surql::UPDATE_LINK_WEIGHTS)
+                .bind(("table", TABLE_MEMORY_LINK))
+                .bind(("record_id", existing.id.clone()))
+                .bind(("intensity", record.intensity))
+                .bind(("confidence", record.confidence))
+                .await
+                .map_err(|err| {
+                    StorageError::backend(format!(
+                        "failed to update memory_link `{}` weights in transaction: {err}",
+                        existing.id
+                    ))
+                })?;
+            response.check().map_err(|err| {
+                StorageError::backend(format!(
+                    "SurrealDB returned an error while updating memory_link `{}` weights: {err}",
+                    existing.id
+                ))
+            })?;
+
+            existing.intensity = record.intensity;
+            existing.confidence = record.confidence;
+            return Ok(existing);
+        }
+
+        let content = Self::content_without_id(&record, &[])?;
+        let response = transaction
+            .query(surql::UPSERT_LINK)
+            .bind(("table", TABLE_MEMORY_LINK))
+            .bind(("record_id", record.id.clone()))
+            .bind(("content", content))
+            .await
+            .map_err(|err| {
+                StorageError::backend(format!(
+                    "failed to create memory_link `{}` in transaction: {err}",
+                    record.id
+                ))
+            })?;
+        response.check().map_err(|err| {
+            let message = format!(
+                "SurrealDB returned an error while creating memory_link `{}`: {err}",
+                record.id
+            );
+            if Self::is_unique_violation(&message) {
+                StorageError::conflict(message)
+            } else {
+                StorageError::backend(message)
+            }
+        })?;
+
+        Ok(record)
     }
 
     // 处理向量检索结果。
@@ -544,6 +655,116 @@ impl SurrealMemoryRepository {
         })?;
         Self::decode_optional_record(record)
     }
+
+    async fn find_note_by_identity_in_transaction(
+        transaction: &Transaction<Any>,
+        record: &MemoryNoteRecord,
+    ) -> StorageResult<Option<MemoryNoteRecord>> {
+        let response = transaction
+            .query(surql::FIND_NOTE_BY_IDENTITY)
+            .bind(("kind", record.kind.as_str()))
+            .bind(("identity_content", record.identity_content.clone()))
+            .await
+            .map_err(|err| {
+                StorageError::backend(format!(
+                    "failed to find matching memory_note in transaction: {err}"
+                ))
+            })?;
+        let mut response = response.check().map_err(|err| {
+            StorageError::backend(format!(
+                "SurrealDB returned an error while finding matching memory_note: {err}"
+            ))
+        })?;
+        let value = response.take(0).map_err(|err| {
+            StorageError::backend(format!("failed to decode matching memory_note rows: {err}"))
+        })?;
+        Self::decode_optional_record(value)
+    }
+
+    async fn save_note_bundles_in_transaction(
+        transaction: &Transaction<Any>,
+        bundles: &[(MemoryNote, Vec<f32>)],
+    ) -> StorageResult<ConsolidationBatchResult> {
+        let mut prepared = Vec::with_capacity(bundles.len());
+        let mut id_map = HashMap::with_capacity(bundles.len());
+
+        for (note, embedding) in bundles {
+            Self::validate_note_embedding(embedding)?;
+            let mut record = MemoryNoteRecord::from_note(note)?;
+            record.embedding = Some(embedding.clone());
+            if let Some(mut existing) =
+                Self::find_note_by_identity_in_transaction(transaction, &record).await?
+            {
+                for tag in record.tags.iter().cloned() {
+                    if !existing.tags.contains(&tag) {
+                        existing.tags.push(tag);
+                    }
+                }
+                Self::merge_note_aliases(&mut existing.payload, &record.payload);
+                existing.embedding = record.embedding.clone();
+                record = existing;
+            }
+            id_map.insert(note.id(), record.parse_memory_id()?);
+            prepared.push((note, record));
+        }
+
+        let mut records = Vec::with_capacity(bundles.len());
+        let mut link_records = Vec::new();
+        for (note, record) in prepared {
+            let content = Self::content_without_id(
+                &record,
+                &[
+                    ("create_time", record.create_time),
+                    ("last_accessed_time", record.last_accessed_time),
+                ],
+            )?;
+
+            let response = transaction
+                .query(surql::UPSERT_NOTE)
+                .bind(("table", TABLE_MEMORY_NOTE))
+                .bind(("record_id", record.id.clone()))
+                .bind(("content", content))
+                .await
+                .map_err(|err| {
+                    StorageError::backend(format!(
+                        "failed to upsert memory_note `{}` in transaction: {err}",
+                        record.id
+                    ))
+                })?;
+            response.check().map_err(|err| {
+                let message = format!(
+                    "SurrealDB returned an error while upserting memory_note `{}` in transaction: {err}",
+                    record.id
+                );
+                if Self::is_unique_violation(&message) {
+                    StorageError::conflict(message)
+                } else {
+                    StorageError::backend(message)
+                }
+            })?;
+
+            for link in note.links() {
+                let link_id = link.id();
+                let (from, to, link_type, intensity) = link.clone().into_tuple();
+                let link = MemoryLink::from_tuple_with_id(
+                    link_id,
+                    *id_map.get(&from).unwrap_or(&from),
+                    *id_map.get(&to).unwrap_or(&to),
+                    link_type,
+                    intensity,
+                );
+                let link_record = MemoryLinkRecord::from_link(&link)?;
+                let link_record =
+                    Self::upsert_link_in_transaction(transaction, link_record).await?;
+                link_records.push(link_record);
+            }
+            records.push(record);
+        }
+        Ok(ConsolidationBatchResult {
+            notes: records,
+            links: link_records,
+        })
+    }
 }
 
 impl Default for SurrealMemoryRepository {
@@ -602,7 +823,9 @@ impl MemoryRepository for SurrealMemoryRepository {
         match result {
             Ok(()) => {
                 transaction.commit().await.map_err(|err| {
-                    StorageError::backend(format!("failed to commit note upsert transaction: {err}"))
+                    StorageError::backend(format!(
+                        "failed to commit note upsert transaction: {err}"
+                    ))
                 })?;
                 Ok(record)
             }
@@ -662,25 +885,7 @@ impl MemoryRepository for SurrealMemoryRepository {
 
             for link in note.links() {
                 let link_record = MemoryLinkRecord::from_link(link)?;
-                let link_content = Self::content_without_id(&link_record, &[])?;
-                let response = transaction
-                    .query(surql::UPSERT_LINK)
-                    .bind(("table", TABLE_MEMORY_LINK))
-                    .bind(("record_id", link_record.id.clone()))
-                    .bind(("content", link_content))
-                    .await
-                    .map_err(|err| {
-                        StorageError::backend(format!(
-                            "failed to upsert memory_link `{}` in transaction: {err}",
-                            link_record.id
-                        ))
-                    })?;
-                response.check().map_err(|err| {
-                    StorageError::backend(format!(
-                        "SurrealDB returned an error while upserting memory_link `{}` in transaction: {err}",
-                        link_record.id
-                    ))
-                })?;
+                Self::upsert_link_in_transaction(&transaction, link_record).await?;
             }
 
             Ok::<_, StorageError>(())
@@ -690,7 +895,9 @@ impl MemoryRepository for SurrealMemoryRepository {
         match result {
             Ok(()) => {
                 transaction.commit().await.map_err(|err| {
-                    StorageError::backend(format!("failed to commit note bundle transaction: {err}"))
+                    StorageError::backend(format!(
+                        "failed to commit note bundle transaction: {err}"
+                    ))
                 })?;
                 Ok(record)
             }
@@ -703,6 +910,116 @@ impl MemoryRepository for SurrealMemoryRepository {
                 Err(err)
             }
         }
+    }
+
+    // 原子保存整个巩固批次的节点、关系和 embedding。
+    async fn save_note_bundles(
+        &self,
+        bundles: &[(MemoryNote, Vec<f32>)],
+    ) -> StorageResult<Vec<MemoryNoteRecord>> {
+        self.ensure_bootstrapped()?;
+        let db = self.db()?;
+        let transaction = db.begin().await.map_err(|err| {
+            StorageError::backend(format!("failed to begin note bundles transaction: {err}"))
+        })?;
+        let result = Self::save_note_bundles_in_transaction(&transaction, bundles).await;
+
+        match result {
+            Ok(batch) => {
+                transaction.commit().await.map_err(|err| {
+                    StorageError::backend(format!(
+                        "failed to commit note bundles transaction: {err}"
+                    ))
+                })?;
+                Ok(batch.notes)
+            }
+            Err(err) => {
+                transaction.cancel().await.map_err(|cancel_err| {
+                    StorageError::backend(format!(
+                        "{err}; failed to rollback note bundles transaction: {cancel_err}"
+                    ))
+                })?;
+                Err(err)
+            }
+        }
+    }
+
+    // 原子保存巩固批次中的节点、节点关系和 LTP/LTD 更新边。
+    async fn save_consolidation_batch(
+        &self,
+        bundles: &[(MemoryNote, Vec<f32>)],
+        links: &[MemoryLink],
+    ) -> StorageResult<ConsolidationBatchResult> {
+        self.ensure_bootstrapped()?;
+        let db = self.db()?;
+        for attempt in 0..2 {
+            let transaction = db.clone().begin().await.map_err(|err| {
+                StorageError::backend(format!("failed to begin consolidation transaction: {err}"))
+            })?;
+
+            let result = async {
+                let mut batch =
+                    Self::save_note_bundles_in_transaction(&transaction, bundles).await?;
+                for link in links {
+                    let record = MemoryLinkRecord::from_link(link)?;
+                    let record = Self::upsert_link_in_transaction(&transaction, record).await?;
+                    batch.links.push(record);
+                }
+                Ok::<_, StorageError>(batch)
+            }
+            .await;
+
+            match result {
+                Ok(batch) => {
+                    transaction.commit().await.map_err(|err| {
+                        StorageError::backend(format!(
+                            "failed to commit consolidation transaction: {err}"
+                        ))
+                    })?;
+                    return Ok(batch);
+                }
+                Err(err) => {
+                    transaction.cancel().await.map_err(|cancel_err| {
+                        StorageError::backend(format!(
+                            "{err}; failed to rollback consolidation transaction: {cancel_err}"
+                        ))
+                    })?;
+                    if attempt == 0 && matches!(err, StorageError::Conflict(_)) {
+                        continue;
+                    }
+                    return Err(err);
+                }
+            }
+        }
+
+        unreachable!("consolidation transaction retry loop must return")
+    }
+
+    // 按记忆类型和 content 查询已有节点。
+    async fn find_note_by_content(
+        &self,
+        note: &MemoryNote,
+    ) -> StorageResult<Option<MemoryNoteRecord>> {
+        self.ensure_bootstrapped()?;
+        let record = MemoryNoteRecord::from_note(note)?;
+        let db = self.db()?;
+        let response = db
+            .query(surql::FIND_NOTE_BY_IDENTITY)
+            .bind(("kind", record.kind.as_str()))
+            .bind(("identity_content", record.identity_content.clone()))
+            .await
+            .map_err(|err| {
+                StorageError::backend(format!("failed to find duplicate memory_note: {err}"))
+            })?;
+        let mut response = response.check().map_err(|err| {
+            StorageError::backend(format!(
+                "SurrealDB returned an error while finding duplicate memory_note: {err}"
+            ))
+        })?;
+        let value = response.take(0).map_err(|err| {
+            StorageError::backend(format!("failed to decode duplicate memory_note: {err}"))
+        })?;
+        Self::decode_optional_record(value)
     }
 
     // 原子保存多个记忆节点及其关系。
@@ -737,33 +1054,20 @@ impl MemoryRepository for SurrealMemoryRepository {
                         ))
                     })?;
                 response.check().map_err(|err| {
-                    StorageError::backend(format!(
+                    let message = format!(
                         "SurrealDB returned an error while upserting memory_note `{}` in transaction: {err}",
                         record.id
-                    ))
+                    );
+                    if Self::is_unique_violation(&message) {
+                        StorageError::conflict(message)
+                    } else {
+                        StorageError::backend(message)
+                    }
                 })?;
 
                 for link in note.links() {
                     let link_record = MemoryLinkRecord::from_link(link)?;
-                    let link_content = Self::content_without_id(&link_record, &[])?;
-                    let response = transaction
-                        .query(surql::UPSERT_LINK)
-                        .bind(("table", TABLE_MEMORY_LINK))
-                        .bind(("record_id", link_record.id.clone()))
-                        .bind(("content", link_content))
-                        .await
-                        .map_err(|err| {
-                            StorageError::backend(format!(
-                                "failed to upsert memory_link `{}` in transaction: {err}",
-                                link_record.id
-                            ))
-                        })?;
-                    response.check().map_err(|err| {
-                        StorageError::backend(format!(
-                            "SurrealDB returned an error while upserting memory_link `{}` in transaction: {err}",
-                            link_record.id
-                        ))
-                    })?;
+                    Self::upsert_link_in_transaction(&transaction, link_record).await?;
                 }
                 records.push(record);
             }
@@ -887,7 +1191,9 @@ impl MemoryRepository for SurrealMemoryRepository {
         match result {
             Ok(()) => {
                 transaction.commit().await.map_err(|err| {
-                    StorageError::backend(format!("failed to commit delete note transaction: {err}"))
+                    StorageError::backend(format!(
+                        "failed to commit delete note transaction: {err}"
+                    ))
                 })?;
                 Ok(true)
             }
@@ -951,28 +1257,30 @@ impl MemoryRepository for SurrealMemoryRepository {
     async fn upsert_link(&self, link: &MemoryLink) -> StorageResult<MemoryLinkRecord> {
         self.ensure_bootstrapped()?;
         let record = MemoryLinkRecord::from_link(link)?;
-        let content = Self::content_without_id(&record, &[])?;
         let db = self.db()?;
-        let response = db
-            .query(surql::UPSERT_LINK)
-            .bind(("table", TABLE_MEMORY_LINK))
-            .bind(("record_id", record.id.clone()))
-            .bind(("content", content))
-            .await
-            .map_err(|err| {
-                StorageError::backend(format!(
-                    "failed to upsert memory_link `{}` into SurrealDB: {err}",
-                    record.id
-                ))
-            })?;
-        response.check().map_err(|err| {
-            StorageError::backend(format!(
-                "SurrealDB returned an error while upserting memory_link `{}`: {err}",
-                record.id
-            ))
+        let transaction = db.begin().await.map_err(|err| {
+            StorageError::backend(format!("failed to begin memory_link transaction: {err}"))
         })?;
+        let result = Self::upsert_link_in_transaction(&transaction, record).await;
 
-        Ok(record)
+        match result {
+            Ok(record) => {
+                transaction.commit().await.map_err(|err| {
+                    StorageError::backend(format!(
+                        "failed to commit memory_link transaction: {err}"
+                    ))
+                })?;
+                Ok(record)
+            }
+            Err(err) => {
+                transaction.cancel().await.map_err(|cancel_err| {
+                    StorageError::backend(format!(
+                        "{err}; failed to rollback memory_link transaction: {cancel_err}"
+                    ))
+                })?;
+                Err(err)
+            }
+        }
     }
 
     // 根据 ID 删除记忆关系。
@@ -1297,11 +1605,10 @@ mod tests {
     #[tokio::test]
     #[ignore = "requires a running SurrealDB instance at ws://127.0.0.1:8000"]
     async fn test_repository_roundtrip() {
-        let repo = SurrealMemoryRepository::new(SurrealConnectionConfig::new(
-            "ws://127.0.0.1:8000",
-            "test",
-            "main",
-        ).with_auth("test", "test"));
+        let repo = SurrealMemoryRepository::new(
+            SurrealConnectionConfig::new("ws://127.0.0.1:8000", "test", "main")
+                .with_auth("test", "test"),
+        );
         repo.bootstrap().await.expect("bootstrap");
         repo.bootstrap().await.expect("repeat bootstrap");
 
@@ -1328,6 +1635,20 @@ mod tests {
         assert_eq!(loaded.id, saved.id);
         assert_eq!(loaded.payload, saved.payload);
 
+        let same_content = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory::new(
+            "Rust".to_string(),
+            ConceptType::Entity,
+            "different description".to_string(),
+        )))
+        .build()
+        .expect("build note with same content");
+        let duplicate = repo
+            .find_note_by_content(&same_content)
+            .await
+            .expect("find note by kind and content")
+            .expect("matching note exists");
+        assert_eq!(duplicate.id, saved.id);
+
         let mut embedding = vec![0.0; NOTE_EMBEDDING_DIMENSION];
         embedding[0] = 1.0;
         repo.set_note_embedding(source_note.id(), embedding.clone())
@@ -1346,7 +1667,7 @@ mod tests {
             .expect("query similar notes");
         assert!(
             hits.iter()
-            .any(|hit| hit.memory_id == source_note.id().to_string())
+                .any(|hit| hit.memory_id == source_note.id().to_string())
         );
 
         repo.upsert_note(&source_note)
@@ -1359,11 +1680,12 @@ mod tests {
             None
         );
 
-        let link = MemoryLink::new(
+        let mut link = MemoryLink::new(
             source_note.id(),
             target_note.id(),
-            MemoryLinkType::Sem(SemMemLink::new("uses".to_string(), 0.8, 0.9)),
+            MemoryLinkType::Sem(SemMemLink::new("uses".to_string(), 0.8)),
         );
+        link.intensity = 0.8;
         let saved_link = repo.upsert_link(&link).await.expect("upsert link");
         assert_eq!(
             repo.list_outbound_links(source_note.id())
@@ -1375,7 +1697,7 @@ mod tests {
             repo.list_inbound_links(target_note.id())
                 .await
                 .expect("list inbound links"),
-            vec![saved_link]
+            vec![saved_link.clone()]
         );
         assert_eq!(
             repo.load_note(source_note.id())
@@ -1384,6 +1706,45 @@ mod tests {
                 .expect("source exists")
                 .links(),
             &[link]
+        );
+
+        let mut updated_link = MemoryLink::new(
+            source_note.id(),
+            target_note.id(),
+            MemoryLinkType::Sem(SemMemLink::new("uses".to_string(), 0.3)),
+        );
+        updated_link.intensity = 0.3;
+        let updated_link = repo
+            .upsert_link(&updated_link)
+            .await
+            .expect("update duplicate link intensity");
+        assert_eq!(updated_link.id, saved_link.id);
+        assert_eq!(updated_link.intensity, 0.3);
+        assert_eq!(updated_link.payload, saved_link.payload);
+        assert_eq!(
+            repo.list_outbound_links(source_note.id())
+                .await
+                .expect("list deduplicated outbound links"),
+            vec![updated_link.clone()]
+        );
+
+        let mut different_link = MemoryLink::new(
+            source_note.id(),
+            target_note.id(),
+            MemoryLinkType::Sem(SemMemLink::new("depends_on".to_string(), 0.4)),
+        );
+        different_link.intensity = 0.4;
+        let different_link = repo
+            .upsert_link(&different_link)
+            .await
+            .expect("insert different relation between the same notes");
+        assert_ne!(different_link.id, updated_link.id);
+        assert_eq!(
+            repo.list_outbound_links(source_note.id())
+                .await
+                .expect("list distinct outbound links")
+                .len(),
+            2
         );
 
         let mut retrieval_event = RetrievalEventRecord::new(source_note.id());

@@ -240,9 +240,12 @@ impl MemoryCluster {
 
         match self.mem_id_to_index.get(&node_id) {
             Some(&index) if self.graph.contains_node(index) => {
-                // 节点存在且有效
+                // 保留已有节点内容和检索统计，只合并标签并更新对应 embedding。
                 if let Some(existing_node) = self.graph.node_weight_mut(index) {
-                    existing_node.note.retrieval_increment();
+                    existing_node
+                        .note
+                        .merge_tags(embed_node.note.tags().iter().cloned());
+                    existing_node.embedding = embed_node.embedding;
                 }
                 index
             }
@@ -308,7 +311,11 @@ impl MemoryCluster {
                 self.add_pending_edge(target_id, (source, edge));
                 return;
             }
-            if !self.has_edge(edge.id()) {
+            if let Some(&edge_index) = self.link_id_to_index.get(&edge_id) {
+                if let Some(graph_edge) = self.graph.edge_weight_mut(edge_index) {
+                    *graph_edge = GraphMemoryLink::from(edge);
+                }
+            } else {
                 let edge_index =
                     self.graph
                         .add_edge(source, target_index, GraphMemoryLink::from(edge));
@@ -333,6 +340,83 @@ impl Debug for MemoryCluster {
             .field("link_id_to_index", &self.link_id_to_index)
             .field("incompletely_linked_note", &self.incompletely_linked_note)
             .finish()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType, sem_mem::SemMemLink};
+    use soul_mem_core::memory_note::{MemoryNoteBuilder, MemoryType, sem_mem::{ConceptType, SemMemory}};
+    use soul_mem_query::embedding::{EmbeddingVec, note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant}, sem::SemanticEmbedding};
+
+    use super::*;
+
+    fn embedded_note(id: MemoryId, tags: Vec<String>, retrieval_count: usize) -> EmbeddedMemoryNote {
+        let note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory::new(
+            "Rust".to_string(),
+            ConceptType::Entity,
+            "programming language".to_string(),
+        )))
+        .id(id)
+        .tags(tags)
+        .retrieval_count(retrieval_count)
+        .build()
+        .expect("build note");
+        let embedding = MemoryEmbedding::new(
+            EmbeddingVec::zero(128),
+            MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                EmbeddingVec::zero(128),
+                EmbeddingVec::zero(128),
+                EmbeddingVec::zero(128),
+            )),
+        );
+
+        EmbeddedMemoryNote { note, embedding }
+    }
+
+    #[test]
+    fn adding_existing_node_merges_tags_without_incrementing_retrieval_count() {
+        let id = MemoryId::new();
+        let mut cluster = MemoryCluster::new();
+        cluster.add_single_node(embedded_note(id, vec!["language".to_string()], 5));
+        cluster.add_single_node(embedded_note(id, vec!["systems".to_string()], 0));
+
+        let note = cluster.get_node(id).expect("node exists").note();
+        assert_eq!(note.retrieval_count(), 5);
+        assert_eq!(note.tags(), &["language", "systems"]);
+    }
+
+    #[test]
+    fn refreshing_node_updates_existing_graph_edge() {
+        let source_id = MemoryId::new();
+        let target_id = MemoryId::new();
+        let mut source = embedded_note(source_id, Vec::new(), 0);
+        let target = embedded_note(target_id, Vec::new(), 0);
+        let mut link = MemoryLink::new(
+            source_id,
+            target_id,
+            MemoryLinkType::Sem(SemMemLink::new("related".to_string(), 0.2)),
+        );
+        link.intensity = 0.2;
+        source.note.add_link(link.clone());
+
+        let mut cluster = MemoryCluster::new();
+        cluster.add_single_node(source);
+        cluster.add_single_node(target);
+        let edge_index = cluster.get_link_index(link.id()).expect("edge exists");
+        assert_eq!(cluster.graph.edge_weight(edge_index).unwrap().intensity(), 0.2);
+
+        let updated_link = cluster
+            .get_node_mut(source_id)
+            .expect("source exists")
+            .note
+            .links_mut()
+            .first_mut()
+            .expect("source edge exists");
+        updated_link.intensity = 0.8;
+        cluster.refresh_node(&source_id);
+
+        assert_eq!(cluster.graph.edge_weight(edge_index).unwrap().intensity(), 0.8);
     }
 }
 

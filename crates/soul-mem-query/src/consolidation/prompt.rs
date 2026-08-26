@@ -52,7 +52,7 @@ Task: Split the given summary_text into memory-graph nodes and edges, and use ho
 
 Hard requirements:
 1) Output exactly one JSON object. Do not output any explanation, Markdown, or comments.
-2) The output must strictly conform to the given json_schema.
+2) The output must strictly conform to the `consolidation.schema.json` shown below. Treat this schema as the single source of truth.
 3) The top level must contain only: nodes, edges.
 4) node_id must use temporary IDs (n1, n2, n3, ...), and each must be unique.
 5) edges.from / edges.to must reference existing node_id values in nodes.
@@ -61,8 +61,19 @@ Hard requirements:
 8) intensity and confidence must be within [0, 1].
 9) Avoid semantically duplicated nodes within this output (e.g., merge synonyms like "like" and "really like" when appropriate).
 10) edges may be an empty array, but nodes must contain at least one item.
+11) Every required string field must contain meaningful, non-whitespace content. Never use placeholders such as "unknown", "N/A", "null", or "不详".
+12) Each payload must use the exact structure selected by memory_type. Semantic payloads require content, aliases, description, and concept_type. Procedure payloads require content and action_type. Situation payloads must use one of the kind values and structures defined by the schema.
+13) If a required fact is not supported by the summary_text or hot_memories, omit that node instead of inventing a value or using a placeholder.
+14) Write all human-readable text values in Simplified Chinese, including content, aliases, descriptions, names, roles, actions, and edge relations. Keep JSON field names, enum values, and situation payload kind values exactly as required by the schema.
+15) aliases, participants, emotions, sensory_data, and event may be empty arrays when the source contains no corresponding facts. location may be null. Do not omit required fields and never use placeholder values.
+16) Split meaningful atomic concepts into separate nodes when the text explicitly supports them. In particular, separate a named entity from its category, type, or important property, then connect them with an edge.
+17) Do not create nodes for ordinary function words, generic grammar fragments, or concepts that add no reusable meaning. Semantic content must be a concise concept, while description must state the supported meaning or context and should not merely repeat content when more context is available.
+18) Do not add fields that are not defined by `consolidation.schema.json`. Before returning, check the required fields, allowed enum values, payload shape, numeric ranges, node ID references, and that the JSON can be parsed as one object.
+    19) Use specific_situation only for a concrete occurrence whose time and required context are supported. time_span must be an RFC 3339 timestamp such as 2026-08-16T10:00:00Z. Use abstract_location, abstract_participant, abstract_environment, or abstract_event for reusable situation elements.
+    20) An abstract-to-specific situation edge must point from an abstract situation node to a specific_situation node.
+    21) For a named entity, use the most complete canonical name explicitly supported by summary_text or hot_memories as semantic payload.content. Put supported short names, nicknames, and forms of address in aliases. If hot_memories already contains the same entity, reuse its exact content spelling instead of creating a shortened variant.
 
-Again: return only the JSON object itself."#;
+    Again: return only the JSON object itself."#;
 
         // 将热点记忆格式化为 JSON 数组字符串，空列表时输出 "[]"
         let hot_memories_text = if self.hot_memories.is_empty() {
