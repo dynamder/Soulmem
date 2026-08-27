@@ -264,12 +264,10 @@ impl Information {
         match self {
             Information::User(info) => ChatCompletionRequestMessage::from(
                 ChatCompletionRequestUserMessage::from(info.get_str()),
-            )
-            .into(),
+            ),
             Information::Assistant(info) => ChatCompletionRequestMessage::from(
                 ChatCompletionRequestAssistantMessage::from(info.get_str()),
-            )
-            .into(),
+            ),
         }
     }
 }
@@ -326,6 +324,12 @@ impl AssistantInformation {
 pub struct Summary {
     summary: String,
 }
+impl Default for Summary {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Summary {
     pub fn new() -> Self {
         Self {
@@ -399,6 +403,7 @@ mod slidingwindow_test {
         assert_eq!(window.get_windows()[1].get_str(), "assistant_info");
     }
     #[tokio::test]
+    #[ignore = "requires live LLM API (API_KEY)"]
     async fn sliding_window_test_pop() {
         dotenvy::dotenv().ok();
         let client = LlmClient::new(LLMConfig::new(
@@ -427,6 +432,33 @@ mod slidingwindow_test {
         );
     }
     #[tokio::test]
+    async fn test_pop_untagged_removes_front_offline() {
+        dotenvy::dotenv().ok();
+        // 仅用于验证 pop 的窗口行为：先 untag，避免触发真实 LLM 摘要
+        let client = LlmClient::new(LLMConfig::new("", "", ""));
+        let window = SlidingWindow::new(10);
+        window
+            .push("user_info", "user", &client)
+            .await
+            .expect("Failed to push user_information");
+        window
+            .push("assistant_info", "assistant", &client)
+            .await
+            .expect("Failed to push assistant_information");
+        window.untag_information(0);
+
+        window
+            .pop(&client)
+            .await
+            .expect("Failed to pop information");
+        assert_eq!(window.len(), 1);
+        assert_eq!(
+            window.get(0).expect("not found this information").get_str(),
+            "assistant_info"
+        );
+    }
+    #[tokio::test]
+    #[ignore = "requires live LLM API (API_KEY)"]
     async fn sliding_window_test_summary() {
         dotenvy::dotenv().ok();
         let client = LlmClient::new(LLMConfig::new(
@@ -491,7 +523,7 @@ mod slidingwindow_test {
 
         let handle = tokio::spawn(async move {
             for i in 0..50 {
-                (&*window1)
+                window1
                     .push(&format!("user_{}", i), "user", &client1)
                     .await
                     .expect("Failed to push user_information");
@@ -499,7 +531,7 @@ mod slidingwindow_test {
         });
 
         for i in 50..100 {
-            (&*window2)
+            window2
                 .push(&format!("user_{}", i), "user", &client2)
                 .await
                 .expect("Failed to push user_information");
@@ -523,7 +555,7 @@ mod slidingwindow_test {
 
         let write_handle = tokio::spawn(async move {
             for i in 0..25 {
-                (&*window_write)
+                window_write
                     .push(&format!("msg_{}", i), "user", &client)
                     .await
                     .expect("Failed to push");
@@ -542,6 +574,7 @@ mod slidingwindow_test {
     }
 
     #[tokio::test]
+    #[ignore = "requires live LLM API (API_KEY)"]
     async fn test_concurrent_pop_and_read() {
         dotenvy::dotenv().ok();
         let client = LlmClient::new(LLMConfig::new(
@@ -561,7 +594,7 @@ mod slidingwindow_test {
         let window_clone = window.clone();
         let pop_handle = tokio::spawn(async move {
             for _ in 0..3 {
-                (&*window_clone).pop(&client).await.expect("Failed to pop");
+                window_clone.pop(&client).await.expect("Failed to pop");
             }
         });
 
@@ -590,18 +623,14 @@ mod slidingwindow_test {
 
         let handle1 = tokio::spawn(async move {
             for i in 0..5 {
-                (&*window1)
-                    .push(&format!("t1_{}", i), "user", &client1)
-                    .await?;
+                window1.push(&format!("t1_{}", i), "user", &client1).await?;
             }
             Ok::<(), anyhow::Error>(())
         });
 
         let handle2 = tokio::spawn(async move {
             for i in 0..5 {
-                (&*window2)
-                    .push(&format!("t2_{}", i), "user", &client2)
-                    .await?;
+                window2.push(&format!("t2_{}", i), "user", &client2).await?;
             }
             Ok::<(), anyhow::Error>(())
         });

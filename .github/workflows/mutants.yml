@@ -1,0 +1,105 @@
+name: Mutants
+
+on:
+  pull_request:
+    paths:
+      - 'crates/**'
+      - 'benches/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+  schedule:
+    # 每两周一次：周一 02:00 UTC，ISO 偶数周由 decide-weekly 跳过。
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: mutants-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  decide-weekly:
+    name: Decide weekly run
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    outputs:
+      run: ${{ steps.week.outputs.run }}
+    steps:
+      - name: Compute ISO week parity
+        id: week
+        run: |
+          WEEK=$(date +%V)
+          if [ $((10#$WEEK % 2)) -eq 1 ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  mutants-weekly:
+    name: Mutants (weekly full)
+    runs-on: ubuntu-latest
+    needs: decide-weekly
+    if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && needs.decide-weekly.outputs.run == 'true'
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-mutants
+        run: cargo install cargo-mutants --version 27.1.0
+
+      - name: Run cargo mutants (full)
+        run: cargo mutants --workspace
+
+      - name: Check kill rate
+        run: python3 scripts/mutants_gate.py --out-dir mutants.out --threshold 90
+
+      - name: Upload mutants report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutants-out-weekly
+          path: mutants.out
+          retention-days: 7
+
+  mutants-pr:
+    name: Mutants (PR diff)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-mutants
+        run: cargo install cargo-mutants --version 27.1.0
+
+      - name: Generate PR diff
+        run: |
+          git diff "${{ github.event.pull_request.base.sha }}...${{ github.sha }}" > "$RUNNER_TEMP/pr.diff"
+
+      - name: Run cargo mutants (PR diff)
+        run: cargo mutants --workspace --in-diff "$RUNNER_TEMP/pr.diff"
+
+      - name: Check kill rate
+        run: python3 scripts/mutants_gate.py --out-dir mutants.out --threshold 90
+
+      - name: Upload mutants report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutants-out-pr
+          path: mutants.out
+          retention-days: 7

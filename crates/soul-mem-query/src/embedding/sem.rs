@@ -4,10 +4,10 @@ use super::EmbeddingGenResult;
 use super::EmbeddingModel;
 use super::EmbeddingVec;
 
-use crate::embedding::note::MemoryEmbeddingVariant;
-use crate::embedding::raw_linear_blend;
 use crate::embedding::Embeddable;
 use crate::embedding::EmbeddingCalcResult;
+use crate::embedding::note::MemoryEmbeddingVariant;
+use crate::embedding::raw_linear_blend;
 use soul_mem_core::memory_note::sem_mem::SemMemory;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

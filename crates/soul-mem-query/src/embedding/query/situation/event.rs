@@ -96,16 +96,14 @@ impl Embeddable for EventQueryUnit {
             .map(|initiator| model.infer_query_batch(&vec![initiator]))
             .transpose()?;
 
-        let initiator_vec = initiator_batch_vec
-            .map(|vec| vec.into_iter().next())
-            .flatten();
+        let initiator_vec = initiator_batch_vec.and_then(|vec| vec.into_iter().next());
 
         let target_batch_vec = self
             .target()
             .map(|target| model.infer_query_batch(&vec![target]))
             .transpose()?;
 
-        let target_vec = target_batch_vec.map(|vec| vec.into_iter().next()).flatten();
+        let target_vec = target_batch_vec.and_then(|vec| vec.into_iter().next());
 
         Ok(EventQueryUnitEmbedding {
             action: action_vec,

@@ -77,9 +77,7 @@ impl Embeddable for LocationQueryUnit {
             .map(|coord| model.infer_query_batch(&vec![coord]))
             .transpose()?;
 
-        let coordinates_vec = coordinates_batch_vec
-            .map(|vec| vec.into_iter().next())
-            .flatten();
+        let coordinates_vec = coordinates_batch_vec.and_then(|vec| vec.into_iter().next());
 
         Ok(LocationQueryUnitEmbedding {
             name: name_vec,

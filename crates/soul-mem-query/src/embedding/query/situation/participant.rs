@@ -76,14 +76,14 @@ impl Embeddable for ParticipantQueryUnit {
             .map(|name| model.infer_query_batch(&vec![name]))
             .transpose()?;
 
-        let name_vec = name_batch_vec.map(|vec| vec.into_iter().next()).flatten();
+        let name_vec = name_batch_vec.and_then(|vec| vec.into_iter().next());
 
         let role_batch_vec = self
             .role()
             .map(|role| model.infer_query_batch(&vec![role]))
             .transpose()?;
 
-        let role_vec = role_batch_vec.map(|vec| vec.into_iter().next()).flatten();
+        let role_vec = role_batch_vec.and_then(|vec| vec.into_iter().next());
 
         Ok(ParticipantQueryUnitEmbedding {
             name: name_vec,

@@ -2,9 +2,13 @@
 
 [简体中文](README.md) | [English](README_en.md)
 
-[![Project Status: WIP](https://img.shields.io/badge/Status-Active%20Development-orange)](https://github.com/your-username/SoulMem)
+[![Project Status: WIP](https://img.shields.io/badge/Status-Active%20Development-orange)](https://github.com/dynamder/Soulmem)
 
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+
+[![CI](https://github.com/dynamder/Soulmem/actions/workflows/ci.yml/badge.svg)](https://github.com/dynamder/Soulmem/actions/workflows/ci.yml)
+
+[![Mutants](https://github.com/dynamder/Soulmem/actions/workflows/mutants.yml/badge.svg)](https://github.com/dynamder/Soulmem/actions/workflows/mutants.yml)
 
 SoulMem is a memory system specifically designed for role-playing tasks. It **aims to** enable more anthropomorphic outputs from LLMs, allowing simulated characters to remember important, emotionally relevant, and behavior-driving events like humans, and to establish connections between them. **It does not aim to** remember event details or factual knowledge with precise accuracy.
 
@@ -38,6 +42,14 @@ Unlike traditional role-playing systems that rely on static "character cards," S
 
 The project is currently in its early development stages. Installation and basic usage tutorials will be provided here when an applicable version is available.
 
+## 🔧 Development & CI
+
+- Build: `cargo build --workspace --all-targets`
+- Test: `cargo test --workspace`
+- Format & lint: `cargo fmt --all --check`, `cargo clippy --workspace --all-targets -- -D warnings`
+- Mutation testing: `cargo mutants --workspace` (kill rate ≥90%, gated by `scripts/mutants_gate.py`)
+- Pushes and PRs trigger build + tests on Windows, Ubuntu, and macOS; PRs also run diff-scoped mutants; a full mutants run happens every other week.
+
 ## 🤝 Contributing
 
 We warmly welcome contributions of any kind! Whether it's code, documentation, ideas, or testing, all help SoulMem grow.
@@ -49,6 +61,8 @@ We warmly welcome contributions of any kind! Whether it's code, documentation, i
 5.  Open a Pull Request
 
 Please ensure your code follows the existing project style.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the detailed contribution guide.
 
 ## 📄 License
 

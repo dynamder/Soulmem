@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::embedding::EmbeddingCalcResult;
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize, Default)]
 pub struct EmbeddingVec(Vec<f32>);
 
 impl EmbeddingVec {
@@ -26,11 +26,6 @@ impl EmbeddingVec {
     /// 是否为零向量（无有效嵌入输入时用零向量占位）。
     pub fn is_zero(&self) -> bool {
         self.0.iter().all(|&i| i == 0.0)
-    }
-}
-impl Default for EmbeddingVec {
-    fn default() -> Self {
-        Self(Vec::new())
     }
 }
 impl IntoIterator for EmbeddingVec {

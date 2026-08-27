@@ -49,7 +49,7 @@ impl Embeddable for Emotion {
         model: &dyn crate::embedding::EmbeddingModel,
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
         let [emotion_vec] = model
-            .infer_batch(&vec![self.name.as_str()])?
+            .infer_batch(&[self.name.as_str()])?
             .try_into()
             .unwrap(); //SAFEUNWRAP: 此处长度必为1
         Ok(EmotionEmbedding {

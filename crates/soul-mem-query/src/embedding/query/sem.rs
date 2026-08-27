@@ -54,18 +54,15 @@ impl Embeddable for SemanticQueryUnit {
             .map(|concept_identifier| model.infer_query_batch(&vec![concept_identifier]))
             .transpose()?;
 
-        let concept_identifier_vec = concept_identifier_batch_vec
-            .map(|vec| vec.into_iter().next())
-            .flatten();
+        let concept_identifier_vec =
+            concept_identifier_batch_vec.and_then(|vec| vec.into_iter().next());
 
         let description_batch_vec = self
             .description()
             .map(|description| model.infer_query_batch(&vec![description]))
             .transpose()?;
 
-        let description_vec = description_batch_vec
-            .map(|vec| vec.into_iter().next())
-            .flatten();
+        let description_vec = description_batch_vec.and_then(|vec| vec.into_iter().next());
 
         Ok(SemanticQueryUnitEmbedding {
             concept_identifier: concept_identifier_vec,

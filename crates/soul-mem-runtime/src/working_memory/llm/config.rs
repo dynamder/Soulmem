@@ -83,11 +83,24 @@ impl Config for LLMConfig {
     }
 
     fn api_base(&self) -> &str {
-        &self.ai_config.api_base()
+        self.ai_config.api_base()
     }
 
     fn api_key(&self) -> &SecretString {
-        &self.ai_config.api_key()
+        self.ai_config.api_key()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use secrecy::ExposeSecret;
+
+    #[test]
+    fn test_config_api_base_and_key() {
+        let config = LLMConfig::new("test-key", "https://api.example.com/v1", "model-x");
+        assert_eq!(config.api_base(), "https://api.example.com/v1");
+        assert_eq!(config.api_key().expose_secret(), "test-key");
     }
 }
 

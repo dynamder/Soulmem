@@ -88,6 +88,12 @@ pub struct MemoryCluster {
     incompletely_linked_note: HashMap<MemoryId, Vec<(MemoryId, MemoryLink)>>, //鐩爣鑺傜偣鐨剈uid锛孷ec<(婧愯妭鐐圭殑uuid锛屽叧绯?>锛屽瓨uuid鑰岄潪NodeIndex锛岄伩鍏峱etgraph绱㈠紩澶嶇敤瀵艰嚧杩為敊鑺傜偣
                                                                               //embedding_store: HashMap<MemoryId, MemoryEmbedding>, //鐢变簬link鍌ㄥ瓨鍦╯ource鑺傜偣锛宻ource鑺傜偣涓嶅湪鍥句腑锛宭ink鍒欎笉鍙煡锛屽洜姝ource鑺傜偣閫氬父鎬绘槸鏈夋晥
 }
+impl Default for MemoryCluster {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MemoryCluster {
     pub fn new() -> Self {
         Self {
@@ -137,10 +143,10 @@ impl MemoryCluster {
     }
     /// 鍦ㄧ洿鎺ヤ慨鏀硅妭鐐圭殑杩炴帴鍚庯紝蹇呴』璋冪敤姝ゆ柟娉?
     pub fn refresh_node(&mut self, node: &MemoryId) {
-        if let Some(node_index) = self.mem_id_to_index.get(node) {
-            if let Some(node) = self.graph.node_weight(*node_index) {
-                self.merge_edges(*node_index, node.note.links().to_owned());
-            }
+        if let Some(node_index) = self.mem_id_to_index.get(node)
+            && let Some(node) = self.graph.node_weight(*node_index)
+        {
+            self.merge_edges(*node_index, node.note.links().to_owned());
         }
     }
     /// 鍒犻櫎鍗曚釜鑺傜偣锛岃繑鍥炶鍒犻櫎鐨勮妭鐐癸紝骞舵竻鐞嗗啑浣欓」鐩紝娣诲姞pending杈?
@@ -266,7 +272,7 @@ impl MemoryCluster {
         MemorySubCluster {
             node_ids: node_ids.into(),
             edge_ids: edge_ids.into(),
-            super_cluster: &self,
+            super_cluster: self,
         }
     }
     fn merge_node(&mut self, embed_node: EmbeddedMemoryNote) -> NodeIndex {
@@ -292,7 +298,7 @@ impl MemoryCluster {
 
         // 娓呯悊鍙兘瀛樺湪鐨勬棤鏁堢储寮?
         //self.id_to_index.remove(&node_id);
-        self.mem_id_to_index.insert(node_id.clone(), index);
+        self.mem_id_to_index.insert(node_id, index);
 
         // 澶勭悊鎮寕杈?
         self.process_pending_edges(&node_id);
@@ -385,6 +391,77 @@ impl Debug for MemoryCluster {
             .field("link_id_to_index", &self.link_id_to_index)
             .field("incompletely_linked_note", &self.incompletely_linked_note)
             .finish()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use soul_mem_core::memory_links::sem_mem::SemMemLink;
+    use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
+    use soul_mem_core::memory_note::{MemoryNoteBuilder, MemoryType};
+    use soul_mem_query::embedding::EmbeddingVec;
+    use soul_mem_query::embedding::note::{MemoryEmbedding, MemoryEmbeddingVariant};
+    use soul_mem_query::embedding::sem::SemanticEmbedding;
+
+    fn mock_node(id: MemoryId) -> EmbeddedMemoryNote {
+        let note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+            content: "node".to_string(),
+            aliases: vec![],
+            concept_type: ConceptType::Entity,
+            description: String::new(),
+        }))
+        .id(id)
+        .build()
+        .unwrap();
+        let embedding = MemoryEmbedding::new(
+            EmbeddingVec::zero(4),
+            MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                EmbeddingVec::zero(4),
+                EmbeddingVec::zero(4),
+                EmbeddingVec::zero(4),
+            )),
+        );
+        EmbeddedMemoryNote { note, embedding }
+    }
+
+    #[test]
+    fn test_refresh_node_merges_new_links() {
+        let handle = MemoryCluster::new().into_handle();
+        let a = MemoryId::new();
+        let b = MemoryId::new();
+        let c = MemoryId::new();
+        let link_ab = MemoryLink::new(
+            a,
+            b,
+            MemoryLinkType::Sem(SemMemLink::new("relates".to_string(), 1.0)),
+        );
+        let link_ac = MemoryLink::new(
+            a,
+            c,
+            MemoryLinkType::Sem(SemMemLink::new("relates".to_string(), 1.0)),
+        );
+
+        handle.write(|cluster| {
+            let mut node_a = mock_node(a);
+            node_a.note.links_mut().push(link_ab.clone());
+            cluster.add_single_node(node_a);
+            cluster.add_single_node(mock_node(b));
+            cluster.add_single_node(mock_node(c));
+        });
+        assert!(handle.read_or_compute(|cluster| cluster.has_edge(link_ab.id())));
+
+        // 修改 A 的链接后必须调用 refresh_node 才会合并新边
+        handle.write(|cluster| {
+            cluster
+                .get_node_mut(a)
+                .unwrap()
+                .note
+                .links_mut()
+                .push(link_ac.clone());
+            cluster.refresh_node(&a);
+        });
+        assert!(handle.read_or_compute(|cluster| cluster.has_edge(link_ac.id())));
     }
 }
 

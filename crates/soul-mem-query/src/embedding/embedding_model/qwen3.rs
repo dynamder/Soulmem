@@ -52,7 +52,7 @@ impl Qwen3Embedding600M {
     pub fn embed_gen_simple_batch(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>> {
         Ok(self
             .model
-            .embed(&input, None, None)?
+            .embed(input, None, None)?
             .into_iter()
             .map(|e| EmbeddingVec::new(e.to_dense().unwrap())) //SAFEUNWRAP: qwen3 embedder在embed_anything的
             .collect())
@@ -60,7 +60,7 @@ impl Qwen3Embedding600M {
     //对于长文本，分块向量化后平均池化
     pub fn embed_gen_with_chunk_pooling(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec> {
         //分块文本
-        let chunked_input = self.splitter.chunks(&input).collect::<Vec<_>>();
+        let chunked_input = self.splitter.chunks(input).collect::<Vec<_>>();
         //println!("chunked_input: {:?}", chunked_input);
         if chunked_input.is_empty() {
             return Err(EmbeddingGenError::InvalidInput);
@@ -160,10 +160,11 @@ mod test {
     use super::*;
 
     #[tokio::test]
+    #[ignore = "downloads ~1.2GB Qwen3-Embedding-0.6B model; run manually or in a dedicated job"]
     async fn test_qwen3_embedding_600m_cpu() {
         let model = Qwen3Embedding600M::default_cpu().unwrap();
         let input = "SoulMem是一个专为角色扮演任务设计的记忆系统，它旨在使LLM的输出更拟人化成为可能，让模拟角色像人一样记住重要的、情感相关的、可驱动行为的事件，并建立关联。它不旨在精确无误地记忆事件的细节，或事实性知识。请注意！：SoulMem是针对于个人用户，在家用电脑上运行的记忆系统，并非企业级解决方案。";
-        let embeddings = model.embed_gen_with_chunk_pooling(&input).unwrap();
+        let embeddings = model.embed_gen_with_chunk_pooling(input).unwrap();
         assert_eq!(embeddings.shape(), 1024);
     }
 }

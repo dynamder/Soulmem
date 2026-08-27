@@ -163,7 +163,7 @@ mod tests {
     #[test]
     fn test_record_new() {
         let memory_id = create_test_memory_id();
-        let record = Record::new(memory_id.clone());
+        let record = Record::new(memory_id);
 
         // 验证初始状态
         assert_eq!(record.memory_id(), memory_id);
@@ -239,16 +239,14 @@ mod tests {
         assert_eq!(record.access_time_span(), 0);
 
         // 记录提取（会更新最后访问时间）
-        // 需要至少睡眠1秒，因为 access_time_span 返回的是秒数
-        std::thread::sleep(std::time::Duration::from_secs(1));
+        // 直接比较时间戳：sleep(1s) 在 Windows 上可能提前返回，
+        // 而 access_time_span() 按秒截断会把 999ms 截成 0，造成抖动。
+        let before = record.last_access_time();
+        std::thread::sleep(std::time::Duration::from_millis(20));
         record.record_retrieval();
-
-        // 验证时间跨度大于 0
-        let time_span = record.access_time_span();
         assert!(
-            time_span > 0,
-            "Time span should be positive after retrieval, got: {}",
-            time_span
+            record.last_access_time() > before,
+            "last access time should advance after retrieval"
         );
     }
 
@@ -256,7 +254,7 @@ mod tests {
     #[test]
     fn test_getters() {
         let memory_id = create_test_memory_id();
-        let mut record = Record::new(memory_id.clone());
+        let mut record = Record::new(memory_id);
 
         // 测试 memory_id()
         assert_eq!(record.memory_id(), memory_id);
@@ -302,7 +300,7 @@ mod tests {
         // 所以我们只验证至少有一个反馈在范围内
         let all_feedback = record.feedback_history_in_range(time1, time2);
         assert!(
-            all_feedback.len() >= 1,
+            !all_feedback.is_empty(),
             "Should have at least one feedback in range, got: {}",
             all_feedback.len()
         );
@@ -473,7 +471,7 @@ mod tests {
     #[test]
     fn test_record_serialization() {
         let memory_id = create_test_memory_id();
-        let mut record = Record::new(memory_id.clone());
+        let mut record = Record::new(memory_id);
 
         // 添加一些数据
         record.record_retrieval();

@@ -318,6 +318,27 @@ mod tests {
     }
 
     #[test]
+    fn test_links_mut_appends_link() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let mut note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+        assert!(note.links().is_empty());
+
+        let link = MemoryLink::new(
+            MemoryId::new(),
+            MemoryId::new(),
+            crate::memory_links::MemoryLinkType::Sem(
+                crate::memory_links::sem_mem::SemMemLink::new("relates".to_string(), 1.0),
+            ),
+        );
+        note.links_mut().push(link);
+        assert_eq!(note.links().len(), 1);
+    }
+
+    #[test]
     fn test_memory_note_builder_with_time() {
         let mem_type = MemoryType::Semantic(SemMemory::new(
             "Test".to_string(),

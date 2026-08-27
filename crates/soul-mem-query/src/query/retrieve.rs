@@ -74,6 +74,12 @@ pub struct SemanticQueryUnit {
     concept_identifier: Option<String>,
     description: Option<String>,
 }
+impl Default for SemanticQueryUnit {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SemanticQueryUnit {
     pub fn new() -> Self {
         SemanticQueryUnit {
@@ -108,6 +114,12 @@ pub struct SituationQueryUnit {
     environment: Option<EnvironmentQueryUnit>,
     event: Option<Vec<EventQueryUnit>>,
 }
+impl Default for SituationQueryUnit {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SituationQueryUnit {
     pub fn new() -> Self {
         SituationQueryUnit {
@@ -192,6 +204,12 @@ pub struct ParticipantQueryUnit {
     name: Option<String>,
     role: Option<String>,
 }
+impl Default for ParticipantQueryUnit {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ParticipantQueryUnit {
     pub fn new() -> Self {
         ParticipantQueryUnit {
@@ -220,6 +238,12 @@ pub struct EnvironmentQueryUnit {
     atmosphere: Option<String>,
     tone: Option<String>,
 }
+impl Default for EnvironmentQueryUnit {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EnvironmentQueryUnit {
     pub fn new() -> Self {
         EnvironmentQueryUnit {
@@ -282,6 +306,12 @@ pub struct TimeSpanQueryUnit {
     start: Option<DateTime<Utc>>,
     end: Option<DateTime<Utc>>,
 }
+impl Default for TimeSpanQueryUnit {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TimeSpanQueryUnit {
     pub fn new() -> Self {
         TimeSpanQueryUnit {

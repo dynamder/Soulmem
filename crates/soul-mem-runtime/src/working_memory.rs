@@ -70,9 +70,9 @@ impl WorkingMemory {
         self.memory_cluster
             .write(|cluster| cluster.add_single_node(node));
 
-        if !self.records.contains_key(&node_id) {
-            self.records.insert(node_id, Record::new(node_id));
-        }
+        self.records
+            .entry(node_id)
+            .or_insert_with(|| Record::new(node_id));
     }
 
     /// 移除节点，同时移除对应的记录
@@ -136,6 +136,27 @@ mod tests {
             description: String::new(),
         });
         let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+        let embedding = MemoryEmbedding::new(
+            EmbeddingVec::zero(4),
+            MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                EmbeddingVec::zero(4),
+                EmbeddingVec::zero(4),
+                EmbeddingVec::zero(4),
+            )),
+        );
+        EmbeddedMemoryNote { note, embedding }
+    }
+
+    fn mock_node(id: MemoryId) -> EmbeddedMemoryNote {
+        let note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+            content: "node".to_string(),
+            aliases: vec![],
+            concept_type: ConceptType::Entity,
+            description: String::new(),
+        }))
+        .id(id)
+        .build()
+        .unwrap();
         let embedding = MemoryEmbedding::new(
             EmbeddingVec::zero(4),
             MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
@@ -240,5 +261,15 @@ mod tests {
         wm.add_node(node);
         wm.records_mut().get_mut(&id).expect("record").record_retrieval();
         assert_eq!(wm.records()[&id].retrieval_count(), 1);
+    }
+
+    #[test]
+    fn test_add_node_registers_record_and_cluster_node() {
+        let mut wm = WorkingMemory::new(10);
+        let id = MemoryId::new();
+        wm.add_node(mock_node(id));
+
+        assert!(wm.records().contains_key(&id));
+        assert!(wm.memory_cluster().read_or_compute(|c| c.contains_node(id)));
     }
 }

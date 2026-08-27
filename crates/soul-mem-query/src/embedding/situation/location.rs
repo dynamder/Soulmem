@@ -29,7 +29,7 @@ impl Embeddable for Location {
     type EmbeddingFused = EmbeddedLocation;
     fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<Self::EmbeddingGen> {
         let [name_vec, coordinates_vec] = model
-            .infer_batch(&vec![self.name.as_str(), self.coordinates.as_str()])?
+            .infer_batch(&[self.name.as_str(), self.coordinates.as_str()])?
             .try_into()
             .unwrap(); //SAFEUNWRAP: 此处可以确定Vec的长度为2
 
