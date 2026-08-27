@@ -109,30 +109,6 @@ impl RetrStrategy for RetrBayesAction {
     }
 }
 
-fn get_possible_actions(
-    cluster: &MemoryCluster,
-    source: &[(MemoryId, f64)],
-) -> HashMap<MemoryId, f64> {
-    source
-        .iter()
-        .filter_map(|&(id, _weight)| {
-            let idx = cluster.get_mem_index(id)?;
-            let action_neighbors = cluster
-                .graph()
-                .neighbors_directed(idx, Outgoing)
-                .filter_map(|node_idx| {
-                    let note = cluster.graph().node_weight(node_idx)?;
-                    match note.note().mem_type() {
-                        MemoryType::Procedure(_) => Some((note.note().id(), 0.0)),
-                        _ => None,
-                    }
-                });
-            Some(action_neighbors)
-        })
-        .flatten()
-        .collect()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

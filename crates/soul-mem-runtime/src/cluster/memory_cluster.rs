@@ -586,7 +586,7 @@ pub enum ClusterError {
 // }
 
 #[cfg(test)]
-mod tests {
+mod tests2 {
     use super::*;
     use soul_mem_core::memory_links::sem_mem::SemMemLink;
     use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};

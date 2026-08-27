@@ -102,12 +102,6 @@ mod tests {
         assert_eq!(config.api_base(), "https://api.example.com/v1");
         assert_eq!(config.api_key().expose_secret(), "test-key");
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use secrecy::ExposeSecret;
 
     #[test]
     fn test_llm_config_defaults() {
