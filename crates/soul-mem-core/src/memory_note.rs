@@ -76,6 +76,9 @@ impl MemoryNote {
     pub fn links(&self) -> &Vec<MemoryLink> {
         &self.mem_links
     }
+    pub fn links_mut(&mut self) -> &mut Vec<MemoryLink> {
+        &mut self.mem_links
+    }
     pub fn retrieval_increment(&mut self) {
         self.retrieval_count += 1;
         self.last_accessed_time = Utc::now();
@@ -180,6 +183,27 @@ mod tests {
 
         assert_eq!(note.tags(), &vec!["test".to_string()]);
         assert_eq!(note.retrieval_count(), 0);
+    }
+
+    #[test]
+    fn test_links_mut_appends_link() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let mut note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+        assert!(note.links().is_empty());
+
+        let link = MemoryLink::new(
+            MemoryId::new(),
+            MemoryId::new(),
+            crate::memory_links::MemoryLinkType::Sem(
+                crate::memory_links::sem_mem::SemMemLink::new("relates".to_string(), 1.0),
+            ),
+        );
+        note.links_mut().push(link);
+        assert_eq!(note.links().len(), 1);
     }
 
     #[test]

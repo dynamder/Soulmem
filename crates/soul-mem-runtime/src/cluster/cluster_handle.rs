@@ -75,7 +75,6 @@ mod tests {
         let handles: Vec<_> = (0..100)
             .map(|_| {
                 let handle = handle.clone();
-                let id = id;
                 std::thread::spawn(move || {
                     let guard = handle.cluster.read();
                     CONCURRENT_READ_COUNT.fetch_add(1, Ordering::Relaxed);

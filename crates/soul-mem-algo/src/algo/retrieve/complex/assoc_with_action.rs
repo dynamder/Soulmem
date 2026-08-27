@@ -96,7 +96,7 @@ impl RetrStrategy for RetrAssociateWithAction {
 fn softmax(logits: &[(MemoryId, f64)]) -> Vec<(MemoryId, f64)> {
     let max_x = logits
         .iter()
-        .max_by(|&(_, v1), &(_, v2)| v1.partial_cmp(&v2).unwrap_or(std::cmp::Ordering::Equal))
+        .max_by(|&(_, v1), &(_, v2)| v1.partial_cmp(v2).unwrap_or(std::cmp::Ordering::Equal))
         .map(|&(_, v)| v)
         .unwrap_or(0.0);
 

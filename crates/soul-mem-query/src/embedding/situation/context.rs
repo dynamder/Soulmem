@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 use crate::embedding::{
+    Embeddable,
     situation::{
         emotion::EmotionEmbedding, environment::EnvironmentEmbedding, event::EventEmbedding,
         location::LocationEmbedding, participant::ParticipantEmbedding,
         sensory_data::SensoryDataEmbedding,
     },
-    Embeddable,
 };
 use soul_mem_core::memory_note::situation_mem::Context;
 

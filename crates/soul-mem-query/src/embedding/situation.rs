@@ -8,16 +8,17 @@ pub mod sensory_data;
 use serde::{Deserialize, Serialize};
 
 use crate::embedding::{
+    Embeddable, EmbeddingVec,
     situation::{
         context::ContextEmbedding, environment::EnvironmentEmbedding, event::EventEmbedding,
         participant::ParticipantEmbedding,
     },
-    Embeddable, EmbeddingVec,
 };
 use location::LocationEmbedding;
 use soul_mem_core::memory_note::situation_mem::{
     AbstractSituation, SituationType, SpecificSituation,
 };
+#[allow(clippy::large_enum_variant)] // Box 化会改变公开 API 与 serde 布局，暂保持现状
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SituationEmbedding {
     Specific(SpecificSituationEmbedding),
@@ -63,7 +64,7 @@ impl Embeddable for SpecificSituation {
         &self,
         model: &dyn super::EmbeddingModel,
     ) -> super::EmbeddingGenResult<Self::EmbeddingGen> {
-        let narrative_vec = model.infer_with_chunk(&self.get_narrative().as_str())?;
+        let narrative_vec = model.infer_with_chunk(self.get_narrative().as_str())?;
         let context_vec = self.get_context().embed(model)?;
         Ok(SpecificSituationEmbedding {
             narrative: narrative_vec,

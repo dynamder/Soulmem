@@ -125,7 +125,7 @@ where
     }
 
     //最终归一化
-    let sum = ppr_ranks.iter().map(|ppr| *ppr).sum::<D>();
+    let sum = ppr_ranks.iter().copied().sum::<D>();
 
     //返回PPR向量，HashMap形式
     graph
@@ -169,6 +169,7 @@ where
     fn eq(&self, other: &Self) -> bool {
         self.value.eq(&other.value)
     }
+    #[allow(clippy::partialeq_ne_impl)] // 保持与内部浮点值一致的 NaN 语义：float 的 ne 不等价于 !eq
     fn ne(&self, other: &Self) -> bool {
         self.value.ne(&other.value)
     }
@@ -255,6 +256,7 @@ where
     fn eq(&self, other: &Self) -> bool {
         self.value.eq(&other.value)
     }
+    #[allow(clippy::partialeq_ne_impl)] // 同上：保留 NaN 下与 !eq 不同的 ne 语义
     fn ne(&self, other: &Self) -> bool {
         self.value.ne(&other.value)
     }
@@ -300,6 +302,8 @@ where
         }
     }
 }
+
+type EdgeWeightCache<NodeId, EdgeId, D> = HashMap<NodeId, Vec<EdgeWeightUnit<NodeId, EdgeId, D>>>;
 
 #[track_caller]
 //TODO: make damping factor specific to each node
@@ -351,10 +355,8 @@ where
         })
         .collect::<Vec<_>>();
 
-    let mut ppr_edge_weight_cache: HashMap<
-        G::NodeId,
-        Vec<EdgeWeightUnit<G::NodeId, G::EdgeId, D>>,
-    > = HashMap::with_capacity(graph.node_count());
+    let mut ppr_edge_weight_cache: EdgeWeightCache<G::NodeId, G::EdgeId, D> =
+        HashMap::with_capacity(graph.node_count());
 
     //每次取残差最大的节点进行push，加速收敛
     while let Some(residue_i) = residue_vec.iter().copied().max() {
@@ -364,34 +366,36 @@ where
         //println!("Processing node {}", residue_i.idx);
         let out_edges = graph.edges(graph.from_index(residue_i.idx));
         //动态归一化的边权计算
-        if !ppr_edge_weight_cache.contains_key(&graph.from_index(residue_i.idx)) {
-            //println!("Calculating edge weights for node {}", residue_i.idx);
-            let weights = out_edges
-                .map(|edge| {
-                    let weight = weight_calc(graph, &edge, dynamic_query);
-                    EdgeWeightUnit {
-                        target_node: edge.target(),
-                        idx: edge.id(),
-                        value: weight,
-                    }
-                })
-                .collect::<Vec<_>>();
-            let sum = weights.iter().map(|v| v.value).sum::<D>();
-            let weights = if sum != D::zero() {
-                //防止NaN
-                weights
-                    .into_iter()
-                    .map(|w| EdgeWeightUnit {
-                        target_node: w.target_node,
-                        idx: w.idx,
-                        value: w.value / sum,
+        ppr_edge_weight_cache
+            .entry(graph.from_index(residue_i.idx))
+            .or_insert_with(|| {
+                //println!("Calculating edge weights for node {}", residue_i.idx);
+                let weights = out_edges
+                    .map(|edge| {
+                        let weight = weight_calc(graph, &edge, dynamic_query);
+                        EdgeWeightUnit {
+                            target_node: edge.target(),
+                            idx: edge.id(),
+                            value: weight,
+                        }
                     })
-                    .collect::<Vec<_>>()
-            } else {
-                weights
-            };
-            ppr_edge_weight_cache.insert(graph.from_index(residue_i.idx), weights);
-        }
+                    .collect::<Vec<_>>();
+                let sum = weights.iter().map(|v| v.value).sum::<D>();
+
+                if sum != D::zero() {
+                    //防止NaN
+                    weights
+                        .into_iter()
+                        .map(|w| EdgeWeightUnit {
+                            target_node: w.target_node,
+                            idx: w.idx,
+                            value: w.value / sum,
+                        })
+                        .collect::<Vec<_>>()
+                } else {
+                    weights
+                }
+            });
 
         let edge_weights = &ppr_edge_weight_cache[&graph.from_index(residue_i.idx)];
         //println!("edge_weights: {:?}", edge_weights);
@@ -446,8 +450,7 @@ mod test {
         if expected.abs() < f64::EPSILON && actual.abs() < f64::EPSILON {
             0.0
         } else {
-            let diff = (actual - expected).abs();
-            diff
+            (actual - expected).abs()
         }
     }
     fn pressure_large_graph() -> (StableDiGraph<String, f64>, Vec<NodeIndex<u32>>) {
@@ -485,31 +488,23 @@ mod test {
 
         (graph, vec![a, b, c, d])
     }
-    fn toy_graph_with_init_a() -> (
-        StableDiGraph<String, f64>,
-        HashMap<NodeIndex<u32>, f64>,
-        Vec<NodeIndex<u32>>,
-    ) {
+    type ToyGraph = StableDiGraph<String, f64>;
+    type BiasMap = HashMap<NodeIndex<u32>, f64>;
+    type IndexList = Vec<NodeIndex<u32>>;
+
+    fn toy_graph_with_init_a() -> (ToyGraph, BiasMap, IndexList) {
         let (graph, indexes) = test_toy_graph();
         let ans_vec: Vec<f64> = vec![0.851652742, 0.06387396045, 0.07345504972, 0.01101824785];
         let ans = indexes.iter().copied().zip(ans_vec).collect();
         (graph, ans, indexes)
     }
-    fn toy_graph_with_init_b() -> (
-        StableDiGraph<String, f64>,
-        HashMap<NodeIndex<u32>, f64>,
-        Vec<NodeIndex<u32>>,
-    ) {
+    fn toy_graph_with_init_b() -> (ToyGraph, BiasMap, IndexList) {
         let (graph, indexes) = test_toy_graph();
         let ans_vec: Vec<f64> = vec![0.0, 0.852878432, 0.1279320211, 0.01918954688];
         let ans = indexes.iter().copied().zip(ans_vec).collect();
         (graph, ans, indexes)
     }
-    fn toy_graph_with_init_ab() -> (
-        StableDiGraph<String, f64>,
-        HashMap<NodeIndex<u32>, f64>,
-        Vec<NodeIndex<u32>>,
-    ) {
+    fn toy_graph_with_init_ab() -> (ToyGraph, BiasMap, IndexList) {
         let (graph, indexes) = test_toy_graph();
         let ans_vec: Vec<f64> = vec![0.4261326137, 0.4580925718, 0.1006738318, 0.00510098267];
         let ans = indexes.iter().copied().zip(ans_vec).collect();
@@ -523,7 +518,10 @@ mod test {
 
         let ppr_ans = naive_ppr(&graph, 0.15_f64, source_bias, 15);
         let ans_sum = ppr_ans.values().copied().sum::<f64>();
-        assert!(ans_sum - 1.0 < f64::EPSILON);
+        assert!(
+            (ans_sum - 1.0).abs() < 1e-6,
+            "ppr sum should be ~1, got {ans_sum}"
+        );
 
         let avg_diff = 0.25
             * indexes
@@ -551,7 +549,10 @@ mod test {
 
         let ppr_ans = naive_ppr(&graph, 0.15_f64, source_bias, 15);
         let ans_sum = ppr_ans.values().copied().sum::<f64>();
-        assert!(ans_sum - 1.0 < f64::EPSILON);
+        assert!(
+            (ans_sum - 1.0).abs() < 1e-6,
+            "ppr sum should be ~1, got {ans_sum}"
+        );
 
         let avg_diff = 0.25
             * indexes
@@ -580,7 +581,10 @@ mod test {
 
         let ppr_ans = naive_ppr(&graph, 0.15_f64, source_bias, 15);
         let ans_sum = ppr_ans.values().copied().sum::<f64>();
-        assert!(ans_sum - 1.0 < f64::EPSILON);
+        assert!(
+            (ans_sum - 1.0).abs() < 1e-6,
+            "ppr sum should be ~1, got {ans_sum}"
+        );
 
         let avg_diff = 0.25
             * indexes
@@ -620,7 +624,10 @@ mod test {
             .copied()
             .sum::<OrdFloat<f64>>()
             .into_inner();
-        assert!(ans_sum - 1.0 < f64::EPSILON);
+        assert!(
+            (ans_sum - 1.0).abs() < 1e-6,
+            "ppr sum should be ~1, got {ans_sum}"
+        );
 
         let ppr_ans = ppr_ans
             .into_iter()
@@ -709,7 +716,10 @@ mod test {
             .copied()
             .sum::<OrdFloat<f64>>()
             .into_inner();
-        assert!(ans_sum - 1.0 < f64::EPSILON);
+        assert!(
+            (ans_sum - 1.0).abs() < 1e-6,
+            "ppr sum should be ~1, got {ans_sum}"
+        );
 
         let ppr_ans = ppr_ans
             .into_iter()

@@ -52,16 +52,14 @@ impl Embeddable for LocationQueryUnit {
         &self,
         model: &dyn crate::embedding::EmbeddingModel,
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
-        let [name_vec] = model.infer_batch(&vec![self.name()])?.try_into().unwrap(); //SAFEUNWRAP: 此处长度必为1
+        let [name_vec] = model.infer_batch(&[self.name()])?.try_into().unwrap(); //SAFEUNWRAP: 此处长度必为1
 
         let coordinates_batch_vec = self
             .coordinates()
-            .map(|coord| model.infer_batch(&vec![coord]))
+            .map(|coord| model.infer_batch(&[coord]))
             .transpose()?;
 
-        let coordinates_vec = coordinates_batch_vec
-            .map(|vec| vec.into_iter().next())
-            .flatten();
+        let coordinates_vec = coordinates_batch_vec.and_then(|vec| vec.into_iter().next());
 
         Ok(LocationQueryUnitEmbedding {
             name: name_vec,

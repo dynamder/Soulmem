@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::embedding::{mean_pooling, Embeddable, EmbeddingCalcResult, EmbeddingVec};
+use crate::embedding::{Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling};
 use soul_mem_core::memory_note::situation_mem::Environment;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -46,7 +46,7 @@ impl Embeddable for Environment {
         model: &dyn crate::embedding::EmbeddingModel,
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
         let [atmosphere_vec, tone_vec] = model
-            .infer_batch(&vec![self.atmosphere.as_str(), self.tone.as_str()])?
+            .infer_batch(&[self.atmosphere.as_str(), self.tone.as_str()])?
             .try_into()
             .unwrap(); //SAFEUNWRAP: 此处返回的Vec长度必为2
         Ok(EnvironmentEmbedding {

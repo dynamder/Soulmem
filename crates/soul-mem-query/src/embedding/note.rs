@@ -1,6 +1,6 @@
 use crate::embedding::{
-    sem::SemanticEmbedding, situation::SituationEmbedding, Embeddable, EmbeddingCalcResult,
-    EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
+    Embeddable, EmbeddingCalcResult, EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
+    sem::SemanticEmbedding, situation::SituationEmbedding,
 };
 use serde::{Deserialize, Serialize};
 use soul_mem_core::memory_note::{MemoryNote, MemoryType};
@@ -22,6 +22,7 @@ impl MemoryEmbedding {
     }
 }
 
+#[allow(clippy::large_enum_variant)] // Box 化会改变公开 API 与 serde 布局，暂保持现状
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum MemoryEmbeddingVariant {
     Situation(SituationEmbedding),
@@ -94,16 +95,9 @@ impl MemoryEmbedding {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct VecBlendHyperParams {
     // Placeholder for vector blending hyperparameters
-}
-impl Default for VecBlendHyperParams {
-    fn default() -> Self {
-        VecBlendHyperParams {
-            // Placeholder for default values
-        }
-    }
 }
 
 ////////////////////////////////////////////////////////
@@ -173,8 +167,8 @@ impl Embeddable for MemoryNote {
 mod tests {
     use super::*;
     use crate::embedding::embedding_model::bge::BgeSmallZh;
-    use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
     use soul_mem_core::memory_note::MemoryNoteBuilder;
+    use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
 
     #[test]
     fn test_memory_note_embedding() {
