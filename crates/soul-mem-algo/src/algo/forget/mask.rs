@@ -5,7 +5,7 @@ use rand::seq::SliceRandom;
 use std::collections::HashSet;
 
 /// 用于替换被遮罩词元的占位符
-pub const MASK_WORD: &str = " ^& ";
+pub const MASK_WORD: &str = "^&";
 
 /// 遮罩操作的结果
 pub struct MaskResult {

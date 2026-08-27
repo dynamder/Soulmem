@@ -73,7 +73,7 @@ where
     F: FnOnce(&str, &str) -> Fut,
     Fut: Future<Output = Result<String, Box<dyn std::error::Error + Send + Sync>>>,
 {
-    // 步骤〇：对所有节点刷新并存储当前缺失度
+    // 对节点刷新并存储当前缺失度
     let md = compute_and_update_missing_degree(node, current_time);
 
     // 仅 SpecificSituation 和 SemMemory 触发遮罩 / LLM，其余节点仅更新缺失度
@@ -301,7 +301,7 @@ pub use super::llm_completion::align_sem_fields;
 
 #[cfg(test)]
 mod tests {
-    use super::super::decay_calculator::node_intensity_after;
+    use super::super::decay_calculator::ebbinghaus_decay;
     use super::*;
     use chrono::TimeZone;
     use soul_mem_core::memory_note::proc_mem::{Action, ActionType, ProcMemory};
@@ -318,19 +318,26 @@ mod tests {
     pub(crate) fn part1_intensity_report() {
         let t0 = Instant::now();
         // 输入参数
-        let duration_hours = 48.0; // 时长 48 小时
+        let duration_hours = 48.0; // 时长/间隔 48 小时
         let initial_intensity = 1.0; // 初始强度
         let activation_count = 5; // 已激活次数
         let active_factor = 0.1; // 激活次数影响系数
         let half_life_hours = 24.0; // 半衰期 24 小时
 
-        let intensity = node_intensity_after(
-            duration_hours,
-            initial_intensity,
+        // 起始时间（任意设定），并根据间隔时长自动生成当前时间
+        let create_time = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+        let current_time = create_time + chrono::Duration::hours(duration_hours as i64);
+
+        // 调用 ebbinghaus_decay 计算衰减率，再乘初始强度得到节点强度
+        let decay = ebbinghaus_decay(
+            create_time,
             activation_count,
-            active_factor,
+            current_time,
             half_life_hours,
+            active_factor,
+            DEFAULT_MAX_ACTIVATION_CAP,
         );
+        let intensity = initial_intensity * decay;
         let elapsed = t0.elapsed();
 
         // 案例注释：
@@ -341,6 +348,7 @@ mod tests {
             "  输入: 时长={}h, 初始强度={}, 激活次数={}, 影响系数={}, 半衰期={}h",
             duration_hours, initial_intensity, activation_count, active_factor, half_life_hours
         );
+        println!("  起始时间: {:?}, 当前时间(自动生成): {:?}", create_time, current_time);
         println!("  输出: 节点强度 = {:.4}", intensity);
         println!(
             "  案例: 半衰期24h×激活5次(系数0.1)→调整半衰期36h→经48h强度≈{:.4}",
