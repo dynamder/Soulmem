@@ -18,9 +18,7 @@ use soul_mem_core::memory_links::{LinkId, MemoryLink};
 use soul_mem_core::memory_note::MemoryId;
 use soul_mem_query::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding};
 use surrealdb::Surreal;
-#[cfg(test)]
-use surrealdb::engine::local::Mem;
-use surrealdb::engine::local::{Db, SurrealKv};
+use surrealdb::engine::local::{Db, Mem, SurrealKv};
 use surrealdb::types::SurrealValue;
 
 use super::super::{EntityKind, MemoryRepository, StorageError, StorageResult};
@@ -43,8 +41,8 @@ impl SurrealRepository {
         Ok(Self { db })
     }
 
-    /// 连接嵌入式内存库（测试路径，进程退出即失）。
-    #[cfg(test)]
+    /// 连接嵌入式内存库（kv-mem，进程退出即失）。供集成测试与临时使用；
+    /// 生产持久化请用 [`Self::connect`]。
     pub async fn connect_mem() -> Result<Self, surrealdb::Error> {
         let db = Surreal::new::<Mem>(()).await?;
         db.use_ns("soulmem").use_db("soulmem").await?;
