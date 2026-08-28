@@ -88,6 +88,10 @@ impl MemoryNote {
     pub fn mem_type(&self) -> &MemoryType {
         &self.mem_type
     }
+    /// 消费 self 取出 mem_type（持久化转换避免 clone）
+    pub fn into_mem_type(self) -> MemoryType {
+        self.mem_type
+    }
     pub fn mem_type_mut(&mut self) -> &mut MemoryType {
         &mut self.mem_type
     }

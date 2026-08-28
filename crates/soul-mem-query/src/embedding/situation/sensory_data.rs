@@ -5,8 +5,8 @@ use soul_mem_core::memory_note::situation_mem::SensoryData;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SensoryDataEmbedding {
-    sensory: EmbeddingVec,
-    intensity: f32,
+    pub sensory: EmbeddingVec,
+    pub intensity: f32,
 }
 impl SensoryDataEmbedding {
     pub fn sensory(&self) -> &EmbeddingVec {

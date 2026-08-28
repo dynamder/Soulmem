@@ -5,10 +5,10 @@ use soul_mem_core::memory_note::situation_mem::Event;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EventEmbedding {
-    action: EmbeddingVec,
-    initiator: EmbeddingVec,
-    target: EmbeddingVec,
-    intensity: f32,
+    pub action: EmbeddingVec,
+    pub initiator: EmbeddingVec,
+    pub target: EmbeddingVec,
+    pub intensity: f32,
 }
 impl EventEmbedding {
     pub fn action(&self) -> &EmbeddingVec {

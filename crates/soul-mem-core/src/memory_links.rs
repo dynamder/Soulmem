@@ -126,19 +126,59 @@ impl MemoryLink {
     }
 }
 
-impl Default for MemoryLink {
-    fn default() -> Self {
+/// `MemoryLink` 的构建器：允许覆盖 id / 权重 / 遗忘状态等持久化字段。
+/// 必填项（端点 + 类型）在 `new` 时给出，其余可链式覆盖，风格与 `MemoryNoteBuilder` 一致。
+pub struct MemoryLinkBuilder {
+    id: Option<LinkId>,
+    from: MemoryId,
+    to: MemoryId,
+    link_type: MemoryLinkType,
+    intensity: Option<f64>,
+    missing_degree: Option<f32>,
+    last_forget_time: Option<DateTime<Utc>>,
+}
+impl MemoryLinkBuilder {
+    pub fn new(from: MemoryId, to: MemoryId, link_type: MemoryLinkType) -> Self {
         Self {
-            id: LinkId::default(),
-            from: MemoryId::default(),
-            to: MemoryId::default(),
-            intensity: 1.0,
-            missing_degree: 0.0,
-            last_forget_time: Utc::now(),
-            link_type: MemoryLinkType::Sem(SemMemLink::default()),
+            id: None,
+            from,
+            to,
+            link_type,
+            intensity: None,
+            missing_degree: None,
+            last_forget_time: None,
+        }
+    }
+    pub fn id(mut self, id: LinkId) -> Self {
+        self.id = Some(id);
+        self
+    }
+    pub fn intensity(mut self, intensity: f64) -> Self {
+        self.intensity = Some(intensity);
+        self
+    }
+    pub fn missing_degree(mut self, missing_degree: f32) -> Self {
+        self.missing_degree = Some(missing_degree);
+        self
+    }
+    pub fn last_forget_time(mut self, time: DateTime<Utc>) -> Self {
+        self.last_forget_time = Some(time);
+        self
+    }
+    pub fn build(self) -> MemoryLink {
+        MemoryLink {
+            id: self.id.unwrap_or_default(),
+            from: self.from,
+            to: self.to,
+            link_type: self.link_type,
+            intensity: self.intensity.unwrap_or(1.0),
+            // 与 set_missing_degree 保持一致：限制在 0.0~1.0
+            missing_degree: self.missing_degree.unwrap_or(0.0).clamp(0.0, 1.0),
+            last_forget_time: self.last_forget_time.unwrap_or_else(Utc::now),
         }
     }
 }
+
 impl From<(MemoryId, MemoryId, MemoryLinkType, f64)> for MemoryLink {
     fn from(tuple: (MemoryId, MemoryId, MemoryLinkType, f64)) -> Self {
         MemoryLink::from_tuple(tuple.0, tuple.1, tuple.2, tuple.3)
@@ -169,6 +209,56 @@ mod tests {
         };
         let parsed = uuid::Uuid::parse_str(&uuid).expect("display output must be a valid Uuid");
         let _ = parsed;
+    }
+
+    #[test]
+    fn test_builder_full_chain() {
+        let id = LinkId::new();
+        let from = MemoryId::new();
+        let to = MemoryId::new();
+        let time = Utc::now() - chrono::Duration::hours(2);
+        let link = MemoryLinkBuilder::new(
+            from,
+            to,
+            MemoryLinkType::Sem(SemMemLink::new("relates".into(), 0.8)),
+        )
+        .id(id)
+        .intensity(0.7)
+        .missing_degree(0.3)
+        .last_forget_time(time)
+        .build();
+        assert_eq!(link.id(), id);
+        assert_eq!(link.from(), from);
+        assert_eq!(link.to(), to);
+        assert_eq!(link.intensity, 0.7);
+        assert_eq!(link.missing_degree(), 0.3);
+        assert_eq!(link.last_forget_time(), time);
+    }
+
+    #[test]
+    fn test_builder_defaults() {
+        let link = MemoryLinkBuilder::new(
+            MemoryId::new(),
+            MemoryId::new(),
+            MemoryLinkType::Sem(SemMemLink::default()),
+        )
+        .build();
+        assert_eq!(link.intensity, 1.0);
+        assert_eq!(link.missing_degree(), 0.0);
+        // 默认 id 是新建的（非零概率重复视为测试失败）
+        assert_ne!(link.id(), LinkId::default());
+    }
+
+    #[test]
+    fn test_builder_missing_degree_clamped() {
+        let link = MemoryLinkBuilder::new(
+            MemoryId::new(),
+            MemoryId::new(),
+            MemoryLinkType::Sem(SemMemLink::default()),
+        )
+        .missing_degree(1.7)
+        .build();
+        assert_eq!(link.missing_degree(), 1.0);
     }
 
     #[test]

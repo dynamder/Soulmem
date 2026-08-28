@@ -7,8 +7,8 @@ use soul_mem_core::memory_note::{MemoryNote, MemoryType};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct MemoryEmbedding {
-    tag: EmbeddingVec,
-    variant: MemoryEmbeddingVariant,
+    pub tag: EmbeddingVec,
+    pub variant: MemoryEmbeddingVariant,
 }
 impl MemoryEmbedding {
     pub fn tag(&self) -> &EmbeddingVec {

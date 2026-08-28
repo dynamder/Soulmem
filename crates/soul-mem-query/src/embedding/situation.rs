@@ -47,8 +47,8 @@ impl From<AbstractSituationEmbedding> for SituationEmbedding {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SpecificSituationEmbedding {
-    narrative: EmbeddingVec,
-    context: ContextEmbedding,
+    pub narrative: EmbeddingVec,
+    pub context: ContextEmbedding,
 }
 impl SpecificSituationEmbedding {
     pub fn narrative(&self) -> &EmbeddingVec {

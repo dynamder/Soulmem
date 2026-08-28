@@ -12,9 +12,9 @@ use soul_mem_core::memory_note::sem_mem::SemMemory;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SemanticEmbedding {
-    content: EmbeddingVec,
-    aliases: EmbeddingVec,
-    description: EmbeddingVec,
+    pub content: EmbeddingVec,
+    pub aliases: EmbeddingVec,
+    pub description: EmbeddingVec,
 }
 impl SemanticEmbedding {
     pub fn linear_blend(
