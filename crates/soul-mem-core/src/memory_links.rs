@@ -20,6 +20,11 @@ impl LinkId {
         LinkId(Uuid::new_v4())
     }
 }
+impl From<Uuid> for LinkId {
+    fn from(id: Uuid) -> Self {
+        LinkId(id)
+    }
+}
 impl Default for LinkId {
     fn default() -> Self {
         LinkId::new()

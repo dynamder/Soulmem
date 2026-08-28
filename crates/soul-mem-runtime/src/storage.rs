@@ -80,4 +80,21 @@ pub enum StorageError {
     InvalidArgument(String),
 }
 
+/// mapper 转换错误直接上浮为 `InvalidArgument`（`?` 自动转换）。
+impl From<crate::storage::surreal::mapper::MapperError> for StorageError {
+    fn from(e: crate::storage::surreal::mapper::MapperError) -> Self {
+        StorageError::InvalidArgument(e.to_string())
+    }
+}
+
+/// 行序列化错误上浮为 `Serialize`（`?` 自动转换）。
+impl From<serde_json::Error> for StorageError {
+    fn from(e: serde_json::Error) -> Self {
+        StorageError::Serialize {
+            kind: EntityKind::Note,
+            source: e,
+        }
+    }
+}
+
 pub type StorageResult<T> = Result<T, StorageError>;

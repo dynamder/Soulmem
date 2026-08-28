@@ -27,6 +27,9 @@ impl EmbeddingVec {
     pub fn is_zero(&self) -> bool {
         self.0.iter().all(|&i| i == 0.0)
     }
+    pub fn into_inner(self) -> Vec<f32> {
+        self.0
+    }
 }
 impl IntoIterator for EmbeddingVec {
     type IntoIter = <Vec<f32> as IntoIterator>::IntoIter;
@@ -209,10 +212,7 @@ mod tests {
     fn test_add_shape_mismatch() {
         let a = EmbeddingVec::new(vec![1.0]);
         let b = EmbeddingVec::new(vec![1.0, 2.0]);
-        assert!(matches!(
-            a + b,
-            Err(EmbeddingCalcError::ShapeMismatch)
-        ));
+        assert!(matches!(a + b, Err(EmbeddingCalcError::ShapeMismatch)));
     }
 
     #[test]
@@ -220,7 +220,10 @@ mod tests {
         let a = EmbeddingVec::new(vec![5.0, 7.0, 9.0]);
         let b = EmbeddingVec::new(vec![1.0, 2.0, 3.0]);
         let diff = (a - b).unwrap();
-        assert_eq!(diff.iter().copied().collect::<Vec<_>>(), vec![4.0, 5.0, 6.0]);
+        assert_eq!(
+            diff.iter().copied().collect::<Vec<_>>(),
+            vec![4.0, 5.0, 6.0]
+        );
     }
 
     #[test]
@@ -234,7 +237,10 @@ mod tests {
     fn test_mul_scalar() {
         let a = EmbeddingVec::new(vec![1.0, 2.0, 3.0]);
         let scaled = a * 2.0;
-        assert_eq!(scaled.iter().copied().collect::<Vec<_>>(), vec![2.0, 4.0, 6.0]);
+        assert_eq!(
+            scaled.iter().copied().collect::<Vec<_>>(),
+            vec![2.0, 4.0, 6.0]
+        );
         let scaled2 = EmbeddingVec::new(vec![1.0, 2.0]) * 0.5;
         assert_eq!(scaled2.iter().copied().collect::<Vec<_>>(), vec![0.5, 1.0]);
     }
@@ -243,7 +249,10 @@ mod tests {
     fn test_div_scalar() {
         let a = EmbeddingVec::new(vec![2.0, 4.0, 6.0]);
         let divided = a / 2.0;
-        assert_eq!(divided.iter().copied().collect::<Vec<_>>(), vec![1.0, 2.0, 3.0]);
+        assert_eq!(
+            divided.iter().copied().collect::<Vec<_>>(),
+            vec![1.0, 2.0, 3.0]
+        );
         let divided2 = EmbeddingVec::new(vec![1.0, 2.0]) / 0.5;
         assert_eq!(divided2.iter().copied().collect::<Vec<_>>(), vec![2.0, 4.0]);
     }

@@ -93,8 +93,8 @@ pub enum MapperError {
     #[error("json error: {0}")]
     Json(#[from] serde_json::Error),
 
-    #[error("record id `{0:?}` is not a memory_note reference with a uuid key")]
-    InvalidRecordKey(RecordId),
+    #[error("record id `{0}` is not a memory_note reference with a uuid key")]
+    InvalidRecordKey(String),
 
     #[error("required field `{0}` missing on row")]
     MissingField(&'static str),
@@ -125,16 +125,29 @@ impl MemoryIdCodec for MemoryId {
 impl RecordIdCodec for RecordId {
     fn to_memory_id(&self) -> MapperResult<MemoryId> {
         if self.table.as_str() != "memory_note" {
-            return Err(MapperError::InvalidRecordKey(self.clone()));
+            return Err(MapperError::InvalidRecordKey(format!("{self:?}")));
         }
         match &self.key {
             RecordIdKey::Uuid(u) => Ok(MemoryId::from(uuid::Uuid::from(u.clone()))),
             RecordIdKey::String(s) => uuid::Uuid::parse_str(s)
                 .map(MemoryId::from)
-                .map_err(|_| MapperError::InvalidRecordKey(self.clone())),
-            _ => Err(MapperError::InvalidRecordKey(self.clone())),
+                .map_err(|_| MapperError::InvalidRecordKey(format!("{self:?}"))),
+            _ => Err(MapperError::InvalidRecordKey(format!("{self:?}"))),
         }
     }
+}
+
+/// 解析 DB 返回的 record 字符串（``memory_note:`<uuid>` `` 或 `memory_note:<uuid>`）为 MemoryId。
+/// DB 会把 record 值序列化为带反引号的字符串（uuid 键含 `-`），`RecordId` 的 Deserialize 不接受，
+/// 读路径由此函数手动解析。
+pub fn record_str_to_memory_id(s: &str) -> MapperResult<MemoryId> {
+    let key = s
+        .strip_prefix("memory_note:")
+        .ok_or_else(|| MapperError::InvalidRecordKey(s.to_string()))?;
+    let key = key.trim_matches('`');
+    uuid::Uuid::parse_str(key)
+        .map(MemoryId::from)
+        .map_err(|_| MapperError::InvalidRecordKey(s.to_string()))
 }
 
 /// 把一条已嵌入的记忆拆成「note 行 + 全部链接行」，供仓储层同一事务写入。
@@ -149,14 +162,6 @@ mod tests {
     use super::*;
     use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType, sem_mem::SemMemLink};
     use soul_mem_core::memory_note::MemoryNoteBuilder;
-
-    fn sample_link() -> MemoryLink {
-        MemoryLink::new(
-            MemoryId::new(),
-            MemoryId::new(),
-            MemoryLinkType::Sem(SemMemLink::new("relates".to_string(), 0.8)),
-        )
-    }
 
     #[test]
     fn slot_columns_are_unique_and_snake_case() {

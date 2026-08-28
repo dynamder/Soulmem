@@ -20,14 +20,21 @@ use soul_mem_query::embedding::situation::location::LocationEmbedding;
 use soul_mem_query::embedding::situation::participant::ParticipantEmbedding;
 use soul_mem_query::embedding::situation::{AbstractSituationEmbedding, SituationEmbedding, SpecificSituationEmbedding};
 use soul_mem_query::embedding::EmbeddingVec;
+use surrealdb::types::SurrealValue;
 
 use super::{EmbeddingSlot, MapperError, MapperResult};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// `NoteRow` 直接派生 `SurrealValue`（SDK 原生转换）：
+/// - 非 SurrealValue 字段（`MemoryId`/`MemoryType`/`Option<EmbeddingVec>`）用 `#[surreal(wrap)]`
+///   包 `SerdeWrapper` 走 serde（None → Value::None）；
+/// - datetime 字段不 wrap → `Value::Datetime`；`variant_emb`（serde_json）→ 嵌套对象。
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, SurrealValue)]
+#[surreal(crate = "surrealdb::types")]
 pub struct NoteRow {
     /// 记忆 id。序列化为 `memory_id` 字段，避免与 SurrealDB 记录自带的 `id` 字段冲突
     /// （记录 id 是 `memory_note:<uuid>`，写入/读取时由仓储层用本字段保持一致）。
     #[serde(rename = "memory_id")]
+    #[surreal(rename = "memory_id", wrap)]
     pub id: MemoryId,
 
     pub tags: Vec<String>,
@@ -38,6 +45,7 @@ pub struct NoteRow {
     pub last_forget_time: DateTime<Utc>,
 
     /// 记忆类型（嵌套对象，`object FLEXIBLE`）
+    #[surreal(wrap)]
     pub mem_type: MemoryType,
 
     /// 完整嵌入备份（还原唯一真相源）。
@@ -47,52 +55,76 @@ pub struct NoteRow {
 
     // —— 槽位列（ANN 召回用；写入时与 variant_emb 同一转换函数产出）——
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub tag_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sem_content_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sem_aliases_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sem_description_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_narrative_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_ctx_loc_name_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_ctx_loc_coord_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_ctx_part_name_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_ctx_part_role_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_ctx_env_atmosphere_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_ctx_env_tone_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_ctx_event_action_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_ctx_event_initiator_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_ctx_event_target_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_loc_name_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_loc_coord_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_part_name_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_part_role_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_env_atmosphere_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_env_tone_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_event_action_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_event_initiator_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_event_target_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub fused_self_emb: Option<EmbeddingVec>,
 }
 
@@ -102,46 +134,28 @@ impl NoteRow {
     pub fn from_embedded(embedded: EmbeddedMemoryNote) -> MapperResult<NoteRow> {
         let EmbeddedMemoryNote { note, embedding } = embedded;
         let MemoryEmbedding { tag, variant } = embedding;
-        let mut row = NoteRow {
-            id: note.id(),
-            tags: note.tags().to_vec(),
-            retrieval_count: note.retrieval_count(),
-            create_time: note.creation_time(),
-            last_accessed_time: note.last_accessed_time(),
-            missing_degree: note.missing_degree(),
-            last_forget_time: note.last_forget_time(),
-            mem_type: note.into_mem_type(),
-            variant_emb: serde_json::to_value(&variant)?,
-            tag_emb: None,
-            sem_content_emb: None,
-            sem_aliases_emb: None,
-            sem_description_emb: None,
-            sit_narrative_emb: None,
-            sit_ctx_loc_name_emb: None,
-            sit_ctx_loc_coord_emb: None,
-            sit_ctx_part_name_emb: None,
-            sit_ctx_part_role_emb: None,
-            sit_ctx_env_atmosphere_emb: None,
-            sit_ctx_env_tone_emb: None,
-            sit_ctx_event_action_emb: None,
-            sit_ctx_event_initiator_emb: None,
-            sit_ctx_event_target_emb: None,
-            sit_loc_name_emb: None,
-            sit_loc_coord_emb: None,
-            sit_part_name_emb: None,
-            sit_part_role_emb: None,
-            sit_env_atmosphere_emb: None,
-            sit_env_tone_emb: None,
-            sit_event_action_emb: None,
-            sit_event_initiator_emb: None,
-            sit_event_target_emb: None,
-            fused_self_emb: None,
-        };
-        row.apply_slot(EmbeddingSlot::Tag, tag);
+        let variant_emb = serde_json::to_value(&variant)?;
+        // 先取字段再 move note（into_mem_type 消费）
+        let id = note.id();
+        let tags = note.tags().to_vec();
+        let retrieval_count = note.retrieval_count();
+        let create_time = note.creation_time();
+        let last_accessed_time = note.last_accessed_time();
+        let missing_degree = note.missing_degree();
+        let last_forget_time = note.last_forget_time();
+        let mem_type = note.into_mem_type();
+        let mut builder = NoteRowBuilder::new(id, mem_type, variant_emb)
+            .tags(tags)
+            .retrieval_count(retrieval_count)
+            .create_time(create_time)
+            .last_accessed_time(last_accessed_time)
+            .missing_degree(missing_degree)
+            .last_forget_time(last_forget_time)
+            .slot(EmbeddingSlot::Tag, tag);
         for (slot, vec) in flatten_variant(variant)? {
-            row.apply_slot(slot, vec);
+            builder = builder.slot(slot, vec);
         }
-        Ok(row)
+        Ok(builder.build())
     }
 
     fn apply_slot(&mut self, slot: EmbeddingSlot, vec: EmbeddingVec) {
@@ -173,6 +187,36 @@ impl NoteRow {
         }
     }
 
+    /// 全部槽位列（(槽位, 当前值)），供仓储层构造 SET 语句（Replace 全列 / Merge 仅 Some 列）。
+    pub fn slot_vectors(&self) -> Vec<(EmbeddingSlot, Option<&EmbeddingVec>)> {
+        vec![
+            (EmbeddingSlot::Tag, self.tag_emb.as_ref()),
+            (EmbeddingSlot::SemContent, self.sem_content_emb.as_ref()),
+            (EmbeddingSlot::SemAliases, self.sem_aliases_emb.as_ref()),
+            (EmbeddingSlot::SemDescription, self.sem_description_emb.as_ref()),
+            (EmbeddingSlot::SitNarrative, self.sit_narrative_emb.as_ref()),
+            (EmbeddingSlot::SitCtxLocName, self.sit_ctx_loc_name_emb.as_ref()),
+            (EmbeddingSlot::SitCtxLocCoord, self.sit_ctx_loc_coord_emb.as_ref()),
+            (EmbeddingSlot::SitCtxPartName, self.sit_ctx_part_name_emb.as_ref()),
+            (EmbeddingSlot::SitCtxPartRole, self.sit_ctx_part_role_emb.as_ref()),
+            (EmbeddingSlot::SitCtxEnvAtmosphere, self.sit_ctx_env_atmosphere_emb.as_ref()),
+            (EmbeddingSlot::SitCtxEnvTone, self.sit_ctx_env_tone_emb.as_ref()),
+            (EmbeddingSlot::SitCtxEventAction, self.sit_ctx_event_action_emb.as_ref()),
+            (EmbeddingSlot::SitCtxEventInitiator, self.sit_ctx_event_initiator_emb.as_ref()),
+            (EmbeddingSlot::SitCtxEventTarget, self.sit_ctx_event_target_emb.as_ref()),
+            (EmbeddingSlot::SitLocName, self.sit_loc_name_emb.as_ref()),
+            (EmbeddingSlot::SitLocCoord, self.sit_loc_coord_emb.as_ref()),
+            (EmbeddingSlot::SitPartName, self.sit_part_name_emb.as_ref()),
+            (EmbeddingSlot::SitPartRole, self.sit_part_role_emb.as_ref()),
+            (EmbeddingSlot::SitEnvAtmosphere, self.sit_env_atmosphere_emb.as_ref()),
+            (EmbeddingSlot::SitEnvTone, self.sit_env_tone_emb.as_ref()),
+            (EmbeddingSlot::SitEventAction, self.sit_event_action_emb.as_ref()),
+            (EmbeddingSlot::SitEventInitiator, self.sit_event_initiator_emb.as_ref()),
+            (EmbeddingSlot::SitEventTarget, self.sit_event_target_emb.as_ref()),
+            (EmbeddingSlot::FusedSelf, self.fused_self_emb.as_ref()),
+        ]
+    }
+
     /// 读方向：还原完整 `EmbeddedMemoryNote`。`links` 由仓储层从 `memory_link` 表取回后合并。
     ///
     /// 只读 `variant_emb`（嵌入真相源）+ `tag_emb`（tag 通道）；槽位列不参与还原。
@@ -202,12 +246,104 @@ impl NoteRow {
     }
 }
 
+/// `NoteRow` 构建器：必填 id/类型/嵌入备份，其余链式覆盖；槽位列用统一 `slot()`（对应 `EmbeddingSlot`）。
+pub struct NoteRowBuilder {
+    row: NoteRow,
+}
+
+impl NoteRowBuilder {
+    pub fn new(id: MemoryId, mem_type: MemoryType, variant_emb: serde_json::Value) -> Self {
+        let now = Utc::now();
+        Self {
+            row: NoteRow {
+                id,
+                tags: Vec::new(),
+                retrieval_count: 0,
+                create_time: now,
+                last_accessed_time: now,
+                missing_degree: 0.0,
+                last_forget_time: now,
+                mem_type,
+                variant_emb,
+                tag_emb: None,
+                sem_content_emb: None,
+                sem_aliases_emb: None,
+                sem_description_emb: None,
+                sit_narrative_emb: None,
+                sit_ctx_loc_name_emb: None,
+                sit_ctx_loc_coord_emb: None,
+                sit_ctx_part_name_emb: None,
+                sit_ctx_part_role_emb: None,
+                sit_ctx_env_atmosphere_emb: None,
+                sit_ctx_env_tone_emb: None,
+                sit_ctx_event_action_emb: None,
+                sit_ctx_event_initiator_emb: None,
+                sit_ctx_event_target_emb: None,
+                sit_loc_name_emb: None,
+                sit_loc_coord_emb: None,
+                sit_part_name_emb: None,
+                sit_part_role_emb: None,
+                sit_env_atmosphere_emb: None,
+                sit_env_tone_emb: None,
+                sit_event_action_emb: None,
+                sit_event_initiator_emb: None,
+                sit_event_target_emb: None,
+                fused_self_emb: None,
+            },
+        }
+    }
+
+    pub fn tags(mut self, tags: Vec<String>) -> Self {
+        self.row.tags = tags;
+        self
+    }
+    pub fn retrieval_count(mut self, v: usize) -> Self {
+        self.row.retrieval_count = v;
+        self
+    }
+    pub fn create_time(mut self, t: DateTime<Utc>) -> Self {
+        self.row.create_time = t;
+        self
+    }
+    pub fn last_accessed_time(mut self, t: DateTime<Utc>) -> Self {
+        self.row.last_accessed_time = t;
+        self
+    }
+    pub fn missing_degree(mut self, v: f32) -> Self {
+        self.row.missing_degree = v;
+        self
+    }
+    pub fn last_forget_time(mut self, t: DateTime<Utc>) -> Self {
+        self.row.last_forget_time = t;
+        self
+    }
+    /// 设置槽位列（`EmbeddingSlot` → 对应列）。
+    pub fn slot(mut self, slot: EmbeddingSlot, vec: EmbeddingVec) -> Self {
+        self.row.apply_slot(slot, vec);
+        self
+    }
+    pub fn build(self) -> NoteRow {
+        self.row
+    }
+}
+
 impl TryFrom<NoteRow> for EmbeddedMemoryNote {
     type Error = MapperError;
 
     fn try_from(row: NoteRow) -> MapperResult<Self> {
         row.into_embedded(Vec::new())
     }
+}
+
+/// 把整个 `MemoryEmbedding`（tag + variant）展平为槽位对。
+/// note 侧与查询侧共用：仓储层 `similarity_fetch` 用它把查询嵌入转成逐槽位 KNN。
+pub(crate) fn flatten_embedding(
+    embedding: MemoryEmbedding,
+) -> MapperResult<Vec<(EmbeddingSlot, EmbeddingVec)>> {
+    let MemoryEmbedding { tag, variant } = embedding;
+    let mut slots = vec![(EmbeddingSlot::Tag, tag)];
+    slots.extend(flatten_variant(variant)?);
+    Ok(slots)
 }
 
 /// 把 `MemoryEmbeddingVariant` 的每个可索引子向量展平为 (槽位, 向量) 对。
@@ -227,7 +363,7 @@ pub(crate) fn flatten_variant(
             SituationEmbedding::Specific(specific) => {
                 let SpecificSituationEmbedding { narrative, context } = specific;
                 out.push((EmbeddingSlot::SitNarrative, narrative));
-                flatten_context(context, &mut out);
+                out.extend(flatten_context(context));
             }
             SituationEmbedding::Abstract(abs) => flatten_abstract(abs, &mut out)?,
         },
@@ -236,7 +372,8 @@ pub(crate) fn flatten_variant(
     Ok(out)
 }
 
-fn flatten_context(ctx: ContextEmbedding, out: &mut Vec<(EmbeddingSlot, EmbeddingVec)>) {
+/// 把具体情境的 context 子向量展平为槽位对（迭代器链：Option → flat_map → chain → collect）。
+fn flatten_context(ctx: ContextEmbedding) -> Vec<(EmbeddingSlot, EmbeddingVec)> {
     let ContextEmbedding {
         location,
         fused_participant,
@@ -244,22 +381,44 @@ fn flatten_context(ctx: ContextEmbedding, out: &mut Vec<(EmbeddingSlot, Embeddin
         fused_event,
         ..
     } = ctx;
-    if let Some(LocationEmbedding { name, coordinates }) = location {
-        out.push((EmbeddingSlot::SitCtxLocName, name));
-        out.push((EmbeddingSlot::SitCtxLocCoord, coordinates));
-    }
-    if let Some(ParticipantEmbedding { name, role, .. }) = fused_participant {
-        out.push((EmbeddingSlot::SitCtxPartName, name));
-        out.push((EmbeddingSlot::SitCtxPartRole, role));
-    }
+
+    let location = location.into_iter().flat_map(|LocationEmbedding { name, coordinates }| {
+        [
+            (EmbeddingSlot::SitCtxLocName, name),
+            (EmbeddingSlot::SitCtxLocCoord, coordinates),
+        ]
+    });
+    let participant = fused_participant
+        .into_iter()
+        .flat_map(|ParticipantEmbedding { name, role, .. }| {
+            [
+                (EmbeddingSlot::SitCtxPartName, name),
+                (EmbeddingSlot::SitCtxPartRole, role),
+            ]
+        });
     let EnvironmentEmbedding { atmosphere, tone } = environment;
-    out.push((EmbeddingSlot::SitCtxEnvAtmosphere, atmosphere));
-    out.push((EmbeddingSlot::SitCtxEnvTone, tone));
-    if let Some(EventEmbedding { action, initiator, target, .. }) = fused_event {
-        out.push((EmbeddingSlot::SitCtxEventAction, action));
-        out.push((EmbeddingSlot::SitCtxEventInitiator, initiator));
-        out.push((EmbeddingSlot::SitCtxEventTarget, target));
-    }
+    let environment = [
+        (EmbeddingSlot::SitCtxEnvAtmosphere, atmosphere),
+        (EmbeddingSlot::SitCtxEnvTone, tone),
+    ];
+    let event = fused_event.into_iter().flat_map(|EventEmbedding {
+        action,
+        initiator,
+        target,
+        ..
+    }| {
+        [
+            (EmbeddingSlot::SitCtxEventAction, action),
+            (EmbeddingSlot::SitCtxEventInitiator, initiator),
+            (EmbeddingSlot::SitCtxEventTarget, target),
+        ]
+    });
+
+    location
+        .chain(participant)
+        .chain(environment)
+        .chain(event)
+        .collect()
 }
 
 fn flatten_abstract(
@@ -330,6 +489,27 @@ mod tests {
             } } }
         }))
         .unwrap()
+    }
+
+    #[test]
+    fn note_row_builder_defaults_and_slot() {
+        let id = MemoryId::new();
+        let mem_type = MemoryType::Procedure(soul_mem_core::memory_note::proc_mem::ProcMemory::new(
+            soul_mem_core::memory_note::proc_mem::Action::new(
+                "act".into(),
+                soul_mem_core::memory_note::proc_mem::ActionType::new_speak(),
+            ),
+        ));
+        let row = NoteRowBuilder::new(id, mem_type, serde_json::json!({"Procedure": []}))
+            .slot(EmbeddingSlot::Tag, EmbeddingVec::new(vec![1.0, 0.0]))
+            .slot(EmbeddingSlot::SemContent, EmbeddingVec::new(vec![0.5, 0.5]))
+            .build();
+        assert_eq!(row.id, id);
+        assert!(row.tags.is_empty());
+        assert_eq!(row.retrieval_count, 0);
+        assert_eq!(row.tag_emb.as_ref().map(|v| v.iter().copied().collect::<Vec<_>>()), Some(vec![1.0, 0.0]));
+        assert!(row.sem_content_emb.is_some());
+        assert!(row.sit_narrative_emb.is_none());
     }
 
     #[test]
