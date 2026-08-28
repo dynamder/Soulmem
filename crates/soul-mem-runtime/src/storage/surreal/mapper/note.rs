@@ -4,7 +4,7 @@
 //! - 每个可索引子向量一个 `option<array<float>>` 槽位列（ANN 召回用，`None` 缺省为 DB `NONE`）；
 //! - `variant_emb` 完整备份列（还原 `MemoryEmbedding` 的唯一真相源，serde 直通）；
 //! - `fused_self_emb` 为抽象情境叙事通道的派生向量（自身子向量 mean-pool，非分数混合）。
-//! 还原（`into_embedded`）只读 `variant_emb` + `tag_emb`；槽位列不参与还原。
+//!   还原（`into_embedded`）只读 `variant_emb` + `tag_emb`；槽位列不参与还原。
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -14,10 +14,12 @@ use soul_mem_core::memory_note::{MemoryId, MemoryNoteBuilder, MemoryType};
 use soul_mem_query::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant};
 use soul_mem_query::embedding::sem::SemanticEmbedding;
 use soul_mem_query::embedding::situation::context::ContextEmbedding;
+use soul_mem_query::embedding::situation::emotion::EmotionEmbedding;
 use soul_mem_query::embedding::situation::environment::EnvironmentEmbedding;
 use soul_mem_query::embedding::situation::event::EventEmbedding;
 use soul_mem_query::embedding::situation::location::LocationEmbedding;
 use soul_mem_query::embedding::situation::participant::ParticipantEmbedding;
+use soul_mem_query::embedding::situation::sensory_data::SensoryDataEmbedding;
 use soul_mem_query::embedding::situation::{AbstractSituationEmbedding, SituationEmbedding, SpecificSituationEmbedding};
 use soul_mem_query::embedding::EmbeddingVec;
 use surrealdb::types::SurrealValue;
@@ -98,6 +100,12 @@ pub struct NoteRow {
     pub sit_ctx_event_target_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[surreal(wrap)]
+    pub sit_ctx_emotion_emb: Option<EmbeddingVec>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
+    pub sit_ctx_sensory_data_emb: Option<EmbeddingVec>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[surreal(wrap)]
     pub sit_loc_name_emb: Option<EmbeddingVec>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[surreal(wrap)]
@@ -151,9 +159,15 @@ impl NoteRow {
             .last_accessed_time(last_accessed_time)
             .missing_degree(missing_degree)
             .last_forget_time(last_forget_time)
+            // tag 恒写入：还原（into_embedded）以 tag_emb 为 tag 通道真相源（tag 不在 variant_emb 备份中）。
             .slot(EmbeddingSlot::Tag, tag);
+        // 变体槽位向量跳过零值（与查询侧 similarity_fetch 的 is_zero 跳过对称）：
+        // 零向量的 cosine 距离未定义，写入 HNSW 索引是退化情形，且查询侧永远跳过零向量、
+        // 存了也无法召回。variant_emb 备份列保留完整向量（还原真相源不受影响）。
         for (slot, vec) in flatten_variant(variant)? {
-            builder = builder.slot(slot, vec);
+            if !vec.is_zero() {
+                builder = builder.slot(slot, vec);
+            }
         }
         Ok(builder.build())
     }
@@ -174,6 +188,8 @@ impl NoteRow {
             EmbeddingSlot::SitCtxEventAction => self.sit_ctx_event_action_emb = Some(vec),
             EmbeddingSlot::SitCtxEventInitiator => self.sit_ctx_event_initiator_emb = Some(vec),
             EmbeddingSlot::SitCtxEventTarget => self.sit_ctx_event_target_emb = Some(vec),
+            EmbeddingSlot::SitCtxEmotion => self.sit_ctx_emotion_emb = Some(vec),
+            EmbeddingSlot::SitCtxSensoryData => self.sit_ctx_sensory_data_emb = Some(vec),
             EmbeddingSlot::SitLocName => self.sit_loc_name_emb = Some(vec),
             EmbeddingSlot::SitLocCoord => self.sit_loc_coord_emb = Some(vec),
             EmbeddingSlot::SitPartName => self.sit_part_name_emb = Some(vec),
@@ -185,36 +201,6 @@ impl NoteRow {
             EmbeddingSlot::SitEventTarget => self.sit_event_target_emb = Some(vec),
             EmbeddingSlot::FusedSelf => self.fused_self_emb = Some(vec),
         }
-    }
-
-    /// 全部槽位列（(槽位, 当前值)），供仓储层构造 SET 语句（Replace 全列 / Merge 仅 Some 列）。
-    pub fn slot_vectors(&self) -> Vec<(EmbeddingSlot, Option<&EmbeddingVec>)> {
-        vec![
-            (EmbeddingSlot::Tag, self.tag_emb.as_ref()),
-            (EmbeddingSlot::SemContent, self.sem_content_emb.as_ref()),
-            (EmbeddingSlot::SemAliases, self.sem_aliases_emb.as_ref()),
-            (EmbeddingSlot::SemDescription, self.sem_description_emb.as_ref()),
-            (EmbeddingSlot::SitNarrative, self.sit_narrative_emb.as_ref()),
-            (EmbeddingSlot::SitCtxLocName, self.sit_ctx_loc_name_emb.as_ref()),
-            (EmbeddingSlot::SitCtxLocCoord, self.sit_ctx_loc_coord_emb.as_ref()),
-            (EmbeddingSlot::SitCtxPartName, self.sit_ctx_part_name_emb.as_ref()),
-            (EmbeddingSlot::SitCtxPartRole, self.sit_ctx_part_role_emb.as_ref()),
-            (EmbeddingSlot::SitCtxEnvAtmosphere, self.sit_ctx_env_atmosphere_emb.as_ref()),
-            (EmbeddingSlot::SitCtxEnvTone, self.sit_ctx_env_tone_emb.as_ref()),
-            (EmbeddingSlot::SitCtxEventAction, self.sit_ctx_event_action_emb.as_ref()),
-            (EmbeddingSlot::SitCtxEventInitiator, self.sit_ctx_event_initiator_emb.as_ref()),
-            (EmbeddingSlot::SitCtxEventTarget, self.sit_ctx_event_target_emb.as_ref()),
-            (EmbeddingSlot::SitLocName, self.sit_loc_name_emb.as_ref()),
-            (EmbeddingSlot::SitLocCoord, self.sit_loc_coord_emb.as_ref()),
-            (EmbeddingSlot::SitPartName, self.sit_part_name_emb.as_ref()),
-            (EmbeddingSlot::SitPartRole, self.sit_part_role_emb.as_ref()),
-            (EmbeddingSlot::SitEnvAtmosphere, self.sit_env_atmosphere_emb.as_ref()),
-            (EmbeddingSlot::SitEnvTone, self.sit_env_tone_emb.as_ref()),
-            (EmbeddingSlot::SitEventAction, self.sit_event_action_emb.as_ref()),
-            (EmbeddingSlot::SitEventInitiator, self.sit_event_initiator_emb.as_ref()),
-            (EmbeddingSlot::SitEventTarget, self.sit_event_target_emb.as_ref()),
-            (EmbeddingSlot::FusedSelf, self.fused_self_emb.as_ref()),
-        ]
     }
 
     /// 读方向：还原完整 `EmbeddedMemoryNote`。`links` 由仓储层从 `memory_link` 表取回后合并。
@@ -279,6 +265,8 @@ impl NoteRowBuilder {
                 sit_ctx_event_action_emb: None,
                 sit_ctx_event_initiator_emb: None,
                 sit_ctx_event_target_emb: None,
+                sit_ctx_emotion_emb: None,
+                sit_ctx_sensory_data_emb: None,
                 sit_loc_name_emb: None,
                 sit_loc_coord_emb: None,
                 sit_part_name_emb: None,
@@ -377,9 +365,10 @@ fn flatten_context(ctx: ContextEmbedding) -> Vec<(EmbeddingSlot, EmbeddingVec)> 
     let ContextEmbedding {
         location,
         fused_participant,
+        fused_emotion,
+        fused_sensory_data,
         environment,
         fused_event,
-        ..
     } = ctx;
 
     let location = location.into_iter().flat_map(|LocationEmbedding { name, coordinates }| {
@@ -396,6 +385,15 @@ fn flatten_context(ctx: ContextEmbedding) -> Vec<(EmbeddingSlot, EmbeddingVec)> 
                 (EmbeddingSlot::SitCtxPartRole, role),
             ]
         });
+    // 情绪/感官通道：weight_pooling 后的融合向量；intensity 是标量，不入槽位列
+    let emotion = fused_emotion.into_iter().map(|e| {
+        let EmotionEmbedding { emotion, .. } = e;
+        (EmbeddingSlot::SitCtxEmotion, emotion)
+    });
+    let sensory = fused_sensory_data.into_iter().map(|s| {
+        let SensoryDataEmbedding { sensory, .. } = s;
+        (EmbeddingSlot::SitCtxSensoryData, sensory)
+    });
     let EnvironmentEmbedding { atmosphere, tone } = environment;
     let environment = [
         (EmbeddingSlot::SitCtxEnvAtmosphere, atmosphere),
@@ -416,6 +414,8 @@ fn flatten_context(ctx: ContextEmbedding) -> Vec<(EmbeddingSlot, EmbeddingVec)> 
 
     location
         .chain(participant)
+        .chain(emotion)
+        .chain(sensory)
         .chain(environment)
         .chain(event)
         .collect()
@@ -561,6 +561,78 @@ mod tests {
         assert!((f[1] - 0.3).abs() < 1e-6, "fused[1]={}", f[1]);
         assert!(row.sem_content_emb.is_none()); // 情境记忆没有语义列
 
+        let back = row.into_embedded(Vec::new()).unwrap();
+        assert_eq!(back, embedded);
+    }
+
+    /// 具体情境全通道往返：narrative + context（location/participant/emotion/sensory/environment/event）
+    /// 全部产出槽位列，其中 emotion/sensory 通道此前被遗漏（疏漏修复），必须断言其列被写入。
+    #[test]
+    fn specific_situation_roundtrip_with_emotion_sensory() {
+        use soul_mem_core::memory_note::situation_mem::{Context, SpecificSituation};
+        let mem_type = MemoryType::Situation(
+            SpecificSituation::new("叙事".into(), Utc::now(), Context::default()).into(),
+        );
+        let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+        // 通过 serde_json 构造 Specific 变体（query crate 构造器多为 pub(crate)）
+        let variant: MemoryEmbeddingVariant = serde_json::from_value(serde_json::json!({
+            "Situation": { "Specific": {
+                "narrative": [1.0, 0.0],
+                "context": {
+                    "location": { "name": [0.9, 0.1], "coordinates": [0.8, 0.2] },
+                    "fused_participant": { "name": [0.7, 0.3], "role": [0.6, 0.4], "fused": [0.5, 0.5] },
+                    "fused_emotion": { "emotion": [0.55, 0.45], "intensity": 1.0 },
+                    "fused_sensory_data": { "sensory": [0.53, 0.47], "intensity": 1.0 },
+                    "environment": { "atmosphere": [0.4, 0.6], "tone": [0.3, 0.7] },
+                    "fused_event": { "action": [0.2, 0.8], "initiator": [0.1, 0.9], "target": [0.05, 0.95], "intensity": 1.0 }
+                }
+            } }
+        }))
+        .unwrap();
+        let embedding = MemoryEmbedding::new(EmbeddingVec::new(vec![0.0, 1.0]), variant);
+        let embedded = EmbeddedMemoryNote { note, embedding };
+
+        let row = NoteRow::from_embedded(embedded.clone()).unwrap();
+        assert!(row.sit_narrative_emb.is_some());
+        assert!(row.sit_ctx_loc_name_emb.is_some());
+        assert!(row.sit_ctx_part_name_emb.is_some());
+        assert!(row.sit_ctx_emotion_emb.is_some(), "emotion 通道必须写入槽位列");
+        assert!(row.sit_ctx_sensory_data_emb.is_some(), "sensory 通道必须写入槽位列");
+        assert!(row.sit_ctx_env_atmosphere_emb.is_some());
+        assert!(row.sit_ctx_event_action_emb.is_some());
+        assert!(row.sit_loc_name_emb.is_none()); // 抽象情境列不写入
+        assert!(row.fused_self_emb.is_none()); // 具体情境无 fused_self
+
+        let back = row.into_embedded(Vec::new()).unwrap();
+        assert_eq!(back, embedded);
+    }
+
+    /// 零向量对称跳过：写入侧变体槽位向量为零时不落槽位列（NONE），但 variant_emb 备份
+    /// 保留完整向量，还原仍保真（与查询侧 similarity_fetch 的 is_zero 跳过一致）。
+    /// tag 例外：tag_emb 是还原的 tag 通道真相源，恒写入（含零向量）。
+    #[test]
+    fn zero_vectors_skip_slot_columns_but_keep_backup() {
+        let mem_type = MemoryType::Semantic(SemMemory {
+            content: "内容".into(),
+            aliases: vec![],
+            concept_type: ConceptType::Entity,
+            description: "描述".into(),
+        });
+        let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+        let variant = MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+            EmbeddingVec::zero(4), // 零向量 content
+            EmbeddingVec::new(vec![0.9, 0.1, 0.0, 0.0]),
+            EmbeddingVec::zero(4), // 零向量 description
+        ));
+        let embedding = MemoryEmbedding::new(EmbeddingVec::zero(4), variant); // 零向量 tag
+        let embedded = EmbeddedMemoryNote { note, embedding };
+
+        let row = NoteRow::from_embedded(embedded.clone()).unwrap();
+        assert!(row.tag_emb.is_some(), "tag 恒写入（还原真相源）");
+        assert!(row.sem_content_emb.is_none(), "零向量 content 不写槽位列");
+        assert!(row.sem_description_emb.is_none(), "零向量 description 不写槽位列");
+        assert!(row.sem_aliases_emb.is_some(), "非零向量照常写入");
+        // 备份列是唯一真相源，保留完整嵌入（含零向量）
         let back = row.into_embedded(Vec::new()).unwrap();
         assert_eq!(back, embedded);
     }

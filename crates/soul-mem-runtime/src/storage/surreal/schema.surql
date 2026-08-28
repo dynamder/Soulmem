@@ -31,6 +31,8 @@ DEFINE FIELD IF NOT EXISTS sit_ctx_env_tone_emb ON TABLE memory_note TYPE option
 DEFINE FIELD IF NOT EXISTS sit_ctx_event_action_emb ON TABLE memory_note TYPE option<array<float>>;
 DEFINE FIELD IF NOT EXISTS sit_ctx_event_initiator_emb ON TABLE memory_note TYPE option<array<float>>;
 DEFINE FIELD IF NOT EXISTS sit_ctx_event_target_emb ON TABLE memory_note TYPE option<array<float>>;
+DEFINE FIELD IF NOT EXISTS sit_ctx_emotion_emb ON TABLE memory_note TYPE option<array<float>>;
+DEFINE FIELD IF NOT EXISTS sit_ctx_sensory_data_emb ON TABLE memory_note TYPE option<array<float>>;
 DEFINE FIELD IF NOT EXISTS sit_loc_name_emb ON TABLE memory_note TYPE option<array<float>>;
 DEFINE FIELD IF NOT EXISTS sit_loc_coord_emb ON TABLE memory_note TYPE option<array<float>>;
 DEFINE FIELD IF NOT EXISTS sit_part_name_emb ON TABLE memory_note TYPE option<array<float>>;
@@ -58,6 +60,8 @@ DEFINE INDEX IF NOT EXISTS idx_memory_note_sit_ctx_env_tone ON TABLE memory_note
 DEFINE INDEX IF NOT EXISTS idx_memory_note_sit_ctx_event_action ON TABLE memory_note FIELDS sit_ctx_event_action_emb HNSW DIMENSION 512 TYPE F32 DISTANCE COSINE;
 DEFINE INDEX IF NOT EXISTS idx_memory_note_sit_ctx_event_initiator ON TABLE memory_note FIELDS sit_ctx_event_initiator_emb HNSW DIMENSION 512 TYPE F32 DISTANCE COSINE;
 DEFINE INDEX IF NOT EXISTS idx_memory_note_sit_ctx_event_target ON TABLE memory_note FIELDS sit_ctx_event_target_emb HNSW DIMENSION 512 TYPE F32 DISTANCE COSINE;
+DEFINE INDEX IF NOT EXISTS idx_memory_note_sit_ctx_emotion ON TABLE memory_note FIELDS sit_ctx_emotion_emb HNSW DIMENSION 512 TYPE F32 DISTANCE COSINE;
+DEFINE INDEX IF NOT EXISTS idx_memory_note_sit_ctx_sensory_data ON TABLE memory_note FIELDS sit_ctx_sensory_data_emb HNSW DIMENSION 512 TYPE F32 DISTANCE COSINE;
 DEFINE INDEX IF NOT EXISTS idx_memory_note_sit_loc_name ON TABLE memory_note FIELDS sit_loc_name_emb HNSW DIMENSION 512 TYPE F32 DISTANCE COSINE;
 DEFINE INDEX IF NOT EXISTS idx_memory_note_sit_loc_coord ON TABLE memory_note FIELDS sit_loc_coord_emb HNSW DIMENSION 512 TYPE F32 DISTANCE COSINE;
 DEFINE INDEX IF NOT EXISTS idx_memory_note_sit_part_name ON TABLE memory_note FIELDS sit_part_name_emb HNSW DIMENSION 512 TYPE F32 DISTANCE COSINE;

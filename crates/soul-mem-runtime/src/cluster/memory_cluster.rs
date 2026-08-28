@@ -896,7 +896,7 @@ mod tests2 {
         let pending = cluster
             .incompletely_linked_note
             .get(&id_b)
-            .map(|v| v.clone())
+            .cloned()
             .unwrap_or_default();
         assert!(
             pending.iter().all(|(origin, _)| *origin != id_a),
@@ -976,7 +976,6 @@ mod tests2 {
     fn test_cluster_debug_format() {
         let mut cluster = MemoryCluster::new();
         let node = sem_note("A");
-        let id = node.note().id();
         cluster.add_single_node(node);
         let debug = format!("{:?}", cluster);
         assert!(debug.contains("MemoryCluster"), "debug was: {debug}");

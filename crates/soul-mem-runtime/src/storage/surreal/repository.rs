@@ -2,11 +2,11 @@
 //!
 //! - 连接：嵌入式 SurrealKv（`connect`，生产）或 Mem（`connect_mem`，测试）。
 //! - Schema：`include_str!("schema.surql")` 幂等初始化。
-//! - 写：`split_embedded` → 事务内 upsert note 行 + 重建出边（先删后写）。
+//! - 写：`split_embedded` → 事务内全量 CONTENT 替换 note 行 + 重建出边（先删后写）。
+//!   不用 MERGE——深合并会残留外部标签 enum 的旧变体键（详见 `MemoryRepository::upsert_notes`）。
 //! - 读：`memory_id` 过滤取回 NoteRow，`variant_emb` 还原嵌入，`memory_link` 边合并链接。
 //! - 召回：查询嵌入 flatten 成槽位 → 每槽位 `<|k, EF|>` KNN → union 候选 → fetch_notes
 //!   （精确重排留在调用方，DB 只做候选召回）。
-//! - MergeMode 语义对齐 SDK：`Replace` → `content`（全量），`Merge` → `merge`（保留缺失字段旧值）。
 
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
@@ -18,12 +18,12 @@ use soul_mem_core::memory_links::{LinkId, MemoryLink};
 use soul_mem_core::memory_note::MemoryId;
 use soul_mem_query::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding};
 use surrealdb::Surreal;
-use surrealdb::engine::local::{Db, SurrealKv};
 #[cfg(test)]
 use surrealdb::engine::local::Mem;
+use surrealdb::engine::local::{Db, SurrealKv};
 use surrealdb::types::SurrealValue;
 
-use super::super::{MemoryRepository, MergeMode, StorageError, StorageResult};
+use super::super::{EntityKind, MemoryRepository, StorageError, StorageResult};
 use super::mapper::note::{NoteRow, flatten_embedding};
 use super::mapper::{MemoryIdCodec, record_str_to_memory_id, split_embedded};
 
@@ -57,22 +57,18 @@ impl SurrealRepository {
         Ok(())
     }
 
-    /// 批量写：整个 batch 一个事务（原子性），事务内逐条 SDK `upsert().content/.merge`。
+    /// 批量写：整个 batch 一个事务（原子性），事务内逐条 SDK `upsert().content()` 全量替换。
     ///
     /// 注：3.2.4 无可靠的批量 upsert 路径（探针实证：`UPSERT/UPDATE MERGE` 的数组 CONTENT 不被支持；
     /// `INSERT $batch ON DUPLICATE KEY UPDATE` 的 `$value` 引用会丢字段）。故用事务内循环。
-    async fn upsert_batch(
-        &self,
-        mem_notes: Vec<EmbeddedMemoryNote>,
-        merge_mode: MergeMode,
-    ) -> StorageResult<()> {
+    async fn upsert_batch(&self, mem_notes: Vec<EmbeddedMemoryNote>) -> StorageResult<()> {
         if mem_notes.is_empty() {
             return Ok(());
         }
         let txn = self.db.clone().begin().await?;
         let result: StorageResult<()> = async {
             for embedded in mem_notes {
-                Self::write_one(&txn, embedded, &merge_mode).await?;
+                Self::write_one(&txn, embedded).await?;
             }
             Ok(())
         }
@@ -89,41 +85,29 @@ impl SurrealRepository {
         }
     }
 
-    /// 事务内写一条：note 行（SDK content/merge）+ 重建出边（先删旧再写新）。
+    /// 事务内写一条：note 行（SDK content 全量替换）+ 重建出边（先删旧再写新）。
     async fn write_one(
         txn: &surrealdb::method::Transaction<Db>,
         embedded: EmbeddedMemoryNote,
-        merge_mode: &MergeMode,
     ) -> StorageResult<()> {
         let (row, link_rows) = split_embedded(embedded)?;
         let note_key = row.id.to_string();
         let note_rid = row.id.to_record_id();
         // NoteRow 派生 SurrealValue：into_value() 产出 SDK Value（datetime → Datetime）。
-        // Replace 全字段（None 槽位 → Value::None）；Merge 过滤 None 键（保留旧列）。
-        let mut note_sdk = row.into_value();
-        if matches!(merge_mode, MergeMode::Merge) {
-            if let surrealdb::types::Value::Object(map) = &mut note_sdk {
-                map.retain(|_, v| !matches!(v, surrealdb::types::Value::None));
-            }
-        }
+        // 全量 CONTENT 替换：None 槽位 → Value::None，旧列一并清空，保证与变体严格一致
+        // （MERGE 深合并会残留旧变体键与旧槽位向量，见 `MemoryRepository::upsert_notes`）。
+        let note_sur_value = row.into_value();
         let link_sdks: Vec<(String, surrealdb::types::Value)> = link_rows
             .iter()
             .map(|lr| (lr.id.to_string(), lr.clone().into_value()))
             .collect();
 
-        match merge_mode {
-            MergeMode::Replace => {
-                txn.upsert::<Option<Value>>(("memory_note", note_key.as_str()))
-                    .content(note_sdk)
-                    .await?;
-            }
-            MergeMode::Merge => {
-                txn.upsert::<Option<Value>>(("memory_note", note_key.as_str()))
-                    .merge(note_sdk)
-                    .await?;
-            }
-        }
-        // 重建出边：先删旧（in = 本 note），再写新（按端点删边无 SDK 等价，手写 query）
+        txn.upsert::<Option<Value>>(("memory_note", note_key.as_str()))
+            .content(note_sur_value)
+            .await?;
+        // 重建出边：先删旧（in = 本 note），再写新（按端点删边无 SDK 等价，手写 query）。
+        // 语义：边表始终以 payload 的 note.links 为完整真相源做全量同步；
+        // payload 的 links 即该 note 的完整边集（links 为空即表达「无出边」，同步后清空，非数据丢失）。
         txn.query("DELETE memory_link WHERE `in` = $rid")
             .bind(("rid", note_rid))
             .await?;
@@ -152,7 +136,7 @@ async fn query_notes_tx(
     let raw: Vec<Value> = res.take(0)?;
     let rows = raw
         .into_iter()
-        .map(|v| serde_json::from_value::<NoteRow>(v))
+        .map(serde_json::from_value::<NoteRow>)
         .collect::<Result<Vec<NoteRow>, serde_json::Error>>()?;
     Ok(rows)
 }
@@ -181,8 +165,13 @@ async fn query_out_links_tx(
     for v in raw {
         let from = record_str_to_memory_id(v.get("in").and_then(|x| x.as_str()).unwrap_or(""))?;
         let to = record_str_to_memory_id(v.get("out").and_then(|x| x.as_str()).unwrap_or(""))?;
-        let link_type: soul_mem_core::memory_links::MemoryLinkType =
-            serde_json::from_value(v.get("link_type").cloned().unwrap_or(Value::Null))?;
+        let link_type: soul_mem_core::memory_links::MemoryLinkType = serde_json::from_value(
+            v.get("link_type").cloned().unwrap_or(Value::Null),
+        )
+        .map_err(|e| StorageError::Serialize {
+            kind: EntityKind::Link,
+            source: e,
+        })?;
         let link = soul_mem_core::memory_links::MemoryLinkBuilder::new(from, to, link_type)
             .id(LinkId::from(
                 uuid::Uuid::parse_str(v.get("link_id").and_then(|x| x.as_str()).unwrap_or(""))
@@ -194,9 +183,13 @@ async fn query_out_links_tx(
                     .and_then(|x| x.as_f64())
                     .unwrap_or(0.0) as f32,
             )
-            .last_forget_time(serde_json::from_value(
-                v.get("last_forget_time").cloned().unwrap_or(Value::Null),
-            )?)
+            .last_forget_time(
+                serde_json::from_value(v.get("last_forget_time").cloned().unwrap_or(Value::Null))
+                    .map_err(|e| StorageError::Serialize {
+                    kind: EntityKind::Link,
+                    source: e,
+                })?,
+            )
             .build();
         by_from.entry(link.from()).or_default().push(link);
     }
@@ -224,12 +217,8 @@ async fn fetch_notes_tx(
 
 #[async_trait]
 impl MemoryRepository for SurrealRepository {
-    async fn upsert_notes(
-        &self,
-        mem_notes: Vec<EmbeddedMemoryNote>,
-        merge_mode: MergeMode,
-    ) -> StorageResult<()> {
-        self.upsert_batch(mem_notes, merge_mode).await
+    async fn upsert_notes(&self, mem_notes: Vec<EmbeddedMemoryNote>) -> StorageResult<()> {
+        self.upsert_batch(mem_notes).await
     }
 
     async fn fetch_neighbors(
@@ -263,12 +252,13 @@ impl MemoryRepository for SurrealRepository {
                 let mut next: Vec<MemoryId> = Vec::new();
                 for e in edges {
                     for key in ["in", "out"] {
-                        if let Some(v) = e.get(key).and_then(|x| x.as_str()) {
-                            if let Ok(mid) = record_str_to_memory_id(v) {
-                                if visited.insert(mid) {
-                                    next.push(mid);
-                                }
-                            }
+                        if let Some(mid) = e
+                            .get(key)
+                            .and_then(|x| x.as_str())
+                            .and_then(|v| record_str_to_memory_id(v).ok())
+                            && visited.insert(mid)
+                        {
+                            next.push(mid);
                         }
                     }
                 }
@@ -298,12 +288,12 @@ impl MemoryRepository for SurrealRepository {
     async fn similarity_fetch(
         &self,
         embeddings: Vec<MemoryEmbedding>,
-        top_k: usize,
+        candidate_k: usize,
     ) -> StorageResult<Vec<EmbeddedMemoryNote>> {
         // 读事务：全部槽位 KNN + 取回在一个事务内（一致快照）
         let txn = self.db.clone().begin().await?;
         let result: StorageResult<Vec<EmbeddedMemoryNote>> = async {
-            let k = (top_k.max(1) as i64) * 3; // 召回余量（精确重排在调用方）
+            let k = candidate_k.max(1) as i64; // 每槽位召回数（精确重排在调用方）
             let ef = k * 2;
             let mut candidates: Vec<MemoryId> = Vec::new();
 
@@ -321,12 +311,14 @@ impl MemoryRepository for SurrealRepository {
                     let mut res = txn.query(sql).bind(("q", q)).await?;
                     let hits: Vec<Value> = res.take(0)?;
                     for h in hits {
-                        if let Some(s) = h.get("memory_id").and_then(|x| x.as_str()) {
-                            if let Ok(uuid) = uuid::Uuid::parse_str(s) {
-                                let mid = MemoryId::from(uuid);
-                                if !candidates.contains(&mid) {
-                                    candidates.push(mid);
-                                }
+                        if let Some(uuid) = h
+                            .get("memory_id")
+                            .and_then(|x| x.as_str())
+                            .and_then(|s| uuid::Uuid::parse_str(s).ok())
+                        {
+                            let mid = MemoryId::from(uuid);
+                            if !candidates.contains(&mid) {
+                                candidates.push(mid);
                             }
                         }
                     }
@@ -513,7 +505,7 @@ mod tests {
         let expected = sem_note(0.3, 1.0);
         let id = expected.note().id();
 
-        repo.upsert_notes(vec![expected.clone()], MergeMode::Replace)
+        repo.upsert_notes(vec![expected.clone()])
             .await
             .unwrap();
         let fetched = repo.fetch_notes(&[id]).await.unwrap();
@@ -535,7 +527,7 @@ mod tests {
         let b_id = b.note().id();
         let (a, _link_id) = with_link(a, b_id);
 
-        repo.upsert_notes(vec![a, b], MergeMode::Replace)
+        repo.upsert_notes(vec![a, b])
             .await
             .unwrap();
         let fetched = repo.fetch_notes(&[a_id]).await.unwrap();
@@ -558,7 +550,7 @@ mod tests {
         let (b, _) = with_link(b, c_id);
         let (a, _) = with_link(a, b_id);
 
-        repo.upsert_notes(vec![a, b, c], MergeMode::Replace)
+        repo.upsert_notes(vec![a, b, c])
             .await
             .unwrap();
 
@@ -584,7 +576,7 @@ mod tests {
         let a_id = a.note().id();
         let b_id = b.note().id();
         let c_id = c.note().id();
-        repo.upsert_notes(vec![a, b, c], MergeMode::Replace)
+        repo.upsert_notes(vec![a, b, c])
             .await
             .unwrap();
 
@@ -636,7 +628,7 @@ mod tests {
         let a_id = a.note().id();
         let b_id = b.note().id();
         let (a, _) = with_link(a, b_id);
-        repo.upsert_notes(vec![a, b], MergeMode::Replace)
+        repo.upsert_notes(vec![a, b])
             .await
             .unwrap();
 
@@ -661,7 +653,7 @@ mod tests {
         let a_id = a.note().id();
         let b_id = b.note().id();
         let (a, link_id) = with_link(a, b_id);
-        repo.upsert_notes(vec![a, b], MergeMode::Replace)
+        repo.upsert_notes(vec![a, b])
             .await
             .unwrap();
 
@@ -670,40 +662,87 @@ mod tests {
         assert!(fetched[0].note().links().is_empty());
     }
 
+    /// 同 id 二次全量写（唯一写模式）：payload 为完整快照，覆盖字段生效、其余字段取自快照本身。
     #[tokio::test]
-    async fn merge_updates_provided_fields_keeps_rest() {
+    async fn upsert_same_id_overwrites_fields() {
         let repo = repo().await;
         let id_value = {
             let mut n = sem_note(0.3, 1.0);
             n.note.set_missing_degree(0.1);
             n.note.id()
         };
-        repo.upsert_notes(
-            vec![rebuild_with_id(sem_note(0.3, 1.0), id_value)],
-            MergeMode::Replace,
-        )
-        .await
-        .unwrap();
-
-        // 同 id 二次 upsert（Merge）：仅改 missing_degree，其余字段保留
-        let mut second = sem_note(0.3, 1.0);
-        second.note.set_missing_degree(0.9);
-        let second = rebuild_with_id(second, id_value);
-        repo.upsert_notes(vec![second], MergeMode::Merge)
+        repo.upsert_notes(vec![rebuild_with_id(sem_note(0.3, 1.0), id_value)])
             .await
             .unwrap();
 
+        // 同 id 二次全量写：payload 为完整快照（仅 missing_degree 变化）
+        let mut second = sem_note(0.3, 1.0);
+        second.note.set_missing_degree(0.9);
+        let second = rebuild_with_id(second, id_value);
+        repo.upsert_notes(vec![second]).await.unwrap();
+
         let fetched = repo.fetch_notes(&[id_value]).await.unwrap();
-        assert_eq!(fetched.len(), 1, "merge 不丢记录");
-        assert_eq!(
-            fetched[0].note().missing_degree(),
-            0.9,
-            "merge 覆盖提供字段"
-        );
+        assert_eq!(fetched.len(), 1, "upsert 不丢记录");
+        assert_eq!(fetched[0].note().missing_degree(), 0.9, "覆盖提供字段");
         assert_eq!(
             fetched[0].note().mem_type(),
             sem_note(0.3, 1.0).note().mem_type()
         );
         assert_eq!(fetched[0].note().retrieval_count(), 0);
+    }
+
+    /// 全量替换对「变体切换」的正确性回归：Semantic → Situation 全量覆盖后，
+    /// 旧变体键与旧槽位向量被清空——读回正常（无 MERGE 深合并的双变体键残留）、
+    /// KNN 不再误召回（无旧 sem_content_emb 残留）。
+    #[tokio::test]
+    async fn upsert_variant_switch_cleans_old_slots() {
+        let repo = repo().await;
+        let sem = sem_note(0.3, 1.0);
+        let id = sem.note().id();
+        repo.upsert_notes(vec![sem]).await.unwrap();
+
+        // 变体切换：Situation note 全量覆盖同一 id
+        repo.upsert_notes(vec![rebuild_with_id(sit_note(0.9), id)])
+            .await
+            .unwrap();
+
+        // 读回正常（mem_type 为 Situation，无双变体键残留）
+        let fetched = repo.fetch_notes(&[id]).await.unwrap();
+        assert_eq!(fetched.len(), 1);
+        assert!(
+            matches!(fetched[0].note().mem_type(), MemoryType::Situation(_)),
+            "变体切换后 mem_type 应为 Situation"
+        );
+
+        // 旧 sem 槽位已清空：sem 查询不得误召回该 note
+        let q_sem = MemoryEmbedding::new(
+            EmbeddingVec::zero(512),
+            MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                unit(1.0),
+                unit(1.0),
+                unit(0.5),
+            )),
+        );
+        let hits = repo.similarity_fetch(vec![q_sem], 2).await.unwrap();
+        assert!(
+            hits.iter().all(|e| e.note().id() != id),
+            "变体切换后 sem 查询不得误召回"
+        );
+
+        // sit 查询仍能召回该 note（新槽位生效）
+        let q_sit = MemoryEmbedding::new(
+            EmbeddingVec::zero(512),
+            MemoryEmbeddingVariant::Situation(SituationEmbedding::Abstract(
+                AbstractSituationEmbedding::Location(LocationEmbedding {
+                    name: unit(1.0),
+                    coordinates: unit(0.5),
+                }),
+            )),
+        );
+        let hits = repo.similarity_fetch(vec![q_sit], 2).await.unwrap();
+        assert!(
+            hits.iter().any(|e| e.note().id() == id),
+            "变体切换后 sit 查询应能召回"
+        );
     }
 }

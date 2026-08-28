@@ -37,6 +37,8 @@ pub enum EmbeddingSlot {
     SitCtxEventAction,
     SitCtxEventInitiator,
     SitCtxEventTarget,
+    SitCtxEmotion,
+    SitCtxSensoryData,
     SitLocName,
     SitLocCoord,
     SitPartName,
@@ -50,6 +52,36 @@ pub enum EmbeddingSlot {
 }
 
 impl EmbeddingSlot {
+    /// 全部槽位（顺序与变体声明一致），供测试遍历与 schema 防漂移断言使用。
+    pub const ALL: [EmbeddingSlot; 26] = [
+        EmbeddingSlot::Tag,
+        EmbeddingSlot::SemContent,
+        EmbeddingSlot::SemAliases,
+        EmbeddingSlot::SemDescription,
+        EmbeddingSlot::SitNarrative,
+        EmbeddingSlot::SitCtxLocName,
+        EmbeddingSlot::SitCtxLocCoord,
+        EmbeddingSlot::SitCtxPartName,
+        EmbeddingSlot::SitCtxPartRole,
+        EmbeddingSlot::SitCtxEnvAtmosphere,
+        EmbeddingSlot::SitCtxEnvTone,
+        EmbeddingSlot::SitCtxEventAction,
+        EmbeddingSlot::SitCtxEventInitiator,
+        EmbeddingSlot::SitCtxEventTarget,
+        EmbeddingSlot::SitCtxEmotion,
+        EmbeddingSlot::SitCtxSensoryData,
+        EmbeddingSlot::SitLocName,
+        EmbeddingSlot::SitLocCoord,
+        EmbeddingSlot::SitPartName,
+        EmbeddingSlot::SitPartRole,
+        EmbeddingSlot::SitEnvAtmosphere,
+        EmbeddingSlot::SitEnvTone,
+        EmbeddingSlot::SitEventAction,
+        EmbeddingSlot::SitEventInitiator,
+        EmbeddingSlot::SitEventTarget,
+        EmbeddingSlot::FusedSelf,
+    ];
+
     /// SurrealDB 列名（仓储层 KNN 查询与 SCHEMAFULL 字段声明都取这里）。
     pub fn column(self) -> &'static str {
         match self {
@@ -67,6 +99,8 @@ impl EmbeddingSlot {
             EmbeddingSlot::SitCtxEventAction => "sit_ctx_event_action_emb",
             EmbeddingSlot::SitCtxEventInitiator => "sit_ctx_event_initiator_emb",
             EmbeddingSlot::SitCtxEventTarget => "sit_ctx_event_target_emb",
+            EmbeddingSlot::SitCtxEmotion => "sit_ctx_emotion_emb",
+            EmbeddingSlot::SitCtxSensoryData => "sit_ctx_sensory_data_emb",
             EmbeddingSlot::SitLocName => "sit_loc_name_emb",
             EmbeddingSlot::SitLocCoord => "sit_loc_coord_emb",
             EmbeddingSlot::SitPartName => "sit_part_name_emb",
@@ -128,7 +162,7 @@ impl RecordIdCodec for RecordId {
             return Err(MapperError::InvalidRecordKey(format!("{self:?}")));
         }
         match &self.key {
-            RecordIdKey::Uuid(u) => Ok(MemoryId::from(uuid::Uuid::from(u.clone()))),
+            RecordIdKey::Uuid(u) => Ok(MemoryId::from(uuid::Uuid::from(*u))),
             RecordIdKey::String(s) => uuid::Uuid::parse_str(s)
                 .map(MemoryId::from)
                 .map_err(|_| MapperError::InvalidRecordKey(format!("{self:?}"))),
@@ -166,25 +200,33 @@ mod tests {
     #[test]
     fn slot_columns_are_unique_and_snake_case() {
         let mut cols = Vec::new();
-        let slots = [
-            EmbeddingSlot::Tag,
-            EmbeddingSlot::SemContent,
-            EmbeddingSlot::SitNarrative,
-            EmbeddingSlot::SitCtxLocName,
-            EmbeddingSlot::SitCtxPartRole,
-            EmbeddingSlot::SitCtxEnvAtmosphere,
-            EmbeddingSlot::SitCtxEventTarget,
-            EmbeddingSlot::SitLocCoord,
-            EmbeddingSlot::SitPartName,
-            EmbeddingSlot::SitEnvTone,
-            EmbeddingSlot::SitEventInitiator,
-            EmbeddingSlot::FusedSelf,
-        ];
-        for s in slots {
+        for s in EmbeddingSlot::ALL {
             let c = s.column();
-            assert!(!c.is_empty() && c.ends_with("_emb"));
+            assert!(!c.is_empty() && c.ends_with("_emb"), "bad column {c}");
             assert!(!cols.contains(&c), "duplicate column {c}");
             cols.push(c);
+        }
+    }
+
+    /// 防漂移：schema.surql 的每个槽位字段声明 + HNSW 索引都必须与 `EmbeddingSlot::column()`
+    /// 双向一致（枚举多了/少了、schema 多了/少了都会被抓住）。
+    #[test]
+    fn schema_surql_covers_all_slot_columns() {
+        let schema = include_str!("schema.surql");
+        let n_fields = schema.matches("TYPE option<array<float>>").count();
+        assert_eq!(
+            n_fields,
+            EmbeddingSlot::ALL.len(),
+            "schema 槽位字段数必须等于 EmbeddingSlot::ALL.len()"
+        );
+        for s in EmbeddingSlot::ALL {
+            let col = s.column();
+            let field_decl = format!(
+                "DEFINE FIELD IF NOT EXISTS {col} ON TABLE memory_note TYPE option<array<float>>;"
+            );
+            assert!(schema.contains(&field_decl), "schema 缺少字段声明: {col}");
+            let idx_decl = format!("FIELDS {col} HNSW DIMENSION 512 TYPE F32 DISTANCE COSINE;");
+            assert!(schema.contains(&idx_decl), "schema 缺少 HNSW 索引: {col}");
         }
     }
 
@@ -192,7 +234,11 @@ mod tests {
     fn split_embedded_returns_note_row_and_link_rows() {
         let from = MemoryId::new();
         let to = MemoryId::new();
-        let link = MemoryLink::new(from, to, MemoryLinkType::Sem(SemMemLink::new("x".into(), 1.0)));
+        let link = MemoryLink::new(
+            from,
+            to,
+            MemoryLinkType::Sem(SemMemLink::new("x".into(), 1.0)),
+        );
         let note = MemoryNoteBuilder::new(soul_mem_core::memory_note::MemoryType::Procedure(
             soul_mem_core::memory_note::proc_mem::ProcMemory::new(
                 soul_mem_core::memory_note::proc_mem::Action::new(

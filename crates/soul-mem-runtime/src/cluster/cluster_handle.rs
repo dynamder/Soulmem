@@ -57,7 +57,6 @@ mod tests {
                 aliases: vec![],
                 concept_type: ConceptType::Entity,
                 description: String::new(),
-                ..Default::default()
             });
             let note = MemoryNoteBuilder::new(mem_type).id(id).build().unwrap();
             let embedding = MemoryEmbedding::new(
@@ -112,7 +111,6 @@ mod tests {
                         aliases: vec![],
                         concept_type: ConceptType::Entity,
                         description: String::new(),
-                        ..Default::default()
                     });
                     let note = MemoryNoteBuilder::new(mem_type).id(id).build().unwrap();
                     let embedding = MemoryEmbedding::new(
@@ -212,7 +210,6 @@ mod tests {
                     aliases: vec![],
                     concept_type: ConceptType::Entity,
                     description: String::new(),
-                    ..Default::default()
                 });
                 let note = MemoryNoteBuilder::new(mem_type).id(id).build().unwrap();
                 let embedding = MemoryEmbedding::new(
