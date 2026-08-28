@@ -159,6 +159,19 @@ mod tests {
         assert_eq!(rid.to_memory_id().unwrap(), id);
     }
 
+    /// `RecordIdKey::Uuid` 分支：`to_record_id()` 走 String key，往返测试只覆盖 String 分支，
+    /// 此测试直接构造 Uuid key 的记录 id 验证 Uuid 分支（防 cargo-mutants 删除 match arm）。
+    #[test]
+    fn record_id_uuid_key_is_accepted() {
+        use super::super::RecordIdCodec;
+        let sur_uuid = surrealdb::types::Uuid::new_v4();
+        let rid = RecordId::new("memory_note", sur_uuid);
+        assert_eq!(
+            rid.to_memory_id().unwrap(),
+            MemoryId::from(uuid::Uuid::from(sur_uuid))
+        );
+    }
+
     #[test]
     fn bad_record_key_is_rejected() {
         use super::super::RecordIdCodec;
