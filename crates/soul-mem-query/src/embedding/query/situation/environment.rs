@@ -9,6 +9,15 @@ pub struct EnvironmentQueryUnitEmbedding {
     pub blend_weights: BlendWeights,
 }
 impl EnvironmentQueryUnitEmbedding {
+    /// 公开构造（外部/测试构造用；blend_weights 取默认值）。
+    pub fn new(atmosphere: Option<EmbeddingVec>, tone: Option<EmbeddingVec>) -> Self {
+        Self {
+            atmosphere,
+            tone,
+            blend_weights: BlendWeights::default(),
+        }
+    }
+
     pub fn atmosphere(&self) -> Option<&EmbeddingVec> {
         self.atmosphere.as_ref()
     }

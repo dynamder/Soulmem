@@ -10,6 +10,20 @@ pub struct EventQueryUnitEmbedding {
     pub blend_weights: BlendWeights,
 }
 impl EventQueryUnitEmbedding {
+    /// 公开构造（外部/测试构造用；blend_weights 取默认值）。
+    pub fn new(
+        action: EmbeddingVec,
+        initiator: Option<EmbeddingVec>,
+        target: Option<EmbeddingVec>,
+    ) -> Self {
+        Self {
+            action,
+            initiator,
+            target,
+            blend_weights: BlendWeights::default(),
+        }
+    }
+
     pub fn action(&self) -> &EmbeddingVec {
         &self.action
     }

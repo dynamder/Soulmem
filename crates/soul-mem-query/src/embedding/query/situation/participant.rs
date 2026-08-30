@@ -9,6 +9,15 @@ pub struct ParticipantQueryUnitEmbedding {
     pub blend_weights: BlendWeights,
 }
 impl ParticipantQueryUnitEmbedding {
+    /// 公开构造（外部/测试构造用；blend_weights 取默认值）。
+    pub fn new(name: Option<EmbeddingVec>, role: Option<EmbeddingVec>) -> Self {
+        Self {
+            name,
+            role,
+            blend_weights: BlendWeights::default(),
+        }
+    }
+
     pub fn name(&self) -> Option<&EmbeddingVec> {
         self.name.as_ref()
     }

@@ -12,6 +12,11 @@ use serde::{Deserialize, Serialize};
 use soul_mem_core::memory_links::MemoryLink;
 use soul_mem_core::memory_note::{MemoryId, MemoryNoteBuilder, MemoryType};
 use soul_mem_query::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant};
+use soul_mem_query::embedding::query::note::{
+    MemoryRetrieveQueryEmbedding, MemoryRetrieveQueryVariantEmbedding,
+};
+use soul_mem_query::embedding::query::sem::SemanticQueryUnitEmbedding;
+use soul_mem_query::embedding::query::situation::SituationQueryUnitEmbedding;
 use soul_mem_query::embedding::sem::SemanticEmbedding;
 use soul_mem_query::embedding::situation::context::ContextEmbedding;
 use soul_mem_query::embedding::situation::emotion::EmotionEmbedding;
@@ -323,15 +328,96 @@ impl TryFrom<NoteRow> for EmbeddedMemoryNote {
     }
 }
 
-/// 把整个 `MemoryEmbedding`（tag + variant）展平为槽位对。
-/// note 侧与查询侧共用：仓储层 `similarity_fetch` 用它把查询嵌入转成逐槽位 KNN。
-pub(crate) fn flatten_embedding(
-    embedding: MemoryEmbedding,
+/// 把查询侧嵌入 `MemoryRetrieveQueryEmbedding` 展平为逐槽位 KNN 的 (槽位, 向量) 对。
+///
+/// 与 note 侧 `flatten_variant` 不同，查询字段会 fan-out 到具体/抽象情境两类列
+/// （与 `compute.rs` 精确重排的 max-pool 语义对齐：召回阶段两种 note 都要能命中）；
+/// 语义 `concept_identifier` 同时打 `sem_content_emb` 与 `sem_aliases_emb`
+/// （重排对 content/aliases 取 max）。零向量跳过由仓储层 KNN 循环统一处理
+/// （与写侧 `is_zero` 跳过对称）。
+pub(crate) fn flatten_query_embedding(
+    query: &MemoryRetrieveQueryEmbedding,
 ) -> MapperResult<Vec<(EmbeddingSlot, EmbeddingVec)>> {
-    let MemoryEmbedding { tag, variant } = embedding;
-    let mut slots = vec![(EmbeddingSlot::Tag, tag)];
-    slots.extend(flatten_variant(variant)?);
-    Ok(slots)
+    let mut out = vec![(EmbeddingSlot::Tag, query.tag().clone())];
+    match query.variant() {
+        MemoryRetrieveQueryVariantEmbedding::Semantic(units) => {
+            for unit in units {
+                flatten_sem_query_unit(unit, &mut out);
+            }
+        }
+        MemoryRetrieveQueryVariantEmbedding::Situation(units) => {
+            for unit in units {
+                flatten_sit_query_unit(unit, &mut out);
+            }
+        }
+    }
+    Ok(out)
+}
+
+fn flatten_sem_query_unit(
+    unit: &SemanticQueryUnitEmbedding,
+    out: &mut Vec<(EmbeddingSlot, EmbeddingVec)>,
+) {
+    if let Some(concept) = unit.concept_identifier() {
+        out.push((EmbeddingSlot::SemContent, concept.clone()));
+        out.push((EmbeddingSlot::SemAliases, concept.clone()));
+    }
+    if let Some(description) = unit.description() {
+        out.push((EmbeddingSlot::SemDescription, description.clone()));
+    }
+}
+
+fn flatten_sit_query_unit(
+    unit: &SituationQueryUnitEmbedding,
+    out: &mut Vec<(EmbeddingSlot, EmbeddingVec)>,
+) {
+    // 叙事：具体情境的 narrative 列 + 抽象情境的 fused_self（叙事通道）
+    if let Some(narrative) = unit.narrative() {
+        out.push((EmbeddingSlot::SitNarrative, narrative.clone()));
+        out.push((EmbeddingSlot::FusedSelf, narrative.clone()));
+    }
+    if let Some(loc) = unit.location() {
+        let name = loc.name();
+        out.push((EmbeddingSlot::SitCtxLocName, name.clone()));
+        out.push((EmbeddingSlot::SitLocName, name.clone()));
+        if let Some(coord) = loc.coordinates() {
+            out.push((EmbeddingSlot::SitCtxLocCoord, coord.clone()));
+            out.push((EmbeddingSlot::SitLocCoord, coord.clone()));
+        }
+    }
+    if let Some(part) = unit.participants() {
+        if let Some(name) = part.name() {
+            out.push((EmbeddingSlot::SitCtxPartName, name.clone()));
+            out.push((EmbeddingSlot::SitPartName, name.clone()));
+        }
+        if let Some(role) = part.role() {
+            out.push((EmbeddingSlot::SitCtxPartRole, role.clone()));
+            out.push((EmbeddingSlot::SitPartRole, role.clone()));
+        }
+    }
+    if let Some(env) = unit.environment() {
+        if let Some(atmosphere) = env.atmosphere() {
+            out.push((EmbeddingSlot::SitCtxEnvAtmosphere, atmosphere.clone()));
+            out.push((EmbeddingSlot::SitEnvAtmosphere, atmosphere.clone()));
+        }
+        if let Some(tone) = env.tone() {
+            out.push((EmbeddingSlot::SitCtxEnvTone, tone.clone()));
+            out.push((EmbeddingSlot::SitEnvTone, tone.clone()));
+        }
+    }
+    if let Some(evt) = unit.event() {
+        let action = evt.action();
+        out.push((EmbeddingSlot::SitCtxEventAction, action.clone()));
+        out.push((EmbeddingSlot::SitEventAction, action.clone()));
+        if let Some(initiator) = evt.initiator() {
+            out.push((EmbeddingSlot::SitCtxEventInitiator, initiator.clone()));
+            out.push((EmbeddingSlot::SitEventInitiator, initiator.clone()));
+        }
+        if let Some(target) = evt.target() {
+            out.push((EmbeddingSlot::SitCtxEventTarget, target.clone()));
+            out.push((EmbeddingSlot::SitEventTarget, target.clone()));
+        }
+    }
 }
 
 /// 把 `MemoryEmbeddingVariant` 的每个可索引子向量展平为 (槽位, 向量) 对。
@@ -661,6 +747,62 @@ mod tests {
         let back = row2.into_embedded(Vec::new()).unwrap();
         assert!(back.embedding().variant().clone().to_procedure().is_some());
         assert_eq!(back, embedded);
+    }
+
+    /// 查询侧展平：语义查询 concept_identifier → content + aliases 双列、description → description 列；
+    /// 情境查询 fan-out 到具体/抽象双份列（与 compute.rs 精确重排语义对齐）。
+    #[test]
+    fn flatten_query_embedding_maps_semantic_and_situation_slots() {
+        use soul_mem_query::embedding::query::note::{
+            MemoryRetrieveQueryEmbedding, MemoryRetrieveQueryVariantEmbedding,
+        };
+        use soul_mem_query::embedding::query::sem::SemanticQueryUnitEmbedding;
+        use soul_mem_query::embedding::query::situation::location::LocationQueryUnitEmbedding;
+        use soul_mem_query::embedding::query::situation::SituationQueryUnitEmbedding;
+
+        let sem_q = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::new(vec![1.0, 0.0]))
+            .with_variant(MemoryRetrieveQueryVariantEmbedding::Semantic(vec![
+                SemanticQueryUnitEmbedding::new(
+                    Some(EmbeddingVec::new(vec![0.9, 0.1])),
+                    Some(EmbeddingVec::new(vec![0.5, 0.5])),
+                ),
+            ]));
+        let slots = flatten_query_embedding(&sem_q).unwrap();
+        let cols: Vec<&str> = slots.iter().map(|(s, _)| s.column()).collect();
+        assert_eq!(slots.len(), 4, "tag + content + aliases + description");
+        for col in [
+            "tag_emb",
+            "sem_content_emb",
+            "sem_aliases_emb",
+            "sem_description_emb",
+        ] {
+            assert!(cols.contains(&col), "sem 查询应产出 {col}");
+        }
+
+        let sit_q = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::zero(2)).with_variant(
+            MemoryRetrieveQueryVariantEmbedding::Situation(vec![SituationQueryUnitEmbedding::new(
+                Some(EmbeddingVec::new(vec![0.8, 0.2])),
+                Some(LocationQueryUnitEmbedding::new(
+                    EmbeddingVec::new(vec![0.7, 0.3]),
+                    None,
+                )),
+                None,
+                None,
+                None,
+            )]),
+        );
+        let slots = flatten_query_embedding(&sit_q).unwrap();
+        let cols: Vec<&str> = slots.iter().map(|(s, _)| s.column()).collect();
+        assert_eq!(slots.len(), 5, "tag + narrative×2 + loc_name×2");
+        for col in [
+            "tag_emb",
+            "sit_narrative_emb",
+            "fused_self_emb",
+            "sit_ctx_loc_name_emb",
+            "sit_loc_name_emb",
+        ] {
+            assert!(cols.contains(&col), "sit 查询应产出 {col}");
+        }
     }
 
     #[test]

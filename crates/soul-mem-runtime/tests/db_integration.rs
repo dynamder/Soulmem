@@ -12,6 +12,12 @@ use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
 use soul_mem_core::memory_note::situation_mem::{AbstractSituation, Location};
 use soul_mem_core::memory_note::{MemoryId, MemoryNoteBuilder, MemoryType};
 use soul_mem_query::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant};
+use soul_mem_query::embedding::query::note::{
+    MemoryRetrieveQueryEmbedding, MemoryRetrieveQueryVariantEmbedding,
+};
+use soul_mem_query::embedding::query::sem::SemanticQueryUnitEmbedding;
+use soul_mem_query::embedding::query::situation::location::LocationQueryUnitEmbedding;
+use soul_mem_query::embedding::query::situation::SituationQueryUnitEmbedding;
 use soul_mem_query::embedding::sem::SemanticEmbedding;
 use soul_mem_query::embedding::situation::location::LocationEmbedding;
 use soul_mem_query::embedding::situation::{AbstractSituationEmbedding, SituationEmbedding};
@@ -111,14 +117,13 @@ async fn recall_pipeline_returns_complete_embedded_notes() {
     let ids: Vec<MemoryId> = vec![a.note().id(), b.note().id(), c.note().id()];
     repo.upsert_notes(vec![a, b, c]).await.unwrap();
 
-    // 语义查询嵌入：content 通道与 a 同向（同用第一个分量）
-    let q = MemoryEmbedding::new(
-        EmbeddingVec::zero(512), // 零 tag：跳过 tag 通道，只走 variant 通道
-        MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
-            v512(&[0.9, 0.0]),
-            v512(&[0.9, 0.0]),
-            v512(&[0.5, 0.0]),
-        )),
+    // 语义查询嵌入：concept_identifier 通道与 a 同向（同用第一个分量）
+    let q = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::zero(512)).with_variant(
+        // 零 tag：跳过 tag 通道，只走 variant 通道
+        MemoryRetrieveQueryVariantEmbedding::Semantic(vec![SemanticQueryUnitEmbedding::new(
+            Some(v512(&[0.9, 0.0])),
+            Some(v512(&[0.5, 0.0])),
+        )]),
     );
     let candidates = repo.similarity_fetch(vec![q], 3).await.unwrap();
 
@@ -160,26 +165,27 @@ async fn mixed_variants_roundtrip_and_recall_isolation() {
     assert!(has_semantic && has_situation, "两种变体都应还原");
 
     // 语义查询（零 tag）只召回语义记忆
-    let q_sem = MemoryEmbedding::new(
-        EmbeddingVec::zero(512),
-        MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
-            v512(&[0.9, 0.0]),
-            v512(&[0.9, 0.0]),
-            v512(&[0.5, 0.0]),
-        )),
+    let q_sem = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::zero(512)).with_variant(
+        MemoryRetrieveQueryVariantEmbedding::Semantic(vec![SemanticQueryUnitEmbedding::new(
+            Some(v512(&[0.9, 0.0])),
+            Some(v512(&[0.5, 0.0])),
+        )]),
     );
     let hits = repo.similarity_fetch(vec![q_sem], 2).await.unwrap();
     assert!(hits.iter().all(|e| e.note().id() != sit_id), "语义查询不得召回情境记忆");
 
     // 情境查询（零 tag，走 location name 通道）只召回情境记忆
-    let q_sit = MemoryEmbedding::new(
-        EmbeddingVec::zero(512),
-        MemoryEmbeddingVariant::Situation(SituationEmbedding::Abstract(
-            AbstractSituationEmbedding::Location(LocationEmbedding {
-                name: v512(&[0.8, 0.0]),
-                coordinates: v512(&[0.5, 0.0]),
-            }),
-        )),
+    let q_sit = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::zero(512)).with_variant(
+        MemoryRetrieveQueryVariantEmbedding::Situation(vec![SituationQueryUnitEmbedding::new(
+            None,
+            Some(LocationQueryUnitEmbedding::new(
+                v512(&[0.8, 0.0]),
+                Some(v512(&[0.5, 0.0])),
+            )),
+            None,
+            None,
+            None,
+        )]),
     );
     let hits = repo.similarity_fetch(vec![q_sit], 2).await.unwrap();
     assert!(hits.iter().all(|e| e.note().id() != sem_id), "情境查询不得召回语义记忆");

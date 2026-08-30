@@ -9,6 +9,15 @@ pub struct LocationQueryUnitEmbedding {
     pub blend_weights: BlendWeights,
 }
 impl LocationQueryUnitEmbedding {
+    /// 公开构造（外部/测试构造用；blend_weights 取默认值）。
+    pub fn new(name: EmbeddingVec, coordinates: Option<EmbeddingVec>) -> Self {
+        Self {
+            name,
+            coordinates,
+            blend_weights: BlendWeights::default(),
+        }
+    }
+
     pub fn name(&self) -> &EmbeddingVec {
         &self.name
     }

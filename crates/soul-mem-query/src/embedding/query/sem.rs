@@ -9,6 +9,18 @@ pub struct SemanticQueryUnitEmbedding {
     pub blend_weights: BlendWeights,
 }
 impl SemanticQueryUnitEmbedding {
+    /// 公开构造（外部/测试构造用；blend_weights 取默认值）。
+    pub fn new(
+        concept_identifier: Option<EmbeddingVec>,
+        description: Option<EmbeddingVec>,
+    ) -> Self {
+        Self {
+            concept_identifier,
+            description,
+            blend_weights: BlendWeights::default(),
+        }
+    }
+
     pub fn concept_identifier(&self) -> Option<&EmbeddingVec> {
         self.concept_identifier.as_ref()
     }

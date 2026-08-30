@@ -16,13 +16,14 @@ use serde_json::Value;
 
 use soul_mem_core::memory_links::{LinkId, MemoryLink};
 use soul_mem_core::memory_note::MemoryId;
-use soul_mem_query::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding};
+use soul_mem_query::embedding::note::EmbeddedMemoryNote;
+use soul_mem_query::embedding::query::note::MemoryRetrieveQueryEmbedding;
 use surrealdb::Surreal;
 use surrealdb::engine::local::{Db, Mem, SurrealKv};
 use surrealdb::types::SurrealValue;
 
 use super::super::{EntityKind, MemoryRepository, StorageError, StorageResult};
-use super::mapper::note::{NoteRow, flatten_embedding};
+use super::mapper::note::{NoteRow, flatten_query_embedding};
 use super::mapper::{MemoryIdCodec, record_str_to_memory_id, split_embedded};
 
 /// SurrealDB 仓储实现。`db` 为嵌入式连接（SurrealKv / Mem）。
@@ -285,7 +286,7 @@ impl MemoryRepository for SurrealRepository {
 
     async fn similarity_fetch(
         &self,
-        embeddings: Vec<MemoryEmbedding>,
+        queries: Vec<MemoryRetrieveQueryEmbedding>,
         candidate_k: usize,
     ) -> StorageResult<Vec<EmbeddedMemoryNote>> {
         // 读事务：全部槽位 KNN + 取回在一个事务内（一致快照）
@@ -295,8 +296,8 @@ impl MemoryRepository for SurrealRepository {
             let ef = k * 2;
             let mut candidates: Vec<MemoryId> = Vec::new();
 
-            for embedding in embeddings {
-                let slots = flatten_embedding(embedding)?;
+            for query in queries {
+                let slots = flatten_query_embedding(&query)?;
                 for (slot, vec) in slots {
                     if vec.is_zero() {
                         continue; // 零向量（如空 tag）不参与 KNN
@@ -402,7 +403,13 @@ mod tests {
     use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
     use soul_mem_core::memory_note::situation_mem::{AbstractSituation, Location};
     use soul_mem_query::embedding::EmbeddingVec;
-    use soul_mem_query::embedding::note::MemoryEmbeddingVariant;
+    use soul_mem_query::embedding::note::{MemoryEmbedding, MemoryEmbeddingVariant};
+    use soul_mem_query::embedding::query::note::{
+        MemoryRetrieveQueryEmbedding, MemoryRetrieveQueryVariantEmbedding,
+    };
+    use soul_mem_query::embedding::query::sem::SemanticQueryUnitEmbedding;
+    use soul_mem_query::embedding::query::situation::location::LocationQueryUnitEmbedding;
+    use soul_mem_query::embedding::query::situation::SituationQueryUnitEmbedding;
     use soul_mem_query::embedding::sem::SemanticEmbedding;
     use soul_mem_query::embedding::situation::location::LocationEmbedding;
     use soul_mem_query::embedding::situation::{AbstractSituationEmbedding, SituationEmbedding};
@@ -580,13 +587,11 @@ mod tests {
 
         // 语义查询（零 tag，只走 variant 通道）：content ~ [1,0,0...] → 只召回语义记忆
         // （情境节点的 sem_* 为 NONE；tag 通道跨变体是设计行为，这里特意用零 tag 验证变体隔离）
-        let q_sem = MemoryEmbedding::new(
-            EmbeddingVec::zero(512),
-            MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
-                unit(1.0),
-                unit(1.0),
-                unit(0.5),
-            )),
+        let q_sem = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::zero(512)).with_variant(
+            MemoryRetrieveQueryVariantEmbedding::Semantic(vec![SemanticQueryUnitEmbedding::new(
+                Some(unit(1.0)),
+                Some(unit(0.5)),
+            )]),
         );
         let hits = repo.similarity_fetch(vec![q_sem], 2).await.unwrap();
         let mut ids: Vec<_> = hits.iter().map(|e| e.note().id()).collect();
@@ -599,14 +604,14 @@ mod tests {
         );
 
         // 情境查询（零 tag）：narrative 经 fused_self 通道 → 只召回情境记忆
-        let q_sit = MemoryEmbedding::new(
-            EmbeddingVec::zero(512),
-            MemoryEmbeddingVariant::Situation(SituationEmbedding::Abstract(
-                AbstractSituationEmbedding::Location(LocationEmbedding {
-                    name: unit(1.0),
-                    coordinates: unit(0.5),
-                }),
-            )),
+        let q_sit = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::zero(512)).with_variant(
+            MemoryRetrieveQueryVariantEmbedding::Situation(vec![SituationQueryUnitEmbedding::new(
+                None,
+                Some(LocationQueryUnitEmbedding::new(unit(1.0), Some(unit(0.5)))),
+                None,
+                None,
+                None,
+            )]),
         );
         let hits = repo.similarity_fetch(vec![q_sit], 2).await.unwrap();
         let mut ids: Vec<_> = hits.iter().map(|e| e.note().id()).collect();
@@ -713,13 +718,11 @@ mod tests {
         );
 
         // 旧 sem 槽位已清空：sem 查询不得误召回该 note
-        let q_sem = MemoryEmbedding::new(
-            EmbeddingVec::zero(512),
-            MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
-                unit(1.0),
-                unit(1.0),
-                unit(0.5),
-            )),
+        let q_sem = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::zero(512)).with_variant(
+            MemoryRetrieveQueryVariantEmbedding::Semantic(vec![SemanticQueryUnitEmbedding::new(
+                Some(unit(1.0)),
+                Some(unit(0.5)),
+            )]),
         );
         let hits = repo.similarity_fetch(vec![q_sem], 2).await.unwrap();
         assert!(
@@ -728,14 +731,14 @@ mod tests {
         );
 
         // sit 查询仍能召回该 note（新槽位生效）
-        let q_sit = MemoryEmbedding::new(
-            EmbeddingVec::zero(512),
-            MemoryEmbeddingVariant::Situation(SituationEmbedding::Abstract(
-                AbstractSituationEmbedding::Location(LocationEmbedding {
-                    name: unit(1.0),
-                    coordinates: unit(0.5),
-                }),
-            )),
+        let q_sit = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::zero(512)).with_variant(
+            MemoryRetrieveQueryVariantEmbedding::Situation(vec![SituationQueryUnitEmbedding::new(
+                None,
+                Some(LocationQueryUnitEmbedding::new(unit(1.0), Some(unit(0.5)))),
+                None,
+                None,
+                None,
+            )]),
         );
         let hits = repo.similarity_fetch(vec![q_sit], 2).await.unwrap();
         assert!(

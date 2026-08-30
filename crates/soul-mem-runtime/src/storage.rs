@@ -4,7 +4,8 @@ use std::fmt;
 
 use async_trait::async_trait;
 use soul_mem_core::{memory_links::LinkId, memory_note::MemoryId};
-use soul_mem_query::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding};
+use soul_mem_query::embedding::note::EmbeddedMemoryNote;
+use soul_mem_query::embedding::query::note::MemoryRetrieveQueryEmbedding;
 use thiserror::Error;
 
 #[async_trait]
@@ -31,12 +32,14 @@ pub trait MemoryRepository: Send + Sync {
 
     async fn fetch_notes(&self, mem_ids: &[MemoryId]) -> StorageResult<Vec<EmbeddedMemoryNote>>;
 
-    /// 按查询嵌入召回候选记忆：每个可索引槽位列做 HNSW KNN（每列取 `candidate_k` 条候选），
-    /// 去重 union 后返回候选集。**不做排序与截断**——精确重排（`compute_fused`）与最终
-    /// top-k 截断由调用方完成；`candidate_k` 即每槽位召回预算，需按槽位数自行放大余量。
+    /// 按查询嵌入召回候选记忆：查询嵌入展平为槽位向量后，每个可索引槽位列做 HNSW KNN
+    /// （每列取 `candidate_k` 条候选），去重 union 后返回候选集。
+    /// **不做排序与截断**——精确重排（`compute_fused`）与最终 top-k 截断由调用方完成；
+    /// `candidate_k` 即每槽位召回预算，需按槽位数自行放大余量
+    /// （单个查询可能 fan-out 出多个槽位，见 mapper 的 `flatten_query_embedding`）。
     async fn similarity_fetch(
         &self,
-        embeddings: Vec<MemoryEmbedding>,
+        queries: Vec<MemoryRetrieveQueryEmbedding>,
         candidate_k: usize,
     ) -> StorageResult<Vec<EmbeddedMemoryNote>>;
 

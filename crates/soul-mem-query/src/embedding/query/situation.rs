@@ -23,6 +23,25 @@ pub struct SituationQueryUnitEmbedding {
     pub blend_weights: BlendWeights,
 }
 impl SituationQueryUnitEmbedding {
+    /// 公开构造（外部/测试构造用；blend_weights 取默认值）。
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        narrative: Option<EmbeddingVec>,
+        location: Option<LocationQueryUnitEmbedding>,
+        participants: Option<ParticipantQueryUnitEmbedding>,
+        environment: Option<EnvironmentQueryUnitEmbedding>,
+        event: Option<EventQueryUnitEmbedding>,
+    ) -> Self {
+        Self {
+            narrative,
+            location,
+            participants,
+            environment,
+            event,
+            blend_weights: BlendWeights::default(),
+        }
+    }
+
     pub fn narrative(&self) -> Option<&EmbeddingVec> {
         self.narrative.as_ref()
     }
