@@ -201,6 +201,16 @@ mod tests {
     }
 
     #[test]
+    fn test_into_inner_returns_data() {
+        // into_inner 是仓储层绑定 SurrealDB KNN 查询向量的通道（零拷贝取出内部 Vec<f32>），
+        // 返回值必须就是内部数据（变异为 vec![] 时无测试拦截 = 覆盖缺口）。
+        let a = EmbeddingVec::new(vec![1.0, 2.0, 3.0]);
+        assert_eq!(a.into_inner(), vec![1.0, 2.0, 3.0]);
+        let zero = EmbeddingVec::zero(2);
+        assert_eq!(zero.into_inner(), vec![0.0, 0.0]);
+    }
+
+    #[test]
     fn test_add() {
         let a = EmbeddingVec::new(vec![1.0, 2.0, 3.0]);
         let b = EmbeddingVec::new(vec![4.0, 5.0, 6.0]);
