@@ -170,4 +170,22 @@ mod tests {
     fn test_participant_query_unit_mean_pooling_empty() {
         assert!(ParticipantQueryUnitEmbedding::mean_pooling(&[]).unwrap().is_none());
     }
+
+    #[test]
+    fn test_into_parts_moves_fields() {
+        let name = EmbeddingVec::new(vec![0.6, 0.4]);
+        let role = EmbeddingVec::new(vec![0.3, 0.7]);
+        let part = ParticipantQueryUnitEmbedding::new(Some(name.clone()), Some(role.clone()));
+        let (n, r) = part.into_parts();
+        assert_eq!(n, Some(name), "name 应移动而非克隆");
+        assert_eq!(r, Some(role));
+    }
+
+    #[test]
+    fn test_into_parts_none_fields() {
+        let part = ParticipantQueryUnitEmbedding::new(None, None);
+        let (n, r) = part.into_parts();
+        assert!(n.is_none());
+        assert!(r.is_none());
+    }
 }

@@ -211,4 +211,28 @@ mod tests {
     fn test_event_query_unit_mean_pooling_empty() {
         assert!(EventQueryUnitEmbedding::mean_pooling(&[]).unwrap().is_none());
     }
+
+    #[test]
+    fn test_into_parts_moves_fields() {
+        let action = EmbeddingVec::new(vec![1.0, 0.0]);
+        let initiator = EmbeddingVec::new(vec![0.5, 0.5]);
+        let target = EmbeddingVec::new(vec![0.3, 0.7]);
+        let evt = EventQueryUnitEmbedding::new(
+            action.clone(),
+            Some(initiator.clone()),
+            Some(target.clone()),
+        );
+        let (a, i, t) = evt.into_parts();
+        assert_eq!(a, action, "action 应移动而非克隆");
+        assert_eq!(i, Some(initiator));
+        assert_eq!(t, Some(target));
+    }
+
+    #[test]
+    fn test_into_parts_optional_fields_none() {
+        let evt = EventQueryUnitEmbedding::new(EmbeddingVec::new(vec![1.0]), None, None);
+        let (_, i, t) = evt.into_parts();
+        assert!(i.is_none());
+        assert!(t.is_none());
+    }
 }

@@ -168,4 +168,21 @@ mod tests {
     fn test_location_query_unit_mean_pooling_empty() {
         assert!(LocationQueryUnitEmbedding::mean_pooling(&[]).unwrap().is_none());
     }
+
+    #[test]
+    fn test_into_parts_moves_fields() {
+        let name = EmbeddingVec::new(vec![1.0, 0.0]);
+        let coord = EmbeddingVec::new(vec![0.5, 0.5]);
+        let loc = LocationQueryUnitEmbedding::new(name.clone(), Some(coord.clone()));
+        let (n, c) = loc.into_parts();
+        assert_eq!(n, name, "name 应移动而非克隆");
+        assert_eq!(c, Some(coord));
+    }
+
+    #[test]
+    fn test_into_parts_coordinates_none() {
+        let loc = LocationQueryUnitEmbedding::new(EmbeddingVec::new(vec![1.0]), None);
+        let (_, c) = loc.into_parts();
+        assert!(c.is_none());
+    }
 }

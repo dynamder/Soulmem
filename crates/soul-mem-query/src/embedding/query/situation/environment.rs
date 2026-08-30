@@ -122,4 +122,22 @@ mod tests {
         assert!(embedding.atmosphere().is_none());
         assert!(embedding.tone().is_none());
     }
+
+    #[test]
+    fn test_into_parts_moves_fields() {
+        let atmosphere = EmbeddingVec::new(vec![0.5, 0.5]);
+        let tone = EmbeddingVec::new(vec![0.2, 0.8]);
+        let env = EnvironmentQueryUnitEmbedding::new(Some(atmosphere.clone()), Some(tone.clone()));
+        let (a, t) = env.into_parts();
+        assert_eq!(a, Some(atmosphere), "atmosphere 应移动而非克隆");
+        assert_eq!(t, Some(tone));
+    }
+
+    #[test]
+    fn test_into_parts_none_fields() {
+        let env = EnvironmentQueryUnitEmbedding::new(None, None);
+        let (a, t) = env.into_parts();
+        assert!(a.is_none());
+        assert!(t.is_none());
+    }
 }

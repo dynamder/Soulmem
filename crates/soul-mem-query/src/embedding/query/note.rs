@@ -286,4 +286,16 @@ mod tests {
         assert_eq!(query.variant_weight, 0.8);
         assert_eq!(query.string_blend_alpha, 0.5);
     }
+
+    #[test]
+    fn test_into_parts_moves_tag_and_variant() {
+        let tag = EmbeddingVec::new(vec![1.0, 0.0]);
+        let variant = MemoryRetrieveQueryVariantEmbedding::Semantic(vec![
+            SemanticQueryUnitEmbedding::new(Some(EmbeddingVec::new(vec![0.9, 0.1])), None),
+        ]);
+        let query = MemoryRetrieveQueryEmbedding::new(tag.clone()).with_variant(variant.clone());
+        let (t, v) = query.into_parts();
+        assert_eq!(t, tag, "tag 应移动而非克隆");
+        assert_eq!(v, variant);
+    }
 }

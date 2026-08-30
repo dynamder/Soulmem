@@ -129,4 +129,22 @@ mod tests {
         assert!(embedding.concept_identifier().is_none());
         assert!(embedding.description().is_none());
     }
+
+    #[test]
+    fn test_into_parts_moves_fields() {
+        let concept = EmbeddingVec::new(vec![0.9, 0.1]);
+        let description = EmbeddingVec::new(vec![0.5, 0.5]);
+        let unit = SemanticQueryUnitEmbedding::new(Some(concept.clone()), Some(description.clone()));
+        let (c, d) = unit.into_parts();
+        assert_eq!(c, Some(concept), "concept_identifier 应移动而非克隆");
+        assert_eq!(d, Some(description));
+    }
+
+    #[test]
+    fn test_into_parts_none_fields() {
+        let unit = SemanticQueryUnitEmbedding::new(None, None);
+        let (c, d) = unit.into_parts();
+        assert!(c.is_none());
+        assert!(d.is_none());
+    }
 }

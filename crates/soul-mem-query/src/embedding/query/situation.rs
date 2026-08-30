@@ -326,4 +326,42 @@ mod tests {
         assert!(embedding.environment().is_some());
         assert!(embedding.event().is_some());
     }
+
+    #[test]
+    fn test_into_parts_moves_all_fields() {
+        let narrative = EmbeddingVec::new(vec![0.8, 0.2]);
+        let location = LocationQueryUnitEmbedding::new(EmbeddingVec::new(vec![0.7, 0.3]), None);
+        let participants = ParticipantQueryUnitEmbedding::new(
+            Some(EmbeddingVec::new(vec![0.6, 0.4])),
+            None,
+        );
+        let environment =
+            EnvironmentQueryUnitEmbedding::new(Some(EmbeddingVec::new(vec![0.5, 0.5])), None);
+        let event = EventQueryUnitEmbedding::new(EmbeddingVec::new(vec![0.4, 0.6]), None, None);
+
+        let unit = SituationQueryUnitEmbedding::new(
+            Some(narrative.clone()),
+            Some(location.clone()),
+            Some(participants.clone()),
+            Some(environment.clone()),
+            Some(event.clone()),
+        );
+        let (n, l, p, e, v) = unit.into_parts();
+        assert_eq!(n, Some(narrative), "narrative 应移动而非克隆");
+        assert_eq!(l, Some(location));
+        assert_eq!(p, Some(participants));
+        assert_eq!(e, Some(environment));
+        assert_eq!(v, Some(event));
+    }
+
+    #[test]
+    fn test_into_parts_all_none() {
+        let unit = SituationQueryUnitEmbedding::new(None, None, None, None, None);
+        let (n, l, p, e, v) = unit.into_parts();
+        assert!(n.is_none());
+        assert!(l.is_none());
+        assert!(p.is_none());
+        assert!(e.is_none());
+        assert!(v.is_none());
+    }
 }
