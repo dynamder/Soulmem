@@ -27,6 +27,15 @@ impl ParticipantQueryUnitEmbedding {
     pub fn set_blend_weights(&mut self, bw: &BlendWeights) {
         self.blend_weights = bw.clone();
     }
+    /// 解构取所有权：name 与 role（移动而非克隆）。
+    pub fn into_parts(self) -> (Option<EmbeddingVec>, Option<EmbeddingVec>) {
+        let Self {
+            name,
+            role,
+            blend_weights: _,
+        } = self;
+        (name, role)
+    }
     pub fn mean_pooling(vecs: &[Self]) -> EmbeddingCalcResult<Option<Self>> {
         if vecs.is_empty() {
             return Ok(None);

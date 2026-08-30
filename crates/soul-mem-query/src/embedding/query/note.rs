@@ -108,6 +108,18 @@ impl MemoryRetrieveQueryEmbedding {
         self.variant.set_blend_weights(&bw);
         self
     }
+
+    /// 解构取所有权：tag 与 variant（移动而非克隆，供消费性链路零拷贝传递）。
+    pub fn into_parts(self) -> (EmbeddingVec, MemoryRetrieveQueryVariantEmbedding) {
+        let Self {
+            tag,
+            variant,
+            tag_weight: _,
+            variant_weight: _,
+            string_blend_alpha: _,
+        } = self;
+        (tag, variant)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -297,7 +297,7 @@ impl MemoryRepository for SurrealRepository {
             let mut candidates: Vec<MemoryId> = Vec::new();
 
             for query in queries {
-                let slots = flatten_query_embedding(&query)?;
+                let slots = flatten_query_embedding(query)?;
                 for (slot, vec) in slots {
                     if vec.is_zero() {
                         continue; // 零向量（如空 tag）不参与 KNN

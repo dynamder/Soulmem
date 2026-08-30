@@ -32,6 +32,16 @@ impl SemanticQueryUnitEmbedding {
     pub fn set_blend_weights(&mut self, bw: &BlendWeights) {
         self.blend_weights = bw.clone();
     }
+
+    /// 解构取所有权：concept_identifier 与 description（移动而非克隆）。
+    pub fn into_parts(self) -> (Option<EmbeddingVec>, Option<EmbeddingVec>) {
+        let Self {
+            concept_identifier,
+            description,
+            blend_weights: _,
+        } = self;
+        (concept_identifier, description)
+    }
 }
 #[cfg(test)]
 impl SemanticQueryUnitEmbedding {

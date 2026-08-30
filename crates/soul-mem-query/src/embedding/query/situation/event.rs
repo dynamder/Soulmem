@@ -37,6 +37,18 @@ impl EventQueryUnitEmbedding {
     pub fn set_blend_weights(&mut self, bw: &BlendWeights) {
         self.blend_weights = bw.clone();
     }
+    /// 解构取所有权：action、initiator 与 target（移动而非克隆）。
+    pub fn into_parts(
+        self,
+    ) -> (EmbeddingVec, Option<EmbeddingVec>, Option<EmbeddingVec>) {
+        let Self {
+            action,
+            initiator,
+            target,
+            blend_weights: _,
+        } = self;
+        (action, initiator, target)
+    }
     pub fn mean_pooling(vecs: &[EventQueryUnitEmbedding]) -> EmbeddingCalcResult<Option<Self>> {
         if vecs.is_empty() {
             return Ok(None);

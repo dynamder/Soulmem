@@ -27,6 +27,15 @@ impl LocationQueryUnitEmbedding {
     pub fn set_blend_weights(&mut self, bw: &BlendWeights) {
         self.blend_weights = bw.clone();
     }
+    /// 解构取所有权：name 与 coordinates（移动而非克隆）。
+    pub fn into_parts(self) -> (EmbeddingVec, Option<EmbeddingVec>) {
+        let Self {
+            name,
+            coordinates,
+            blend_weights: _,
+        } = self;
+        (name, coordinates)
+    }
     pub fn mean_pooling(vecs: &[Self]) -> EmbeddingCalcResult<Option<Self>> {
         if vecs.is_empty() {
             return Ok(None);

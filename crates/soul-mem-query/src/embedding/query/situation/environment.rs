@@ -27,6 +27,15 @@ impl EnvironmentQueryUnitEmbedding {
     pub fn set_blend_weights(&mut self, bw: &BlendWeights) {
         self.blend_weights = bw.clone();
     }
+    /// 解构取所有权：atmosphere 与 tone（移动而非克隆）。
+    pub fn into_parts(self) -> (Option<EmbeddingVec>, Option<EmbeddingVec>) {
+        let Self {
+            atmosphere,
+            tone,
+            blend_weights: _,
+        } = self;
+        (atmosphere, tone)
+    }
 }
 #[cfg(test)]
 impl EnvironmentQueryUnitEmbedding {

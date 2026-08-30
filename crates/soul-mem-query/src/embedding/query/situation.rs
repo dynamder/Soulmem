@@ -73,6 +73,28 @@ impl SituationQueryUnitEmbedding {
             evt.set_blend_weights(bw);
         }
     }
+
+    /// 解构取所有权：narrative 与各子单元（移动而非克隆）。
+    #[allow(clippy::type_complexity)]
+    pub fn into_parts(
+        self,
+    ) -> (
+        Option<EmbeddingVec>,
+        Option<LocationQueryUnitEmbedding>,
+        Option<ParticipantQueryUnitEmbedding>,
+        Option<EnvironmentQueryUnitEmbedding>,
+        Option<EventQueryUnitEmbedding>,
+    ) {
+        let Self {
+            narrative,
+            location,
+            participants,
+            environment,
+            event,
+            blend_weights: _,
+        } = self;
+        (narrative, location, participants, environment, event)
+    }
 }
 #[cfg(test)]
 impl SituationQueryUnitEmbedding {

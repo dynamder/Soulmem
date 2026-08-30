@@ -37,6 +37,8 @@ pub trait MemoryRepository: Send + Sync {
     /// **不做排序与截断**——精确重排（`compute_fused`）与最终 top-k 截断由调用方完成；
     /// `candidate_k` 即每槽位召回预算，需按槽位数自行放大余量
     /// （单个查询可能 fan-out 出多个槽位，见 mapper 的 `flatten_query_embedding`）。
+    /// **所有权消费性接口**：接收 owned 查询并在内部解构移动（零隐式克隆）；
+    /// 调用方如需复用查询，请在调用点显式 clone。
     async fn similarity_fetch(
         &self,
         queries: Vec<MemoryRetrieveQueryEmbedding>,

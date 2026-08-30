@@ -335,11 +335,16 @@ impl TryFrom<NoteRow> for EmbeddedMemoryNote {
 /// 语义 `concept_identifier` 同时打 `sem_content_emb` 与 `sem_aliases_emb`
 /// （重排对 content/aliases 取 max）。零向量跳过由仓储层 KNN 循环统一处理
 /// （与写侧 `is_zero` 跳过对称）。
+///
+/// **所有权语义**：接收 owned 查询并解构移动内部向量（`into_parts`），
+/// 全链路零隐式克隆——唯一显式 `clone` 出现在 fan-out 列：
+/// 同一向量需同时打进两列 KNN，只能移动一份、克隆另一份。
 pub(crate) fn flatten_query_embedding(
-    query: &MemoryRetrieveQueryEmbedding,
+    query: MemoryRetrieveQueryEmbedding,
 ) -> MapperResult<Vec<(EmbeddingSlot, EmbeddingVec)>> {
-    let mut out = vec![(EmbeddingSlot::Tag, query.tag().clone())];
-    match query.variant() {
+    let (tag, variant) = query.into_parts();
+    let mut out = vec![(EmbeddingSlot::Tag, tag)];
+    match variant {
         MemoryRetrieveQueryVariantEmbedding::Semantic(units) => {
             for unit in units {
                 flatten_sem_query_unit(unit, &mut out);
@@ -355,67 +360,72 @@ pub(crate) fn flatten_query_embedding(
 }
 
 fn flatten_sem_query_unit(
-    unit: &SemanticQueryUnitEmbedding,
+    unit: SemanticQueryUnitEmbedding,
     out: &mut Vec<(EmbeddingSlot, EmbeddingVec)>,
 ) {
-    if let Some(concept) = unit.concept_identifier() {
+    let (concept, description) = unit.into_parts();
+    if let Some(concept) = concept {
+        // fan-out：content/aliases 两列共用同一向量 → 第一列克隆、第二列移动
         out.push((EmbeddingSlot::SemContent, concept.clone()));
-        out.push((EmbeddingSlot::SemAliases, concept.clone()));
+        out.push((EmbeddingSlot::SemAliases, concept));
     }
-    if let Some(description) = unit.description() {
-        out.push((EmbeddingSlot::SemDescription, description.clone()));
+    if let Some(description) = description {
+        out.push((EmbeddingSlot::SemDescription, description));
     }
 }
 
 fn flatten_sit_query_unit(
-    unit: &SituationQueryUnitEmbedding,
+    unit: SituationQueryUnitEmbedding,
     out: &mut Vec<(EmbeddingSlot, EmbeddingVec)>,
 ) {
-    // 叙事：具体情境的 narrative 列 + 抽象情境的 fused_self（叙事通道）
-    if let Some(narrative) = unit.narrative() {
+    let (narrative, location, participants, environment, event) = unit.into_parts();
+    // 情境向量一律 fan-out 到「具体情境列 + 抽象情境列」→ 第一列克隆、第二列移动
+    if let Some(narrative) = narrative {
         out.push((EmbeddingSlot::SitNarrative, narrative.clone()));
-        out.push((EmbeddingSlot::FusedSelf, narrative.clone()));
+        out.push((EmbeddingSlot::FusedSelf, narrative));
     }
-    if let Some(loc) = unit.location() {
-        let name = loc.name();
+    if let Some(loc) = location {
+        let (name, coord) = loc.into_parts();
         out.push((EmbeddingSlot::SitCtxLocName, name.clone()));
-        out.push((EmbeddingSlot::SitLocName, name.clone()));
-        if let Some(coord) = loc.coordinates() {
+        out.push((EmbeddingSlot::SitLocName, name));
+        if let Some(coord) = coord {
             out.push((EmbeddingSlot::SitCtxLocCoord, coord.clone()));
-            out.push((EmbeddingSlot::SitLocCoord, coord.clone()));
+            out.push((EmbeddingSlot::SitLocCoord, coord));
         }
     }
-    if let Some(part) = unit.participants() {
-        if let Some(name) = part.name() {
+    if let Some(part) = participants {
+        let (name, role) = part.into_parts();
+        if let Some(name) = name {
             out.push((EmbeddingSlot::SitCtxPartName, name.clone()));
-            out.push((EmbeddingSlot::SitPartName, name.clone()));
+            out.push((EmbeddingSlot::SitPartName, name));
         }
-        if let Some(role) = part.role() {
+        if let Some(role) = role {
             out.push((EmbeddingSlot::SitCtxPartRole, role.clone()));
-            out.push((EmbeddingSlot::SitPartRole, role.clone()));
+            out.push((EmbeddingSlot::SitPartRole, role));
         }
     }
-    if let Some(env) = unit.environment() {
-        if let Some(atmosphere) = env.atmosphere() {
+    if let Some(env) = environment {
+        let (atmosphere, tone) = env.into_parts();
+        if let Some(atmosphere) = atmosphere {
             out.push((EmbeddingSlot::SitCtxEnvAtmosphere, atmosphere.clone()));
-            out.push((EmbeddingSlot::SitEnvAtmosphere, atmosphere.clone()));
+            out.push((EmbeddingSlot::SitEnvAtmosphere, atmosphere));
         }
-        if let Some(tone) = env.tone() {
+        if let Some(tone) = tone {
             out.push((EmbeddingSlot::SitCtxEnvTone, tone.clone()));
-            out.push((EmbeddingSlot::SitEnvTone, tone.clone()));
+            out.push((EmbeddingSlot::SitEnvTone, tone));
         }
     }
-    if let Some(evt) = unit.event() {
-        let action = evt.action();
+    if let Some(evt) = event {
+        let (action, initiator, target) = evt.into_parts();
         out.push((EmbeddingSlot::SitCtxEventAction, action.clone()));
-        out.push((EmbeddingSlot::SitEventAction, action.clone()));
-        if let Some(initiator) = evt.initiator() {
+        out.push((EmbeddingSlot::SitEventAction, action));
+        if let Some(initiator) = initiator {
             out.push((EmbeddingSlot::SitCtxEventInitiator, initiator.clone()));
-            out.push((EmbeddingSlot::SitEventInitiator, initiator.clone()));
+            out.push((EmbeddingSlot::SitEventInitiator, initiator));
         }
-        if let Some(target) = evt.target() {
+        if let Some(target) = target {
             out.push((EmbeddingSlot::SitCtxEventTarget, target.clone()));
-            out.push((EmbeddingSlot::SitEventTarget, target.clone()));
+            out.push((EmbeddingSlot::SitEventTarget, target));
         }
     }
 }
@@ -767,7 +777,7 @@ mod tests {
                     Some(EmbeddingVec::new(vec![0.5, 0.5])),
                 ),
             ]));
-        let slots = flatten_query_embedding(&sem_q).unwrap();
+        let slots = flatten_query_embedding(sem_q).unwrap();
         let cols: Vec<&str> = slots.iter().map(|(s, _)| s.column()).collect();
         assert_eq!(slots.len(), 4, "tag + content + aliases + description");
         for col in [
@@ -791,7 +801,7 @@ mod tests {
                 None,
             )]),
         );
-        let slots = flatten_query_embedding(&sit_q).unwrap();
+        let slots = flatten_query_embedding(sit_q).unwrap();
         let cols: Vec<&str> = slots.iter().map(|(s, _)| s.column()).collect();
         assert_eq!(slots.len(), 5, "tag + narrative×2 + loc_name×2");
         for col in [
