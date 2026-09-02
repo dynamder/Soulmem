@@ -8,6 +8,19 @@ import '../models.dart';
 import '../theme.dart';
 import 'results_page.dart';
 
+/// 批量模式的展示名（mode 与 run_batch API 一致：直接=flavor，数据库=db/flavor）。
+String batchModeLabel(String mode) {
+  const map = {
+    'embedding': '直接 · embedding',
+    'association': '直接 · association',
+    'full': '直接 · full',
+    'db/embedding': '数据库 · embedding',
+    'db/association': '数据库 · association',
+    'db/full': '数据库 · full',
+  };
+  return map[mode] ?? mode;
+}
+
 /// 批量配置页：目录 + 模式 + 参数 → 开始批量。
 class BatchConfigPage extends StatefulWidget {
   const BatchConfigPage({super.key});
@@ -17,7 +30,8 @@ class BatchConfigPage extends StatefulWidget {
 }
 
 class _BatchConfigPageState extends State<BatchConfigPage> {
-  String _mode = 'full';
+  String _source = 'direct'; // direct | db
+  String _flavor = 'full'; // embedding | association | full
   final _dirCtrl = TextEditingController();
   final _topK = TextEditingController(text: '10');
   final _threshold = TextEditingController(text: '0.7');
@@ -30,11 +44,10 @@ class _BatchConfigPageState extends State<BatchConfigPage> {
     super.dispose();
   }
 
-  String get _modeName => switch (_mode) {
-        'embedding' => 'embedding',
-        'association' => 'association',
-        _ => 'full',
-      };
+  String get _modeName {
+    if (_source == 'direct') return _flavor;
+    return _flavor == 'full' ? 'db/full' : 'db/$_flavor';
+  }
 
   Future<void> _pickDir() async {
     final dir = await FilePicker.platform.getDirectoryPath(
@@ -71,7 +84,20 @@ class _BatchConfigPageState extends State<BatchConfigPage> {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              Text('检索模式', style: Theme.of(context).textTheme.titleMedium),
+              Text('检索模式（记忆来源 × 管线）', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(value: 'direct', label: Text('直接')),
+                  ButtonSegment(
+                    value: 'db',
+                    label: Text('数据库'),
+                    tooltip: 'example_data 先写入 mem 数据库，再经 DB 召回',
+                  ),
+                ],
+                selected: {_source},
+                onSelectionChanged: (s) => setState(() => _source = s.first),
+              ),
               const SizedBox(height: 8),
               SegmentedButton<String>(
                 segments: const [
@@ -79,9 +105,12 @@ class _BatchConfigPageState extends State<BatchConfigPage> {
                   ButtonSegment(value: 'association', label: Text('association')),
                   ButtonSegment(value: 'full', label: Text('full')),
                 ],
-                selected: {_mode},
-                onSelectionChanged: (s) => setState(() => _mode = s.first),
+                selected: {_flavor},
+                onSelectionChanged: (s) => setState(() => _flavor = s.first),
               ),
+              const SizedBox(height: 6),
+              Text('模式: ${batchModeLabel(_modeName)}',
+                  style: const TextStyle(color: Colors.grey, fontSize: 12)),
               const SizedBox(height: 24),
               Text('数据集目录', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
@@ -273,7 +302,7 @@ class _BatchPageState extends State<BatchPage> {
     final sorted = [..._rows]..sort((a, b) => b.passRate.compareTo(a.passRate));
 
     return Scaffold(
-      appBar: AppBar(title: Text('批量 · ${widget.mode}')),
+      appBar: AppBar(title: Text('批量 · ${batchModeLabel(widget.mode)}')),
       body: Column(
         children: [
           Padding(

@@ -47,7 +47,7 @@ class HomePage extends StatelessWidget {
               _ActionCard(
                 icon: Icons.compare_arrows,
                 title: '对比测试',
-                subtitle: '同数据集 embedding vs full pipeline',
+                subtitle: 'embedding vs full / 同管线 直接 vs 数据库',
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const CompareConfigPage()),

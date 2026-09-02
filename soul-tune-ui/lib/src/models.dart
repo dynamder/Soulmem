@@ -399,7 +399,7 @@ class ParamSpec {
       );
 }
 
-// ── 对比（embedding vs full）──
+// ── 对比（embedding vs full / 同管线 直接 vs 数据库）──
 
 sealed class CompareEvent {
   const CompareEvent();

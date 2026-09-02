@@ -5,19 +5,33 @@ import '../theme.dart';
 import '../widgets/stat_card.dart';
 
 /// 对比结果页：聚合指标卡 + 逐用例对比表（可排序，点击展开详情）。
+/// 侧标签由 kind 决定：embedding_full = Emb/Full；direct_db = 直接/DB。
 class CompareResultsPage extends StatefulWidget {
   final CompareReport report;
-  const CompareResultsPage({super.key, required this.report});
+  final String kind; // embedding_full | direct_db
+  final String flavor; // full | embedding | association（direct_db 生效）
+  const CompareResultsPage({
+    super.key,
+    required this.report,
+    this.kind = 'embedding_full',
+    this.flavor = 'full',
+  });
 
   @override
   State<CompareResultsPage> createState() => _CompareResultsPageState();
 }
 
 class _CompareResultsPageState extends State<CompareResultsPage> {
-  int? _sortColumn; // 0=用例 1=EmbHit 2=FullHit 3=ΔHit 4=EmbMRR 5=FullMRR 6=ΔMRR
+  int? _sortColumn; // 0=用例 1=侧A Hit 2=侧B Hit 3=ΔHit 4=侧A MRR 5=侧B MRR 6=ΔMRR
   bool _sortAsc = true;
 
   CompareReport get report => widget.report;
+
+  bool get _isDb => widget.kind == 'direct_db';
+  String get _labelA => _isDb ? '直接' : 'Emb';
+  String get _labelB => _isDb ? 'DB' : 'Full';
+  String get _subtitle =>
+      _isDb ? '同管线「直接(全量工作记忆) vs 数据库(DB 召回)」· ${widget.flavor}' : 'Embedding vs FullPipeline';
 
   List<CompareCase> get _sorted {
     final list = [...report.cases];
@@ -56,6 +70,11 @@ class _CompareResultsPageState extends State<CompareResultsPage> {
       appBar: AppBar(title: Text('对比结果 · ${report.datasetName}')),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Text(_subtitle,
+                style: const TextStyle(color: AppColors.subtle, fontSize: 12)),
+          ),
           // 聚合卡
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
@@ -93,7 +112,7 @@ class _CompareResultsPageState extends State<CompareResultsPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Text(
-                'FullPipeline 整体：Hit ${_delta(hitDelta)} · MRR ${_delta(mrrDelta)}',
+                '$_labelB 相对 $_labelA：Hit ${_delta(hitDelta)} · MRR ${_delta(mrrDelta)}',
                 style: TextStyle(
                   color: (hitDelta >= 0 && mrrDelta >= 0) ? AppColors.pass : AppColors.warn,
                   fontSize: 12,
@@ -155,11 +174,11 @@ class _CompareResultsPageState extends State<CompareResultsPage> {
           child: Row(
             children: [
               headerCell('用例', 0, flex: 4),
-              headerCell('Emb Hit', 1, flex: 2),
-              headerCell('Full Hit', 2, flex: 2),
+              headerCell('$_labelA Hit', 1, flex: 2),
+              headerCell('$_labelB Hit', 2, flex: 2),
               headerCell('ΔHit', 3, flex: 2),
-              headerCell('Emb MRR', 4, flex: 2),
-              headerCell('Full MRR', 5, flex: 2),
+              headerCell('$_labelA MRR', 4, flex: 2),
+              headerCell('$_labelB MRR', 5, flex: 2),
               headerCell('ΔMRR', 6, flex: 2),
             ],
           ),
@@ -177,7 +196,8 @@ class _CompareResultsPageState extends State<CompareResultsPage> {
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) => CompareCaseDetailPage(caseData: c)),
+                            builder: (_) => CompareCaseDetailPage(
+                                caseData: c, labelA: _labelA, labelB: _labelB)),
                       ),
                       child: Container(
                         color: improved
@@ -303,7 +323,14 @@ class _DeltaStatCard extends StatelessWidget {
 /// 单用例对比详情：两种模式的检索列表 vs 期望。
 class CompareCaseDetailPage extends StatelessWidget {
   final CompareCase caseData;
-  const CompareCaseDetailPage({super.key, required this.caseData});
+  final String labelA;
+  final String labelB;
+  const CompareCaseDetailPage({
+    super.key,
+    required this.caseData,
+    required this.labelA,
+    required this.labelB,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -314,13 +341,13 @@ class CompareCaseDetailPage extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           _Section(title: '指标对比', child: _kvRows([
-            ('Emb Hit / Full Hit', '${c.embeddingHit.toStringAsFixed(2)} / ${c.fullpipelineHit.toStringAsFixed(2)}'),
-            ('Emb MRR / Full MRR', '${c.embeddingMrr.toStringAsFixed(4)} / ${c.fullpipelineMrr.toStringAsFixed(4)}'),
-            ('Emb Recall@K', _fmtPairs(c.embeddingRecallAt)),
-            ('Full Recall@K', _fmtPairs(c.fullpipelineRecallAt)),
+            ('$labelA Hit / $labelB Hit', '${c.embeddingHit.toStringAsFixed(2)} / ${c.fullpipelineHit.toStringAsFixed(2)}'),
+            ('$labelA MRR / $labelB MRR', '${c.embeddingMrr.toStringAsFixed(4)} / ${c.fullpipelineMrr.toStringAsFixed(4)}'),
+            ('$labelA Recall@K', _fmtPairs(c.embeddingRecallAt)),
+            ('$labelB Recall@K', _fmtPairs(c.fullpipelineRecallAt)),
           ])),
-          _Section(title: '检索列表（embedding）', child: _list(c.embeddingRetrieved, c.expected)),
-          _Section(title: '检索列表（full pipeline）', child: _list(c.fullpipelineRetrieved, c.expected)),
+          _Section(title: '检索列表（$labelA）', child: _list(c.embeddingRetrieved, c.expected)),
+          _Section(title: '检索列表（$labelB）', child: _list(c.fullpipelineRetrieved, c.expected)),
           _Section(title: '期望命中', child: _list(c.expected, c.expected)),
           Text('tag_weight=${c.tagWeight}  variant_weight=${c.variantWeight}',
               style: const TextStyle(color: AppColors.subtle, fontSize: 12)),

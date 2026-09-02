@@ -31,6 +31,7 @@ use soul_tune::engine::playtest::runner::{ConversationEntry, PlayTestRunner};
 use soul_tune::engine::playtest::trace::{HitStage, RetrievalTrace, TracedNode};
 use soul_tune::engine::retrieve::batch::process_one_dataset;
 use soul_tune::engine::retrieve::data::RetrieveCaseData;
+use soul_tune::engine::retrieve::db_compare::{build_db_compare_report, DbCompareReport};
 use soul_tune::engine::retrieve::RetrieveSuite;
 use soul_tune::engine::suite::{DetailRow, MetricEntry, TestCaseOutcome, TestSuite};
 
@@ -318,6 +319,11 @@ fn parse_algo(s: &str) -> anyhow::Result<AlgoType> {
         "retrieve/embedding" | "re" => Ok(AlgoType::Retrieve(RetrieveMode::Embedding)),
         "retrieve/association" | "ra" => Ok(AlgoType::Retrieve(RetrieveMode::Association)),
         "retrieve/full" | "retrieve" | "rf" => Ok(AlgoType::Retrieve(RetrieveMode::FullPipeline)),
+        "retrieve/db/embedding" | "rde" => Ok(AlgoType::Retrieve(RetrieveMode::EmbeddingDb)),
+        "retrieve/db/association" | "rda" => Ok(AlgoType::Retrieve(RetrieveMode::AssociationDb)),
+        "retrieve/db" | "retrieve/db/full" | "rd" => {
+            Ok(AlgoType::Retrieve(RetrieveMode::FullPipelineDb))
+        }
         other => Err(anyhow::anyhow!("未知算法: {other}")),
     }
 }
@@ -385,6 +391,9 @@ fn run_batch_impl(
         "embedding" => RetrieveMode::Embedding,
         "association" => RetrieveMode::Association,
         "full" | "fullpipeline" => RetrieveMode::FullPipeline,
+        "db/embedding" | "dbe" => RetrieveMode::EmbeddingDb,
+        "db/association" | "dba" => RetrieveMode::AssociationDb,
+        "db" | "db/full" | "db/fullpipeline" => RetrieveMode::FullPipelineDb,
         other => return Err(anyhow::anyhow!("未知检索模式: {other}")),
     };
     let dir_path = PathBuf::from(dir);
@@ -556,6 +565,12 @@ fn run_compare_impl(
         .map(|n| n.to_string_lossy().to_string())
         .unwrap_or_default();
 
+    // 对比类型：embedding_full（embedding vs full pipeline，默认）| direct_db（同管线 直接 vs 数据库）
+    let kind = params.get("kind").map(String::as_str).unwrap_or("embedding_full");
+    if kind == "direct_db" {
+        return run_compare_db_impl(dataset, &params, &dataset_name, &dataset_path, sink);
+    }
+
     CANCEL.store(false, Ordering::SeqCst);
 
     // 阶段 1：embedding
@@ -633,17 +648,8 @@ fn build_compare_json(
     dataset_name: &str,
     dataset_path: &Path,
 ) -> CompareReportJson {
-    // 从 embedding 用例数据中收集节点名映射（graph_names）
-    let mut name_map: HashMap<soul_mem_core::memory_note::MemoryId, String> = HashMap::new();
-    for o in emb_outcomes {
-        if let Some(d) = o.data.downcast_ref::<RetrieveCaseData>() {
-            if let Some(names) = d.graph_names.as_ref() {
-                for (id, n) in names.iter() {
-                    name_map.insert(*id, n.clone());
-                }
-            }
-        }
-    }
+    // 从一侧用例数据中收集节点名映射（graph_names），两侧共用同一张图
+    let name_map = collect_graph_names(emb_outcomes);
     let names = |ids: &[soul_mem_core::memory_note::MemoryId]| -> Vec<String> {
         ids.iter()
             .map(|id| name_map.get(id).cloned().unwrap_or_else(|| format!("{id:?}")))
@@ -681,6 +687,154 @@ fn build_compare_json(
                 expected_combined_ranking: names(&c.expected_combined_ranking),
                 improved_hit: c.fullpipeline_hit > c.embedding_hit,
                 improved_mrr: c.fullpipeline_mrr > c.embedding_mrr,
+            })
+            .collect(),
+    }
+}
+
+/// 从用例结果中收集 graph_names（MemoryId → 图内可读名），供检索列表展示。
+fn collect_graph_names(
+    outcomes: &[TestCaseOutcome],
+) -> HashMap<soul_mem_core::memory_note::MemoryId, String> {
+    let mut name_map: HashMap<soul_mem_core::memory_note::MemoryId, String> = HashMap::new();
+    for o in outcomes {
+        if let Some(d) = o.data.downcast_ref::<RetrieveCaseData>() {
+            if let Some(names) = d.graph_names.as_ref() {
+                for (id, n) in names.iter() {
+                    name_map.insert(*id, n.clone());
+                }
+            }
+        }
+    }
+    name_map
+}
+
+// ======================= 对比（同管线 直接 vs 数据库） =======================
+
+/// params flavor（"full"/"embedding"/"association"，缺省 full）→ (直接模式, 数据库模式)。
+fn compare_db_modes(flavor: &str) -> (RetrieveMode, RetrieveMode) {
+    let direct = match flavor {
+        "embedding" => RetrieveMode::Embedding,
+        "association" => RetrieveMode::Association,
+        _ => RetrieveMode::FullPipeline,
+    };
+    let db = direct
+        .db_mode()
+        .expect("direct retrieve mode always maps to a db mode");
+    (direct, db)
+}
+
+/// 直接 vs 数据库 对比：同一 question.json、同一管线（flavor），两阶段执行后配对报告。
+fn run_compare_db_impl(
+    dataset: &str,
+    params: &HashMap<String, String>,
+    dataset_name: &str,
+    dataset_path: &Path,
+    sink: &StreamSink<String>,
+) -> anyhow::Result<()> {
+    let flavor = params.get("flavor").map(String::as_str).unwrap_or("full");
+    let (direct_mode, db_mode) = compare_db_modes(flavor);
+
+    CANCEL.store(false, Ordering::SeqCst);
+
+    // 阶段 1：直接（全量工作记忆）
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: format!("正在加载直接套件（{direct_mode}）..."),
+        },
+    );
+    let direct_suite: Box<dyn TestSuite> = Box::new(
+        RetrieveSuite::load_with_params(dataset_path, direct_mode, Some(params))
+            .map_err(|e| anyhow::anyhow!("加载直接套件失败: {e}"))?,
+    );
+    let direct_total = direct_suite.case_count();
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: format!("直接套件就绪，共 {direct_total} 个用例"),
+        },
+    );
+    let (direct_outcomes, _, _) =
+        run_compare_phase(direct_suite.as_ref(), "direct", direct_total, sink)?;
+
+    // 阶段 2：数据库（example_data 先入 mem 数据库，再 DB 召回）
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: format!("正在加载数据库套件（{db_mode}）..."),
+        },
+    );
+    let db_suite: Box<dyn TestSuite> = Box::new(
+        RetrieveSuite::load_with_params(dataset_path, db_mode, Some(params))
+            .map_err(|e| anyhow::anyhow!("加载数据库套件失败: {e}"))?,
+    );
+    let db_total = db_suite.case_count();
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: format!("数据库套件就绪，共 {db_total} 个用例"),
+        },
+    );
+    let (db_outcomes, _, _) = run_compare_phase(db_suite.as_ref(), "db", db_total, sink)?;
+
+    let report = build_db_compare_report(&direct_outcomes, &db_outcomes, flavor.to_string());
+    emit(
+        sink,
+        &CompareEvent::Done {
+            report: build_db_compare_json(report, &direct_outcomes, dataset_name, dataset_path),
+        },
+    );
+    Ok(())
+}
+
+/// 把引擎的 DB 对比报告映射为 UI 既有 CompareReportJson 契约：
+/// embedding_* 字段承载「直接」侧，fullpipeline_* 字段承载「数据库」侧
+/// （UI 依据 kind/flavor 参数决定展示标签，无需改动 FRB 绑定）。
+fn build_db_compare_json(
+    report: DbCompareReport,
+    direct_outcomes: &[TestCaseOutcome],
+    dataset_name: &str,
+    dataset_path: &Path,
+) -> CompareReportJson {
+    let name_map = collect_graph_names(direct_outcomes);
+    let names = |ids: &[soul_mem_core::memory_note::MemoryId]| -> Vec<String> {
+        ids.iter()
+            .map(|id| name_map.get(id).cloned().unwrap_or_else(|| format!("{id:?}")))
+            .collect()
+    };
+    let agg = &report.aggregate;
+    CompareReportJson {
+        dataset_name: dataset_name.to_string(),
+        dataset_path: dataset_path.to_string_lossy().to_string(),
+        aggregate: CompareAggregateJson {
+            case_count: agg.case_count,
+            avg_embedding_hit: agg.avg_direct_hit,
+            avg_fullpipeline_hit: agg.avg_db_hit,
+            avg_embedding_mrr: agg.avg_direct_mrr,
+            avg_fullpipeline_mrr: agg.avg_db_mrr,
+            hit_improvement_count: agg.hit_improved_count,
+            mrr_improvement_count: agg.mrr_improved_count,
+        },
+        cases: report
+            .cases
+            .iter()
+            .map(|c| CompareCaseJson {
+                case_name: c.case_name.clone(),
+                description: c.description.clone(),
+                tag_weight: c.tag_weight,
+                variant_weight: c.variant_weight,
+                embedding_hit: c.direct_hit,
+                fullpipeline_hit: c.db_hit,
+                embedding_mrr: c.direct_mrr,
+                fullpipeline_mrr: c.db_mrr,
+                embedding_recall_at: c.direct_recall_at.clone(),
+                fullpipeline_recall_at: c.db_recall_at.clone(),
+                embedding_retrieved: names(&c.direct_retrieved),
+                fullpipeline_retrieved: names(&c.db_retrieved),
+                expected_combined_ranking: names(&c.expected_combined_ranking),
+                improved_hit: c.improved_hit,
+                improved_mrr: c.improved_mrr,
             })
             .collect(),
     }

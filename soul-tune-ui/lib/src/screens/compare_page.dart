@@ -17,6 +17,8 @@ class CompareConfigPage extends StatefulWidget {
 }
 
 class _CompareConfigPageState extends State<CompareConfigPage> {
+  String _kind = 'embedding_full'; // embedding_full | direct_db
+  String _flavor = 'full'; // direct_db 时生效：embedding | association | full
   final _pathCtrl = TextEditingController();
   final _topK = TextEditingController(text: '10');
   final _threshold = TextEditingController(text: '0.7');
@@ -77,7 +79,12 @@ class _CompareConfigPageState extends State<CompareConfigPage> {
       MaterialPageRoute(
         builder: (_) => CompareRunPage(
           dataset: _pathCtrl.text.trim(),
-          params: {'top_k': _topK.text.trim(), 'threshold': _threshold.text.trim()},
+          params: {
+            'top_k': _topK.text.trim(),
+            'threshold': _threshold.text.trim(),
+            'kind': _kind,
+            'flavor': _flavor,
+          },
         ),
       ),
     );
@@ -86,13 +93,47 @@ class _CompareConfigPageState extends State<CompareConfigPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('对比测试 (embedding vs full)')),
+      appBar: AppBar(
+          title: Text(_kind == 'direct_db'
+              ? '对比测试 (直接 vs 数据库 · $_flavor)'
+              : '对比测试 (embedding vs full)')),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 640),
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
+              Text('对比类型', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(
+                    value: 'embedding_full',
+                    label: Text('embedding vs full'),
+                    tooltip: '两条不同管线的对比（既有功能）',
+                  ),
+                  ButtonSegment(
+                    value: 'direct_db',
+                    label: Text('直接 vs 数据库'),
+                    tooltip: '同一管线：example_data 全量载入 vs 先入 mem 数据库再 DB 召回',
+                  ),
+                ],
+                selected: {_kind},
+                onSelectionChanged: (s) => setState(() => _kind = s.first),
+              ),
+              if (_kind == 'direct_db') ...[
+                const SizedBox(height: 8),
+                SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(value: 'embedding', label: Text('embedding')),
+                    ButtonSegment(value: 'association', label: Text('association')),
+                    ButtonSegment(value: 'full', label: Text('full')),
+                  ],
+                  selected: {_flavor},
+                  onSelectionChanged: (s) => setState(() => _flavor = s.first),
+                ),
+              ],
+              const SizedBox(height: 24),
               Text('数据集', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               Row(
@@ -184,7 +225,7 @@ class _CompareConfigPageState extends State<CompareConfigPage> {
   }
 }
 
-/// 对比运行页：两阶段进度（embedding → full），完成后进入结果页。
+/// 对比运行页：两阶段进度（embedding→full 或 direct→db），完成后进入结果页。
 class CompareRunPage extends StatefulWidget {
   final String dataset;
   final Map<String, String> params;
@@ -232,7 +273,13 @@ class _CompareRunPageState extends State<CompareRunPage> {
           case CompareDone(:final report):
             _finished = true;
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => CompareResultsPage(report: report)),
+              MaterialPageRoute(
+                builder: (_) => CompareResultsPage(
+                  report: report,
+                  kind: widget.params['kind'] ?? 'embedding_full',
+                  flavor: widget.params['flavor'] ?? 'full',
+                ),
+              ),
             );
           case CompareError(:final message):
             _finished = true;
@@ -259,6 +306,14 @@ class _CompareRunPageState extends State<CompareRunPage> {
   void _cancel() {
     resetCancel();
     Navigator.of(context).pop();
+  }
+
+  // 两阶段徽标：(api phase, 展示名)；direct_db 时左侧为"直接"，右侧为"数据库"。
+  List<(String, String)> get _phases {
+    final isDb = widget.params['kind'] == 'direct_db';
+    return isDb
+        ? const [('direct', '直接'), ('db', '数据库')]
+        : const [('embedding', 'embedding'), ('full', 'full')];
   }
 
   @override
@@ -292,9 +347,10 @@ class _CompareRunPageState extends State<CompareRunPage> {
                 else ...[
                   Row(
                     children: [
-                      _PhaseBadge(label: 'embedding', active: _phase == 'embedding'),
-                      const SizedBox(width: 8),
-                      _PhaseBadge(label: 'full', active: _phase == 'full'),
+                      for (final (p, label) in _phases) ...[
+                        _PhaseBadge(label: label, active: _phase == p),
+                        const SizedBox(width: 8),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 16),
