@@ -9,7 +9,7 @@ mod tests_cli;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use base::{AlgoType, ForgetMode, RetrieveMode, TestReport};
+use base::{AlgoType, ForgetMode, RetrieveFlavor, RetrieveMode, TestReport};
 use engine::batch::{print_batch_result, run_batch, scan_question_jsons, summarize_action_metrics};
 use engine::forget::{ForgetMaskSuite, ForgetPipelineSuite, ForgetReviseSuite};
 use engine::inspect::{inspect_data, InspectFileType};
@@ -105,12 +105,22 @@ fn main() -> color_eyre::Result<()> {
             }
             "retrieve/association" | "ra" => AlgoType::Retrieve(RetrieveMode::Association),
             "retrieve/full" | "rf" => AlgoType::Retrieve(RetrieveMode::FullPipeline),
+            "retrieve/db/embedding" | "rde" => AlgoType::Retrieve(RetrieveMode::EmbeddingDb),
+            "retrieve/db/association" | "rda" => AlgoType::Retrieve(RetrieveMode::AssociationDb),
+            "retrieve/db" | "retrieve/db/full" | "rd" => {
+                AlgoType::Retrieve(RetrieveMode::FullPipelineDb)
+            }
+            "compare/db" | "compare/db/full" => {
+                AlgoType::CompareDb(RetrieveFlavor::FullPipeline)
+            }
+            "compare/db/embedding" => AlgoType::CompareDb(RetrieveFlavor::Embedding),
+            "compare/db/association" => AlgoType::CompareDb(RetrieveFlavor::Association),
             "consolidate" | "c" => AlgoType::Consolidate,
             "forget" | "f" | "forget/full" | "ff" => AlgoType::Forget(ForgetMode::Pipeline),
             "forget/mask" | "fm" => AlgoType::Forget(ForgetMode::Mask),
             "forget/revise" | "fr" => AlgoType::Forget(ForgetMode::Revise),
             _ => {
-                eprintln!("未知算法: {} (可选: retrieve/embedding, retrieve/association, retrieve/full, consolidate, forget, forget/mask, forget/revise, forget/full)", algo_str);
+                eprintln!("未知算法: {} (可选: retrieve/embedding, retrieve/association, retrieve/full, retrieve/db[/embedding|association|full], compare/db[/embedding|association|full], consolidate, forget, forget/mask, forget/revise, forget/full)", algo_str);
                 std::process::exit(1);
             }
         };
@@ -131,6 +141,9 @@ fn main() -> color_eyre::Result<()> {
         eprintln!("用法: soul-tune <inspect|playtest|run> ...");
         eprintln!("  soul-tune inspect <graph.json|question.json>   检视数据集");
         eprintln!("  soul-tune run <algo> <dataset> [--batch]      运行测试");
+        eprintln!("    检索: retrieve/embedding|association|full（直接全量工作记忆）");
+        eprintln!("          retrieve/db[/embedding|association|full]（example_data 先入 mem 数据库再召回）");
+        eprintln!("    对比: compare/db[/embedding|association|full]（同管线 直接 vs 数据库 逐用例）");
         eprintln!("  soul-tune playtest <graph_dir> <dialogue>     角色扮演测试");
         eprintln!("GUI 前端见 soul-tune-ui/（flutter run -d windows）");
         std::process::exit(1);
@@ -166,6 +179,10 @@ fn run_headless_single(algo: AlgoType, dataset_path: PathBuf) -> color_eyre::Res
             ForgetPipelineSuite::load(&dataset_path)
                 .map_err(|e| color_eyre::eyre::eyre!("{}", e))?,
         ),
+        // 直接 vs 数据库对比：独立执行与输出路径（不进入通用套件报告流程）
+        AlgoType::CompareDb(flavor) => {
+            return run_headless_compare_db(flavor, dataset_path);
+        }
         _ => {
             eprintln!("{} 尚未支持 headless 模式", algo);
             std::process::exit(1);
@@ -242,6 +259,71 @@ fn run_headless_batch(dir: &Path, mode: RetrieveMode) {
         process_one_dataset(path, mode, params, start, |_, _| {}, |_| {})
     }, None);
     print_batch_result(&result);
+}
+
+/// 同管线「直接（全量工作记忆）vs 数据库召回」headless 对比。
+fn run_headless_compare_db(flavor: RetrieveFlavor, dataset_path: PathBuf) -> color_eyre::Result<()> {
+    let dataset_name = dataset_path
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_default();
+
+    println!("=== 对比测试（直接 vs 数据库）===");
+    println!("管线: {}", flavor);
+    println!("数据集: {}\n", dataset_name);
+
+    let report = engine::retrieve::db_compare::run_db_compare(&dataset_path, flavor)
+        .map_err(|e| color_eyre::eyre::eyre!("{}", e))?;
+    let agg = &report.aggregate;
+    println!("共 {} 个用例\n", agg.case_count);
+    println!(
+        "  Hit     direct={:.4}   db={:.4}   delta={:+.4}",
+        agg.avg_direct_hit, agg.avg_db_hit, agg.hit_delta
+    );
+    println!(
+        "  MRR     direct={:.4}   db={:.4}   delta={:+.4}",
+        agg.avg_direct_mrr, agg.avg_db_mrr, agg.mrr_delta
+    );
+    println!(
+        "  Recall@3 direct={:.4}   db={:.4}   delta={:+.4}",
+        agg.avg_direct_recall3, agg.avg_db_recall3, agg.recall3_delta
+    );
+    println!(
+        "  Hit 提升 {} | 回退 {} | 持平 {}",
+        agg.hit_improved_count, agg.hit_regressed_count, agg.hit_equal_count
+    );
+    println!(
+        "  MRR 提升 {} | 回退 {} | 持平 {}",
+        agg.mrr_improved_count, agg.mrr_regressed_count, agg.mrr_equal_count
+    );
+
+    println!("\n--- 逐用例（direct → db）---");
+    println!("  用例                         Hit(d→db)        MRR(d→db)    Recall@3(d→db)");
+    for c in &report.cases {
+        let r3 = |ra: &[(usize, f64)]| {
+            ra.iter()
+                .find(|(k, _)| *k == 3)
+                .map(|(_, v)| *v)
+                .unwrap_or(0.0)
+        };
+        let name: String = if c.case_name.chars().count() > 24 {
+            c.case_name.chars().take(22).collect::<String>() + ".."
+        } else {
+            format!("{:24}", c.case_name)
+        };
+        println!(
+            "  {}  {:.3}→{:.3}  {:.3}→{:.3}  {:.3}→{:.3}  {}",
+            name,
+            c.direct_hit,
+            c.db_hit,
+            c.direct_mrr,
+            c.db_mrr,
+            r3(&c.direct_recall_at),
+            r3(&c.db_recall_at),
+            if c.regressed_hit || c.regressed_mrr { "✗" } else { "✓" }
+        );
+    }
+    Ok(())
 }
 
 // ===== 文件日志（仅观测用，不改动任何功能逻辑）=====

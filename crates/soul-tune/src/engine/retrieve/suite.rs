@@ -7,20 +7,25 @@ use serde::Deserialize;
 
 use soul_mem_algo::algo::retrieve::association::{AssociationRequest, RetrAssociation};
 use soul_mem_algo::algo::retrieve::complex::{AssociateWithActionConfig, DefaultPipelineConfig, RetrDefaultPipeline};
+use soul_mem_algo::algo::retrieve::prefetch_db;
 use soul_mem_algo::algo::retrieve::short_only::ShortOnlyConfig;
 use soul_mem_algo::algo::retrieve::similarity::{RetrSimilarity, SimilarityConfig};
 use soul_mem_algo::algo::retrieve::RetrStrategy;
 use soul_mem_core::memory_note::situation_mem::SituationType;
-use soul_mem_core::memory_note::{MemoryId, MemoryType};
+use soul_mem_core::memory_note::{MemoryId, MemoryNote, MemoryType};
 use soul_mem_query::embedding::blend_weights::BlendWeights;
+use soul_mem_query::embedding::note::EmbeddedMemoryNote;
 use soul_mem_query::embedding::query::note::{
     EmbeddedMemoryRetrieveQuery, MemoryRetrieveQueryEmbedding,
 };
 use soul_mem_query::embedding::Embeddable;
 use soul_mem_query::query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant};
+use soul_mem_runtime::storage::surreal::SurrealRepository;
+use soul_mem_runtime::storage::MemoryRepository;
 use soul_mem_runtime::working_memory::WorkingMemory;
+use tokio::runtime::Runtime;
 
-use crate::base::RetrieveMode;
+use crate::base::{RetrieveFlavor, RetrieveMode};
 use crate::engine::dataset::TestCaseConfig;
 use crate::engine::loader::{cached_load_graph, get_bge_model};
 use crate::engine::metrics::ranking::{compute_action_metrics, compute_ranking_metrics};
@@ -69,6 +74,9 @@ pub struct TestConfigRaw {
     pub similarity_threshold: f32,
     pub max_results: usize,
     pub test_k_values: Vec<usize>,
+    /// DB 模式：每槽位 HNSW KNN 候选召回预算（可选，缺省用启发式默认值）。
+    #[serde(default)]
+    pub db_candidate_k: Option<usize>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
@@ -130,12 +138,26 @@ struct TestCaseWithWeights {
     variant_weight: f32,
 }
 
+/// DB 模式后端：记忆仓库 + 驱动 async 操作的 runtime + 召回候选预算。
+struct DbBackend {
+    repo: SurrealRepository,
+    rt: Runtime,
+    /// DB 端每个槽位的 HNSW KNN 候选召回预算（精确重排与 top-k 截断在内存侧完成）。
+    candidate_k: usize,
+}
+
 pub struct RetrieveSuite {
-    wm: Arc<WorkingMemory>,
+    /// 直接模式：全量图工作记忆；DB 模式为 None。
+    wm_direct: Option<Arc<WorkingMemory>>,
+    /// DB 模式后端；直接模式为 None。
+    db: Option<DbBackend>,
     test_cases: Vec<TestCaseWithWeights>,
     meta: TestCaseConfig,
     query_embeddings: Vec<Vec<MemoryRetrieveQueryEmbedding>>,
-    pipeline_mode: RetrieveMode,
+    /// 完整运行模式：管线（RetrieveFlavor）× 记忆来源（直接 / 数据库）。
+    mode: RetrieveMode,
+    /// 全图抽象情境节点集合（加载时预计算，两种来源共用，供抽象指标观测）。
+    abstract_ids: std::collections::HashSet<MemoryId>,
     id_names: Arc<HashMap<MemoryId, NodeSummary>>,
     graph_names: Arc<HashMap<MemoryId, String>>,
 }
@@ -169,6 +191,7 @@ impl RetrieveSuite {
             similarity_threshold: raw.config.similarity_threshold,
             max_results: raw.config.max_results,
             test_k_values: raw.config.test_k_values,
+            db_candidate_k: raw.config.db_candidate_k,
         };
         if let Some(p) = params {
             if let Some(v) = p.get("threshold") {
@@ -181,9 +204,15 @@ impl RetrieveSuite {
                     meta.max_results = n;
                 }
             }
+            if let Some(v) = p.get("db_candidate_k") {
+                if let Ok(n) = v.parse() {
+                    meta.db_candidate_k = Some(n);
+                }
+            }
         }
 
-        let sweep_pairs = if mode == RetrieveMode::Embedding {
+        // 权重扫描（sweep）只对相似度管线有意义：直接与 DB 源行为一致
+        let sweep_pairs = if mode.flavor() == RetrieveFlavor::Embedding {
             expand_sweep_pairs(raw.blend_sweep)
         } else {
             expand_sweep_pairs(None)
@@ -261,52 +290,110 @@ impl RetrieveSuite {
             }
         }
 
+        // 元数据（与记忆来源无关，加载时一次性预计算）：
+        // - id_names：可读摘要（UI/日志用）
+        // - abstract_ids：抽象情境节点集合（供抽象检出/直接命中指标观测）
         let id_names = Arc::new(wm.memory_cluster().read_or_compute(|cluster| {
             cluster
                 .graph()
                 .node_weights()
                 .map(|node| {
                     let note = node.note();
-                    let id = note.id();
-                    let tags = note.tags().to_vec();
-                    let (type_label, primary, secondary) = match note.mem_type() {
-                        MemoryType::Semantic(sem) => (
-                            String::from("语义"),
-                            sem.content.clone(),
-                            sem.description.clone(),
-                        ),
-                        MemoryType::Situation(SituationType::SpecificSituation(s)) => (
-                            String::from("情境"),
-                            s.get_narrative().clone(),
-                            s.get_time_span().to_string(),
-                        ),
-                        MemoryType::Situation(_) => {
-                            (String::from("情境"), String::new(), String::new())
-                        }
-                        MemoryType::Procedure(_) => {
-                            (String::from("流程"), String::new(), String::new())
-                        }
-                    };
-                    let summary = NodeSummary {
-                        tags,
-                        type_label,
-                        primary,
-                        secondary,
-                    };
-                    (id, summary)
+                    (note.id(), note_summary(note))
                 })
                 .collect::<HashMap<_, _>>()
         }));
+        let abstract_ids: std::collections::HashSet<MemoryId> = wm
+            .memory_cluster()
+            .read_or_compute(|c| {
+                c.graph()
+                    .node_weights()
+                    .filter_map(|n| {
+                        is_abstract_situation(n.note()).then(|| n.note().id())
+                    })
+                    .collect()
+            });
+
+        // DB 模式：example_data 全量写入 mem 数据库（默认进程内 kv-mem；
+        // params 传 db_path 时改用磁盘 SurrealKv 验证持久化读回）。
+        let db = if mode.uses_db() {
+            let notes: Vec<EmbeddedMemoryNote> = wm
+                .memory_cluster()
+                .read_or_compute(|c| c.graph().node_weights().map(|n| n.clone()).collect());
+            let rt = Runtime::new().map_err(|e| format!("创建 tokio runtime 失败: {e}"))?;
+            let candidate_k =
+                meta.db_candidate_k.unwrap_or_else(|| default_db_candidate_k(meta.max_results));
+            let db_path = params.and_then(|p| p.get("db_path")).map(PathBuf::from);
+            let repo = rt
+                .block_on(connect_and_seed_repo(notes, db_path.as_deref()))
+                .map_err(|e| format!("mem 数据库初始化/写入失败: {e}"))?;
+            Some(DbBackend { repo, rt, candidate_k })
+        } else {
+            None
+        };
 
         Ok(Self {
-            wm: Arc::new(wm),
+            wm_direct: if mode.uses_db() {
+                None
+            } else {
+                Some(Arc::new(wm))
+            },
+            db,
             test_cases,
             meta,
             query_embeddings,
-            pipeline_mode: mode,
+            mode,
+            abstract_ids,
             id_names,
             graph_names,
         })
+    }
+
+    /// DB 预取失败等无法执行检索时的失败用例（零指标 + 错误说明，避免 panic）。
+    fn db_failed_outcome(&self, index: usize, message: String) -> TestCaseOutcome {
+        let tcw = &self.test_cases[index];
+        let test_case = &tcw.query;
+        let zero_rows: Vec<(usize, f64)> = self
+            .meta
+            .test_k_values
+            .iter()
+            .map(|&k| (k, 0.0))
+            .collect();
+        let zero_metrics = RankingMetrics {
+            recall_at: zero_rows.clone(),
+            precision_at: zero_rows.clone(),
+            mrr: 0.0,
+            ndcg_at: zero_rows.clone(),
+            hit_rate: 0.0,
+        };
+        let data = RetrieveCaseData {
+            case_name: test_case.name.clone(),
+            description: format!("{}（{}）", test_case.description, message),
+            combined_retrieved_ids: Vec::new(),
+            combined_ranking_metrics: zero_metrics,
+            per_query_metrics: Vec::new(),
+            action_metrics: ActionMetrics {
+                action_hit_rate: 0.0,
+                action_recall_at: zero_rows,
+                has_expected_actions: false,
+            },
+            has_expected_abstract: false,
+            abstract_detected: None,
+            abstract_direct_hit: None,
+            tag_weight: tcw.tag_weight,
+            variant_weight: tcw.variant_weight,
+            id_names: Some(self.id_names.clone()),
+            expected_combined_ranking: test_case.expected_combined_ranking.clone(),
+            bonus_combined_ranking: test_case.bonus_combined_ranking.clone(),
+            graph_names: Some(self.graph_names.clone()),
+            sub_queries: test_case.sub_queries.clone(),
+        };
+        TestCaseOutcome {
+            case_name: data.case_name.clone(),
+            description: data.description.clone(),
+            passed: false,
+            data: Box::new(data),
+        }
     }
 }
 
@@ -320,27 +407,41 @@ impl TestSuite for RetrieveSuite {
         let test_case = &tcw.query;
         let query_embs = &self.query_embeddings[index];
 
-        // 抽象节点集合与期望抽象列表（供"抽象检出率 / 抽象直接命中率"指标使用）
-        let abstract_ids: std::collections::HashSet<MemoryId> = self
-            .wm
-            .memory_cluster()
-            .read_or_compute(|c| {
-                c.graph()
-                    .node_weights()
-                    .filter_map(|n| match n.note().mem_type() {
-                        MemoryType::Situation(SituationType::AbstractSituation(_)) => {
-                            Some(n.note().id())
-                        }
-                        _ => None,
+        // 工作记忆解析：
+        // - 直接模式：套件加载时全量载入的全图工作记忆；
+        // - DB 模式：一次性预取该用例全部子查询（DB 端 HNSW 候选召回 + 一跳邻居
+        //   扩展）到用例级临时工作记忆——管线只跑在 DB 召回子图上。
+        let wm: Arc<WorkingMemory> = match &self.db {
+            Some(db) => {
+                let queries: Vec<EmbeddedMemoryRetrieveQuery> = test_case
+                    .sub_queries
+                    .iter()
+                    .enumerate()
+                    .map(|(sq_idx, sq)| EmbeddedMemoryRetrieveQuery {
+                        embedding: query_embs[sq_idx].clone(),
+                        query: MemoryRetrieveQuery::new(sq.tags.clone(), sq.variant.clone()),
                     })
-                    .collect()
-            });
+                    .collect();
+                let case_wm = Arc::new(WorkingMemory::new(10));
+                if let Err(e) = db
+                    .rt
+                    .block_on(prefetch_db(&db.repo, queries, db.candidate_k, &case_wm))
+                {
+                    return self.db_failed_outcome(index, format!("DB 预取失败: {e}"));
+                }
+                case_wm
+            }
+            None => Arc::clone(self.wm_direct.as_ref().expect("direct mode working memory")),
+        };
+        let flavor = self.mode.flavor();
+
+        // 期望抽象列表（供"抽象检出率 / 抽象直接命中率"指标使用）
         let expected_abstract: Vec<MemoryId> = test_case
             .expected_combined_ranking
             .iter()
             .chain(test_case.bonus_combined_ranking.iter())
             .copied()
-            .filter(|id| abstract_ids.contains(id))
+            .filter(|id| self.abstract_ids.contains(id))
             .collect();
         let has_expected_abstract = !expected_abstract.is_empty();
 
@@ -360,7 +461,7 @@ impl TestSuite for RetrieveSuite {
                 .find(|e| e.query_index == sq_idx)
                 .map(|e| &e.ranking);
 
-            let ids: Vec<MemoryId> = if self.pipeline_mode == RetrieveMode::FullPipeline {
+            let ids: Vec<MemoryId> = if flavor == RetrieveFlavor::FullPipeline {
                 // full 即 DefaultPipeline：ShortOnly(窗口/摘要) + Similarity + AssociateWithAction
                 let pipeline_config = DefaultPipelineConfig {
                     short_mem_with_history: ShortOnlyConfig {
@@ -378,7 +479,7 @@ impl TestSuite for RetrieveSuite {
                     },
                 };
                 let pipeline_request = pipeline_config.into_request(
-                    Arc::clone(&self.wm),
+                    Arc::clone(&wm),
                     EmbeddedMemoryRetrieveQuery {
                         embedding: emb.clone(),
                         query: MemoryRetrieveQuery::new(sq.tags.clone(), sq.variant.clone()),
@@ -411,7 +512,7 @@ impl TestSuite for RetrieveSuite {
                         max_results: self.meta.max_results,
                     };
                     let sim_req = sim_config.into_request(
-                        Arc::clone(&self.wm),
+                        Arc::clone(&wm),
                         EmbeddedMemoryRetrieveQuery {
                             embedding: emb.clone(),
                             query: MemoryRetrieveQuery::new(sq.tags.clone(), sq.variant.clone()),
@@ -426,7 +527,7 @@ impl TestSuite for RetrieveSuite {
                     max_results: self.meta.max_results,
                 };
                 let request = config.into_request(
-                    Arc::clone(&self.wm),
+                    Arc::clone(&wm),
                     EmbeddedMemoryRetrieveQuery {
                         embedding: emb.clone(),
                         query: MemoryRetrieveQuery::new(sq.tags.clone(), sq.variant.clone()),
@@ -473,8 +574,8 @@ impl TestSuite for RetrieveSuite {
             .flat_map(|results| results.iter().map(|(id, _)| *id))
             .collect();
 
-        let (combined_ids, combined_ranking, passed) = match self.pipeline_mode {
-            RetrieveMode::Embedding => {
+        let (combined_ids, combined_ranking, passed) = match flavor {
+            RetrieveFlavor::Embedding => {
                 let all_retrieved: Vec<(MemoryId, f32, u32)> = all_similarity
                     .into_iter()
                     .enumerate()
@@ -495,7 +596,7 @@ impl TestSuite for RetrieveSuite {
                 );
                 (ids, full_metrics, must_hit)
             }
-            RetrieveMode::Association => {
+            RetrieveFlavor::Association => {
                 const EMBED_PPR_BLEND: f32 = 0.5;
 
                 let mut all_blended: Vec<(MemoryId, f32, u32)> = Vec::new();
@@ -510,7 +611,7 @@ impl TestSuite for RetrieveSuite {
                         results.iter().copied().collect();
 
                     let source: Vec<(MemoryId, f32)> = results;
-                    let req = AssociationRequest::new(Arc::clone(&self.wm), source)
+                    let req = AssociationRequest::new(Arc::clone(&wm), source)
                         .with_top_k(self.meta.max_results);
                     let ppr_result = RetrAssociation {}.retrieve(req);
 
@@ -542,7 +643,7 @@ impl TestSuite for RetrieveSuite {
                 );
                 (ids, full_metrics, must_hit)
             }
-            RetrieveMode::FullPipeline => {
+            RetrieveFlavor::FullPipeline => {
                 let all_retrieved: Vec<(MemoryId, f32, u32)> = all_full_memory
                     .into_iter()
                     .map(|(id, score, priority)| (id, score as f32, priority))
@@ -579,7 +680,7 @@ impl TestSuite for RetrieveSuite {
                 action_recall_at: self.meta.test_k_values.iter().map(|&k| (k, 1.0)).collect(),
                 has_expected_actions: false,
             }
-        } else if self.pipeline_mode == RetrieveMode::FullPipeline {
+        } else if flavor == RetrieveFlavor::FullPipeline {
             // 动作评测使用 DefaultPipeline 实际输出的 action 节点
             let all_actions: Vec<(MemoryId, f32, u32)> = all_full_action
                 .into_iter()
@@ -788,6 +889,68 @@ impl TestSuite for RetrieveSuite {
     }
 }
 
+/// DB 模式默认候选预算启发式：DB 只做候选召回（精确重排与 top-k 截断在内存侧），
+/// 预算需按槽位数留出余量，同时保持"召回子图小于全图"以真实反映 DB 路径。
+fn default_db_candidate_k(max_results: usize) -> usize {
+    (max_results * 2).max(20)
+}
+
+/// 连接 mem 数据库（kv-mem 默认 / db_path 走磁盘 SurrealKv）+ 幂等建 schema
+/// + 事务内全量写入 example_data 的 EmbeddedMemoryNote（含全部出边）。
+async fn connect_and_seed_repo(
+    notes: Vec<EmbeddedMemoryNote>,
+    db_path: Option<&Path>,
+) -> Result<SurrealRepository, String> {
+    let repo = match db_path {
+        Some(path) => SurrealRepository::connect(path, "soulmem")
+            .await
+            .map_err(|e| format!("Surreal 磁盘库连接失败: {e}"))?,
+        None => SurrealRepository::connect_mem()
+            .await
+            .map_err(|e| format!("Surreal kv-mem 连接失败: {e}"))?,
+    };
+    repo.init_schema()
+        .await
+        .map_err(|e| format!("schema 初始化失败: {e}"))?;
+    repo.upsert_notes(notes)
+        .await
+        .map_err(|e| format!("图数据写入 mem 数据库失败: {e}"))?;
+    Ok(repo)
+}
+
+/// 节点可读摘要（直接模式与 DB 模式共用同一映射，保证 UI/日志显示一致）。
+fn note_summary(note: &MemoryNote) -> NodeSummary {
+    let tags = note.tags().to_vec();
+    let (type_label, primary, secondary) = match note.mem_type() {
+        MemoryType::Semantic(sem) => (
+            String::from("语义"),
+            sem.content.clone(),
+            sem.description.clone(),
+        ),
+        MemoryType::Situation(SituationType::SpecificSituation(s)) => (
+            String::from("情境"),
+            s.get_narrative().clone(),
+            s.get_time_span().to_string(),
+        ),
+        MemoryType::Situation(_) => (String::from("情境"), String::new(), String::new()),
+        MemoryType::Procedure(_) => (String::from("流程"), String::new(), String::new()),
+    };
+    NodeSummary {
+        tags,
+        type_label,
+        primary,
+        secondary,
+    }
+}
+
+/// 是否为抽象情境节点（抽象检出/直接命中指标观测用）。
+fn is_abstract_situation(note: &MemoryNote) -> bool {
+    matches!(
+        note.mem_type(),
+        MemoryType::Situation(SituationType::AbstractSituation(_))
+    )
+}
+
 fn expand_sweep_pairs(sweep: Option<BlendSweepRaw>) -> Vec<BlendWeights> {
     let raw = match sweep {
         Some(s) => s,
@@ -992,5 +1155,226 @@ mod tests {
         let results2 = vec![(id_high, 0.70, 10), (id_low, 0.80, 2)];
         let merged2 = merge_by_priority(results2, 10);
         assert_eq!(merged2[0].0, id_low);
+    }
+
+    #[test]
+    fn test_query_file_raw_deserialize_db_candidate_k() {
+        // config 缺省 db_candidate_k → None（向后兼容）；显式给出 → 解析成功
+        let raw_plain: TestConfigRaw = serde_json::from_str(
+            r#"{"similarity_threshold":0.7,"max_results":4,"test_k_values":[1,3]}"#,
+        )
+        .unwrap();
+        assert_eq!(raw_plain.db_candidate_k, None);
+        let raw_with: TestConfigRaw = serde_json::from_str(
+            r#"{"similarity_threshold":0.7,"max_results":4,"test_k_values":[1,3],"db_candidate_k":64}"#,
+        )
+        .unwrap();
+        assert_eq!(raw_with.db_candidate_k, Some(64));
+    }
+
+    #[test]
+    fn test_default_db_candidate_k_heuristic() {
+        assert_eq!(default_db_candidate_k(4), 20); // max(2*4, 20)
+        assert_eq!(default_db_candidate_k(20), 40);
+        assert_eq!(default_db_candidate_k(0), 20);
+    }
+
+    #[test]
+    fn test_note_summary_semantic_and_abstract_flag() {
+        use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
+        use soul_mem_core::memory_note::situation_mem::{AbstractSituation, Location};
+        use soul_mem_core::memory_note::MemoryNoteBuilder;
+
+        let sem_note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+            content: "内容".into(),
+            aliases: vec![],
+            concept_type: ConceptType::Entity,
+            description: "描述".into(),
+        }))
+        .tags(vec!["t".into()])
+        .build()
+        .unwrap();
+        let s = note_summary(&sem_note);
+        assert_eq!(s.type_label, "语义");
+        assert_eq!(s.primary, "内容");
+        assert_eq!(s.tags, vec!["t"]);
+        assert!(!is_abstract_situation(&sem_note));
+
+        let abs_sit = MemoryNoteBuilder::new(MemoryType::Situation(
+            AbstractSituation::Location(Location {
+                name: "地点".into(),
+                coordinates: "".into(),
+            })
+            .into(),
+        ))
+        .build()
+        .unwrap();
+        assert!(is_abstract_situation(&abs_sit));
+        let s2 = note_summary(&abs_sit);
+        assert_eq!(s2.type_label, "情境");
+    }
+}
+
+/// DB 路径端到端集成测试：小图 fixture（真实 BGE 嵌入 + kv-mem 内存库）。
+/// 需要模型缓存（与 loader 既有集成测试一致）；若离线且无缓存会失败。
+#[cfg(test)]
+mod db_suite_tests {
+    use super::*;
+    use std::fs;
+
+    /// 写入小图（3 个语义节点，无链接）与 question.json（1 用例 / 1 子查询）。
+    fn write_mini_dataset(dir: &Path, db_candidate_k: Option<usize>) {
+        let graph = r#"[
+          {
+            "id": "node_fuhua",
+            "tags": ["班长", "武术"],
+            "mem_type": {
+              "Semantic": {
+                "content": "符华",
+                "aliases": [],
+                "concept_type": "Entity",
+                "description": "逐火之蛾的班长，精通武术"
+              }
+            },
+            "mem_links": []
+          },
+          {
+            "id": "node_jizi",
+            "tags": ["教师", "姬子"],
+            "mem_type": {
+              "Semantic": {
+                "content": "姬子",
+                "aliases": [],
+                "concept_type": "Entity",
+                "description": "圣芙蕾雅学园的教师"
+              }
+            },
+            "mem_links": []
+          },
+          {
+            "id": "node_teri",
+            "tags": ["学园长", "修女"],
+            "mem_type": {
+              "Semantic": {
+                "content": "德丽莎",
+                "aliases": [],
+                "concept_type": "Entity",
+                "description": "德丽莎·阿波卡利斯"
+              }
+            },
+            "mem_links": []
+          }
+        ]"#;
+        fs::write(dir.join("graph.json"), graph).unwrap();
+
+        let budget = db_candidate_k
+            .map(|k| format!(",\n    \"db_candidate_k\": {k}"))
+            .unwrap_or_default();
+        let question = format!(
+            r#"{{
+              "name": "mini_db",
+              "description": "db integration mini",
+              "graph_path": "graph.json",
+              "config": {{
+                "similarity_threshold": 0.0,
+                "max_results": 10,
+                "test_k_values": [1, 3, 5]{budget}
+              }},
+              "test_cases": [
+                {{
+                  "name": "who_is_fuhua",
+                  "description": "query about fuhua",
+                  "sub_queries": [
+                    {{
+                      "priority": 1,
+                      "tag": ["符华", "武术"],
+                      "variant": {{
+                        "Semantic": [
+                          {{ "concept_identifier": "符华", "description": "逐火之蛾的班长" }}
+                        ]
+                      }}
+                    }}
+                  ],
+                  "expected_per_query": [{{ "q": 0, "ranking": ["node_fuhua"] }}],
+                  "expected_combined_ranking": ["node_fuhua"],
+                  "bonus_combined_ranking": [],
+                  "expected_actions": []
+                }}
+              ]
+            }}"#
+        );
+        fs::write(dir.join("question.json"), question).unwrap();
+    }
+
+    /// 两个套件（直接 / DB）跑同一 question.json，逐用例断言完全一致
+    /// （候选预算覆盖全图时 DB 路径不应丢信息）。
+    fn assert_db_parity_with_full_budget(flavor: RetrieveFlavor) {
+        let dir = tempfile::tempdir().unwrap();
+        write_mini_dataset(dir.path(), Some(512));
+
+        let direct_mode = match flavor {
+            RetrieveFlavor::Embedding => RetrieveMode::Embedding,
+            RetrieveFlavor::Association => RetrieveMode::Association,
+            RetrieveFlavor::FullPipeline => RetrieveMode::FullPipeline,
+        };
+        let db_mode = direct_mode.db_mode().unwrap();
+        let question = dir.path().join("question.json");
+
+        let direct_suite = RetrieveSuite::load(&question, direct_mode).expect("direct load");
+        let db_suite = RetrieveSuite::load(&question, db_mode).expect("db load");
+        assert_eq!(direct_suite.case_count(), db_suite.case_count());
+
+        for i in 0..direct_suite.case_count() {
+            let direct = direct_suite.run_case(i);
+            let db = db_suite.run_case(i);
+            assert!(direct.passed, "direct case {} should pass: {}", i, direct.description);
+            assert!(db.passed, "db case {} should pass: {}", i, db.description);
+            let d = direct
+                .data
+                .downcast_ref::<RetrieveCaseData>()
+                .expect("direct data");
+            let b = db.data.downcast_ref::<RetrieveCaseData>().expect("db data");
+            assert_eq!(
+                d.combined_retrieved_ids, b.combined_retrieved_ids,
+                "flavor {flavor}: db(全预算) 检索序列应与直接一致 (case {i})"
+            );
+            assert_eq!(
+                d.combined_ranking_metrics.mrr,
+                b.combined_ranking_metrics.mrr,
+                "flavor {flavor}: MRR 应一致 (case {i})"
+            );
+            assert_eq!(
+                d.combined_ranking_metrics.hit_rate,
+                b.combined_ranking_metrics.hit_rate,
+                "flavor {flavor}: Hit 应一致 (case {i})"
+            );
+        }
+    }
+
+    #[test]
+    fn test_db_embedding_parity_with_full_budget() {
+        assert_db_parity_with_full_budget(RetrieveFlavor::Embedding);
+    }
+
+    #[test]
+    fn test_db_full_parity_with_full_budget() {
+        assert_db_parity_with_full_budget(RetrieveFlavor::FullPipeline);
+    }
+
+    /// 默认启发式预算（max(2*10,20)=20 ≥ 3 节点 → 全图召回）：db/full 也应通过。
+    #[test]
+    fn test_db_full_runs_with_default_budget() {
+        let dir = tempfile::tempdir().unwrap();
+        write_mini_dataset(dir.path(), None);
+        let question = dir.path().join("question.json");
+        let suite =
+            RetrieveSuite::load(&question, RetrieveMode::FullPipelineDb).expect("db/full load");
+        assert!(suite.case_count() > 0);
+        let outcome = suite.run_case(0);
+        assert!(
+            outcome.passed,
+            "db/full 默认预算应通过: {}",
+            outcome.description
+        );
     }
 }
