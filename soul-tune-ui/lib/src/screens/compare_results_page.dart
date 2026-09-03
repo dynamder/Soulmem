@@ -4,7 +4,7 @@ import '../models.dart';
 import '../theme.dart';
 import '../widgets/stat_card.dart';
 
-/// 对比结果页：聚合指标卡 + 逐用例对比表（可排序，点击展开详情）。
+/// 对比结果页：聚合指标卡 + 逐用例对比表（可排序、横向滚动，点击展开详情）。
 /// 侧标签由 kind 决定：embedding_full = Emb/Full；direct_db = 直接/DB。
 class CompareResultsPage extends StatefulWidget {
   final CompareReport report;
@@ -22,7 +22,8 @@ class CompareResultsPage extends StatefulWidget {
 }
 
 class _CompareResultsPageState extends State<CompareResultsPage> {
-  int? _sortColumn; // 0=用例 1=侧A Hit 2=侧B Hit 3=ΔHit 4=侧A MRR 5=侧B MRR 6=ΔMRR
+  // 0=用例 1=A Hit 2=B Hit 3=ΔHit 4=A MRR 5=B MRR 6=ΔMRR 7=ΔR@3 8=ΔN@3
+  int? _sortColumn;
   bool _sortAsc = true;
 
   CompareReport get report => widget.report;
@@ -36,18 +37,30 @@ class _CompareResultsPageState extends State<CompareResultsPage> {
   List<CompareCase> get _sorted {
     final list = [...report.cases];
     list.sort((a, b) {
-      final cmp = switch (_sortColumn) {
-        1 => a.embeddingHit.compareTo(b.embeddingHit),
-        2 => a.fullpipelineHit.compareTo(b.fullpipelineHit),
-        3 => a.hitDelta.compareTo(b.hitDelta),
-        4 => a.embeddingMrr.compareTo(b.embeddingMrr),
-        5 => a.fullpipelineMrr.compareTo(b.fullpipelineMrr),
-        6 => a.mrrDelta.compareTo(b.mrrDelta),
-        _ => a.caseName.compareTo(b.caseName),
-      };
+      double val(CompareCase c, int col) => switch (col) {
+            1 => c.embeddingHit,
+            2 => c.fullpipelineHit,
+            3 => c.hitDelta,
+            4 => c.embeddingMrr,
+            5 => c.fullpipelineMrr,
+            6 => c.mrrDelta,
+            7 => c.sideBRecallAt(3) - c.sideARecallAt(3),
+            8 => _valueAt(c.fullpipelineNdcgAt, 3) - _valueAt(c.embeddingNdcgAt, 3),
+            _ => 0,
+          };
+      final cmp = _sortColumn == null || _sortColumn == 0
+          ? a.caseName.compareTo(b.caseName)
+          : val(a, _sortColumn!).compareTo(val(b, _sortColumn!));
       return _sortAsc ? cmp : -cmp;
     });
     return list;
+  }
+
+  static double _valueAt(List<(int, double)> pairs, int k) {
+    for (final (kk, v) in pairs) {
+      if (kk == k) return v;
+    }
+    return 0;
   }
 
   void _onSort(int col) {
@@ -130,106 +143,150 @@ class _CompareResultsPageState extends State<CompareResultsPage> {
   String _delta(double v) =>
       '${v >= 0 ? '+' : ''}${v.toStringAsFixed(v.abs() < 0.01 ? 4 : 2)}';
 
+  // ── 逐用例对比表（固定列宽 + 横向滚动）──
+  static const _colWidths = [250, 84, 84, 78, 92, 92, 82, 78, 78];
+
+  List<String> _headers() => [
+        '用例',
+        '$_labelA Hit',
+        '$_labelB Hit',
+        'ΔHit',
+        '$_labelA MRR',
+        '$_labelB MRR',
+        'ΔMRR',
+        'ΔR@3',
+        'ΔN@3',
+      ];
+
+  Widget _headerCell(String label, int col, int width) => SizedBox(
+        width: width.toDouble(),
+        child: InkWell(
+          onTap: () => _onSort(col),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: _sortColumn == col
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontWeight:
+                              _sortColumn == col ? FontWeight.w700 : FontWeight.w500,
+                        ),
+                  ),
+                ),
+                if (_sortColumn == col)
+                  Icon(
+                    _sortAsc ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+
   Widget _buildTable() {
     final scheme = Theme.of(context).colorScheme;
+    final headers = _headers();
     final items = _sorted;
+    final totalWidth =
+        _colWidths.fold<int>(0, (a, w) => a + w) + 24.0; // 两侧留白
 
-    Widget headerCell(String label, int col, {double flex = 1}) => Expanded(
-          flex: flex ~/ 1,
-          child: InkWell(
-            onTap: () => _onSort(col),
-            borderRadius: BorderRadius.circular(6),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: _sortColumn == col ? scheme.primary : scheme.onSurfaceVariant,
-                            fontWeight: _sortColumn == col ? FontWeight.w700 : FontWeight.w500,
-                          ),
-                    ),
-                  ),
-                  if (_sortColumn == col)
-                    Icon(
-                      _sortAsc ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                      size: 16,
-                      color: scheme.primary,
-                    ),
-                ],
+    Widget table() => SizedBox(
+          width: totalWidth,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    for (var col = 0; col < headers.length; col++)
+                      _headerCell(headers[col], col, _colWidths[col]),
+                  ],
+                ),
               ),
-            ),
+              const Divider(height: 1),
+              if (items.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Text('（无数据）', style: TextStyle(color: AppColors.subtle)),
+                ),
+              for (var i = 0; i < items.length; i++) _caseRow(items[i], i, scheme),
+            ],
           ),
         );
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            children: [
-              headerCell('用例', 0, flex: 4),
-              headerCell('$_labelA Hit', 1, flex: 2),
-              headerCell('$_labelB Hit', 2, flex: 2),
-              headerCell('ΔHit', 3, flex: 2),
-              headerCell('$_labelA MRR', 4, flex: 2),
-              headerCell('$_labelB MRR', 5, flex: 2),
-              headerCell('ΔMRR', 6, flex: 2),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: items.isEmpty
-              ? const Center(child: Text('（无数据）', style: TextStyle(color: AppColors.subtle)))
-              : ListView.builder(
-                  itemCount: items.length,
-                  itemBuilder: (context, i) {
-                    final c = items[i];
-                    final improved = c.improvedHit || c.improvedMrr;
-                    return InkWell(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => CompareCaseDetailPage(
-                                caseData: c, labelA: _labelA, labelB: _labelB)),
-                      ),
-                      child: Container(
-                        color: improved
-                            ? AppColors.passBg.withValues(alpha: 0.5)
-                            : i.isOdd
-                                ? scheme.surfaceContainerHigh
-                                : Colors.transparent,
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 4,
-                              child: Text(c.caseName,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.bodySmall),
-                            ),
-                            Expanded(flex: 2, child: _num(c.embeddingHit.toStringAsFixed(2))),
-                            Expanded(flex: 2, child: _num(c.fullpipelineHit.toStringAsFixed(2))),
-                            Expanded(flex: 2, child: _deltaCell(c.hitDelta, c.improvedHit)),
-                            Expanded(flex: 2, child: _num(c.embeddingMrr.toStringAsFixed(4))),
-                            Expanded(flex: 2, child: _num(c.fullpipelineMrr.toStringAsFixed(4))),
-                            Expanded(flex: 2, child: _deltaCell(c.mrrDelta, c.improvedMrr)),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-        ),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: table(),
+      ),
+    );
+  }
+
+  Widget _cell(Widget child, int width, {Color? bg}) => Container(
+        width: width.toDouble(),
+        color: bg,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+        alignment: Alignment.centerRight,
+        child: child,
+      );
+
+  Widget _caseRow(CompareCase c, int i, ColorScheme scheme) {
+    final improved = c.improvedHit || c.improvedMrr;
+    final regressed = c.regressedHit || c.regressedMrr;
+    final rowBg = improved
+        ? AppColors.passBg.withValues(alpha: 0.45)
+        : regressed
+            ? AppColors.failBg.withValues(alpha: 0.35)
+            : i.isOdd
+                ? scheme.surfaceContainerHigh
+                : Colors.transparent;
+    final cells = <Widget>[
+      Container(
+        width: _colWidths[0].toDouble(),
+        color: rowBg,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        alignment: Alignment.centerLeft,
+        child: Text(c.caseName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall),
+      ),
+      _cell(_num(c.embeddingHit.toStringAsFixed(2)), _colWidths[1], bg: rowBg),
+      _cell(_num(c.fullpipelineHit.toStringAsFixed(2)), _colWidths[2], bg: rowBg),
+      _cell(_deltaCell(c.hitDelta), _colWidths[3], bg: rowBg),
+      _cell(_num(c.embeddingMrr.toStringAsFixed(4)), _colWidths[4], bg: rowBg),
+      _cell(_num(c.fullpipelineMrr.toStringAsFixed(4)), _colWidths[5], bg: rowBg),
+      _cell(_deltaCell(c.mrrDelta), _colWidths[6], bg: rowBg),
+      _cell(
+          _deltaCell(c.sideBRecallAt(3) - c.sideARecallAt(3)), _colWidths[7],
+          bg: rowBg),
+      _cell(
+          _deltaCell(_valueAt(c.fullpipelineNdcgAt, 3) -
+              _valueAt(c.embeddingNdcgAt, 3)),
+          _colWidths[8],
+          bg: rowBg),
+    ];
+
+    return InkWell(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => CompareCaseDetailPage(
+                caseData: c, labelA: _labelA, labelB: _labelB)),
+      ),
+      child: Row(children: cells),
     );
   }
 
@@ -237,7 +294,7 @@ class _CompareResultsPageState extends State<CompareResultsPage> {
       textAlign: TextAlign.right,
       style: const TextStyle(fontFamily: 'monospace', fontSize: 12));
 
-  Widget _deltaCell(double delta, bool improved) {
+  Widget _deltaCell(double delta) {
     final color = delta > 0.0001
         ? AppColors.pass
         : delta < -0.0001
@@ -251,13 +308,14 @@ class _CompareResultsPageState extends State<CompareResultsPage> {
   }
 }
 
-/// 双模式对比统计卡：base(embedding) → full，含提升徽章。
+/// 双模式对比统计卡：base(侧 A) → side(侧 B)，含提升徽章。
 class _DeltaStatCard extends StatelessWidget {
   final String label;
   final double base;
   final double full;
   final String Function(double) fmt;
-  const _DeltaStatCard({required this.label, required this.base, required this.full, required this.fmt});
+  const _DeltaStatCard(
+      {required this.label, required this.base, required this.full, required this.fmt});
 
   @override
   Widget build(BuildContext context) {
@@ -275,7 +333,11 @@ class _DeltaStatCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+            Text(label,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: scheme.onSurfaceVariant)),
             const SizedBox(height: 6),
             Row(
               crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -283,10 +345,15 @@ class _DeltaStatCard extends StatelessWidget {
               children: [
                 Text(fmt(full),
                     style: const TextStyle(
-                        fontFamily: 'monospace', fontSize: 24, fontWeight: FontWeight.w700)),
+                        fontFamily: 'monospace',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700)),
                 const SizedBox(width: 6),
                 Text('(${fmt(base)})',
-                    style: TextStyle(fontFamily: 'monospace', fontSize: 13, color: scheme.onSurfaceVariant)),
+                    style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 13,
+                        color: scheme.onSurfaceVariant)),
                 const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -320,7 +387,8 @@ class _DeltaStatCard extends StatelessWidget {
   }
 }
 
-/// 单用例对比详情：两种模式的检索列表 vs 期望。
+/// 单用例对比详情（对标检索钻取 CaseDetailPage 的分节组织）：
+/// 状态徽章 + 综合指标矩阵(双侧+Δ) + 各子查询双侧指标 + 两侧检索列表 vs 期望命中高亮。
 class CompareCaseDetailPage extends StatelessWidget {
   final CompareCase caseData;
   final String labelA;
@@ -332,39 +400,142 @@ class CompareCaseDetailPage extends StatelessWidget {
     required this.labelB,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    final c = caseData;
-    return Scaffold(
-      appBar: AppBar(title: Text(c.caseName, maxLines: 1, overflow: TextOverflow.ellipsis)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+  static double _pairAt(List<(int, double)> pairs, int k) {
+    for (final (kk, v) in pairs) {
+      if (kk == k) return v;
+    }
+    return 0;
+  }
+
+  static List<int> _unionKs(List<(int, double)> a, List<(int, double)> b) {
+    final ks = <int>{};
+    for (final (k, _) in a) {
+      ks.add(k);
+    }
+    for (final (k, _) in b) {
+      ks.add(k);
+    }
+    final list = ks.toList()..sort();
+    return list;
+  }
+
+  // 用例级综合指标：双值行 + Δ
+  List<Widget> _combinedRows(BuildContext context, CompareCase c) {
+    final ks = _unionKs(c.embeddingRecallAt, c.fullpipelineRecallAt);
+    return [
+      _metricRow(context, 'Hit', c.embeddingHit, c.fullpipelineHit, digits: 2),
+      _metricRow(context, 'MRR', c.embeddingMrr, c.fullpipelineMrr, digits: 4),
+      for (final k in ks) ...[
+        _metricRow(
+            context,
+            'Recall@$k',
+            _pairAt(c.embeddingRecallAt, k),
+            _pairAt(c.fullpipelineRecallAt, k),
+            digits: 2),
+        _metricRow(
+            context,
+            'Precision@$k',
+            _pairAt(c.embeddingPrecisionAt, k),
+            _pairAt(c.fullpipelinePrecisionAt, k),
+            digits: 2),
+        _metricRow(
+            context,
+            'NDCG@$k',
+            _pairAt(c.embeddingNdcgAt, k),
+            _pairAt(c.fullpipelineNdcgAt, k),
+            digits: 2),
+      ],
+    ];
+  }
+
+  List<Widget> _perQueryRows(BuildContext context, CompareCasePerQuery pq) {
+    final ks = _unionKs(pq.embeddingRecallAt, pq.fullpipelineRecallAt);
+    return [
+      _metricRow(context, 'MRR', pq.embeddingMrr, pq.fullpipelineMrr, digits: 4),
+      _metricRow(context, 'Hit', pq.embeddingHit, pq.fullpipelineHit, digits: 2),
+      for (final k in ks) ...[
+        _metricRow(
+            context,
+            'Recall@$k',
+            _pairAt(pq.embeddingRecallAt, k),
+            _pairAt(pq.fullpipelineRecallAt, k),
+            digits: 2),
+        _metricRow(
+            context,
+            'Precision@$k',
+            _pairAt(pq.embeddingPrecisionAt, k),
+            _pairAt(pq.fullpipelinePrecisionAt, k),
+            digits: 2),
+        _metricRow(
+            context,
+            'NDCG@$k',
+            _pairAt(pq.embeddingNdcgAt, k),
+            _pairAt(pq.fullpipelineNdcgAt, k),
+            digits: 2),
+      ],
+    ];
+  }
+
+  /// 单行双值指标：label | A 值 | B 值 | Δ（右对齐 monospace，Δ 着色）
+  Widget _metricRow(BuildContext context, String label, double a, double b,
+      {int digits = 2}) {
+    final delta = b - a;
+    final dColor = delta > 0.0001
+        ? AppColors.pass
+        : delta < -0.0001
+            ? AppColors.fail
+            : AppColors.subtle;
+    String fmt(double v) => v.toStringAsFixed(digits);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
         children: [
-          _Section(title: '指标对比', child: _kvRows([
-            ('$labelA Hit / $labelB Hit', '${c.embeddingHit.toStringAsFixed(2)} / ${c.fullpipelineHit.toStringAsFixed(2)}'),
-            ('$labelA MRR / $labelB MRR', '${c.embeddingMrr.toStringAsFixed(4)} / ${c.fullpipelineMrr.toStringAsFixed(4)}'),
-            ('$labelA Recall@K', _fmtPairs(c.embeddingRecallAt)),
-            ('$labelB Recall@K', _fmtPairs(c.fullpipelineRecallAt)),
-          ])),
-          _Section(title: '检索列表（$labelA）', child: _list(c.embeddingRetrieved, c.expected)),
-          _Section(title: '检索列表（$labelB）', child: _list(c.fullpipelineRetrieved, c.expected)),
-          _Section(title: '期望命中', child: _list(c.expected, c.expected)),
-          Text('tag_weight=${c.tagWeight}  variant_weight=${c.variantWeight}',
-              style: const TextStyle(color: AppColors.subtle, fontSize: 12)),
+          SizedBox(
+            width: 96,
+            child: Text(label, style: const TextStyle(color: AppColors.subtle, fontSize: 12)),
+          ),
+          Expanded(
+            flex: 1,
+            child: Text('$labelA ${fmt(a)}',
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 6),
+            child: Text('|', style: TextStyle(color: AppColors.subtle)),
+          ),
+          Expanded(
+            flex: 1,
+            child: Text('$labelB ${fmt(b)}',
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+          ),
+          SizedBox(
+            width: 76,
+            child: Text(
+              '${delta > 0 ? '▲' : delta < 0 ? '▼' : '—'} ${delta.abs().toStringAsFixed(2)}',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                  fontFamily: 'monospace', fontSize: 12, color: dColor),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  String _fmtPairs(List<(int, double)> pairs) =>
-      pairs.map((p) => '${p.$1}→${p.$2.toStringAsFixed(2)}').join('  ');
-
-  Widget _list(List<String> items, List<String> expected) {
+  /// 命中高亮列表：命中期望的项绿底 + ✓；顶部给命中计数。
+  Widget _hitList(BuildContext context, List<String> items, List<String> expected) {
     if (items.isEmpty) {
       return const Text('（空）', style: TextStyle(color: AppColors.subtle));
     }
+    final hits = items.where(expected.contains).length;
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text('命中 $hits/${items.length} · 期望 ${expected.length}',
+            style: const TextStyle(color: AppColors.subtle, fontSize: 12)),
+        const SizedBox(height: 6),
         for (var i = 0; i < items.length; i++)
           Container(
             margin: const EdgeInsets.symmetric(vertical: 2),
@@ -395,27 +566,125 @@ class CompareCaseDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _kvRows(List<(String, String)> rows) => Column(
+  Widget _expectedChips(List<String> expected) {
+    if (expected.isEmpty) {
+      return const Text('（无期望命中）', style: TextStyle(color: AppColors.subtle));
+    }
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final e in expected)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: AppColors.runningBg,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(e,
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+          ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = caseData;
+    final netDelta = c.hitDelta + c.mrrDelta;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(c.caseName, maxLines: 1, overflow: TextOverflow.ellipsis),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(
+              child: _ResultChip(
+                improved: netDelta > 0.0001,
+                regressed: netDelta < -0.0001,
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
         children: [
-          for (final (k, v) in rows)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3),
-              child: Row(
+          Text('$labelA vs $labelB · ${c.description.isEmpty ? c.caseName : c.description}',
+              style: const TextStyle(color: AppColors.subtle, fontSize: 12)),
+          const SizedBox(height: 12),
+          _Section(
+            title: '综合指标对比',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: _combinedRows(context, c),
+            ),
+          ),
+          if (c.perQuery.isNotEmpty)
+            _Section(
+              title: '各子查询对比',
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(
-                    width: 150,
-                    child: Text(k, style: const TextStyle(color: AppColors.subtle, fontSize: 12)),
-                  ),
-                  Expanded(
-                    child: Text(v,
-                        style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
-                  ),
+                  for (final pq in c.perQuery) ...[
+                    Text('Q${pq.queryIndex}',
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).colorScheme.primary)),
+                    const SizedBox(height: 2),
+                    ..._perQueryRows(context, pq),
+                    const SizedBox(height: 10),
+                  ],
                 ],
               ),
             ),
+          _Section(
+            title: '检索列表（$labelA）vs 期望',
+            child: _hitList(context, c.embeddingRetrieved, c.expected),
+          ),
+          _Section(
+            title: '检索列表（$labelB）vs 期望',
+            child: _hitList(context, c.fullpipelineRetrieved, c.expected),
+          ),
+          _Section(title: '期望命中', child: _expectedChips(c.expected)),
+          Text(
+            'tag_weight=${c.tagWeight}  variant_weight=${c.variantWeight}',
+            style: const TextStyle(color: AppColors.subtle, fontSize: 12),
+          ),
         ],
-      );
+      ),
+    );
+  }
+}
+
+/// 用例整体结果徽章：按 Hit/MRR 净差量给出 提升/回退/持平。
+class _ResultChip extends StatelessWidget {
+  final bool improved;
+  final bool regressed;
+  const _ResultChip({required this.improved, required this.regressed});
+
+  @override
+  Widget build(BuildContext context) {
+    final (fg, bg, label, icon) = improved
+        ? (AppColors.pass, AppColors.passBg, '提升', Icons.trending_up)
+        : regressed
+            ? (AppColors.fail, AppColors.failBg, '回退', Icons.trending_down)
+            : (AppColors.subtle, AppColors.runningBg, '持平', Icons.arrow_right_alt);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: fg),
+          const SizedBox(width: 4),
+          Text(label,
+              style: TextStyle(fontSize: 12, color: fg, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
 }
 
 class _Section extends StatelessWidget {

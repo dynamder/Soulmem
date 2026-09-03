@@ -530,11 +530,143 @@ struct CompareCaseJson {
     fullpipeline_mrr: f64,
     embedding_recall_at: Vec<(usize, f64)>,
     fullpipeline_recall_at: Vec<(usize, f64)>,
+    embedding_precision_at: Vec<(usize, f64)>,
+    fullpipeline_precision_at: Vec<(usize, f64)>,
+    embedding_ndcg_at: Vec<(usize, f64)>,
+    fullpipeline_ndcg_at: Vec<(usize, f64)>,
     embedding_retrieved: Vec<String>,
     fullpipeline_retrieved: Vec<String>,
     expected_combined_ranking: Vec<String>,
     improved_hit: bool,
     improved_mrr: bool,
+    /// 各子查询双侧指标（详情页钻取用；两侧按 query_index 对齐）
+    per_query: Vec<ComparePerQueryJson>,
+}
+
+/// 单个子查询的双侧指标（embedding_* 承载侧 A、fullpipeline_* 承载侧 B，
+/// 与用例字段的命名约定一致：direct_db 对比时 A=直接、B=数据库）。
+#[derive(Serialize)]
+struct ComparePerQueryJson {
+    query_index: usize,
+    embedding_mrr: f64,
+    fullpipeline_mrr: f64,
+    embedding_hit: f64,
+    fullpipeline_hit: f64,
+    embedding_recall_at: Vec<(usize, f64)>,
+    fullpipeline_recall_at: Vec<(usize, f64)>,
+    embedding_precision_at: Vec<(usize, f64)>,
+    fullpipeline_precision_at: Vec<(usize, f64)>,
+    embedding_ndcg_at: Vec<(usize, f64)>,
+    fullpipeline_ndcg_at: Vec<(usize, f64)>,
+}
+
+/// 从每侧用例结果中抽取详情用扩展数据（Precision/NDCG/逐子查询），
+/// 统一由 [`retrieve::data::RankingMetrics`] 提供，无需改动引擎对比报告结构。
+fn find_query_metrics<'a>(
+    idx: usize,
+    list: &'a [soul_tune::engine::retrieve::data::PerQueryMetrics],
+) -> Option<&'a soul_tune::engine::retrieve::data::RankingMetrics> {
+    list.iter()
+        .find(|p| p.query_index == idx)
+        .map(|p| &p.ranking_metrics)
+}
+
+fn case_extras_json(
+    key: &(String, u32, u32),
+    emb_map: &HashMap<(String, u32, u32), &RetrieveCaseData>,
+    full_map: &HashMap<(String, u32, u32), &RetrieveCaseData>,
+) -> (
+    Vec<(usize, f64)>, // emb precision
+    Vec<(usize, f64)>, // full precision
+    Vec<(usize, f64)>, // emb ndcg
+    Vec<(usize, f64)>, // full ndcg
+    Vec<ComparePerQueryJson>,
+) {
+    use soul_tune::engine::retrieve::data::RankingMetrics;
+    fn metrics_of<'a>(
+        map: &'a HashMap<(String, u32, u32), &'a RetrieveCaseData>,
+        key: &(String, u32, u32),
+    ) -> Option<&'a RankingMetrics> {
+        map.get(key).map(|d| &d.combined_ranking_metrics)
+    }
+    let zero = || Vec::<(usize, f64)>::new();
+    let emb_m = metrics_of(emb_map, key);
+    let full_m = metrics_of(full_map, key);
+    let emb_precision = emb_m.map(|m| m.precision_at.clone()).unwrap_or_else(zero);
+    let full_precision = full_m.map(|m| m.precision_at.clone()).unwrap_or_else(zero);
+    let emb_ndcg = emb_m.map(|m| m.ndcg_at.clone()).unwrap_or_else(zero);
+    let full_ndcg = full_m.map(|m| m.ndcg_at.clone()).unwrap_or_else(zero);
+
+    // 逐子查询：取两侧 query_index 并集（按序），缺失侧给零指标
+    let emb_pq = emb_map
+        .get(key)
+        .map(|d| &d.per_query_metrics)
+        .cloned()
+        .unwrap_or_default();
+    let full_pq = full_map
+        .get(key)
+        .map(|d| &d.per_query_metrics)
+        .cloned()
+        .unwrap_or_default();
+    let mut indices: Vec<usize> = emb_pq
+        .iter()
+        .map(|p| p.query_index)
+        .chain(full_pq.iter().map(|p| p.query_index))
+        .collect();
+    indices.sort_unstable();
+    indices.dedup();
+
+    let empty_metrics = RankingMetrics {
+        recall_at: Vec::new(),
+        precision_at: Vec::new(),
+        mrr: 0.0,
+        ndcg_at: Vec::new(),
+        hit_rate: 0.0,
+    };
+    let per_query = indices
+        .into_iter()
+        .map(|idx| {
+            let e = find_query_metrics(idx, &emb_pq).unwrap_or(&empty_metrics);
+            let f = find_query_metrics(idx, &full_pq).unwrap_or(&empty_metrics);
+            ComparePerQueryJson {
+                query_index: idx,
+                embedding_mrr: e.mrr,
+                fullpipeline_mrr: f.mrr,
+                embedding_hit: e.hit_rate,
+                fullpipeline_hit: f.hit_rate,
+                embedding_recall_at: e.recall_at.clone(),
+                fullpipeline_recall_at: f.recall_at.clone(),
+                embedding_precision_at: e.precision_at.clone(),
+                fullpipeline_precision_at: f.precision_at.clone(),
+                embedding_ndcg_at: e.ndcg_at.clone(),
+                fullpipeline_ndcg_at: f.ndcg_at.clone(),
+            }
+        })
+        .collect();
+
+    (emb_precision, full_precision, emb_ndcg, full_ndcg, per_query)
+}
+
+fn compare_key(name: &str, tag_weight: f32, variant_weight: f32) -> (String, u32, u32) {
+    (
+        name.to_string(),
+        (tag_weight * 100.0).round() as u32,
+        (variant_weight * 100.0).round() as u32,
+    )
+}
+
+/// 按用例键索引一侧的 RetrieveCaseData（用于抽取 Precision/NDCG/逐子查询等扩展数据）。
+fn index_side_data<'a>(
+    outcomes: &'a [TestCaseOutcome],
+) -> HashMap<(String, u32, u32), &'a RetrieveCaseData> {
+    let mut map: HashMap<(String, u32, u32), &RetrieveCaseData> = HashMap::new();
+    for o in outcomes {
+        if let Some(d) = o.data.downcast_ref::<RetrieveCaseData>() {
+            let key = compare_key(&d.case_name, d.tag_weight, d.variant_weight);
+            map.insert(key, d);
+        }
+    }
+    map
 }
 
 #[derive(Serialize)]
@@ -568,7 +700,7 @@ fn run_compare_impl(
     // 对比类型：embedding_full（embedding vs full pipeline，默认）| direct_db（同管线 直接 vs 数据库）
     let kind = params.get("kind").map(String::as_str).unwrap_or("embedding_full");
     if kind == "direct_db" {
-        return run_compare_db_impl(dataset, &params, &dataset_name, &dataset_path, sink);
+        return run_compare_db_impl(&params, &dataset_name, &dataset_path, sink);
     }
 
     CANCEL.store(false, Ordering::SeqCst);
@@ -597,7 +729,13 @@ fn run_compare_impl(
     emit(
         sink,
         &CompareEvent::Done {
-            report: build_compare_json(report, &emb_outcomes, &dataset_name, &dataset_path),
+            report: build_compare_json(
+                report,
+                &emb_outcomes,
+                &full_outcomes,
+                &dataset_name,
+                &dataset_path,
+            ),
         },
     );
     Ok(())
@@ -645,6 +783,7 @@ fn run_compare_phase(
 fn build_compare_json(
     report: CompareReport,
     emb_outcomes: &[TestCaseOutcome],
+    full_outcomes: &[TestCaseOutcome],
     dataset_name: &str,
     dataset_path: &Path,
 ) -> CompareReportJson {
@@ -655,6 +794,9 @@ fn build_compare_json(
             .map(|id| name_map.get(id).cloned().unwrap_or_else(|| format!("{id:?}")))
             .collect()
     };
+    // 两侧 RetrieveCaseData 索引（供 Precision/NDCG/逐子查询扩展字段）
+    let emb_map = index_side_data(emb_outcomes);
+    let full_map = index_side_data(full_outcomes);
     let agg = &report.aggregate;
     CompareReportJson {
         dataset_name: dataset_name.to_string(),
@@ -671,22 +813,32 @@ fn build_compare_json(
         cases: report
             .cases
             .iter()
-            .map(|c| CompareCaseJson {
-                case_name: c.case_name.clone(),
-                description: c.description.clone(),
-                tag_weight: c.tag_weight,
-                variant_weight: c.variant_weight,
-                embedding_hit: c.embedding_hit,
-                fullpipeline_hit: c.fullpipeline_hit,
-                embedding_mrr: c.embedding_mrr,
-                fullpipeline_mrr: c.fullpipeline_mrr,
-                embedding_recall_at: c.embedding_recall_at.clone(),
-                fullpipeline_recall_at: c.fullpipeline_recall_at.clone(),
-                embedding_retrieved: names(&c.embedding_retrieved),
-                fullpipeline_retrieved: names(&c.fullpipeline_retrieved),
-                expected_combined_ranking: names(&c.expected_combined_ranking),
-                improved_hit: c.fullpipeline_hit > c.embedding_hit,
-                improved_mrr: c.fullpipeline_mrr > c.embedding_mrr,
+            .map(|c| {
+                let key = compare_key(&c.case_name, c.tag_weight, c.variant_weight);
+                let (emb_precision, full_precision, emb_ndcg, full_ndcg, per_query) =
+                    case_extras_json(&key, &emb_map, &full_map);
+                CompareCaseJson {
+                    case_name: c.case_name.clone(),
+                    description: c.description.clone(),
+                    tag_weight: c.tag_weight,
+                    variant_weight: c.variant_weight,
+                    embedding_hit: c.embedding_hit,
+                    fullpipeline_hit: c.fullpipeline_hit,
+                    embedding_mrr: c.embedding_mrr,
+                    fullpipeline_mrr: c.fullpipeline_mrr,
+                    embedding_recall_at: c.embedding_recall_at.clone(),
+                    fullpipeline_recall_at: c.fullpipeline_recall_at.clone(),
+                    embedding_precision_at: emb_precision,
+                    fullpipeline_precision_at: full_precision,
+                    embedding_ndcg_at: emb_ndcg,
+                    fullpipeline_ndcg_at: full_ndcg,
+                    embedding_retrieved: names(&c.embedding_retrieved),
+                    fullpipeline_retrieved: names(&c.fullpipeline_retrieved),
+                    expected_combined_ranking: names(&c.expected_combined_ranking),
+                    improved_hit: c.fullpipeline_hit > c.embedding_hit,
+                    improved_mrr: c.fullpipeline_mrr > c.embedding_mrr,
+                    per_query,
+                }
             })
             .collect(),
     }
@@ -726,7 +878,6 @@ fn compare_db_modes(flavor: &str) -> (RetrieveMode, RetrieveMode) {
 
 /// 直接 vs 数据库 对比：同一 question.json、同一管线（flavor），两阶段执行后配对报告。
 fn run_compare_db_impl(
-    dataset: &str,
     params: &HashMap<String, String>,
     dataset_name: &str,
     dataset_path: &Path,
@@ -782,7 +933,13 @@ fn run_compare_db_impl(
     emit(
         sink,
         &CompareEvent::Done {
-            report: build_db_compare_json(report, &direct_outcomes, dataset_name, dataset_path),
+            report: build_db_compare_json(
+                report,
+                &direct_outcomes,
+                &db_outcomes,
+                dataset_name,
+                dataset_path,
+            ),
         },
     );
     Ok(())
@@ -794,6 +951,7 @@ fn run_compare_db_impl(
 fn build_db_compare_json(
     report: DbCompareReport,
     direct_outcomes: &[TestCaseOutcome],
+    db_outcomes: &[TestCaseOutcome],
     dataset_name: &str,
     dataset_path: &Path,
 ) -> CompareReportJson {
@@ -803,6 +961,8 @@ fn build_db_compare_json(
             .map(|id| name_map.get(id).cloned().unwrap_or_else(|| format!("{id:?}")))
             .collect()
     };
+    let direct_map = index_side_data(direct_outcomes);
+    let db_map = index_side_data(db_outcomes);
     let agg = &report.aggregate;
     CompareReportJson {
         dataset_name: dataset_name.to_string(),
@@ -819,22 +979,32 @@ fn build_db_compare_json(
         cases: report
             .cases
             .iter()
-            .map(|c| CompareCaseJson {
-                case_name: c.case_name.clone(),
-                description: c.description.clone(),
-                tag_weight: c.tag_weight,
-                variant_weight: c.variant_weight,
-                embedding_hit: c.direct_hit,
-                fullpipeline_hit: c.db_hit,
-                embedding_mrr: c.direct_mrr,
-                fullpipeline_mrr: c.db_mrr,
-                embedding_recall_at: c.direct_recall_at.clone(),
-                fullpipeline_recall_at: c.db_recall_at.clone(),
-                embedding_retrieved: names(&c.direct_retrieved),
-                fullpipeline_retrieved: names(&c.db_retrieved),
-                expected_combined_ranking: names(&c.expected_combined_ranking),
-                improved_hit: c.improved_hit,
-                improved_mrr: c.improved_mrr,
+            .map(|c| {
+                let key = compare_key(&c.case_name, c.tag_weight, c.variant_weight);
+                let (emb_precision, full_precision, emb_ndcg, full_ndcg, per_query) =
+                    case_extras_json(&key, &direct_map, &db_map);
+                CompareCaseJson {
+                    case_name: c.case_name.clone(),
+                    description: c.description.clone(),
+                    tag_weight: c.tag_weight,
+                    variant_weight: c.variant_weight,
+                    embedding_hit: c.direct_hit,
+                    fullpipeline_hit: c.db_hit,
+                    embedding_mrr: c.direct_mrr,
+                    fullpipeline_mrr: c.db_mrr,
+                    embedding_recall_at: c.direct_recall_at.clone(),
+                    fullpipeline_recall_at: c.db_recall_at.clone(),
+                    embedding_precision_at: emb_precision,
+                    fullpipeline_precision_at: full_precision,
+                    embedding_ndcg_at: emb_ndcg,
+                    fullpipeline_ndcg_at: full_ndcg,
+                    embedding_retrieved: names(&c.direct_retrieved),
+                    fullpipeline_retrieved: names(&c.db_retrieved),
+                    expected_combined_ranking: names(&c.expected_combined_ranking),
+                    improved_hit: c.improved_hit,
+                    improved_mrr: c.improved_mrr,
+                    per_query,
+                }
             })
             .collect(),
     }
