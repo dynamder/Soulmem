@@ -50,9 +50,7 @@ impl RetrieveMode {
     pub fn uses_db(self) -> bool {
         matches!(
             self,
-            RetrieveMode::EmbeddingDb
-                | RetrieveMode::AssociationDb
-                | RetrieveMode::FullPipelineDb
+            RetrieveMode::EmbeddingDb | RetrieveMode::AssociationDb | RetrieveMode::FullPipelineDb
         )
     }
 

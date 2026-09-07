@@ -73,7 +73,7 @@ impl Embeddable for SemanticQueryUnit {
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
         let concept_identifier_batch_vec = self
             .concept_identifier()
-            .map(|concept_identifier| model.infer_query_batch(&vec![concept_identifier]))
+            .map(|concept_identifier| model.infer_query_batch(&[concept_identifier]))
             .transpose()?;
 
         let concept_identifier_vec =
@@ -81,7 +81,7 @@ impl Embeddable for SemanticQueryUnit {
 
         let description_batch_vec = self
             .description()
-            .map(|description| model.infer_query_batch(&vec![description]))
+            .map(|description| model.infer_query_batch(&[description]))
             .transpose()?;
 
         let description_vec = description_batch_vec.and_then(|vec| vec.into_iter().next());
@@ -117,8 +117,10 @@ mod tests {
         assert_eq!(embedding.concept_identifier().unwrap().shape(), 1);
         assert_eq!(embedding.description().unwrap().shape(), 1);
 
-        let mut bw = BlendWeights::default();
-        bw.tag = 0.8;
+        let bw = BlendWeights {
+            tag: 0.8,
+            ..Default::default()
+        };
         embedding.set_blend_weights(&bw);
         assert_eq!(embedding.blend_weights.tag, 0.8);
     }
@@ -134,7 +136,8 @@ mod tests {
     fn test_into_parts_moves_fields() {
         let concept = EmbeddingVec::new(vec![0.9, 0.1]);
         let description = EmbeddingVec::new(vec![0.5, 0.5]);
-        let unit = SemanticQueryUnitEmbedding::new(Some(concept.clone()), Some(description.clone()));
+        let unit =
+            SemanticQueryUnitEmbedding::new(Some(concept.clone()), Some(description.clone()));
         let (c, d) = unit.into_parts();
         assert_eq!(c, Some(concept), "concept_identifier 应移动而非克隆");
         assert_eq!(d, Some(description));

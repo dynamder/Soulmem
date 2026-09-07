@@ -11,16 +11,18 @@ use soul_mem_core::memory_links::sem_mem::SemMemLink;
 use soul_mem_core::memory_links::{MemoryLinkBuilder, MemoryLinkType};
 use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
 use soul_mem_core::memory_note::{MemoryId, MemoryNoteBuilder, MemoryType};
-use soul_mem_query::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant};
+use soul_mem_query::embedding::EmbeddingVec;
+use soul_mem_query::embedding::note::{
+    EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
+};
 use soul_mem_query::embedding::query::note::{
     EmbeddedMemoryRetrieveQuery, MemoryRetrieveQueryEmbedding, MemoryRetrieveQueryVariantEmbedding,
 };
 use soul_mem_query::embedding::query::sem::SemanticQueryUnitEmbedding;
 use soul_mem_query::embedding::sem::SemanticEmbedding;
-use soul_mem_query::embedding::EmbeddingVec;
 use soul_mem_query::query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant};
-use soul_mem_runtime::storage::surreal::SurrealRepository;
 use soul_mem_runtime::storage::MemoryRepository;
+use soul_mem_runtime::storage::surreal::SurrealRepository;
 use soul_mem_runtime::working_memory::WorkingMemory;
 
 /// 512 维向量：前 `vals` 个分量给定、其余补零（schema HNSW DIMENSION 512）。
@@ -124,5 +126,8 @@ async fn prefetch_db_writes_similarity_hits_and_one_hop_neighbors() {
                 && matches!(n.embedding().variant(), MemoryEmbeddingVariant::Semantic(_))
         })
     });
-    assert!(all_ok, "prefetched notes must be complete EmbeddedMemoryNote");
+    assert!(
+        all_ok,
+        "prefetched notes must be complete EmbeddedMemoryNote"
+    );
 }

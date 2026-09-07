@@ -82,12 +82,16 @@ impl LinkRowBuilder {
 
 impl From<&MemoryLink> for LinkRow {
     fn from(link: &MemoryLink) -> Self {
-        LinkRowBuilder::new(link.id(), link.from().to_record_id(), link.to().to_record_id())
-            .intensity(link.intensity)
-            .missing_degree(link.missing_degree())
-            .last_forget_time(link.last_forget_time())
-            .link_type(link.link_type().clone())
-            .build()
+        LinkRowBuilder::new(
+            link.id(),
+            link.from().to_record_id(),
+            link.to().to_record_id(),
+        )
+        .intensity(link.intensity)
+        .missing_degree(link.missing_degree())
+        .last_forget_time(link.last_forget_time())
+        .link_type(link.link_type().clone())
+        .build()
     }
 }
 

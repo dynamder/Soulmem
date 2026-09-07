@@ -20,7 +20,8 @@ impl ParticipantEmbedding {
     }
     pub fn fused(&self) -> &EmbeddingVec {
         &self.fused
-    }    pub fn mean_pooling(vecs: &[Self]) -> EmbeddingCalcResult<Option<Self>> {
+    }
+    pub fn mean_pooling(vecs: &[Self]) -> EmbeddingCalcResult<Option<Self>> {
         if vecs.is_empty() {
             return Ok(None);
         }

@@ -76,11 +76,7 @@ impl RetrStrategy for RetrSimilarity {
                             if !res.score.is_finite() {
                                 None
                             } else {
-                                if res.score < floor {
-                                    None
-                                } else {
-                                    Some(res)
-                                }
+                                if res.score < floor { None } else { Some(res) }
                             }
                         }
                         None => None,
@@ -103,22 +99,22 @@ impl RetrStrategy for RetrSimilarity {
 mod tests {
     use super::*;
     use soul_mem_core::memory_note::{
-        sem_mem::{ConceptType, SemMemory},
         MemoryId, MemoryNoteBuilder, MemoryType,
+        sem_mem::{ConceptType, SemMemory},
     };
+    use soul_mem_query::embedding::Embeddable;
+    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::embedding::embedding_model::bge::BgeSmallZh;
     use soul_mem_query::embedding::note::{
         EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
     };
     use soul_mem_query::embedding::query::note::MemoryRetrieveQueryEmbedding;
     use soul_mem_query::embedding::sem::SemanticEmbedding;
-    use soul_mem_query::embedding::Embeddable;
-    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::query::compute::QueryCompute;
-    use soul_mem_query::query::string_distance::compute_note_string_score;
     use soul_mem_query::query::retrieve::{
         MemoryRetrieveQuery, MemoryRetrieveQueryVariant, SemanticQueryUnit,
     };
+    use soul_mem_query::query::string_distance::compute_note_string_score;
     use soul_mem_runtime::working_memory::WorkingMemory;
 
     #[test]
@@ -177,7 +173,6 @@ mod tests {
                     aliases: vec![],
                     concept_type: ConceptType::Entity,
                     description: String::new(),
-                    ..Default::default()
                 });
                 let note = MemoryNoteBuilder::new(mem_type).id(ids[i]).build().unwrap();
                 let embedding = MemoryEmbedding::new(
@@ -408,7 +403,6 @@ mod tests {
             aliases: vec!["Rust".to_string()],
             concept_type: ConceptType::Entity,
             description: "一种系统编程语言".to_string(),
-            ..Default::default()
         });
         let note = MemoryNoteBuilder::new(mem_type)
             .tags(vec!["Rust".to_string(), "编程".to_string()])
@@ -426,7 +420,7 @@ mod tests {
         let retrieve_query = MemoryRetrieveQuery::new(
             vec!["Rust".to_string(), "编程".to_string()],
             MemoryRetrieveQueryVariant::Semantic(vec![
-                SemanticQueryUnit::new().with_concept_identifier("Rust编程语言".to_string())
+                SemanticQueryUnit::new().with_concept_identifier("Rust编程语言".to_string()),
             ]),
         );
         let query_embedding = retrieve_query.embed(&model).unwrap();
@@ -467,7 +461,7 @@ mod tests {
         let retrieve_query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Semantic(vec![
-                SemanticQueryUnit::new().with_concept_identifier("酒馆".to_string())
+                SemanticQueryUnit::new().with_concept_identifier("酒馆".to_string()),
             ]),
         );
         let retrieve_query_for_string = retrieve_query.clone();
@@ -503,7 +497,10 @@ mod tests {
         // "酒馆" vs "小酒馆" 的字形接近，字符串分参与混合（str > 0）。
         // 字符串通道只加分：fused = max(emb, 0.6*emb + 0.4*str)，不会低于纯 embedding 分。
         let str_score = compute_note_string_score(&note_for_string, &retrieve_query_for_string);
-        assert!(str_score > 0.0, "string score should be positive: {str_score}");
+        assert!(
+            str_score > 0.0,
+            "string score should be positive: {str_score}"
+        );
         let expected = pure.max(0.6 * pure + 0.4 * str_score);
         assert!(
             (fused - expected).abs() < 1e-5,

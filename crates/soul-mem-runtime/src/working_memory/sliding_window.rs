@@ -58,9 +58,10 @@ impl SlidingWindow {
         };
 
         if let Some(value) = evicted
-            && value.is_tagged() {
-                self.summarize(client, Some(&value)).await?;
-            }
+            && value.is_tagged()
+        {
+            self.summarize(client, Some(&value)).await?;
+        }
         Ok(())
     }
     //信息滑出，若信息被标记则进行摘要
@@ -70,9 +71,10 @@ impl SlidingWindow {
             window.pop_front()
         };
         if let Some(value) = target
-            && value.is_tagged() {
-                self.summarize(client, Some(&value)).await?;
-            }
+            && value.is_tagged()
+        {
+            self.summarize(client, Some(&value)).await?;
+        }
         Ok(())
     }
 

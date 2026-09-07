@@ -4,14 +4,14 @@ use std::sync::Arc;
 use serde::Deserialize;
 
 use crate::algo::retrieve::{
+    RetrRequest, RetrStrategy,
     complex::{AssociateWithActionConfig, RetrAssociateWithAction},
     short_only::{RetrShortOnly, ShortOnlyConfig},
     similarity::{RetrSimilarity, SimilarityConfig},
-    RetrRequest, RetrStrategy,
 };
 use soul_mem_core::memory_note::MemoryId;
 use soul_mem_query::embedding::query::note::EmbeddedMemoryRetrieveQuery;
-use soul_mem_runtime::working_memory::{sliding_window::Information, WorkingMemory};
+use soul_mem_runtime::working_memory::{WorkingMemory, sliding_window::Information};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct DefaultPipelineConfig {
@@ -131,18 +131,18 @@ mod tests {
     use soul_mem_core::memory_links::sem_mem::SemMemLink;
     use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType};
     use soul_mem_core::memory_note::{
+        MemoryNoteBuilder, MemoryType,
         proc_mem::{Action, ActionType, ProcMemory},
         sem_mem::{ConceptType, SemMemory},
-        MemoryNoteBuilder, MemoryType,
     };
+    use soul_mem_query::embedding::Embeddable;
+    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::embedding::embedding_model::bge::BgeSmallZh;
     use soul_mem_query::embedding::note::{
         EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
     };
     use soul_mem_query::embedding::query::note::MemoryRetrieveQueryEmbedding;
     use soul_mem_query::embedding::sem::SemanticEmbedding;
-    use soul_mem_query::embedding::Embeddable;
-    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::query::retrieve::{
         MemoryRetrieveQuery, MemoryRetrieveQueryVariant, SemanticQueryUnit,
     };
@@ -169,7 +169,6 @@ mod tests {
                 aliases: vec![],
                 concept_type: ConceptType::Entity,
                 description: String::new(),
-                ..Default::default()
             }))
             .id(id1)
             .mem_links(vec![link1])
@@ -195,7 +194,6 @@ mod tests {
                 aliases: vec![],
                 concept_type: ConceptType::Entity,
                 description: String::new(),
-                ..Default::default()
             }))
             .id(id2)
             .mem_links(vec![link2])
@@ -452,7 +450,7 @@ mod tests {
         let query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Semantic(vec![
-                SemanticQueryUnit::new().with_concept_identifier("酒馆".to_string())
+                SemanticQueryUnit::new().with_concept_identifier("酒馆".to_string()),
             ]),
         );
         let query_embedding = query.embed(&model).unwrap();

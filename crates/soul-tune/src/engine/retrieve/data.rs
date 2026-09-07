@@ -161,11 +161,7 @@ pub fn build_drilldown_sections(data: &RetrieveCaseData) -> DrilldownSections {
         });
         let is_hit = retrieved
             .as_ref()
-            .map(|r| {
-                data.expected_combined_ranking
-                    .iter()
-                    .any(|eid| *eid == r.id)
-            })
+            .map(|r| data.expected_combined_ranking.contains(&r.id))
             .unwrap_or(false);
         sections.comparison_rows.push(ComparisonRow {
             position: pos + 1,

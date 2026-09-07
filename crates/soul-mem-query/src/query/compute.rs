@@ -1,4 +1,5 @@
 use crate::embedding::{
+    EmbeddingCalcResult,
     note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant},
     query::{
         note::{
@@ -7,18 +8,17 @@ use crate::embedding::{
         },
         sem::SemanticQueryUnitEmbedding,
         situation::{
-            environment::EnvironmentQueryUnitEmbedding, event::EventQueryUnitEmbedding,
-            location::LocationQueryUnitEmbedding, participant::ParticipantQueryUnitEmbedding,
-            SituationQueryUnitEmbedding,
+            SituationQueryUnitEmbedding, environment::EnvironmentQueryUnitEmbedding,
+            event::EventQueryUnitEmbedding, location::LocationQueryUnitEmbedding,
+            participant::ParticipantQueryUnitEmbedding,
         },
     },
     sem::SemanticEmbedding,
     situation::{
+        AbstractSituationEmbedding, SituationEmbedding, SpecificSituationEmbedding,
         environment::EnvironmentEmbedding, event::EventEmbedding, location::LocationEmbedding,
-        participant::ParticipantEmbedding, AbstractSituationEmbedding, SituationEmbedding,
-        SpecificSituationEmbedding,
+        participant::ParticipantEmbedding,
     },
-    EmbeddingCalcResult,
 };
 
 use crate::query::string_distance::compute_note_string_score;
@@ -238,7 +238,7 @@ impl AnonymousQueryCompute for AbstractSituationEmbedding {
 
         let score_vec = structured_score
             .into_iter()
-            .chain(narrative_score.into_iter())
+            .chain(narrative_score)
             .collect::<Vec<_>>();
 
         // 结构化匹配与叙事匹配取 max：任一通道强命中即算命中。
@@ -386,16 +386,21 @@ impl QueryCompute for EmbeddedMemoryNote {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::embedding::Embeddable;
+    use crate::embedding::EmbeddingVec;
     use crate::embedding::blend_weights::BlendWeights;
     use crate::embedding::embedding_model::bge::BgeSmallZh;
     use crate::embedding::note::{MemoryEmbedding, MemoryEmbeddingVariant};
-    use crate::embedding::query::note::{EmbeddedMemoryRetrieveQuery, MemoryRetrieveQueryEmbedding};
+    use crate::embedding::query::note::MemoryRetrieveQueryVariantEmbedding;
+    use crate::embedding::query::note::{
+        EmbeddedMemoryRetrieveQuery, MemoryRetrieveQueryEmbedding,
+    };
     use crate::embedding::query::sem::SemanticQueryUnitEmbedding;
+    use crate::embedding::query::situation::SituationQueryUnitEmbedding;
     use crate::embedding::query::situation::environment::EnvironmentQueryUnitEmbedding;
     use crate::embedding::query::situation::event::EventQueryUnitEmbedding;
     use crate::embedding::query::situation::location::LocationQueryUnitEmbedding;
     use crate::embedding::query::situation::participant::ParticipantQueryUnitEmbedding;
-    use crate::embedding::query::situation::SituationQueryUnitEmbedding;
     use crate::embedding::sem::SemanticEmbedding;
     use crate::embedding::situation::context::ContextEmbedding;
     use crate::embedding::situation::environment::EnvironmentEmbedding;
@@ -403,9 +408,6 @@ mod tests {
     use crate::embedding::situation::location::LocationEmbedding;
     use crate::embedding::situation::participant::ParticipantEmbedding;
     use crate::embedding::situation::{AbstractSituationEmbedding, SpecificSituationEmbedding};
-    use crate::embedding::query::note::MemoryRetrieveQueryVariantEmbedding;
-    use crate::embedding::EmbeddingVec;
-    use crate::embedding::Embeddable;
     use crate::query::retrieve::{
         EnvironmentQueryUnit, EventQueryUnit, LocationQueryUnit, MemoryRetrieveQuery,
         MemoryRetrieveQueryVariant, ParticipantQueryUnit, SemanticQueryUnit, SituationQueryUnit,
@@ -433,7 +435,6 @@ mod tests {
             aliases: vec!["Rust".to_string()],
             concept_type: ConceptType::Entity,
             description: "一种注重安全性的系统编程语言".to_string(),
-            ..Default::default()
         };
 
         let sem_embedding = memory.embed(&model).unwrap();
@@ -629,7 +630,7 @@ mod tests {
         let query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Semantic(vec![
-                SemanticQueryUnit::new().with_concept_identifier(concept_identifier.to_string())
+                SemanticQueryUnit::new().with_concept_identifier(concept_identifier.to_string()),
             ]),
         );
         let embedding = query.embed(model).unwrap();
@@ -645,7 +646,7 @@ mod tests {
         let pure = embedded_note
             .anonymous_compute(&embedded_query.embedding)
             .unwrap();
-        let str_score = compute_note_string_score(&embedded_note.note(), &embedded_query.query);
+        let str_score = compute_note_string_score(embedded_note.note(), &embedded_query.query);
         let fused = embedded_note
             .compute_fused(&embedded_query, 0.6)
             .unwrap()
@@ -661,7 +662,10 @@ mod tests {
         assert!((0.0..=1.0).contains(&fused), "fused out of range: {fused}");
         // 字符串分提供正的兜底贡献（0.4 * str > 0，且至少不低于纯 embedding 分）
         assert!(str_score > 0.5, "str_score too low: {str_score}");
-        assert!(fused >= pure, "string channel must not drag fused below pure");
+        assert!(
+            fused >= pure,
+            "string channel must not drag fused below pure"
+        );
     }
 
     #[test]
@@ -676,8 +680,8 @@ mod tests {
         let miss_fused = miss.compute_fused(&embedded_query, 0.6).unwrap().score;
 
         // 字符串分对命中项是正贡献，对干扰项（str=0）无贡献
-        let hit_str = compute_note_string_score(&hit.note(), &embedded_query.query);
-        let miss_str = compute_note_string_score(&miss.note(), &embedded_query.query);
+        let hit_str = compute_note_string_score(hit.note(), &embedded_query.query);
+        let miss_str = compute_note_string_score(miss.note(), &embedded_query.query);
         assert!(hit_str > 0.5);
         assert_eq!(miss_str, 0.0);
         assert!(
@@ -704,7 +708,7 @@ mod tests {
         assert!((fused - pure).abs() < 1e-6);
 
         // alpha=0.0 时混合分 = str，字符串通道只加分 → fused = max(emb, str)
-        let str_score = compute_note_string_score(&embedded_note.note(), &embedded_query.query);
+        let str_score = compute_note_string_score(embedded_note.note(), &embedded_query.query);
         let fused = embedded_note
             .compute_fused(&embedded_query, 0.0)
             .unwrap()
@@ -730,7 +734,7 @@ mod tests {
         let query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Situation(vec![
-                SituationQueryUnit::new().with_location(vec![LocationQueryUnit::new("小酒馆")])
+                SituationQueryUnit::new().with_location(vec![LocationQueryUnit::new("小酒馆")]),
             ]),
         );
         let query_embedding = query.embed(&model).unwrap();
@@ -742,7 +746,7 @@ mod tests {
         let pure = embedded_note
             .anonymous_compute(&embedded_query.embedding)
             .unwrap();
-        let str_score = compute_note_string_score(&embedded_note.note(), &embedded_query.query);
+        let str_score = compute_note_string_score(embedded_note.note(), &embedded_query.query);
         let fused = embedded_note
             .compute_fused(&embedded_query, 0.6)
             .unwrap()
@@ -766,7 +770,7 @@ mod tests {
         let query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Situation(vec![
-                SituationQueryUnit::new().with_narrative("战斗场景".to_string())
+                SituationQueryUnit::new().with_narrative("战斗场景".to_string()),
             ]),
         );
         let query_embedding = query.embed(&model).unwrap();
@@ -783,7 +787,7 @@ mod tests {
             .unwrap()
             .score;
         assert_eq!(
-            compute_note_string_score(&embedded_note.note(), &embedded_query.query),
+            compute_note_string_score(embedded_note.note(), &embedded_query.query),
             0.0
         );
         // 字符串分量缺失（变体不匹配）时退化为纯 embedding 分
@@ -812,11 +816,8 @@ mod tests {
     #[test]
     fn test_location_anonymous_compute_with_coordinates() {
         let loc = LocationEmbedding::test_new(unit(), unit());
-        let query = LocationQueryUnitEmbedding::test_new(
-            at(0.5),
-            Some(at(0.8)),
-            BlendWeights::default(),
-        );
+        let query =
+            LocationQueryUnitEmbedding::test_new(at(0.5), Some(at(0.8)), BlendWeights::default());
         let score = loc.anonymous_compute(&query).unwrap();
         // name_score=0.5, coord_score=0.8: 0.6*0.5 + 0.4*0.8 = 0.62
         assert_close(score, 0.62);
@@ -846,7 +847,8 @@ mod tests {
     #[test]
     fn test_participant_anonymous_compute_name_only() {
         let participant = ParticipantEmbedding::test_new(unit(), unit(), unit());
-        let query = ParticipantQueryUnitEmbedding::test_new(Some(at(0.5)), None, BlendWeights::default());
+        let query =
+            ParticipantQueryUnitEmbedding::test_new(Some(at(0.5)), None, BlendWeights::default());
         let score = participant.anonymous_compute(&query).unwrap();
         assert_close(score, 0.5);
     }
@@ -854,7 +856,8 @@ mod tests {
     #[test]
     fn test_participant_anonymous_compute_role_only() {
         let participant = ParticipantEmbedding::test_new(unit(), unit(), unit());
-        let query = ParticipantQueryUnitEmbedding::test_new(None, Some(at(0.8)), BlendWeights::default());
+        let query =
+            ParticipantQueryUnitEmbedding::test_new(None, Some(at(0.8)), BlendWeights::default());
         let score = participant.anonymous_compute(&query).unwrap();
         assert_close(score, 0.8);
     }
@@ -933,12 +936,7 @@ mod tests {
     #[test]
     fn test_event_anonymous_compute_action_only() {
         let event = EventEmbedding::test_new(unit(), unit(), unit(), 0.5);
-        let query = EventQueryUnitEmbedding::test_new(
-            at(0.9),
-            None,
-            None,
-            BlendWeights::default(),
-        );
+        let query = EventQueryUnitEmbedding::test_new(at(0.9), None, None, BlendWeights::default());
         let score = event.anonymous_compute(&query).unwrap();
         assert_close(score, 0.9);
     }
@@ -960,7 +958,8 @@ mod tests {
     fn test_semantic_anonymous_compute_alias_winning() {
         // concept_identifier 命中 alias（aliases=unit() 与 query=unit() → 1.0），content 较低
         let sem = SemanticEmbedding::new(at(0.5), unit(), unit());
-        let query = SemanticQueryUnitEmbedding::test_new(Some(unit()), None, BlendWeights::default());
+        let query =
+            SemanticQueryUnitEmbedding::test_new(Some(unit()), None, BlendWeights::default());
         let score = sem.anonymous_compute(&query).unwrap();
         // concept = max(0.5, 1.0) = 1.0（alias 命中）；无 description → 直接返回 concept
         assert_close(score, 1.0);
@@ -969,7 +968,8 @@ mod tests {
     #[test]
     fn test_semantic_anonymous_compute_without_description() {
         let sem = SemanticEmbedding::new(unit(), unit(), unit());
-        let query = SemanticQueryUnitEmbedding::test_new(Some(at(0.5)), None, BlendWeights::default());
+        let query =
+            SemanticQueryUnitEmbedding::test_new(Some(at(0.5)), None, BlendWeights::default());
         let score = sem.anonymous_compute(&query).unwrap();
         assert_close(score, 0.5);
     }
@@ -1002,8 +1002,16 @@ mod tests {
 
     #[test]
     fn test_abstract_situation_anonymous_compute_none() {
-        let abstract_emb = AbstractSituationEmbedding::Location(LocationEmbedding::test_new(unit(), unit()));
-        let query = SituationQueryUnitEmbedding::test_new(None, None, None, None, None, BlendWeights::default());
+        let abstract_emb =
+            AbstractSituationEmbedding::Location(LocationEmbedding::test_new(unit(), unit()));
+        let query = SituationQueryUnitEmbedding::test_new(
+            None,
+            None,
+            None,
+            None,
+            None,
+            BlendWeights::default(),
+        );
         let score = abstract_emb.anonymous_compute(&query).unwrap();
         assert_close(score, 0.0);
     }
@@ -1042,7 +1050,8 @@ mod tests {
     #[test]
     fn test_abstract_situation_anonymous_compute_max_two_signals() {
         // Location 抽象情境 + narrative 和结构化 location 两个信号
-        let abstract_emb = AbstractSituationEmbedding::Location(LocationEmbedding::test_new(unit(), unit()));
+        let abstract_emb =
+            AbstractSituationEmbedding::Location(LocationEmbedding::test_new(unit(), unit()));
         let query = SituationQueryUnitEmbedding::test_new(
             Some(at(0.8)),
             Some(LocationQueryUnitEmbedding::test_new(
@@ -1072,11 +1081,8 @@ mod tests {
     #[test]
     fn test_memory_variant_semantic_average() {
         let sem = SemanticEmbedding::new(unit(), unit(), unit());
-        let query_sem = SemanticQueryUnitEmbedding::test_new(
-            Some(unit()),
-            None,
-            BlendWeights::default(),
-        );
+        let query_sem =
+            SemanticQueryUnitEmbedding::test_new(Some(unit()), None, BlendWeights::default());
         let variant = MemoryEmbeddingVariant::Semantic(sem);
         let query_variant = MemoryRetrieveQueryVariantEmbedding::Semantic(vec![query_sem]);
         let score = variant.anonymous_compute(&query_variant).unwrap();
@@ -1087,16 +1093,10 @@ mod tests {
     fn test_memory_variant_semantic_average_multiple_units() {
         // 多单元语义查询：按单元数归一化取平均（/len 而非 *len）
         let sem = SemanticEmbedding::new(unit(), unit(), unit());
-        let query_sem_1 = SemanticQueryUnitEmbedding::test_new(
-            Some(at(0.5)),
-            None,
-            BlendWeights::default(),
-        );
-        let query_sem_2 = SemanticQueryUnitEmbedding::test_new(
-            Some(at(0.9)),
-            None,
-            BlendWeights::default(),
-        );
+        let query_sem_1 =
+            SemanticQueryUnitEmbedding::test_new(Some(at(0.5)), None, BlendWeights::default());
+        let query_sem_2 =
+            SemanticQueryUnitEmbedding::test_new(Some(at(0.9)), None, BlendWeights::default());
         let variant = MemoryEmbeddingVariant::Semantic(sem);
         let query_variant =
             MemoryRetrieveQueryVariantEmbedding::Semantic(vec![query_sem_1, query_sem_2]);
@@ -1110,9 +1110,11 @@ mod tests {
         let note_emb = MemoryEmbedding::new(unit(), MemoryEmbeddingVariant::Procedure());
         // 通过 MemoryEmbedding 构造的 tag + 空语义 variant
         let mut query = MemoryRetrieveQueryEmbedding::new(unit());
-        let mut bw = BlendWeights::default();
-        bw.tag = 0.4;
-        bw.variant = 0.6;
+        let bw = BlendWeights {
+            tag: 0.4,
+            variant: 0.6,
+            ..Default::default()
+        };
         query = query.with_weights(bw);
         let score = note_emb.anonymous_compute(&query).unwrap();
         // tag=1.0 * 0.4 + variant(0.0)*0.6 = 0.4

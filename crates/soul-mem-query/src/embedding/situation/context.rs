@@ -133,8 +133,8 @@ pub struct EmbeddedContext {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::embedding::embedding_model::bge::BgeSmallZh;
     use crate::embedding::EmbeddingVec;
+    use crate::embedding::embedding_model::bge::BgeSmallZh;
     use soul_mem_core::memory_note::situation_mem::{
         Emotion, Environment, Event, Location, Participant, SensoryData,
     };

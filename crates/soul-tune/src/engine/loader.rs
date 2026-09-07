@@ -168,31 +168,28 @@ struct FixtureLink {
 /// Batch-generated fixtures often have null time_span in SpecificSituation,
 /// but core type `DateTime<Utc>` cannot deserialize null.
 fn fix_mem_type(value: &mut Value) {
-    if let Value::Object(obj) = value {
-        if let Some(sit) = obj.get_mut("Situation") {
-            if let Some(spec) = sit.get_mut("SpecificSituation") {
-                if let Value::Object(fields) = spec {
-                    if let Some(Value::Null) = fields.get("time_span") {
-                        fields.insert(
-                            "time_span".into(),
-                            Value::String("1970-01-01T00:00:00Z".into()),
-                        );
-                    }
-                    if let Some(ctx) = fields.get_mut("context") {
-                        if let Value::Object(ctx_obj) = ctx {
-                            if let Some(Value::Null) = ctx_obj.get("environment") {
-                                ctx_obj.insert(
-                                    "environment".into(),
-                                    serde_json::json!({
-                                        "atmosphere": "",
-                                        "tone": ""
-                                    }),
-                                );
-                            }
-                        }
-                    }
-                }
-            }
+    if let Value::Object(obj) = value
+        && let Some(sit) = obj.get_mut("Situation")
+        && let Some(spec) = sit.get_mut("SpecificSituation")
+        && let Value::Object(fields) = spec
+    {
+        if let Some(Value::Null) = fields.get("time_span") {
+            fields.insert(
+                "time_span".into(),
+                Value::String("1970-01-01T00:00:00Z".into()),
+            );
+        }
+        if let Some(ctx) = fields.get_mut("context")
+            && let Value::Object(ctx_obj) = ctx
+            && let Some(Value::Null) = ctx_obj.get("environment")
+        {
+            ctx_obj.insert(
+                "environment".into(),
+                serde_json::json!({
+                    "atmosphere": "",
+                    "tone": ""
+                }),
+            );
         }
     }
 }
@@ -206,7 +203,7 @@ fn fix_link_type(value: &mut Value) {
         if let Some(proc_val) = obj.get_mut("Proc") {
             let already_wrapped = proc_val
                 .as_object()
-                .map_or(false, |m| m.contains_key("TrigToAction"));
+                .is_some_and(|m| m.contains_key("TrigToAction"));
             if !already_wrapped {
                 *proc_val = serde_json::json!({"TrigToAction": proc_val.take()});
             }
@@ -214,7 +211,7 @@ fn fix_link_type(value: &mut Value) {
         if let Some(sit_val) = obj.get_mut("Situation") {
             let already_wrapped = sit_val
                 .as_object()
-                .map_or(false, |m| m.contains_key("AbstractToSpecific"));
+                .is_some_and(|m| m.contains_key("AbstractToSpecific"));
             if !already_wrapped {
                 *sit_val = serde_json::json!({"AbstractToSpecific": sit_val.take()});
             }
@@ -355,9 +352,7 @@ pub fn load_graph_cluster(
 /// `load_graph_cluster` 为每个 fixture 节点生成随机 `MemoryId`（每次运行不同），
 /// UI 若直接显示 UUID 会每次变化、无法人工辨识。反向表用于把节点 id 还原为
 /// graph.json 中的语义化字符串 id（如 `sem_self` / `situation_xxx`）。
-pub fn build_reverse_id_map(
-    id_map: &HashMap<String, MemoryId>,
-) -> HashMap<MemoryId, String> {
+pub fn build_reverse_id_map(id_map: &HashMap<String, MemoryId>) -> HashMap<MemoryId, String> {
     id_map.iter().map(|(k, v)| (*v, k.clone())).collect()
 }
 
@@ -395,17 +390,17 @@ pub fn cached_load_graph(
     if cp.exists() {
         let file = std::fs::File::open(&cp)?;
         let reader = std::io::BufReader::new(file);
-        if let Ok(cache) = serde_json::from_reader::<_, EmbeddingCache>(reader) {
-            if cache.embedding_version == EMBEDDING_CACHE_VERSION {
-                let wm = WorkingMemory::new(10);
-                let cluster = wm.memory_cluster();
-                cluster.write(|c| {
-                    for note in cache.notes {
-                        c.add_single_node(note);
-                    }
-                });
-                return Ok((wm, cache.id_map));
-            }
+        if let Ok(cache) = serde_json::from_reader::<_, EmbeddingCache>(reader)
+            && cache.embedding_version == EMBEDDING_CACHE_VERSION
+        {
+            let wm = WorkingMemory::new(10);
+            let cluster = wm.memory_cluster();
+            cluster.write(|c| {
+                for note in cache.notes {
+                    c.add_single_node(note);
+                }
+            });
+            return Ok((wm, cache.id_map));
         }
     }
 
@@ -414,7 +409,7 @@ pub fn cached_load_graph(
     // Write cache
     let notes: Vec<EmbeddedMemoryNote> = wm
         .memory_cluster()
-        .read_or_compute(|c| c.graph().node_weights().map(|n| n.clone()).collect());
+        .read_or_compute(|c| c.graph().node_weights().cloned().collect());
 
     if let Ok(file) = std::fs::File::create(&cp) {
         let writer = std::io::BufWriter::new(file);
@@ -615,7 +610,10 @@ mod tests {
     fn test_cache_path_extension() {
         let p = Path::new("data/graph.json");
         let cp = cache_path(p);
-        assert_eq!(cp.file_name().unwrap().to_str().unwrap(), "graph.json.embcache");
+        assert_eq!(
+            cp.file_name().unwrap().to_str().unwrap(),
+            "graph.json.embcache"
+        );
     }
 
     #[test]

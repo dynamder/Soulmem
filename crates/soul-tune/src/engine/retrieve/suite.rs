@@ -5,23 +5,25 @@ use std::time::Duration;
 
 use serde::Deserialize;
 
+use soul_mem_algo::algo::retrieve::RetrStrategy;
 use soul_mem_algo::algo::retrieve::association::{AssociationRequest, RetrAssociation};
-use soul_mem_algo::algo::retrieve::complex::{AssociateWithActionConfig, DefaultPipelineConfig, RetrDefaultPipeline};
+use soul_mem_algo::algo::retrieve::complex::{
+    AssociateWithActionConfig, DefaultPipelineConfig, RetrDefaultPipeline,
+};
 use soul_mem_algo::algo::retrieve::prefetch_db;
 use soul_mem_algo::algo::retrieve::short_only::ShortOnlyConfig;
 use soul_mem_algo::algo::retrieve::similarity::{RetrSimilarity, SimilarityConfig};
-use soul_mem_algo::algo::retrieve::RetrStrategy;
 use soul_mem_core::memory_note::situation_mem::SituationType;
 use soul_mem_core::memory_note::{MemoryId, MemoryNote, MemoryType};
+use soul_mem_query::embedding::Embeddable;
 use soul_mem_query::embedding::blend_weights::BlendWeights;
 use soul_mem_query::embedding::note::EmbeddedMemoryNote;
 use soul_mem_query::embedding::query::note::{
     EmbeddedMemoryRetrieveQuery, MemoryRetrieveQueryEmbedding,
 };
-use soul_mem_query::embedding::Embeddable;
 use soul_mem_query::query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant};
-use soul_mem_runtime::storage::surreal::SurrealRepository;
 use soul_mem_runtime::storage::MemoryRepository;
+use soul_mem_runtime::storage::surreal::SurrealRepository;
 use soul_mem_runtime::working_memory::WorkingMemory;
 use tokio::runtime::Runtime;
 
@@ -33,7 +35,7 @@ use crate::engine::retrieve::data::{
     ActionMetrics, NodeSummary, PerQueryMetrics, RankingMetrics, RetrieveCaseData,
 };
 use crate::engine::retrieve::dataset::{PerQueryExpectation, SubQuery, TestCaseQuery};
-use crate::engine::suite::{key_value_metric, DetailRow, SuiteReport, TestCaseOutcome, TestSuite};
+use crate::engine::suite::{DetailRow, SuiteReport, TestCaseOutcome, TestSuite, key_value_metric};
 
 #[derive(Debug, Clone, Copy)]
 pub struct RetrieveConfig {
@@ -194,20 +196,20 @@ impl RetrieveSuite {
             db_candidate_k: raw.config.db_candidate_k,
         };
         if let Some(p) = params {
-            if let Some(v) = p.get("threshold") {
-                if let Ok(f) = v.parse() {
-                    meta.similarity_threshold = f;
-                }
+            if let Some(v) = p.get("threshold")
+                && let Ok(f) = v.parse()
+            {
+                meta.similarity_threshold = f;
             }
-            if let Some(v) = p.get("top_k") {
-                if let Ok(n) = v.parse() {
-                    meta.max_results = n;
-                }
+            if let Some(v) = p.get("top_k")
+                && let Ok(n) = v.parse()
+            {
+                meta.max_results = n;
             }
-            if let Some(v) = p.get("db_candidate_k") {
-                if let Ok(n) = v.parse() {
-                    meta.db_candidate_k = Some(n);
-                }
+            if let Some(v) = p.get("db_candidate_k")
+                && let Ok(n) = v.parse()
+            {
+                meta.db_candidate_k = Some(n);
             }
         }
 
@@ -303,14 +305,12 @@ impl RetrieveSuite {
                 })
                 .collect::<HashMap<_, _>>()
         }));
-        let abstract_ids: std::collections::HashSet<MemoryId> = wm
-            .memory_cluster()
-            .read_or_compute(|c| {
+        let abstract_ids: std::collections::HashSet<MemoryId> =
+            wm.memory_cluster().read_or_compute(|c| {
                 c.graph()
                     .node_weights()
-                    .filter_map(|n| {
-                        is_abstract_situation(n.note()).then(|| n.note().id())
-                    })
+                    .filter(|&n| is_abstract_situation(n.note()))
+                    .map(|n| n.note().id())
                     .collect()
             });
 
@@ -319,15 +319,20 @@ impl RetrieveSuite {
         let db = if mode.uses_db() {
             let notes: Vec<EmbeddedMemoryNote> = wm
                 .memory_cluster()
-                .read_or_compute(|c| c.graph().node_weights().map(|n| n.clone()).collect());
+                .read_or_compute(|c| c.graph().node_weights().cloned().collect());
             let rt = Runtime::new().map_err(|e| format!("创建 tokio runtime 失败: {e}"))?;
-            let candidate_k =
-                meta.db_candidate_k.unwrap_or_else(|| default_db_candidate_k(meta.max_results));
+            let candidate_k = meta
+                .db_candidate_k
+                .unwrap_or_else(|| default_db_candidate_k(meta.max_results));
             let db_path = params.and_then(|p| p.get("db_path")).map(PathBuf::from);
             let repo = rt
                 .block_on(connect_and_seed_repo(notes, db_path.as_deref()))
                 .map_err(|e| format!("mem 数据库初始化/写入失败: {e}"))?;
-            Some(DbBackend { repo, rt, candidate_k })
+            Some(DbBackend {
+                repo,
+                rt,
+                candidate_k,
+            })
         } else {
             None
         };
@@ -353,12 +358,8 @@ impl RetrieveSuite {
     fn db_failed_outcome(&self, index: usize, message: String) -> TestCaseOutcome {
         let tcw = &self.test_cases[index];
         let test_case = &tcw.query;
-        let zero_rows: Vec<(usize, f64)> = self
-            .meta
-            .test_k_values
-            .iter()
-            .map(|&k| (k, 0.0))
-            .collect();
+        let zero_rows: Vec<(usize, f64)> =
+            self.meta.test_k_values.iter().map(|&k| (k, 0.0)).collect();
         let zero_metrics = RankingMetrics {
             recall_at: zero_rows.clone(),
             precision_at: zero_rows.clone(),
@@ -423,9 +424,9 @@ impl TestSuite for RetrieveSuite {
                     })
                     .collect();
                 let case_wm = Arc::new(WorkingMemory::new(10));
-                if let Err(e) = db
-                    .rt
-                    .block_on(prefetch_db(&db.repo, queries, db.candidate_k, &case_wm))
+                if let Err(e) =
+                    db.rt
+                        .block_on(prefetch_db(&db.repo, queries, db.candidate_k, &case_wm))
                 {
                     return self.db_failed_outcome(index, format!("DB 预取失败: {e}"));
                 }
@@ -493,11 +494,8 @@ impl TestSuite for RetrieveSuite {
                         .into_iter()
                         .map(|(id, score)| (id, score, priority)),
                 );
-                let ids: Vec<MemoryId> = pipeline_res
-                    .association
-                    .iter()
-                    .map(|(id, _)| *id)
-                    .collect();
+                let ids: Vec<MemoryId> =
+                    pipeline_res.association.iter().map(|(id, _)| *id).collect();
                 all_full_memory.extend(
                     pipeline_res
                         .association
@@ -607,8 +605,7 @@ impl TestSuite for RetrieveSuite {
                         continue;
                     }
 
-                    let embed_map: HashMap<MemoryId, f32> =
-                        results.iter().copied().collect();
+                    let embed_map: HashMap<MemoryId, f32> = results.iter().copied().collect();
 
                     let source: Vec<(MemoryId, f32)> = results;
                     let req = AssociationRequest::new(Arc::clone(&wm), source)
@@ -618,17 +615,13 @@ impl TestSuite for RetrieveSuite {
                     let ppr_map: HashMap<MemoryId, f64> =
                         ppr_result.iter().map(|(id, s)| (*id, *s)).collect();
 
-                    let all_ids: std::collections::HashSet<MemoryId> = embed_map
-                        .keys()
-                        .chain(ppr_map.keys())
-                        .copied()
-                        .collect();
+                    let all_ids: std::collections::HashSet<MemoryId> =
+                        embed_map.keys().chain(ppr_map.keys()).copied().collect();
 
                     for id in all_ids {
                         let embed_s = embed_map.get(&id).copied().unwrap_or(0.0);
                         let ppr_s = ppr_map.get(&id).copied().unwrap_or(0.0) as f32;
-                        let blended = EMBED_PPR_BLEND * embed_s
-                            + (1.0 - EMBED_PPR_BLEND) * ppr_s;
+                        let blended = EMBED_PPR_BLEND * embed_s + (1.0 - EMBED_PPR_BLEND) * ppr_s;
                         all_blended.push((id, blended, priority));
                     }
                 }
@@ -1043,10 +1036,16 @@ fn merge_by_priority(results: Vec<(MemoryId, f32, u32)>, top_k: usize) -> Vec<(M
             }
         }
     }
-    let mut sorted: Vec<(MemoryId, f32, f32)> =
-        merged.into_iter().map(|(id, (key, raw))| (id, key, raw)).collect();
+    let mut sorted: Vec<(MemoryId, f32, f32)> = merged
+        .into_iter()
+        .map(|(id, (key, raw))| (id, key, raw))
+        .collect();
     sorted.sort_by(|a, b| b.1.total_cmp(&a.1));
-    sorted.into_iter().take(top_k).map(|(id, _, raw)| (id, raw)).collect()
+    sorted
+        .into_iter()
+        .take(top_k)
+        .map(|(id, _, raw)| (id, raw))
+        .collect()
 }
 
 fn compute_split_metrics(
@@ -1181,9 +1180,9 @@ mod tests {
 
     #[test]
     fn test_note_summary_semantic_and_abstract_flag() {
+        use soul_mem_core::memory_note::MemoryNoteBuilder;
         use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
         use soul_mem_core::memory_note::situation_mem::{AbstractSituation, Location};
-        use soul_mem_core::memory_note::MemoryNoteBuilder;
 
         let sem_note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
             content: "内容".into(),
@@ -1327,7 +1326,11 @@ mod db_suite_tests {
         for i in 0..direct_suite.case_count() {
             let direct = direct_suite.run_case(i);
             let db = db_suite.run_case(i);
-            assert!(direct.passed, "direct case {} should pass: {}", i, direct.description);
+            assert!(
+                direct.passed,
+                "direct case {} should pass: {}",
+                i, direct.description
+            );
             assert!(db.passed, "db case {} should pass: {}", i, db.description);
             let d = direct
                 .data
@@ -1339,13 +1342,11 @@ mod db_suite_tests {
                 "flavor {flavor}: db(全预算) 检索序列应与直接一致 (case {i})"
             );
             assert_eq!(
-                d.combined_ranking_metrics.mrr,
-                b.combined_ranking_metrics.mrr,
+                d.combined_ranking_metrics.mrr, b.combined_ranking_metrics.mrr,
                 "flavor {flavor}: MRR 应一致 (case {i})"
             );
             assert_eq!(
-                d.combined_ranking_metrics.hit_rate,
-                b.combined_ranking_metrics.hit_rate,
+                d.combined_ranking_metrics.hit_rate, b.combined_ranking_metrics.hit_rate,
                 "flavor {flavor}: Hit 应一致 (case {i})"
             );
         }

@@ -1,5 +1,5 @@
 use crate::embedding::blend_weights::BlendWeights;
-use crate::embedding::{mean_pooling, Embeddable, EmbeddingCalcResult, EmbeddingVec};
+use crate::embedding::{Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling};
 use crate::query::retrieve::ParticipantQueryUnit;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -91,14 +91,14 @@ impl Embeddable for ParticipantQueryUnit {
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
         let name_batch_vec = self
             .name()
-            .map(|name| model.infer_query_batch(&vec![name]))
+            .map(|name| model.infer_query_batch(&[name]))
             .transpose()?;
 
         let name_vec = name_batch_vec.and_then(|vec| vec.into_iter().next());
 
         let role_batch_vec = self
             .role()
-            .map(|role| model.infer_query_batch(&vec![role]))
+            .map(|role| model.infer_query_batch(&[role]))
             .transpose()?;
 
         let role_vec = role_batch_vec.and_then(|vec| vec.into_iter().next());
@@ -134,15 +134,18 @@ mod tests {
         assert_eq!(embedding.name().unwrap().shape(), 1);
         assert_eq!(embedding.role().unwrap().shape(), 1);
 
-        let mut bw = BlendWeights::default();
-        bw.tag = 0.8;
+        let bw = BlendWeights {
+            tag: 0.8,
+            ..Default::default()
+        };
         embedding.set_blend_weights(&bw);
         assert_eq!(embedding.blend_weights.tag, 0.8);
     }
 
     #[test]
     fn test_participant_query_unit_embedding_none() {
-        let embedding = ParticipantQueryUnitEmbedding::test_new(None, None, BlendWeights::default());
+        let embedding =
+            ParticipantQueryUnitEmbedding::test_new(None, None, BlendWeights::default());
         assert!(embedding.name().is_none());
         assert!(embedding.role().is_none());
     }
@@ -168,7 +171,11 @@ mod tests {
 
     #[test]
     fn test_participant_query_unit_mean_pooling_empty() {
-        assert!(ParticipantQueryUnitEmbedding::mean_pooling(&[]).unwrap().is_none());
+        assert!(
+            ParticipantQueryUnitEmbedding::mean_pooling(&[])
+                .unwrap()
+                .is_none()
+        );
     }
 
     #[test]

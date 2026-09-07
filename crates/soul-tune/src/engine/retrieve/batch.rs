@@ -291,17 +291,24 @@ pub fn run_batch_compare(
         let tx = tx.clone();
         std::thread::Builder::new()
             .name("batch-compare-worker".into())
-            .spawn(move || loop {
-                let i = counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                if i >= datasets.len() {
-                    break;
+            .spawn(move || {
+                loop {
+                    let i = counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    if i >= datasets.len() {
+                        break;
+                    }
+                    //模型加载/embedding失败已通过Result返回错误结果（见process_one_compare_dataset），
+                    //不再依赖catch_unwind（release构建为panic=abort，无法捕获panic）
+                    let ds_start = Instant::now();
+                    let ds = process_one_compare_dataset(
+                        &datasets[i],
+                        None,
+                        ds_start,
+                        |_, _| {},
+                        |_| {},
+                    );
+                    let _ = tx.send((i, ds));
                 }
-                //模型加载/embedding失败已通过Result返回错误结果（见process_one_compare_dataset），
-                //不再依赖catch_unwind（release构建为panic=abort，无法捕获panic）
-                let ds_start = Instant::now();
-                let ds =
-                    process_one_compare_dataset(&datasets[i], None, ds_start, |_, _| {}, |_| {});
-                let _ = tx.send((i, ds));
             })
             .ok();
     }

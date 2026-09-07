@@ -47,9 +47,7 @@ pub async fn prefetch_db(
     // 1. 相似度召回：所有查询嵌入展平后做 DB 端 HNSW KNN 候选召回
     //    所有权消费性链路：owned 查询解构移动，无隐式克隆
     let query_embeddings: Vec<_> = queries.into_iter().map(|q| q.embedding).collect();
-    let similar = repo
-        .similarity_fetch(query_embeddings, candidate_k)
-        .await?;
+    let similar = repo.similarity_fetch(query_embeddings, candidate_k).await?;
 
     // 2. 一跳邻居扩展：以相似命中为源，恢复链接上下文（深度 1）
     let source_ids: Vec<_> = similar.iter().map(|note| note.note().id()).collect();

@@ -248,10 +248,7 @@ mod tests {
             .id(uuid)
             .build()
             .unwrap();
-        let note2 = MemoryNoteBuilder::new(mem_type)
-            .id(uuid)
-            .build()
-            .unwrap();
+        let note2 = MemoryNoteBuilder::new(mem_type).id(uuid).build().unwrap();
         assert!(MemoryNote::is_same_id(&note1, &note2));
     }
 
@@ -291,10 +288,9 @@ mod tests {
         let link = MemoryLink::new(
             MemoryId::from(uuid_from),
             MemoryId::from(uuid_to),
-            crate::memory_links::MemoryLinkType::Sem(crate::memory_links::sem_mem::SemMemLink::new(
-                "is_related_to".to_string(),
-                0.9,
-            )),
+            crate::memory_links::MemoryLinkType::Sem(
+                crate::memory_links::sem_mem::SemMemLink::new("is_related_to".to_string(), 0.9),
+            ),
         );
         let note = MemoryNoteBuilder::new(mem_type)
             .mem_links(vec![link])

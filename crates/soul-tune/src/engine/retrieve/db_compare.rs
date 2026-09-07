@@ -170,7 +170,9 @@ pub fn build_db_compare_report(
         let direct = &direct_map[key];
         let db = db_map.get(key);
         let direct_hit = direct.combined_ranking_metrics.hit_rate;
-        let db_hit = db.map(|d| d.combined_ranking_metrics.hit_rate).unwrap_or(0.0);
+        let db_hit = db
+            .map(|d| d.combined_ranking_metrics.hit_rate)
+            .unwrap_or(0.0);
         let direct_mrr = direct.combined_ranking_metrics.mrr;
         let db_mrr = db.map(|d| d.combined_ranking_metrics.mrr).unwrap_or(0.0);
 
@@ -192,7 +194,9 @@ pub fn build_db_compare_report(
                 .map(|d| d.combined_ranking_metrics.precision_at.clone())
                 .unwrap_or_default(),
             direct_retrieved: direct.combined_retrieved_ids.clone(),
-            db_retrieved: db.map(|d| d.combined_retrieved_ids.clone()).unwrap_or_default(),
+            db_retrieved: db
+                .map(|d| d.combined_retrieved_ids.clone())
+                .unwrap_or_default(),
             expected_combined_ranking: direct.expected_combined_ranking.clone(),
             hit_delta: db_hit - direct_hit,
             mrr_delta: db_mrr - direct_mrr,
@@ -216,8 +220,16 @@ pub fn build_db_compare_report(
         agg.avg_direct_mrr = cases.iter().map(|c| c.direct_mrr).sum::<f64>() / n;
         agg.avg_db_mrr = cases.iter().map(|c| c.db_mrr).sum::<f64>() / n;
         agg.mrr_delta = agg.avg_db_mrr - agg.avg_direct_mrr;
-        agg.avg_direct_recall3 = cases.iter().map(|c| recall_at3(&c.direct_recall_at)).sum::<f64>() / n;
-        agg.avg_db_recall3 = cases.iter().map(|c| recall_at3(&c.db_recall_at)).sum::<f64>() / n;
+        agg.avg_direct_recall3 = cases
+            .iter()
+            .map(|c| recall_at3(&c.direct_recall_at))
+            .sum::<f64>()
+            / n;
+        agg.avg_db_recall3 = cases
+            .iter()
+            .map(|c| recall_at3(&c.db_recall_at))
+            .sum::<f64>()
+            / n;
         agg.recall3_delta = agg.avg_db_recall3 - agg.avg_direct_recall3;
         agg.hit_improved_count = cases.iter().filter(|c| c.improved_hit).count();
         agg.hit_regressed_count = cases.iter().filter(|c| c.regressed_hit).count();

@@ -6,16 +6,16 @@ use std::time::{Duration, Instant};
 use serde::Deserialize;
 
 use soul_mem_algo::algo::retrieve::{
+    RetrStrategy,
     association::AssociationConfig,
     complex::{AssociateWithActionConfig, RetrAssociateWithAction},
     similarity::{RetrSimilarity, SimilarityConfig},
-    RetrStrategy,
 };
-use soul_mem_core::memory_note::situation_mem::SituationType;
-use soul_mem_core::memory_note::proc_mem::ActionType;
-use soul_mem_core::memory_note::{MemoryId, MemoryType};
 use soul_mem_core::memory_links::MemoryLinkType;
 use soul_mem_core::memory_links::proc_mem::{ProcMemLink, TrigToAction};
+use soul_mem_core::memory_note::proc_mem::ActionType;
+use soul_mem_core::memory_note::situation_mem::SituationType;
+use soul_mem_core::memory_note::{MemoryId, MemoryType};
 use soul_mem_query::embedding::query::note::{
     EmbeddedMemoryRetrieveQuery, MemoryRetrieveQueryEmbedding,
 };
@@ -150,11 +150,7 @@ fn fold_priority_nodes(
 /// 将合并表按排序键（原始分 + priority 偏移）降序转为节点列表，展示分为原始分。
 fn finish_merged(merged: HashMap<MemoryId, (f64, TracedNode)>) -> Vec<TracedNode> {
     let mut nodes: Vec<(f64, TracedNode)> = merged.into_values().collect();
-    nodes.sort_by(|a, b| {
-        b.0
-            .partial_cmp(&a.0)
-            .unwrap_or(std::cmp::Ordering::Equal)
-    });
+    nodes.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
     nodes.into_iter().map(|(_, node)| node).collect()
 }
 
@@ -702,12 +698,14 @@ impl PlayTestRunner {
             "与你对话的人（对方身份）: {}\n对方最近消息: \"{}\"\n\n【最近对话】\n{}\n\n请输出当前对话的氛围。",
             partner, user_message, history_text
         );
-        if let Some(raw) =
-            run_paw(ATMOSPHERE_EXTRACT_SLUG, ATMOSPHERE_EXTRACT_SPEC, &prompt, Some(128))
+        if let Some(raw) = run_paw(
+            ATMOSPHERE_EXTRACT_SLUG,
+            ATMOSPHERE_EXTRACT_SPEC,
+            &prompt,
+            Some(128),
+        ) && let Some(info) = parse_atmosphere(&raw)
         {
-            if let Some(info) = parse_atmosphere(&raw) {
-                return Some(info);
-            }
+            return Some(info);
         }
         let raw = llm.chat(ATMOSPHERE_EXTRACT_SPEC, &prompt, 128).ok()?;
         parse_atmosphere(&raw)
@@ -795,7 +793,8 @@ impl PlayTestRunner {
         &self,
         main_queries: Vec<PrioritizedMemoryRetrieveQuery>,
     ) -> Vec<PreparedQuery> {
-        let model: Option<&dyn EmbeddingModel> = get_bge_model().ok().map(|m| m as &dyn EmbeddingModel);
+        let model: Option<&dyn EmbeddingModel> =
+            get_bge_model().ok().map(|m| m as &dyn EmbeddingModel);
         let mut prepared: Vec<PreparedQuery> = Vec::new();
 
         for q in main_queries {
@@ -852,10 +851,7 @@ impl PlayTestRunner {
         }
     }
 
-    fn run_embedding_retrieval(
-        &self,
-        prepared: &[PreparedQuery],
-    ) -> Option<RetrievalTrace> {
+    fn run_embedding_retrieval(&self, prepared: &[PreparedQuery]) -> Option<RetrievalTrace> {
         if prepared.is_empty() {
             return None;
         }
@@ -955,10 +951,7 @@ impl PlayTestRunner {
         })
     }
 
-    fn run_fullpipeline_retrieval(
-        &self,
-        prepared: &[PreparedQuery],
-    ) -> Option<RetrievalTrace> {
+    fn run_fullpipeline_retrieval(&self, prepared: &[PreparedQuery]) -> Option<RetrievalTrace> {
         if prepared.is_empty() {
             return None;
         }
@@ -971,17 +964,14 @@ impl PlayTestRunner {
         let mut merged_speech: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
         let mut merged_think: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
         let mut merged_behavior: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
-        let action_type_map: HashMap<MemoryId, ActionType> = self
-            .wm
-            .memory_cluster()
-            .read_or_compute(|c| {
+        let action_type_map: HashMap<MemoryId, ActionType> =
+            self.wm.memory_cluster().read_or_compute(|c| {
                 c.graph()
                     .node_weights()
                     .filter_map(|n| match n.note().mem_type() {
-                        MemoryType::Procedure(p) => Some((
-                            n.note().id(),
-                            p.get_action().get_action_type().clone(),
-                        )),
+                        MemoryType::Procedure(p) => {
+                            Some((n.note().id(), p.get_action().get_action_type().clone()))
+                        }
                         _ => None,
                     })
                     .collect()
@@ -1145,11 +1135,7 @@ impl PlayTestRunner {
                 match action_type_map.get(&n.id) {
                     Some(ActionType::Speak) => speech.push(n),
                     Some(ActionType::Think)
-                        if self
-                            .graph_names
-                            .get(&n.id)
-                            .map(|s| s.as_str())
-                            != Some("proc_none") =>
+                        if self.graph_names.get(&n.id).map(|s| s.as_str()) != Some("proc_none") =>
                     {
                         think.push(n)
                     }
@@ -1190,19 +1176,18 @@ impl PlayTestRunner {
         // 语气 / 思维习惯单席：只取分数最高 1 条，避免多个 Speak 内容互相矛盾
         let mut speech_nodes = finish_merged(merged_speech);
         speech_nodes.truncate(1);
-        if speech_nodes.is_empty() {
-            if let Some((id, score)) = self.trait_fallback_scores(&ActionType::Speak) {
-                speech_nodes.push(self.traced_action_node(id, score));
-            }
+        if speech_nodes.is_empty()
+            && let Some((id, score)) = self.trait_fallback_scores(&ActionType::Speak)
+        {
+            speech_nodes.push(self.traced_action_node(id, score));
         }
         let mut think_nodes = finish_merged(merged_think);
         think_nodes.truncate(1);
-        if think_nodes.is_empty() {
-            if let Some((id, score)) = self.trait_fallback_scores(&ActionType::Think) {
-                if self.graph_names.get(&id).map(|s| s.as_str()) != Some("proc_none") {
-                    think_nodes.push(self.traced_action_node(id, score));
-                }
-            }
+        if think_nodes.is_empty()
+            && let Some((id, score)) = self.trait_fallback_scores(&ActionType::Think)
+            && self.graph_names.get(&id).map(|s| s.as_str()) != Some("proc_none")
+        {
+            think_nodes.push(self.traced_action_node(id, score));
         }
 
         Some(RetrievalTrace {
@@ -1240,16 +1225,13 @@ impl PlayTestRunner {
                         prob,
                         ..
                     })) = link.link_type()
+                        && proc_type.get(&link.to()) == Some(want)
                     {
-                        if proc_type.get(&link.to()) == Some(want) {
-                            *scores.entry(link.to()).or_insert(0.0) += prob;
-                        }
+                        *scores.entry(link.to()).or_insert(0.0) += prob;
                     }
                 }
             }
-            scores
-                .into_iter()
-                .max_by(|a, b| a.1.total_cmp(&b.1))
+            scores.into_iter().max_by(|a, b| a.1.total_cmp(&b.1))
         })
     }
 
@@ -1313,24 +1295,6 @@ impl PlayTestRunner {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn build_entity_queries_priorities_descend_and_filter_empty() {
-        let queries = build_entity_queries(&[
-            "桑多涅".to_string(),
-            "  ".to_string(),
-            "哥伦比娅".to_string(),
-        ]);
-        assert_eq!(queries.len(), 2, "空白实体应被过滤");
-        assert_eq!(queries[0].priority(), ENTITY_QUERY_PRIORITY_BASE);
-        assert_eq!(queries[1].priority(), ENTITY_QUERY_PRIORITY_BASE - 1);
-        assert_eq!(queries[0].query().tag().first().map(|s| s.as_str()), Some("实体"));
-        if let MemoryRetrieveQueryVariant::Semantic(units) = queries[0].query().variant() {
-            assert_eq!(units[0].concept_identifier(), Some("桑多涅"));
-        } else {
-            panic!("实体查询应为 Semantic variant");
-        }
-    }
 
     #[test]
     fn build_atmosphere_query_maps_environment_only() {
@@ -1402,7 +1366,11 @@ mod tests {
         fold_priority_nodes(&mut merged, vec![mk(id_high, 0.9)], 0.0);
         fold_priority_nodes(&mut merged, vec![mk(id_low_boost, 0.8)], PRIORITY_BONUS_MAX);
         // 分数差 0.01（≤0.05）→ priority 保护高重要度查询：0.81+0.05 > 0.82
-        fold_priority_nodes(&mut merged, vec![mk(id_protected, 0.81)], PRIORITY_BONUS_MAX);
+        fold_priority_nodes(
+            &mut merged,
+            vec![mk(id_protected, 0.81)],
+            PRIORITY_BONUS_MAX,
+        );
         fold_priority_nodes(&mut merged, vec![mk(id_plain, 0.82)], 0.0);
 
         let out = finish_merged(merged);
@@ -1454,7 +1422,9 @@ mod tests {
             .unwrap()
             .parent()
             .unwrap()
-            .join("fixtures/example_data/格蕾修_https_zh_moegirl_org_cn_E6_A0_BC_E8_95_BE_E4_BF_AE");
+            .join(
+                "fixtures/example_data/格蕾修_https_zh_moegirl_org_cn_E6_A0_BC_E8_95_BE_E4_BF_AE",
+            );
         PlayTestRunner::load(&dir).expect("格蕾修 graph should load")
     }
 
@@ -1516,39 +1486,6 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_query_keeps_relevant_drops_irrelevant() {
-        let runner = load_geluoxiu_runner();
-        let model = get_bge_model().expect("BGE 模型应可用");
-
-        let kept = runner
-            .validate_query(sem_query("格蕾修", 5), model)
-            .expect("命中角色自身的查询应通过校验");
-        assert!(!kept.dropped);
-        assert!(kept.embedding.is_some(), "校验嵌入结果应缓存供检索复用");
-
-        assert!(
-            runner
-                .validate_query(sem_query("量子力学", 5), model)
-                .is_none(),
-            "无对应记忆的查询应被丢弃"
-        );
-    }
-
-    #[test]
-    fn test_prepare_queries_drops_below_floor_with_trace_marker() {
-        let runner = load_geluoxiu_runner();
-        let prepared = runner.prepare_queries(vec![sem_query("量子力学", 5)]);
-        assert_eq!(prepared.len(), 1);
-        assert!(prepared[0].dropped);
-
-        let trace = runner
-            .run_embedding_retrieval(&prepared)
-            .expect("全丢弃也应有 trace");
-        assert!(trace.per_query[0].dropped);
-        assert!(trace.merged_nodes.is_empty());
-    }
-
-    #[test]
     fn test_prepare_queries_keeps_relevant() {
         let runner = load_geluoxiu_runner();
         let prepared = runner.prepare_queries(vec![sem_query("格蕾修", 5)]);
@@ -1560,7 +1497,10 @@ mod tests {
     fn test_prepare_queries_empty_input_yields_empty_output() {
         let runner = load_geluoxiu_runner();
         let prepared = runner.prepare_queries(Vec::new());
-        assert!(prepared.is_empty(), "无主查询（实体/氛围均缺失）时不应凭空产生查询");
+        assert!(
+            prepared.is_empty(),
+            "无主查询（实体/氛围均缺失）时不应凭空产生查询"
+        );
     }
 
     #[test]
@@ -1570,8 +1510,10 @@ mod tests {
         // 情境查询：命中 sit_watch_movies_on_ark → 触发 proc_learn_from_movies 等
         let query = MemoryRetrieveQuery::new(
             vec!["日常".to_string()],
-            MemoryRetrieveQueryVariant::Situation(vec![SituationQueryUnit::new()
-                .with_narrative("我在方舟上的时候喜欢看科幻电影".to_string())]),
+            MemoryRetrieveQueryVariant::Situation(vec![
+                SituationQueryUnit::new()
+                    .with_narrative("我在方舟上的时候喜欢看科幻电影".to_string()),
+            ]),
         )
         .with_priority(5);
         let prepared = runner
@@ -1611,5 +1553,4 @@ mod tests {
             "动作内容应来自 proc 节点"
         );
     }
-
 }

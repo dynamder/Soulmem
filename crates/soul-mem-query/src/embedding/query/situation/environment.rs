@@ -67,14 +67,14 @@ impl Embeddable for EnvironmentQueryUnit {
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
         let atmosphere_batch_vec = self
             .atmosphere()
-            .map(|atmosphere| model.infer_query_batch(&vec![atmosphere]))
+            .map(|atmosphere| model.infer_query_batch(&[atmosphere]))
             .transpose()?;
 
         let atmosphere_vec = atmosphere_batch_vec.and_then(|vec| vec.into_iter().next());
 
         let tone_batch_vec = self
             .tone()
-            .map(|tone| model.infer_query_batch(&vec![tone]))
+            .map(|tone| model.infer_query_batch(&[tone]))
             .transpose()?;
 
         let tone_vec = tone_batch_vec.and_then(|vec| vec.into_iter().next());
@@ -110,15 +110,18 @@ mod tests {
         assert_eq!(embedding.atmosphere().unwrap().shape(), 1);
         assert_eq!(embedding.tone().unwrap().shape(), 1);
 
-        let mut bw = BlendWeights::default();
-        bw.tag = 0.8;
+        let bw = BlendWeights {
+            tag: 0.8,
+            ..Default::default()
+        };
         embedding.set_blend_weights(&bw);
         assert_eq!(embedding.blend_weights.tag, 0.8);
     }
 
     #[test]
     fn test_environment_query_unit_embedding_none() {
-        let embedding = EnvironmentQueryUnitEmbedding::test_new(None, None, BlendWeights::default());
+        let embedding =
+            EnvironmentQueryUnitEmbedding::test_new(None, None, BlendWeights::default());
         assert!(embedding.atmosphere().is_none());
         assert!(embedding.tone().is_none());
     }

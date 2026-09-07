@@ -20,19 +20,19 @@ use crate::frb_generated::StreamSink;
 
 use soul_mem_query::query::retrieve::MemoryRetrieveQueryVariant;
 use soul_tune::base::{AlgoType, RetrieveMode};
-use soul_tune::engine::batch::{scan_question_jsons, BatchResult};
-use soul_tune::engine::compare::{build_compare_report, CompareReport};
+use soul_tune::engine::batch::{BatchResult, scan_question_jsons};
+use soul_tune::engine::compare::{CompareReport, build_compare_report};
 use soul_tune::engine::forget::{
-    ideal_ebbinghaus_curve, ForgetCaseData, ForgetMaskSuite, ForgetPipelineSuite,
-    ForgetReviseSuite, MaskCaseData, NodeForgetStat, NodeSeries, ReviseCaseData,
+    ForgetCaseData, ForgetMaskSuite, ForgetPipelineSuite, ForgetReviseSuite, MaskCaseData,
+    NodeForgetStat, NodeSeries, ReviseCaseData, ideal_ebbinghaus_curve,
 };
 use soul_tune::engine::llm::LlamaServer;
 use soul_tune::engine::playtest::runner::{ConversationEntry, PlayTestRunner};
 use soul_tune::engine::playtest::trace::{HitStage, RetrievalTrace, TracedNode};
+use soul_tune::engine::retrieve::RetrieveSuite;
 use soul_tune::engine::retrieve::batch::process_one_dataset;
 use soul_tune::engine::retrieve::data::RetrieveCaseData;
-use soul_tune::engine::retrieve::db_compare::{build_db_compare_report, DbCompareReport};
-use soul_tune::engine::retrieve::RetrieveSuite;
+use soul_tune::engine::retrieve::db_compare::{DbCompareReport, build_db_compare_report};
 use soul_tune::engine::suite::{DetailRow, MetricEntry, TestCaseOutcome, TestSuite};
 
 /// 全局取消标志（单跑/批量共享）。
@@ -76,9 +76,7 @@ struct DatasetMetaJson {
 #[frb]
 pub fn dataset_meta_json(path: String) -> String {
     let content = std::fs::read_to_string(&path);
-    let v: Option<serde_json::Value> = content
-        .ok()
-        .and_then(|c| serde_json::from_str(&c).ok());
+    let v: Option<serde_json::Value> = content.ok().and_then(|c| serde_json::from_str(&c).ok());
     let Some(v) = v else {
         return serde_json::to_string(&DatasetMetaJson {
             name: String::new(),
@@ -91,7 +89,11 @@ pub fn dataset_meta_json(path: String) -> String {
         .unwrap_or_default();
     };
     let meta = DatasetMetaJson {
-        name: v.get("name").and_then(|x| x.as_str()).unwrap_or("").to_string(),
+        name: v
+            .get("name")
+            .and_then(|x| x.as_str())
+            .unwrap_or("")
+            .to_string(),
         description: v
             .get("description")
             .and_then(|x| x.as_str())
@@ -153,7 +155,9 @@ pub fn reset_cancel() {
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum RunEvent {
-    Loading { message: String },
+    Loading {
+        message: String,
+    },
     Progress {
         done: usize,
         total: usize,
@@ -162,8 +166,12 @@ enum RunEvent {
         elapsed_ms: u64,
         case_name: String,
     },
-    Done { report: ReportJson },
-    Error { message: String },
+    Done {
+        report: ReportJson,
+    },
+    Error {
+        message: String,
+    },
     Cancelled,
 }
 
@@ -220,7 +228,12 @@ fn run_suite_impl(
         .unwrap_or_default();
 
     CANCEL.store(false, Ordering::SeqCst);
-    emit(sink, &RunEvent::Loading { message: "正在加载数据集与嵌入模型...".into() });
+    emit(
+        sink,
+        &RunEvent::Loading {
+            message: "正在加载数据集与嵌入模型...".into(),
+        },
+    );
 
     let suite: Box<dyn TestSuite> = match algo {
         AlgoType::Retrieve(mode) => Box::new(
@@ -230,7 +243,12 @@ fn run_suite_impl(
         other => return Err(anyhow::anyhow!("暂不支持该算法: {other}")),
     };
     let total = suite.case_count();
-    emit(sink, &RunEvent::Loading { message: format!("准备就绪，共 {total} 个测试用例") });
+    emit(
+        sink,
+        &RunEvent::Loading {
+            message: format!("准备就绪，共 {total} 个测试用例"),
+        },
+    );
 
     let start = Instant::now();
     let mut outcomes = Vec::with_capacity(total);
@@ -333,8 +351,13 @@ fn parse_algo(s: &str) -> anyhow::Result<AlgoType> {
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum BatchEvent {
-    Scanning { dir: String },
-    Progress { done: usize, total: usize },
+    Scanning {
+        dir: String,
+    },
+    Progress {
+        done: usize,
+        total: usize,
+    },
     DatasetDone {
         index: usize,
         name: String,
@@ -345,8 +368,12 @@ enum BatchEvent {
         elapsed_ms: u64,
         error: Option<String>,
     },
-    Done { result: BatchReportJson },
-    Error { message: String },
+    Done {
+        result: BatchReportJson,
+    },
+    Error {
+        message: String,
+    },
     Cancelled,
 }
 
@@ -399,11 +426,19 @@ fn run_batch_impl(
     let dir_path = PathBuf::from(dir);
 
     CANCEL.store(false, Ordering::SeqCst);
-    emit(sink, &BatchEvent::Scanning { dir: dir_path.to_string_lossy().to_string() });
+    emit(
+        sink,
+        &BatchEvent::Scanning {
+            dir: dir_path.to_string_lossy().to_string(),
+        },
+    );
 
     let datasets = scan_question_jsons(&dir_path);
     if datasets.is_empty() {
-        return Err(anyhow::anyhow!("目录下未找到 question.json: {}", dir_path.display()));
+        return Err(anyhow::anyhow!(
+            "目录下未找到 question.json: {}",
+            dir_path.display()
+        ));
     }
 
     let result: BatchResult = soul_tune::engine::batch::run_batch(
@@ -492,7 +527,9 @@ fn run_batch_impl(
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum CompareEvent {
-    Loading { message: String },
+    Loading {
+        message: String,
+    },
     Progress {
         phase: String,
         done: usize,
@@ -502,8 +539,12 @@ enum CompareEvent {
         elapsed_ms: u64,
         case_name: String,
     },
-    Done { report: CompareReportJson },
-    Error { message: String },
+    Done {
+        report: CompareReportJson,
+    },
+    Error {
+        message: String,
+    },
     Cancelled,
 }
 
@@ -562,15 +603,16 @@ struct ComparePerQueryJson {
 
 /// 从每侧用例结果中抽取详情用扩展数据（Precision/NDCG/逐子查询），
 /// 统一由 [`retrieve::data::RankingMetrics`] 提供，无需改动引擎对比报告结构。
-fn find_query_metrics<'a>(
+fn find_query_metrics(
     idx: usize,
-    list: &'a [soul_tune::engine::retrieve::data::PerQueryMetrics],
-) -> Option<&'a soul_tune::engine::retrieve::data::RankingMetrics> {
+    list: &[soul_tune::engine::retrieve::data::PerQueryMetrics],
+) -> Option<&soul_tune::engine::retrieve::data::RankingMetrics> {
     list.iter()
         .find(|p| p.query_index == idx)
         .map(|p| &p.ranking_metrics)
 }
 
+#[allow(clippy::type_complexity)] // 内部聚合：多通道指标以元组返回，比中间结构更直观
 fn case_extras_json(
     key: &(String, u32, u32),
     emb_map: &HashMap<(String, u32, u32), &RetrieveCaseData>,
@@ -644,7 +686,13 @@ fn case_extras_json(
         })
         .collect();
 
-    (emb_precision, full_precision, emb_ndcg, full_ndcg, per_query)
+    (
+        emb_precision,
+        full_precision,
+        emb_ndcg,
+        full_ndcg,
+        per_query,
+    )
 }
 
 fn compare_key(name: &str, tag_weight: f32, variant_weight: f32) -> (String, u32, u32) {
@@ -656,9 +704,7 @@ fn compare_key(name: &str, tag_weight: f32, variant_weight: f32) -> (String, u32
 }
 
 /// 按用例键索引一侧的 RetrieveCaseData（用于抽取 Precision/NDCG/逐子查询等扩展数据）。
-fn index_side_data<'a>(
-    outcomes: &'a [TestCaseOutcome],
-) -> HashMap<(String, u32, u32), &'a RetrieveCaseData> {
+fn index_side_data(outcomes: &[TestCaseOutcome]) -> HashMap<(String, u32, u32), &RetrieveCaseData> {
     let mut map: HashMap<(String, u32, u32), &RetrieveCaseData> = HashMap::new();
     for o in outcomes {
         if let Some(d) = o.data.downcast_ref::<RetrieveCaseData>() {
@@ -698,7 +744,10 @@ fn run_compare_impl(
         .unwrap_or_default();
 
     // 对比类型：embedding_full（embedding vs full pipeline，默认）| direct_db（同管线 直接 vs 数据库）
-    let kind = params.get("kind").map(String::as_str).unwrap_or("embedding_full");
+    let kind = params
+        .get("kind")
+        .map(String::as_str)
+        .unwrap_or("embedding_full");
     if kind == "direct_db" {
         return run_compare_db_impl(&params, &dataset_name, &dataset_path, sink);
     }
@@ -706,23 +755,43 @@ fn run_compare_impl(
     CANCEL.store(false, Ordering::SeqCst);
 
     // 阶段 1：embedding
-    emit(sink, &CompareEvent::Loading { message: "正在加载 Embedding 套件...".into() });
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: "正在加载 Embedding 套件...".into(),
+        },
+    );
     let emb_suite: Box<dyn TestSuite> = Box::new(
         RetrieveSuite::load_with_params(&dataset_path, RetrieveMode::Embedding, Some(&params))
             .map_err(|e| anyhow::anyhow!("加载 Embedding 套件失败: {e}"))?,
     );
     let emb_total = emb_suite.case_count();
-    emit(sink, &CompareEvent::Loading { message: format!("Embedding 就绪，共 {emb_total} 个用例") });
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: format!("Embedding 就绪，共 {emb_total} 个用例"),
+        },
+    );
     let (emb_outcomes, _, _) = run_compare_phase(emb_suite.as_ref(), "embedding", emb_total, sink)?;
 
     // 阶段 2：full pipeline
-    emit(sink, &CompareEvent::Loading { message: "正在加载 FullPipeline 套件...".into() });
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: "正在加载 FullPipeline 套件...".into(),
+        },
+    );
     let full_suite: Box<dyn TestSuite> = Box::new(
         RetrieveSuite::load_with_params(&dataset_path, RetrieveMode::FullPipeline, Some(&params))
             .map_err(|e| anyhow::anyhow!("加载 FullPipeline 套件失败: {e}"))?,
     );
     let full_total = full_suite.case_count();
-    emit(sink, &CompareEvent::Loading { message: format!("FullPipeline 就绪，共 {full_total} 个用例") });
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: format!("FullPipeline 就绪，共 {full_total} 个用例"),
+        },
+    );
     let (full_outcomes, _, _) = run_compare_phase(full_suite.as_ref(), "full", full_total, sink)?;
 
     let report = build_compare_report(&emb_outcomes, &full_outcomes);
@@ -791,7 +860,12 @@ fn build_compare_json(
     let name_map = collect_graph_names(emb_outcomes);
     let names = |ids: &[soul_mem_core::memory_note::MemoryId]| -> Vec<String> {
         ids.iter()
-            .map(|id| name_map.get(id).cloned().unwrap_or_else(|| format!("{id:?}")))
+            .map(|id| {
+                name_map
+                    .get(id)
+                    .cloned()
+                    .unwrap_or_else(|| format!("{id:?}"))
+            })
             .collect()
     };
     // 两侧 RetrieveCaseData 索引（供 Precision/NDCG/逐子查询扩展字段）
@@ -850,11 +924,11 @@ fn collect_graph_names(
 ) -> HashMap<soul_mem_core::memory_note::MemoryId, String> {
     let mut name_map: HashMap<soul_mem_core::memory_note::MemoryId, String> = HashMap::new();
     for o in outcomes {
-        if let Some(d) = o.data.downcast_ref::<RetrieveCaseData>() {
-            if let Some(names) = d.graph_names.as_ref() {
-                for (id, n) in names.iter() {
-                    name_map.insert(*id, n.clone());
-                }
+        if let Some(d) = o.data.downcast_ref::<RetrieveCaseData>()
+            && let Some(names) = d.graph_names.as_ref()
+        {
+            for (id, n) in names.iter() {
+                name_map.insert(*id, n.clone());
             }
         }
     }
@@ -958,7 +1032,12 @@ fn build_db_compare_json(
     let name_map = collect_graph_names(direct_outcomes);
     let names = |ids: &[soul_mem_core::memory_note::MemoryId]| -> Vec<String> {
         ids.iter()
-            .map(|id| name_map.get(id).cloned().unwrap_or_else(|| format!("{id:?}")))
+            .map(|id| {
+                name_map
+                    .get(id)
+                    .cloned()
+                    .unwrap_or_else(|| format!("{id:?}"))
+            })
             .collect()
     };
     let direct_map = index_side_data(direct_outcomes);
@@ -1116,7 +1195,9 @@ pub fn inspect_file_json(path: String) -> String {
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum ForgetEvent {
-    Loading { message: String },
+    Loading {
+        message: String,
+    },
     Progress {
         done: usize,
         total: usize,
@@ -1125,8 +1206,12 @@ enum ForgetEvent {
         elapsed_ms: u64,
         case_name: String,
     },
-    Done { report: ForgetReportJson },
-    Error { message: String },
+    Done {
+        report: ForgetReportJson,
+    },
+    Error {
+        message: String,
+    },
     Cancelled,
 }
 
@@ -1207,7 +1292,12 @@ fn run_forget_impl(mode: &str, dataset: &str, sink: &StreamSink<String>) -> anyh
         .unwrap_or_default();
 
     CANCEL.store(false, Ordering::SeqCst);
-    emit(sink, &ForgetEvent::Loading { message: "正在加载遗忘套件...".into() });
+    emit(
+        sink,
+        &ForgetEvent::Loading {
+            message: "正在加载遗忘套件...".into(),
+        },
+    );
 
     let suite: Box<dyn TestSuite> = match mode {
         "mask" => Box::new(
@@ -1241,7 +1331,12 @@ fn run_forget_impl(mode: &str, dataset: &str, sink: &StreamSink<String>) -> anyh
         other => return Err(anyhow::anyhow!("未知遗忘模式: {other}")),
     };
     let total = suite.case_count();
-    emit(sink, &ForgetEvent::Loading { message: format!("准备就绪，共 {total} 个用例") });
+    emit(
+        sink,
+        &ForgetEvent::Loading {
+            message: format!("准备就绪，共 {total} 个用例"),
+        },
+    );
 
     let start = Instant::now();
     let mut outcomes = Vec::with_capacity(total);
@@ -1335,25 +1430,25 @@ fn run_forget_impl(mode: &str, dataset: &str, sink: &StreamSink<String>) -> anyh
                     metrics: d.metrics.clone(),
                     detail_lines: d.detail_lines.clone(),
                 })
-            } else if let Some(d) = o.data.downcast_ref::<MaskCaseData>() {
-                Some(ForgetObserverCaseJson::Text {
-                    case_name: d.case_name.clone(),
-                    node_id: Some(d.node_id.clone()),
-                    passed: d.passed,
-                    llm_available: false,
-                    original: Some(d.original.clone()),
-                    masked: Some(d.masked.clone()),
-                    mask_ratio: if d.total_count > 0 {
-                        Some(d.masked_count as f64 / d.total_count as f64)
-                    } else {
-                        None
-                    },
-                    llm_reply: None,
-                    metrics: d.metrics.clone(),
-                    detail_lines: d.detail_lines.clone(),
-                })
             } else {
-                None
+                o.data
+                    .downcast_ref::<MaskCaseData>()
+                    .map(|d| ForgetObserverCaseJson::Text {
+                        case_name: d.case_name.clone(),
+                        node_id: Some(d.node_id.clone()),
+                        passed: d.passed,
+                        llm_available: false,
+                        original: Some(d.original.clone()),
+                        masked: Some(d.masked.clone()),
+                        mask_ratio: if d.total_count > 0 {
+                            Some(d.masked_count as f64 / d.total_count as f64)
+                        } else {
+                            None
+                        },
+                        llm_reply: None,
+                        metrics: d.metrics.clone(),
+                        detail_lines: d.detail_lines.clone(),
+                    })
             }
         })
         .collect();
@@ -1448,14 +1543,19 @@ pub fn playtest_start(graph_dir: String, user_role: String) -> String {
             .parent()
             .map(|p| p.to_path_buf())
             .unwrap_or_else(|| graph_path.to_path_buf());
-        (parent, graph_path.file_name().map(|n| n.to_string_lossy().to_string()))
+        (
+            parent,
+            graph_path
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string()),
+        )
     };
     let graph_file = resolved_dir.join("graph.json");
     if !graph_file.exists() {
         let hint = match &picked_file {
-            Some(f) if f != "graph.json" => format!(
-                "所选文件不是 graph.json（实际为 {f}）。请选择角色图目录下的 graph.json"
-            ),
+            Some(f) if f != "graph.json" => {
+                format!("所选文件不是 graph.json（实际为 {f}）。请选择角色图目录下的 graph.json")
+            }
             _ => format!("未找到角色图: {}", graph_file.display()),
         };
         return err(hint);
@@ -1629,7 +1729,10 @@ fn query_preview(v: &MemoryRetrieveQueryVariant) -> String {
                 if let Some(ps) = u.participants() {
                     p.push(format!(
                         "人物:{}",
-                        ps.iter().filter_map(|x| x.name()).collect::<Vec<_>>().join(",")
+                        ps.iter()
+                            .filter_map(|x| x.name())
+                            .collect::<Vec<_>>()
+                            .join(",")
                     ));
                 }
                 p.join(" ")

@@ -1,5 +1,5 @@
 use soul_mem_core::memory_note::situation_mem::AbstractSituation;
-use soul_mem_core::memory_note::{sem_mem::SemMemory, MemoryNote, MemoryType};
+use soul_mem_core::memory_note::{MemoryNote, MemoryType, sem_mem::SemMemory};
 
 use crate::query::retrieve::{MemoryRetrieveQuery, SemanticQueryUnit, SituationQueryUnit};
 
@@ -20,6 +20,7 @@ pub fn normalized_levenshtein_score(a: &str, b: &str) -> f32 {
 /// 取 `max(Jaro-Winkler, normalized Levenshtein)`：
 ///   - 后缀插入（`"图书"` vs `"图书馆"`）、前缀插入（`"酒馆"` vs `"小酒馆"`）由 Levenshtein 兜底；
 ///   - 前缀加成与整体字形贴近程度由 Jaro-Winkler 主导。
+///
 /// 空串双方均空时视为完全一致；仅一方为空时视为无重叠（0.0）。
 pub fn string_distance_score(a: &str, b: &str) -> f32 {
     if a.is_empty() && b.is_empty() {
@@ -133,7 +134,7 @@ mod tests {
     use soul_mem_core::memory_note::situation_mem::{
         AbstractSituation, Environment, Event, Location, Participant,
     };
-    use soul_mem_core::memory_note::{sem_mem::ConceptType, MemoryNoteBuilder};
+    use soul_mem_core::memory_note::{MemoryNoteBuilder, sem_mem::ConceptType};
 
     fn sem_note(content: &str, aliases: &[&str]) -> MemoryNote {
         MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
@@ -214,7 +215,7 @@ mod tests {
         let query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Semantic(vec![
-                SemanticQueryUnit::new().with_concept_identifier("战斗".to_string())
+                SemanticQueryUnit::new().with_concept_identifier("战斗".to_string()),
             ]),
         );
         let hit = compute_note_string_score(&note_hit, &query);
@@ -231,7 +232,7 @@ mod tests {
         let query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Semantic(vec![
-                SemanticQueryUnit::new().with_concept_identifier("Rust".to_string())
+                SemanticQueryUnit::new().with_concept_identifier("Rust".to_string()),
             ]),
         );
         let score = compute_note_string_score(&note, &query);
@@ -245,7 +246,7 @@ mod tests {
         let query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Semantic(vec![
-                SemanticQueryUnit::new().with_concept_identifier("图书".to_string())
+                SemanticQueryUnit::new().with_concept_identifier("图书".to_string()),
             ]),
         );
         let score = compute_note_string_score(&note, &query);
@@ -258,7 +259,7 @@ mod tests {
         let query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Semantic(vec![
-                SemanticQueryUnit::new().with_description("关于战争的描述".to_string())
+                SemanticQueryUnit::new().with_description("关于战争的描述".to_string()),
             ]),
         );
         assert_eq!(compute_note_string_score(&note, &query), 0.0);
@@ -271,7 +272,7 @@ mod tests {
         let query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Situation(vec![
-                SituationQueryUnit::new().with_narrative("战斗场景".to_string())
+                SituationQueryUnit::new().with_narrative("战斗场景".to_string()),
             ]),
         );
         assert_eq!(compute_note_string_score(&note, &query), 0.0);
@@ -286,7 +287,7 @@ mod tests {
         let query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Situation(vec![
-                SituationQueryUnit::new().with_location(vec![LocationQueryUnit::new("小酒馆")])
+                SituationQueryUnit::new().with_location(vec![LocationQueryUnit::new("小酒馆")]),
             ]),
         );
         let score = compute_note_string_score(&note, &query);
@@ -302,10 +303,11 @@ mod tests {
         }));
         let query = MemoryRetrieveQuery::new(
             vec![],
-            MemoryRetrieveQueryVariant::Situation(vec![SituationQueryUnit::new()
-                .with_participants(vec![
-                    ParticipantQueryUnit::new().with_name("张三".to_string())
-                ])]),
+            MemoryRetrieveQueryVariant::Situation(vec![
+                SituationQueryUnit::new().with_participants(vec![
+                    ParticipantQueryUnit::new().with_name("张三".to_string()),
+                ]),
+            ]),
         );
         assert_eq!(compute_note_string_score(&note, &query), 1.0);
     }
@@ -318,10 +320,11 @@ mod tests {
         }));
         let query = MemoryRetrieveQuery::new(
             vec![],
-            MemoryRetrieveQueryVariant::Situation(vec![SituationQueryUnit::new()
-                .with_environment(
+            MemoryRetrieveQueryVariant::Situation(vec![
+                SituationQueryUnit::new().with_environment(
                     EnvironmentQueryUnit::new().with_atmosphere("安静".to_string()),
-                )]),
+                ),
+            ]),
         );
         assert_eq!(compute_note_string_score(&note, &query), 1.0);
     }
@@ -338,7 +341,7 @@ mod tests {
         let query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Situation(vec![
-                SituationQueryUnit::new().with_event(vec![EventQueryUnit::new("跑步".to_string())])
+                SituationQueryUnit::new().with_event(vec![EventQueryUnit::new("跑步".to_string())]),
             ]),
         );
         assert_eq!(compute_note_string_score(&note, &query), 1.0);
@@ -364,7 +367,7 @@ mod tests {
         let query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Situation(vec![
-                SituationQueryUnit::new().with_narrative("在一个酒馆里".to_string())
+                SituationQueryUnit::new().with_narrative("在一个酒馆里".to_string()),
             ]),
         );
         assert_eq!(compute_note_string_score(&note, &query), 0.0);
@@ -377,7 +380,7 @@ mod tests {
         let query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Semantic(vec![
-                SemanticQueryUnit::new().with_concept_identifier("".to_string())
+                SemanticQueryUnit::new().with_concept_identifier("".to_string()),
             ]),
         );
         let score = compute_note_string_score(&note, &query);
@@ -396,7 +399,7 @@ mod tests {
         let sit_query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Situation(vec![
-                SituationQueryUnit::new().with_event(vec![EventQueryUnit::new("".to_string())])
+                SituationQueryUnit::new().with_event(vec![EventQueryUnit::new("".to_string())]),
             ]),
         );
         let sit_score = compute_note_string_score(&sit_note, &sit_query);
@@ -425,7 +428,7 @@ mod tests {
         let query = MemoryRetrieveQuery::new(
             vec![],
             MemoryRetrieveQueryVariant::Semantic(vec![
-                SemanticQueryUnit::new().with_concept_identifier("酒馆".to_string())
+                SemanticQueryUnit::new().with_concept_identifier("酒馆".to_string()),
             ]),
         );
         let str_score = compute_note_string_score(&note, &query);
@@ -489,8 +492,8 @@ mod tests {
                 vec![EventQueryUnit::new("跑").with_target("操".to_string())],
             )]),
         );
-        let expected_target = 0.4 * string_distance_score("操", "操场")
-            + 0.6 * string_distance_score("跑", "跑步");
+        let expected_target =
+            0.4 * string_distance_score("操", "操场") + 0.6 * string_distance_score("跑", "跑步");
         assert_eq!(compute_note_string_score(&note, &q_target), expected_target);
 
         // 无 initiator/target，action 命中

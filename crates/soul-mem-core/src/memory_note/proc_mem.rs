@@ -75,7 +75,10 @@ mod tests {
 
     #[test]
     fn test_action_new_skill_and_think() {
-        let skill = Action::new("use_tool".to_string(), ActionType::new_skill(SkillRecord {}));
+        let skill = Action::new(
+            "use_tool".to_string(),
+            ActionType::new_skill(SkillRecord {}),
+        );
         assert_eq!(skill.get_content(), "use_tool");
         assert_eq!(skill.get_action_type(), &ActionType::Skill(SkillRecord {}));
 

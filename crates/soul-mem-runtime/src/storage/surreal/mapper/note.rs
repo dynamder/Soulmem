@@ -11,7 +11,10 @@ use serde::{Deserialize, Serialize};
 
 use soul_mem_core::memory_links::MemoryLink;
 use soul_mem_core::memory_note::{MemoryId, MemoryNoteBuilder, MemoryType};
-use soul_mem_query::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant};
+use soul_mem_query::embedding::EmbeddingVec;
+use soul_mem_query::embedding::note::{
+    EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
+};
 use soul_mem_query::embedding::query::note::{
     MemoryRetrieveQueryEmbedding, MemoryRetrieveQueryVariantEmbedding,
 };
@@ -25,8 +28,9 @@ use soul_mem_query::embedding::situation::event::EventEmbedding;
 use soul_mem_query::embedding::situation::location::LocationEmbedding;
 use soul_mem_query::embedding::situation::participant::ParticipantEmbedding;
 use soul_mem_query::embedding::situation::sensory_data::SensoryDataEmbedding;
-use soul_mem_query::embedding::situation::{AbstractSituationEmbedding, SituationEmbedding, SpecificSituationEmbedding};
-use soul_mem_query::embedding::EmbeddingVec;
+use soul_mem_query::embedding::situation::{
+    AbstractSituationEmbedding, SituationEmbedding, SpecificSituationEmbedding,
+};
 use surrealdb::types::SurrealValue;
 
 use super::{EmbeddingSlot, MapperError, MapperResult};
@@ -438,7 +442,11 @@ pub(crate) fn flatten_variant(
     let mut out = Vec::new();
     match variant {
         MemoryEmbeddingVariant::Semantic(sem) => {
-            let SemanticEmbedding { content, aliases, description } = sem;
+            let SemanticEmbedding {
+                content,
+                aliases,
+                description,
+            } = sem;
             out.push((EmbeddingSlot::SemContent, content));
             out.push((EmbeddingSlot::SemAliases, aliases));
             out.push((EmbeddingSlot::SemDescription, description));
@@ -467,20 +475,23 @@ fn flatten_context(ctx: ContextEmbedding) -> Vec<(EmbeddingSlot, EmbeddingVec)> 
         fused_event,
     } = ctx;
 
-    let location = location.into_iter().flat_map(|LocationEmbedding { name, coordinates }| {
-        [
-            (EmbeddingSlot::SitCtxLocName, name),
-            (EmbeddingSlot::SitCtxLocCoord, coordinates),
-        ]
-    });
-    let participant = fused_participant
+    let location = location
         .into_iter()
-        .flat_map(|ParticipantEmbedding { name, role, .. }| {
+        .flat_map(|LocationEmbedding { name, coordinates }| {
             [
-                (EmbeddingSlot::SitCtxPartName, name),
-                (EmbeddingSlot::SitCtxPartRole, role),
+                (EmbeddingSlot::SitCtxLocName, name),
+                (EmbeddingSlot::SitCtxLocCoord, coordinates),
             ]
         });
+    let participant =
+        fused_participant
+            .into_iter()
+            .flat_map(|ParticipantEmbedding { name, role, .. }| {
+                [
+                    (EmbeddingSlot::SitCtxPartName, name),
+                    (EmbeddingSlot::SitCtxPartRole, role),
+                ]
+            });
     // 情绪/感官通道：weight_pooling 后的融合向量；intensity 是标量，不入槽位列
     let emotion = fused_emotion.into_iter().map(|e| {
         let EmotionEmbedding { emotion, .. } = e;
@@ -495,18 +506,20 @@ fn flatten_context(ctx: ContextEmbedding) -> Vec<(EmbeddingSlot, EmbeddingVec)> 
         (EmbeddingSlot::SitCtxEnvAtmosphere, atmosphere),
         (EmbeddingSlot::SitCtxEnvTone, tone),
     ];
-    let event = fused_event.into_iter().flat_map(|EventEmbedding {
-        action,
-        initiator,
-        target,
-        ..
-    }| {
-        [
-            (EmbeddingSlot::SitCtxEventAction, action),
-            (EmbeddingSlot::SitCtxEventInitiator, initiator),
-            (EmbeddingSlot::SitCtxEventTarget, target),
-        ]
-    });
+    let event = fused_event.into_iter().flat_map(
+        |EventEmbedding {
+             action,
+             initiator,
+             target,
+             ..
+         }| {
+            [
+                (EmbeddingSlot::SitCtxEventAction, action),
+                (EmbeddingSlot::SitCtxEventInitiator, initiator),
+                (EmbeddingSlot::SitCtxEventTarget, target),
+            ]
+        },
+    );
 
     location
         .chain(participant)
@@ -590,12 +603,13 @@ mod tests {
     #[test]
     fn note_row_builder_defaults_and_slot() {
         let id = MemoryId::new();
-        let mem_type = MemoryType::Procedure(soul_mem_core::memory_note::proc_mem::ProcMemory::new(
-            soul_mem_core::memory_note::proc_mem::Action::new(
-                "act".into(),
-                soul_mem_core::memory_note::proc_mem::ActionType::new_speak(),
-            ),
-        ));
+        let mem_type =
+            MemoryType::Procedure(soul_mem_core::memory_note::proc_mem::ProcMemory::new(
+                soul_mem_core::memory_note::proc_mem::Action::new(
+                    "act".into(),
+                    soul_mem_core::memory_note::proc_mem::ActionType::new_speak(),
+                ),
+            ));
         let row = NoteRowBuilder::new(id, mem_type, serde_json::json!({"Procedure": []}))
             .slot(EmbeddingSlot::Tag, EmbeddingVec::new(vec![1.0, 0.0]))
             .slot(EmbeddingSlot::SemContent, EmbeddingVec::new(vec![0.5, 0.5]))
@@ -603,7 +617,12 @@ mod tests {
         assert_eq!(row.id, id);
         assert!(row.tags.is_empty());
         assert_eq!(row.retrieval_count, 0);
-        assert_eq!(row.tag_emb.as_ref().map(|v| v.iter().copied().collect::<Vec<_>>()), Some(vec![1.0, 0.0]));
+        assert_eq!(
+            row.tag_emb
+                .as_ref()
+                .map(|v| v.iter().copied().collect::<Vec<_>>()),
+            Some(vec![1.0, 0.0])
+        );
         assert!(row.sem_content_emb.is_some());
         assert!(row.sit_narrative_emb.is_none());
     }
@@ -614,10 +633,18 @@ mod tests {
         let row = NoteRow::from_embedded(embedded.clone()).unwrap();
 
         // flatten：三个语义子向量 + tag
-        assert_eq!(row.tag_emb.as_ref().map(|v| v.iter().copied().collect::<Vec<_>>()),
-                   Some(vec![0.5, 0.5]));
-        assert_eq!(row.sem_content_emb.as_ref().map(|v| v.iter().copied().collect::<Vec<_>>()),
-                   Some(vec![1.0, 0.0]));
+        assert_eq!(
+            row.tag_emb
+                .as_ref()
+                .map(|v| v.iter().copied().collect::<Vec<_>>()),
+            Some(vec![0.5, 0.5])
+        );
+        assert_eq!(
+            row.sem_content_emb
+                .as_ref()
+                .map(|v| v.iter().copied().collect::<Vec<_>>()),
+            Some(vec![1.0, 0.0])
+        );
         assert!(row.sem_aliases_emb.is_some());
         assert!(row.sem_description_emb.is_some());
         assert!(row.sit_narrative_emb.is_none()); // 语义记忆没有情境列
@@ -635,11 +662,13 @@ mod tests {
 
     #[test]
     fn abstract_situation_roundtrip_with_fused_self() {
-        let mem_type = MemoryType::Situation(AbstractSituation::Location(Location {
-            name: "酒馆".into(),
-            coordinates: "坐标".into(),
-        })
-        .into());
+        let mem_type = MemoryType::Situation(
+            AbstractSituation::Location(Location {
+                name: "酒馆".into(),
+                coordinates: "坐标".into(),
+            })
+            .into(),
+        );
         let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
         let variant = abstract_location_variant();
         let embedding = MemoryEmbedding::new(EmbeddingVec::new(vec![0.0, 1.0]), variant);
@@ -692,8 +721,14 @@ mod tests {
         assert!(row.sit_narrative_emb.is_some());
         assert!(row.sit_ctx_loc_name_emb.is_some());
         assert!(row.sit_ctx_part_name_emb.is_some());
-        assert!(row.sit_ctx_emotion_emb.is_some(), "emotion 通道必须写入槽位列");
-        assert!(row.sit_ctx_sensory_data_emb.is_some(), "sensory 通道必须写入槽位列");
+        assert!(
+            row.sit_ctx_emotion_emb.is_some(),
+            "emotion 通道必须写入槽位列"
+        );
+        assert!(
+            row.sit_ctx_sensory_data_emb.is_some(),
+            "sensory 通道必须写入槽位列"
+        );
         assert!(row.sit_ctx_env_atmosphere_emb.is_some());
         assert!(row.sit_ctx_event_action_emb.is_some());
         assert!(row.sit_loc_name_emb.is_none()); // 抽象情境列不写入
@@ -726,7 +761,10 @@ mod tests {
         let row = NoteRow::from_embedded(embedded.clone()).unwrap();
         assert!(row.tag_emb.is_some(), "tag 恒写入（还原真相源）");
         assert!(row.sem_content_emb.is_none(), "零向量 content 不写槽位列");
-        assert!(row.sem_description_emb.is_none(), "零向量 description 不写槽位列");
+        assert!(
+            row.sem_description_emb.is_none(),
+            "零向量 description 不写槽位列"
+        );
         assert!(row.sem_aliases_emb.is_some(), "非零向量照常写入");
         // 备份列是唯一真相源，保留完整嵌入（含零向量）
         let back = row.into_embedded(Vec::new()).unwrap();
@@ -735,15 +773,18 @@ mod tests {
 
     #[test]
     fn procedure_roundtrip_unit_variant() {
-        let mem_type = MemoryType::Procedure(soul_mem_core::memory_note::proc_mem::ProcMemory::new(
-            soul_mem_core::memory_note::proc_mem::Action::new(
-                "act".into(),
-                soul_mem_core::memory_note::proc_mem::ActionType::new_speak(),
-            ),
-        ));
+        let mem_type =
+            MemoryType::Procedure(soul_mem_core::memory_note::proc_mem::ProcMemory::new(
+                soul_mem_core::memory_note::proc_mem::Action::new(
+                    "act".into(),
+                    soul_mem_core::memory_note::proc_mem::ActionType::new_speak(),
+                ),
+            ));
         let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
-        let embedding =
-            MemoryEmbedding::new(EmbeddingVec::new(vec![0.2, 0.8]), MemoryEmbeddingVariant::Procedure());
+        let embedding = MemoryEmbedding::new(
+            EmbeddingVec::new(vec![0.2, 0.8]),
+            MemoryEmbeddingVariant::Procedure(),
+        );
         let embedded = EmbeddedMemoryNote { note, embedding };
 
         let row = NoteRow::from_embedded(embedded.clone()).unwrap();
@@ -767,8 +808,8 @@ mod tests {
             MemoryRetrieveQueryEmbedding, MemoryRetrieveQueryVariantEmbedding,
         };
         use soul_mem_query::embedding::query::sem::SemanticQueryUnitEmbedding;
-        use soul_mem_query::embedding::query::situation::location::LocationQueryUnitEmbedding;
         use soul_mem_query::embedding::query::situation::SituationQueryUnitEmbedding;
+        use soul_mem_query::embedding::query::situation::location::LocationQueryUnitEmbedding;
 
         let sem_q = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::new(vec![1.0, 0.0]))
             .with_variant(MemoryRetrieveQueryVariantEmbedding::Semantic(vec![
@@ -817,9 +858,13 @@ mod tests {
 
     #[test]
     fn into_embedded_merges_links() {
-        let link = MemoryLink::new(MemoryId::new(), MemoryId::new(),
+        let link = MemoryLink::new(
+            MemoryId::new(),
+            MemoryId::new(),
             soul_mem_core::memory_links::MemoryLinkType::Sem(
-                soul_mem_core::memory_links::sem_mem::SemMemLink::new("r".into(), 1.0)));
+                soul_mem_core::memory_links::sem_mem::SemMemLink::new("r".into(), 1.0),
+            ),
+        );
         let embedded = sem_embedded();
         let row = NoteRow::from_embedded(embedded.clone()).unwrap();
         let back = row.into_embedded(vec![link.clone()]).unwrap();

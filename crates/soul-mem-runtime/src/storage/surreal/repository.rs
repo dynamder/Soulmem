@@ -408,8 +408,8 @@ mod tests {
         MemoryRetrieveQueryEmbedding, MemoryRetrieveQueryVariantEmbedding,
     };
     use soul_mem_query::embedding::query::sem::SemanticQueryUnitEmbedding;
-    use soul_mem_query::embedding::query::situation::location::LocationQueryUnitEmbedding;
     use soul_mem_query::embedding::query::situation::SituationQueryUnitEmbedding;
+    use soul_mem_query::embedding::query::situation::location::LocationQueryUnitEmbedding;
     use soul_mem_query::embedding::sem::SemanticEmbedding;
     use soul_mem_query::embedding::situation::location::LocationEmbedding;
     use soul_mem_query::embedding::situation::{AbstractSituationEmbedding, SituationEmbedding};
@@ -510,9 +510,7 @@ mod tests {
         let expected = sem_note(0.3, 1.0);
         let id = expected.note().id();
 
-        repo.upsert_notes(vec![expected.clone()])
-            .await
-            .unwrap();
+        repo.upsert_notes(vec![expected.clone()]).await.unwrap();
         let fetched = repo.fetch_notes(&[id]).await.unwrap();
         assert_eq!(fetched.len(), 1);
         let f = &fetched[0];
@@ -532,9 +530,7 @@ mod tests {
         let b_id = b.note().id();
         let (a, _link_id) = with_link(a, b_id);
 
-        repo.upsert_notes(vec![a, b])
-            .await
-            .unwrap();
+        repo.upsert_notes(vec![a, b]).await.unwrap();
         let fetched = repo.fetch_notes(&[a_id]).await.unwrap();
         assert_eq!(fetched.len(), 1);
         let links = fetched[0].note().links();
@@ -555,9 +551,7 @@ mod tests {
         let (b, _) = with_link(b, c_id);
         let (a, _) = with_link(a, b_id);
 
-        repo.upsert_notes(vec![a, b, c])
-            .await
-            .unwrap();
+        repo.upsert_notes(vec![a, b, c]).await.unwrap();
 
         let d1 = repo.fetch_neighbors(&[a_id], 1).await.unwrap();
         let mut ids1: Vec<_> = d1.iter().map(|e| e.note().id()).collect();
@@ -581,9 +575,7 @@ mod tests {
         let a_id = a.note().id();
         let b_id = b.note().id();
         let c_id = c.note().id();
-        repo.upsert_notes(vec![a, b, c])
-            .await
-            .unwrap();
+        repo.upsert_notes(vec![a, b, c]).await.unwrap();
 
         // 语义查询（零 tag，只走 variant 通道）：content ~ [1,0,0...] → 只召回语义记忆
         // （情境节点的 sem_* 为 NONE；tag 通道跨变体是设计行为，这里特意用零 tag 验证变体隔离）
@@ -631,9 +623,7 @@ mod tests {
         let a_id = a.note().id();
         let b_id = b.note().id();
         let (a, _) = with_link(a, b_id);
-        repo.upsert_notes(vec![a, b])
-            .await
-            .unwrap();
+        repo.upsert_notes(vec![a, b]).await.unwrap();
 
         repo.remove_notes(&[a_id]).await.unwrap();
         assert!(repo.fetch_notes(&[a_id]).await.unwrap().is_empty());
@@ -656,9 +646,7 @@ mod tests {
         let a_id = a.note().id();
         let b_id = b.note().id();
         let (a, link_id) = with_link(a, b_id);
-        repo.upsert_notes(vec![a, b])
-            .await
-            .unwrap();
+        repo.upsert_notes(vec![a, b]).await.unwrap();
 
         repo.remove_links(&[link_id]).await.unwrap();
         let fetched = repo.fetch_notes(&[a_id]).await.unwrap();

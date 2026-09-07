@@ -19,6 +19,12 @@ ignore = [
     "RUSTSEC-2026-0098",
     "RUSTSEC-2026-0099",
     "RUSTSEC-2026-0104",
+    # RUSTSEC-2023-0071: rsa crate Marvin Attack（时序侧信道，CVSS 7.4）。
+    # 经 jsonwebtoken 10.4.0 ← surrealdb 链传递引入；rsa 上游 patched=[] 自 2023
+    # 年至今无修复版（最新 0.9.10 仍受影响，0.10 尚在 rc）。影响面：攻击者可观测
+    # 时序时恢复私钥。SoulMem 仅在本地/可信环境使用 SurrealDB 嵌入式存储，
+    # 不暴露给可观测时序的网络攻击者，故忽略并跟踪上游修复。
+    "RUSTSEC-2023-0071",
 ]
 
 [bans]
@@ -40,4 +46,9 @@ allow = [
     "CC0-1.0",
     "MPL-2.0",
     "Unlicense",
+    # surrealdb 3.x 为 BUSL-1.1（非 OSI 许可）：Additional Use Grant 仅禁止用作
+    # "Database Service"（向第三方提供数据库功能）；soul-mem-runtime 以嵌入式
+    # kv-mem/kv-surrealkv 本地使用，落在授权内，无需商业许可。Change Date
+    # 2030-01-01 后转 Apache-2.0。
+    "BUSL-1.1",
 ]

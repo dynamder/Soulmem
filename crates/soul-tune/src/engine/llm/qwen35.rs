@@ -1,7 +1,7 @@
 use std::io::{Read, Seek};
 use std::sync::Arc;
 
-use candle_core::quantized::{gguf_file, QTensor};
+use candle_core::quantized::{QTensor, gguf_file};
 use candle_core::{DType, Device, Result, Tensor};
 use candle_nn::{Activation, Embedding, Module};
 use candle_transformers::models::with_tracing::QMatMul;

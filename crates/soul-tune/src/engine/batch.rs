@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::mpsc;
-use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use crate::base::RetrieveMode;
 
-use crate::engine::suite::TestCaseOutcome;
 use crate::engine::retrieve::data::RetrieveCaseData;
+use crate::engine::suite::TestCaseOutcome;
 
 pub struct BatchResult {
     pub datasets: Vec<DatasetResult>,
@@ -87,7 +87,11 @@ pub fn summarize_action_metrics(outcomes: &[TestCaseOutcome]) -> Option<ActionSu
                 .unwrap_or(0.0);
             let s = ActionSummary {
                 cases: 1,
-                hit_cases: if data.action_metrics.action_hit_rate > 0.0 { 1 } else { 0 },
+                hit_cases: if data.action_metrics.action_hit_rate > 0.0 {
+                    1
+                } else {
+                    0
+                },
                 recall_at3,
             };
             summary = ActionSummary::combine(summary.as_ref(), Some(&s));
@@ -117,9 +121,9 @@ pub fn run_batch(
     datasets: &[PathBuf],
     mode: RetrieveMode,
     processor: impl Fn(&Path, RetrieveMode, Option<&HashMap<String, String>>, Instant) -> DatasetResult
-        + Send
-        + Sync
-        + 'static,
+    + Send
+    + Sync
+    + 'static,
     on_progress: Option<&dyn Fn(usize, usize) -> bool>,
 ) -> BatchResult {
     let start = Instant::now();
@@ -135,20 +139,21 @@ pub fn run_batch(
 
     for _ in 0..n_workers {
         let datasets = datasets.to_vec();
-        let mode = mode;
         let counter = Arc::clone(&counter);
         let tx = tx.clone();
         let processor = Arc::clone(&processor);
         std::thread::Builder::new()
             .name("batch-worker".into())
-            .spawn(move || loop {
-                let i = counter.fetch_add(1, Ordering::Relaxed);
-                if i >= datasets.len() {
-                    break;
+            .spawn(move || {
+                loop {
+                    let i = counter.fetch_add(1, Ordering::Relaxed);
+                    if i >= datasets.len() {
+                        break;
+                    }
+                    let ds_start = Instant::now();
+                    let ds = processor(&datasets[i], mode, None, ds_start);
+                    let _ = tx.send((i, ds));
                 }
-                let ds_start = Instant::now();
-                let ds = processor(&datasets[i], mode, None, ds_start);
-                let _ = tx.send((i, ds));
             })
             .ok();
     }
@@ -299,8 +304,8 @@ pub fn print_batch_result(result: &BatchResult) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::Path;
     use crate::engine::retrieve::data::{ActionMetrics, RankingMetrics};
+    use std::path::Path;
 
     fn fixtures_dir() -> std::path::PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -393,8 +398,16 @@ mod tests {
 
     #[test]
     fn test_action_summary_combine_weighted_recall() {
-        let a = ActionSummary { cases: 2, hit_cases: 2, recall_at3: 0.5 };
-        let b = ActionSummary { cases: 1, hit_cases: 0, recall_at3: 0.0 };
+        let a = ActionSummary {
+            cases: 2,
+            hit_cases: 2,
+            recall_at3: 0.5,
+        };
+        let b = ActionSummary {
+            cases: 1,
+            hit_cases: 0,
+            recall_at3: 0.0,
+        };
         let c = ActionSummary::combine(Some(&a), Some(&b)).unwrap();
         assert_eq!(c.cases, 3);
         assert_eq!(c.hit_cases, 2);

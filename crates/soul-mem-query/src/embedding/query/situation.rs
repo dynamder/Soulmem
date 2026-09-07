@@ -1,10 +1,11 @@
 use crate::embedding::blend_weights::BlendWeights;
 use crate::embedding::{
+    Embeddable, EmbeddingVec,
     query::situation::{
         environment::EnvironmentQueryUnitEmbedding, event::EventQueryUnitEmbedding,
         location::LocationQueryUnitEmbedding, participant::ParticipantQueryUnitEmbedding,
     },
-    vec_batch_embed, Embeddable, EmbeddingVec,
+    vec_batch_embed,
 };
 use crate::query::retrieve::SituationQueryUnit;
 
@@ -256,8 +257,10 @@ mod tests {
 
     #[test]
     fn test_set_blend_weights_propagates() {
-        let mut bw = BlendWeights::default();
-        bw.tag = 0.9;
+        let bw = BlendWeights {
+            tag: 0.9,
+            ..Default::default()
+        };
 
         let mut embedding = SituationQueryUnitEmbedding {
             narrative: Some(EmbeddingVec::new(vec![1.0])),
@@ -288,8 +291,14 @@ mod tests {
         embedding.set_blend_weights(&bw);
         assert_eq!(embedding.blend_weights.tag, 0.9);
         assert_eq!(embedding.location.as_ref().unwrap().blend_weights.tag, 0.9);
-        assert_eq!(embedding.participants.as_ref().unwrap().blend_weights.tag, 0.9);
-        assert_eq!(embedding.environment.as_ref().unwrap().blend_weights.tag, 0.9);
+        assert_eq!(
+            embedding.participants.as_ref().unwrap().blend_weights.tag,
+            0.9
+        );
+        assert_eq!(
+            embedding.environment.as_ref().unwrap().blend_weights.tag,
+            0.9
+        );
         assert_eq!(embedding.event.as_ref().unwrap().blend_weights.tag, 0.9);
     }
 
@@ -331,10 +340,8 @@ mod tests {
     fn test_into_parts_moves_all_fields() {
         let narrative = EmbeddingVec::new(vec![0.8, 0.2]);
         let location = LocationQueryUnitEmbedding::new(EmbeddingVec::new(vec![0.7, 0.3]), None);
-        let participants = ParticipantQueryUnitEmbedding::new(
-            Some(EmbeddingVec::new(vec![0.6, 0.4])),
-            None,
-        );
+        let participants =
+            ParticipantQueryUnitEmbedding::new(Some(EmbeddingVec::new(vec![0.6, 0.4])), None);
         let environment =
             EnvironmentQueryUnitEmbedding::new(Some(EmbeddingVec::new(vec![0.5, 0.5])), None);
         let event = EventQueryUnitEmbedding::new(EmbeddingVec::new(vec![0.4, 0.6]), None, None);

@@ -1,5 +1,5 @@
 use crate::embedding::blend_weights::BlendWeights;
-use crate::embedding::{mean_pooling, Embeddable, EmbeddingCalcResult, EmbeddingVec};
+use crate::embedding::{Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling};
 use crate::query::retrieve::LocationQueryUnit;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -88,11 +88,11 @@ impl Embeddable for LocationQueryUnit {
         &self,
         model: &dyn crate::embedding::EmbeddingModel,
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
-        let [name_vec] = model.infer_query_batch(&vec![self.name()])?.try_into().unwrap(); //SAFEUNWRAP: 此处长度必为1
+        let [name_vec] = model.infer_query_batch(&[self.name()])?.try_into().unwrap(); //SAFEUNWRAP: 此处长度必为1
 
         let coordinates_batch_vec = self
             .coordinates()
-            .map(|coord| model.infer_query_batch(&vec![coord]))
+            .map(|coord| model.infer_query_batch(&[coord]))
             .transpose()?;
 
         let coordinates_vec = coordinates_batch_vec.and_then(|vec| vec.into_iter().next());
@@ -128,8 +128,10 @@ mod tests {
         assert_eq!(embedding.name().shape(), 1);
         assert_eq!(embedding.coordinates().unwrap().shape(), 1);
 
-        let mut bw = BlendWeights::default();
-        bw.tag = 0.8;
+        let bw = BlendWeights {
+            tag: 0.8,
+            ..Default::default()
+        };
         embedding.set_blend_weights(&bw);
         assert_eq!(embedding.blend_weights.tag, 0.8);
     }
@@ -166,7 +168,11 @@ mod tests {
 
     #[test]
     fn test_location_query_unit_mean_pooling_empty() {
-        assert!(LocationQueryUnitEmbedding::mean_pooling(&[]).unwrap().is_none());
+        assert!(
+            LocationQueryUnitEmbedding::mean_pooling(&[])
+                .unwrap()
+                .is_none()
+        );
     }
 
     #[test]

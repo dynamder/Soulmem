@@ -41,10 +41,7 @@ fn test_algo_parsing_consolidate() {
 fn test_algo_parsing_forget() {
     let input = "forget";
     let algo = parse_retrieve_algo(input);
-    assert!(matches!(
-        algo,
-        Some(AlgoType::Forget(ForgetMode::Pipeline))
-    ));
+    assert!(matches!(algo, Some(AlgoType::Forget(ForgetMode::Pipeline))));
 }
 
 #[test]
@@ -62,10 +59,7 @@ fn test_algo_parsing_forget_mask() {
 fn test_algo_parsing_forget_revise() {
     let input = "forget/revise";
     let algo = parse_retrieve_algo(input);
-    assert!(matches!(
-        algo,
-        Some(AlgoType::Forget(ForgetMode::Revise))
-    ));
+    assert!(matches!(algo, Some(AlgoType::Forget(ForgetMode::Revise))));
     assert!(matches!(
         parse_retrieve_algo("fr"),
         Some(AlgoType::Forget(ForgetMode::Revise))
@@ -163,16 +157,28 @@ fn test_retrieve_mode_source_mapping() {
     assert!(RetrieveMode::AssociationDb.uses_db());
     assert!(RetrieveMode::FullPipelineDb.uses_db());
 
-    assert_eq!(RetrieveMode::EmbeddingDb.flavor(), RetrieveFlavor::Embedding);
+    assert_eq!(
+        RetrieveMode::EmbeddingDb.flavor(),
+        RetrieveFlavor::Embedding
+    );
     assert_eq!(RetrieveMode::Embedding.flavor(), RetrieveFlavor::Embedding);
-    assert_eq!(RetrieveMode::FullPipelineDb.flavor(), RetrieveFlavor::FullPipeline);
+    assert_eq!(
+        RetrieveMode::FullPipelineDb.flavor(),
+        RetrieveFlavor::FullPipeline
+    );
 
     assert_eq!(
         RetrieveMode::FullPipeline.db_mode(),
         Some(RetrieveMode::FullPipelineDb)
     );
-    assert_eq!(RetrieveMode::Embedding.db_mode(), Some(RetrieveMode::EmbeddingDb));
-    assert_eq!(RetrieveMode::EmbeddingDb.db_mode(), Some(RetrieveMode::EmbeddingDb));
+    assert_eq!(
+        RetrieveMode::Embedding.db_mode(),
+        Some(RetrieveMode::EmbeddingDb)
+    );
+    assert_eq!(
+        RetrieveMode::EmbeddingDb.db_mode(),
+        Some(RetrieveMode::EmbeddingDb)
+    );
 }
 
 fn parse_retrieve_algo(s: &str) -> Option<AlgoType> {
@@ -183,9 +189,7 @@ fn parse_retrieve_algo(s: &str) -> Option<AlgoType> {
         "retrieve/association" | "ra" => Some(AlgoType::Retrieve(RetrieveMode::Association)),
         "retrieve/full" | "rf" => Some(AlgoType::Retrieve(RetrieveMode::FullPipeline)),
         "retrieve/db/embedding" | "rde" => Some(AlgoType::Retrieve(RetrieveMode::EmbeddingDb)),
-        "retrieve/db/association" | "rda" => {
-            Some(AlgoType::Retrieve(RetrieveMode::AssociationDb))
-        }
+        "retrieve/db/association" | "rda" => Some(AlgoType::Retrieve(RetrieveMode::AssociationDb)),
         "retrieve/db" | "retrieve/db/full" | "rd" => {
             Some(AlgoType::Retrieve(RetrieveMode::FullPipelineDb))
         }

@@ -11,17 +11,19 @@ use soul_mem_core::memory_links::{MemoryLinkBuilder, MemoryLinkType, sem_mem::Se
 use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
 use soul_mem_core::memory_note::situation_mem::{AbstractSituation, Location};
 use soul_mem_core::memory_note::{MemoryId, MemoryNoteBuilder, MemoryType};
-use soul_mem_query::embedding::note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant};
+use soul_mem_query::embedding::EmbeddingVec;
+use soul_mem_query::embedding::note::{
+    EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
+};
 use soul_mem_query::embedding::query::note::{
     MemoryRetrieveQueryEmbedding, MemoryRetrieveQueryVariantEmbedding,
 };
 use soul_mem_query::embedding::query::sem::SemanticQueryUnitEmbedding;
-use soul_mem_query::embedding::query::situation::location::LocationQueryUnitEmbedding;
 use soul_mem_query::embedding::query::situation::SituationQueryUnitEmbedding;
+use soul_mem_query::embedding::query::situation::location::LocationQueryUnitEmbedding;
 use soul_mem_query::embedding::sem::SemanticEmbedding;
 use soul_mem_query::embedding::situation::location::LocationEmbedding;
 use soul_mem_query::embedding::situation::{AbstractSituationEmbedding, SituationEmbedding};
-use soul_mem_query::embedding::EmbeddingVec;
 use soul_mem_runtime::storage::surreal::SurrealRepository;
 use soul_mem_runtime::storage::{MemoryRepository, StorageResult};
 
@@ -100,7 +102,10 @@ async fn semantic_memory_write_read_roundtrip_preserves_data() {
     assert_eq!(f.note().mem_type(), expected.note().mem_type());
     assert_eq!(f.note().tags(), expected.note().tags());
     assert_eq!(f.note().missing_degree(), expected.note().missing_degree());
-    assert_eq!(f.note().retrieval_count(), expected.note().retrieval_count());
+    assert_eq!(
+        f.note().retrieval_count(),
+        expected.note().retrieval_count()
+    );
     assert_eq!(f.note().creation_time(), expected.note().creation_time());
     assert_eq!(f.embedding(), expected.embedding());
 }
@@ -140,7 +145,10 @@ async fn recall_pipeline_returns_complete_embedded_notes() {
             "语义查询候选必须是语义记忆"
         );
         assert!(
-            matches!(e.embedding().variant().clone(), MemoryEmbeddingVariant::Semantic(_)),
+            matches!(
+                e.embedding().variant().clone(),
+                MemoryEmbeddingVariant::Semantic(_)
+            ),
             "候选 embedding 变体必须还原为 Semantic"
         );
     }
@@ -160,8 +168,12 @@ async fn mixed_variants_roundtrip_and_recall_isolation() {
     // 各自变体无损还原
     let fetched = repo.fetch_notes(&[sem_id, sit_id]).await.unwrap();
     assert_eq!(fetched.len(), 2);
-    let has_semantic = fetched.iter().any(|e| matches!(e.note().mem_type(), MemoryType::Semantic(_)));
-    let has_situation = fetched.iter().any(|e| matches!(e.note().mem_type(), MemoryType::Situation(_)));
+    let has_semantic = fetched
+        .iter()
+        .any(|e| matches!(e.note().mem_type(), MemoryType::Semantic(_)));
+    let has_situation = fetched
+        .iter()
+        .any(|e| matches!(e.note().mem_type(), MemoryType::Situation(_)));
     assert!(has_semantic && has_situation, "两种变体都应还原");
 
     // 语义查询（零 tag）只召回语义记忆
@@ -172,7 +184,10 @@ async fn mixed_variants_roundtrip_and_recall_isolation() {
         )]),
     );
     let hits = repo.similarity_fetch(vec![q_sem], 2).await.unwrap();
-    assert!(hits.iter().all(|e| e.note().id() != sit_id), "语义查询不得召回情境记忆");
+    assert!(
+        hits.iter().all(|e| e.note().id() != sit_id),
+        "语义查询不得召回情境记忆"
+    );
 
     // 情境查询（零 tag，走 location name 通道）只召回情境记忆
     let q_sit = MemoryRetrieveQueryEmbedding::new(EmbeddingVec::zero(512)).with_variant(
@@ -188,7 +203,10 @@ async fn mixed_variants_roundtrip_and_recall_isolation() {
         )]),
     );
     let hits = repo.similarity_fetch(vec![q_sit], 2).await.unwrap();
-    assert!(hits.iter().all(|e| e.note().id() != sem_id), "情境查询不得召回语义记忆");
+    assert!(
+        hits.iter().all(|e| e.note().id() != sem_id),
+        "情境查询不得召回语义记忆"
+    );
 }
 
 /// 业务链路 4：链接记忆链——fetch_notes 合并出边、fetch_neighbors 深度遍历恢复链路。
@@ -204,12 +222,20 @@ async fn link_graph_write_neighbors_and_restore() {
 
     // a → b → c 链接链
     let mut a = a;
-    let link_ab = MemoryLinkBuilder::new(a_id, b_id, MemoryLinkType::Sem(SemMemLink::new("relates".into(), 1.0)))
-        .build();
+    let link_ab = MemoryLinkBuilder::new(
+        a_id,
+        b_id,
+        MemoryLinkType::Sem(SemMemLink::new("relates".into(), 1.0)),
+    )
+    .build();
     a.note.links_mut().push(link_ab);
     let mut b = b;
-    let link_bc = MemoryLinkBuilder::new(b_id, c_id, MemoryLinkType::Sem(SemMemLink::new("relates".into(), 1.0)))
-        .build();
+    let link_bc = MemoryLinkBuilder::new(
+        b_id,
+        c_id,
+        MemoryLinkType::Sem(SemMemLink::new("relates".into(), 1.0)),
+    )
+    .build();
     b.note.links_mut().push(link_bc);
 
     repo.upsert_notes(vec![a, b, c]).await.unwrap();
@@ -261,11 +287,18 @@ async fn overwrite_same_id_and_remove_cleans_up() {
     let fetched = repo.fetch_notes(&[id]).await.unwrap();
     assert_eq!(fetched.len(), 1, "覆盖不产生重复记录");
     assert_eq!(fetched[0].note().missing_degree(), 0.7, "覆盖字段生效");
-    assert_eq!(fetched[0].embedding(), updated.embedding(), "嵌入被覆盖为最新值");
+    assert_eq!(
+        fetched[0].embedding(),
+        updated.embedding(),
+        "嵌入被覆盖为最新值"
+    );
 
     // 删除：读回为空
     repo.remove_notes(&[id]).await.unwrap();
-    assert!(repo.fetch_notes(&[id]).await.unwrap().is_empty(), "删除后读回为空");
+    assert!(
+        repo.fetch_notes(&[id]).await.unwrap().is_empty(),
+        "删除后读回为空"
+    );
     // 删除不存在的 id 是幂等 no-op
     let _: StorageResult<()> = repo.remove_notes(&[id]).await;
 }
