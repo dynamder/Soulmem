@@ -88,6 +88,10 @@ impl MemoryNote {
     pub fn mem_type(&self) -> &MemoryType {
         &self.mem_type
     }
+    /// 消费 self 取出 mem_type（持久化转换避免 clone）
+    pub fn into_mem_type(self) -> MemoryType {
+        self.mem_type
+    }
     pub fn mem_type_mut(&mut self) -> &mut MemoryType {
         &mut self.mem_type
     }
@@ -244,10 +248,7 @@ mod tests {
             .id(uuid)
             .build()
             .unwrap();
-        let note2 = MemoryNoteBuilder::new(mem_type)
-            .id(uuid)
-            .build()
-            .unwrap();
+        let note2 = MemoryNoteBuilder::new(mem_type).id(uuid).build().unwrap();
         assert!(MemoryNote::is_same_id(&note1, &note2));
     }
 
@@ -287,10 +288,9 @@ mod tests {
         let link = MemoryLink::new(
             MemoryId::from(uuid_from),
             MemoryId::from(uuid_to),
-            crate::memory_links::MemoryLinkType::Sem(crate::memory_links::sem_mem::SemMemLink::new(
-                "is_related_to".to_string(),
-                0.9,
-            )),
+            crate::memory_links::MemoryLinkType::Sem(
+                crate::memory_links::sem_mem::SemMemLink::new("is_related_to".to_string(), 0.9),
+            ),
         );
         let note = MemoryNoteBuilder::new(mem_type)
             .mem_links(vec![link])

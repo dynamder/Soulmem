@@ -128,7 +128,7 @@ where
     }
 
     //最终归一化
-    let sum = ppr_ranks.iter().map(|ppr| *ppr).sum::<D>();
+    let sum = ppr_ranks.iter().copied().sum::<D>();
     //sum为0时返回全零分布，避免0/0产生NaN
     if sum == D::zero() {
         return HashMap::new();

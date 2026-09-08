@@ -1,12 +1,12 @@
-use std::sync::Arc;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use serde::Deserialize;
 
 use crate::algo::retrieve::{
+    RetrRequest, RetrStrategy,
     association::{AssociationConfig, AssociationRequest, RetrAssociation},
     bayes_action::{BayesActionRequest, RetrBayesAction},
-    RetrRequest, RetrStrategy,
 };
 use soul_mem_core::memory_note::situation_mem::SituationType;
 use soul_mem_core::memory_note::{MemoryId, MemoryType};
@@ -149,22 +149,20 @@ fn merge_situation_sources(
     sim_sources: &[(MemoryId, f32)],
     assoc: &[(MemoryId, f64)],
 ) -> Vec<(MemoryId, f64, bool)> {
-    let type_map: HashMap<MemoryId, bool> = working_mem
-        .memory_cluster()
-        .read_or_compute(|c| {
-            c.graph()
-                .node_weights()
-                .filter_map(|n| match n.note().mem_type() {
-                    MemoryType::Situation(SituationType::AbstractSituation(_)) => {
-                        Some((n.note().id(), true))
-                    }
-                    MemoryType::Situation(SituationType::SpecificSituation(_)) => {
-                        Some((n.note().id(), false))
-                    }
-                    _ => None,
-                })
-                .collect()
-        });
+    let type_map: HashMap<MemoryId, bool> = working_mem.memory_cluster().read_or_compute(|c| {
+        c.graph()
+            .node_weights()
+            .filter_map(|n| match n.note().mem_type() {
+                MemoryType::Situation(SituationType::AbstractSituation(_)) => {
+                    Some((n.note().id(), true))
+                }
+                MemoryType::Situation(SituationType::SpecificSituation(_)) => {
+                    Some((n.note().id(), false))
+                }
+                _ => None,
+            })
+            .collect()
+    });
 
     let mut score_map: HashMap<MemoryId, (f64, bool)> = HashMap::new();
     let combined = sim_sources
@@ -211,14 +209,14 @@ fn softmax(logits: &[(MemoryId, f64)]) -> Vec<(MemoryId, f64)> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soul_mem_core::memory_links::proc_mem::{ProcMemLink, TrigToAction};
-    use soul_mem_core::memory_links::sem_mem::SemMemLink;
     use soul_mem_core::memory_links::MemoryLink;
     use soul_mem_core::memory_links::MemoryLinkType;
+    use soul_mem_core::memory_links::proc_mem::{ProcMemLink, TrigToAction};
+    use soul_mem_core::memory_links::sem_mem::SemMemLink;
     use soul_mem_core::memory_note::{
+        MemoryNoteBuilder, MemoryType,
         proc_mem::{Action, ActionType, ProcMemory},
         sem_mem::{ConceptType, SemMemory},
-        MemoryNoteBuilder, MemoryType,
     };
     use soul_mem_query::embedding::note::EmbeddedMemoryNote;
     use soul_mem_query::embedding::note::MemoryEmbedding;
@@ -237,13 +235,16 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(config.action_top_k, 3);
-        assert_eq!(config.abstract_source_priority, default_abstract_source_priority());
+        assert_eq!(
+            config.abstract_source_priority,
+            default_abstract_source_priority()
+        );
     }
-    use soul_mem_query::embedding::sem::SemanticEmbedding;
     use soul_mem_query::embedding::EmbeddingVec;
+    use soul_mem_query::embedding::sem::SemanticEmbedding;
 
-    fn create_mock_working_memory_with_assoc_and_action(
-    ) -> (WorkingMemory, MemoryId, MemoryId, MemoryId) {
+    fn create_mock_working_memory_with_assoc_and_action()
+    -> (WorkingMemory, MemoryId, MemoryId, MemoryId) {
         let wm = WorkingMemory::new(10);
         let cluster = wm.memory_cluster();
         let id1 = MemoryId::new();
@@ -264,7 +265,6 @@ mod tests {
                 aliases: vec![],
                 concept_type: ConceptType::Entity,
                 description: String::new(),
-                ..Default::default()
             }))
             .id(id1)
             .mem_links(vec![link1])
@@ -288,7 +288,6 @@ mod tests {
                 aliases: vec![],
                 concept_type: ConceptType::Entity,
                 description: String::new(),
-                ..Default::default()
             }))
             .id(id2)
             .mem_links(vec![link2])
@@ -375,9 +374,9 @@ mod tests {
         use soul_mem_core::memory_note::situation_mem::{
             AbstractSituation, Context, Environment, Event, SituationType, SpecificSituation,
         };
-        use soul_mem_query::embedding::embedding_model::bge::BgeSmallZh;
         use soul_mem_query::embedding::Embeddable;
         use soul_mem_query::embedding::EmbeddingVec;
+        use soul_mem_query::embedding::embedding_model::bge::BgeSmallZh;
 
         let model = BgeSmallZh::default_cpu().unwrap();
         let wm = WorkingMemory::new(10);
@@ -402,9 +401,9 @@ mod tests {
                 vec![],
             ),
         );
-        let spec_note = MemoryNoteBuilder::new(MemoryType::Situation(SituationType::SpecificSituation(
-            spec_mem,
-        )))
+        let spec_note = MemoryNoteBuilder::new(MemoryType::Situation(
+            SituationType::SpecificSituation(spec_mem),
+        ))
         .id(spec_id)
         .mem_links(vec![MemoryLink::new(
             spec_id,
@@ -421,9 +420,9 @@ mod tests {
             initiator: "对方".to_string(),
             target: "我".to_string(),
         });
-        let abs_note = MemoryNoteBuilder::new(MemoryType::Situation(SituationType::AbstractSituation(
-            abs_mem,
-        )))
+        let abs_note = MemoryNoteBuilder::new(MemoryType::Situation(
+            SituationType::AbstractSituation(abs_mem),
+        ))
         .id(abs_id)
         .mem_links(vec![MemoryLink::new(
             abs_id,
@@ -450,8 +449,10 @@ mod tests {
                 .id(pid)
                 .build()
                 .unwrap();
-                let pemb =
-                    MemoryEmbedding::new(EmbeddingVec::zero(128), MemoryEmbeddingVariant::Procedure());
+                let pemb = MemoryEmbedding::new(
+                    EmbeddingVec::zero(128),
+                    MemoryEmbeddingVariant::Procedure(),
+                );
                 c.add_single_node(EmbeddedMemoryNote {
                     note: pnote,
                     embedding: pemb,
@@ -470,7 +471,13 @@ mod tests {
         let request = config.into_request(Arc::new(wm), vec![(abs_id, 1.0), (spec_id, 1.0)]);
         let result = RetrAssociateWithAction {}.retrieve(request);
 
-        let get = |id: MemoryId| result.action.iter().find(|(i, _)| *i == id).map(|(_, s)| *s);
+        let get = |id: MemoryId| {
+            result
+                .action
+                .iter()
+                .find(|(i, _)| *i == id)
+                .map(|(_, s)| *s)
+        };
         let abs_score = get(proc_abs).expect("抽象情境触发的动作应被检出");
         let spec_score = get(proc_spec).expect("具体情境触发的动作应参与（兜底源）");
         assert!(
@@ -508,7 +515,13 @@ mod tests {
             .with_abstract_source_priority(1.0);
         let result = RetrAssociateWithAction {}.retrieve(request);
 
-        let get = |id: MemoryId| result.action.iter().find(|(i, _)| *i == id).map(|(_, s)| *s);
+        let get = |id: MemoryId| {
+            result
+                .action
+                .iter()
+                .find(|(i, _)| *i == id)
+                .map(|(_, s)| *s)
+        };
         let abs_score = get(proc_abs).unwrap_or(0.0);
         let spec_score = get(proc_spec).unwrap_or(0.0);
         assert!(

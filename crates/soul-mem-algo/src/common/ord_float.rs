@@ -219,8 +219,8 @@ mod tests {
 
     #[test]
     fn test_ord_float_from_f64() {
-        let v = f64f(3.14);
-        assert_eq!(v.into_inner(), 3.14);
+        let v = f64f(std::f64::consts::PI);
+        assert_eq!(v.into_inner(), std::f64::consts::PI);
     }
 
     #[test]
@@ -258,7 +258,10 @@ mod tests {
         assert!(OrdFloat::<f64>::from_f64(f64::NAN).into_inner().is_nan());
         // default_tol 应为正的容差（不能为 0，否则除零/归一化失效）
         let tol = OrdFloat::<f64>::default_tol().into_inner();
-        assert!(tol > 0.0 && tol.is_finite(), "default_tol should be positive and finite, got {tol}");
+        assert!(
+            tol > 0.0 && tol.is_finite(),
+            "default_tol should be positive and finite, got {tol}"
+        );
     }
 
     #[test]

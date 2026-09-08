@@ -23,13 +23,8 @@ fn find_next_think_block(s: &str) -> Option<(usize, usize, usize, usize)> {
 
 pub fn strip_think_block(s: &str) -> String {
     let mut result = s.to_string();
-    loop {
-        match find_next_think_block(&result) {
-            Some((block_start, _, _, block_end)) => {
-                result.replace_range(block_start..block_end, "");
-            }
-            None => break,
-        }
+    while let Some((block_start, _, _, block_end)) = find_next_think_block(&result) {
+        result.replace_range(block_start..block_end, "");
     }
     result.trim().to_string()
 }
@@ -161,32 +156,31 @@ fn is_valid_query_json(s: &str) -> bool {
 }
 
 pub fn robust_json_extract(clean: &str, llm: &mut dyn LlmBackend) -> Option<String> {
-    if let Some(j) = extract_balanced_array(clean) {
-        if is_valid_query_json(&j) {
-            return Some(j);
-        }
+    if let Some(j) = extract_balanced_array(clean)
+        && is_valid_query_json(&j)
+    {
+        return Some(j);
     }
 
     let stripped = strip_markdown_fences(clean);
 
-    if let Some(j) = extract_balanced_array(&stripped) {
-        if is_valid_query_json(&j) {
-            return Some(j);
-        }
+    if let Some(j) = extract_balanced_array(&stripped)
+        && is_valid_query_json(&j)
+    {
+        return Some(j);
     }
 
-    if let Some(j) = extract_top_level_objects(clean) {
-        if is_valid_query_json(&j) {
-            return Some(j);
-        }
+    if let Some(j) = extract_top_level_objects(clean)
+        && is_valid_query_json(&j)
+    {
+        return Some(j);
     }
 
-    if stripped != clean {
-        if let Some(j) = extract_top_level_objects(&stripped) {
-            if is_valid_query_json(&j) {
-                return Some(j);
-            }
-        }
+    if stripped != clean
+        && let Some(j) = extract_top_level_objects(&stripped)
+        && is_valid_query_json(&j)
+    {
+        return Some(j);
     }
 
     if let Some(j) = repair_json(&stripped, llm) {
@@ -203,14 +197,11 @@ pub fn robust_json_extract(clean: &str, llm: &mut dyn LlmBackend) -> Option<Stri
 pub fn split_response(s: &str) -> (Option<String>, String) {
     let mut think_parts: Vec<String> = Vec::new();
     let mut body = s.to_string();
-    loop {
-        match find_next_think_block(&body) {
-            Some((block_start, content_start, content_end, block_end)) => {
-                think_parts.push(body[content_start..content_end].trim().to_string());
-                body.replace_range(block_start..block_end, "");
-            }
-            None => break,
-        }
+    while let Some((block_start, content_start, content_end, block_end)) =
+        find_next_think_block(&body)
+    {
+        think_parts.push(body[content_start..content_end].trim().to_string());
+        body.replace_range(block_start..block_end, "");
     }
     let think = if think_parts.is_empty() {
         None
@@ -237,17 +228,15 @@ pub struct RawQuery {
 ///   - 显式包裹：{"Semantic": [...]} / {"Situation": [...]}（推荐，LLM 提示词使用）
 ///   - 裸数组：  [{...}, {...}]
 ///   - 裸单对象：{"concept_identifier": ...} / {"narrative": ...}
+///
 /// 注意：untagged 按顺序尝试，Semantic 包裹必须先于单对象变体，
 /// 否则 {"Semantic": [...]} 会被 RawSemUnit 贪婪吞掉变成空单元（历史 bug）。
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
+#[allow(non_snake_case)] // 字段名刻意对齐 serde JSON 键（{"Semantic": [...]} 形态）
 pub enum RawVariant {
-    Semantic {
-        Semantic: Vec<RawSemUnit>,
-    },
-    Situation {
-        Situation: Vec<RawSitUnit>,
-    },
+    Semantic { Semantic: Vec<RawSemUnit> },
+    Situation { Situation: Vec<RawSitUnit> },
     SemanticSingle(RawSemUnit),
     SituationSingle(RawSitUnit),
     BareArray(Vec<RawSemUnit>),
@@ -334,7 +323,12 @@ use std::sync::{Mutex, OnceLock};
 /// `max_tokens` 限制本次生成的 token 数；PAW candle 后端默认无限制，
 /// 会让小模型一路生成到填满上下文（数分钟），必须显式限制。
 /// PAW 服务不可用或加载/运行失败时返回 None。
-pub(crate) fn run_paw(slug: &str, spec: &str, prompt: &str, max_tokens: Option<usize>) -> Option<String> {
+pub(crate) fn run_paw(
+    slug: &str,
+    spec: &str,
+    prompt: &str,
+    max_tokens: Option<usize>,
+) -> Option<String> {
     let state = init_paw_state();
 
     // 快路径：已缓存则直接运行
@@ -374,10 +368,10 @@ pub fn repair_json(bad_json: &str, llm: &mut dyn LlmBackend) -> Option<String> {
     let try_parse = |raw: &str| {
         extract_balanced_array(raw).or_else(|| extract_json_array(raw).map(|s| s.to_string()))
     };
-    if let Some(raw) = run_paw(JSON_REPAIR_SLUG, JSON_REPAIR_SPEC, &prompt, Some(1024)) {
-        if let Some(j) = try_parse(&raw) {
-            return Some(j);
-        }
+    if let Some(raw) = run_paw(JSON_REPAIR_SLUG, JSON_REPAIR_SPEC, &prompt, Some(1024))
+        && let Some(j) = try_parse(&raw)
+    {
+        return Some(j);
     }
     // PAW 不可用或产出无效：暂时用主对话 LLM 顶上
     let raw = llm.chat(JSON_REPAIR_SPEC, &prompt, 1024).ok()?;
@@ -415,19 +409,16 @@ async fn load_paw_fn(
     spec: &str,
 ) -> Option<Box<dyn paw_rs::paw_core::PawFnTrait>> {
     // 1. 优先从映射文件恢复已编译的 PAW
-    if let Ok(data) = std::fs::read_to_string(mapping_path) {
-        if let Ok(map) = serde_json::from_str::<HashMap<String, String>>(&data) {
-            if let Some(id) = map.get(slug) {
-                if let Ok(f) = paw_rs::PawFnBuilder::builder()
-                    .config(config.clone())
-                    .id(id)
-                    .load()
-                    .await
-                {
-                    return Some(f);
-                }
-            }
-        }
+    if let Ok(data) = std::fs::read_to_string(mapping_path)
+        && let Ok(map) = serde_json::from_str::<HashMap<String, String>>(&data)
+        && let Some(id) = map.get(slug)
+        && let Ok(f) = paw_rs::PawFnBuilder::builder()
+            .config(config.clone())
+            .id(id)
+            .load()
+            .await
+    {
+        return Some(f);
     }
 
     // 2. 编译并下载
@@ -448,7 +439,10 @@ async fn load_paw_fn(
         .and_then(|d| serde_json::from_str(&d).ok())
         .unwrap_or_default();
     map.insert(slug.to_string(), program.id.clone());
-    let _ = std::fs::write(mapping_path, serde_json::to_string(&map).unwrap_or_default());
+    let _ = std::fs::write(
+        mapping_path,
+        serde_json::to_string(&map).unwrap_or_default(),
+    );
 
     paw_rs::PawFnBuilder::builder()
         .config(config.clone())
@@ -726,8 +720,7 @@ mod tests {
 
     #[test]
     fn test_wrapped_semantic_preserves_concept() {
-        let input =
-            r#"[{"tag":["test"],"variant":{"Semantic":[{"concept_identifier":"弹幕规则","description":"desc"}]},"priority":1}]"#;
+        let input = r#"[{"tag":["test"],"variant":{"Semantic":[{"concept_identifier":"弹幕规则","description":"desc"}]},"priority":1}]"#;
         let parsed: Vec<RawQuery> = serde_json::from_str(input).unwrap();
         match &parsed[0].variant {
             RawVariant::Semantic { Semantic: units } => {

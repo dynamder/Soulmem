@@ -1,5 +1,5 @@
-use parking_lot::RwLock;
 use chrono::{DateTime, Utc};
+use parking_lot::RwLock;
 use petgraph::Direction;
 use petgraph::prelude::{EdgeIndex, NodeIndex, StableDiGraph};
 use petgraph::visit::EdgeRef;
@@ -591,9 +591,9 @@ mod tests2 {
     use soul_mem_core::memory_links::sem_mem::SemMemLink;
     use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
     use soul_mem_core::memory_note::{MemoryNoteBuilder, MemoryType};
+    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::embedding::note::MemoryEmbeddingVariant;
     use soul_mem_query::embedding::sem::SemanticEmbedding;
-    use soul_mem_query::embedding::EmbeddingVec;
 
     fn sem_note(content: &str) -> EmbeddedMemoryNote {
         let mem_type = MemoryType::Semantic(SemMemory {
@@ -740,11 +740,7 @@ mod tests2 {
         let node_c = sem_note("C");
         let id_c = node_c.note().id();
 
-        let a = note_with_links(
-            id_a,
-            "A",
-            vec![sem_link(id_a, id_b), sem_link(id_a, id_c)],
-        );
+        let a = note_with_links(id_a, "A", vec![sem_link(id_a, id_b), sem_link(id_a, id_c)]);
         let b = note_with_links(id_b, "B", vec![sem_link(id_b, id_c)]);
         cluster.merge(vec![a, b, node_c]);
         assert_eq!(cluster.graph().node_count(), 3);
@@ -802,10 +798,7 @@ mod tests2 {
         cluster.add_single_node(note_with_links(id_a, "A", vec![sem_link(id_a, id_b)]));
         cluster.add_single_node(node_b);
 
-        let mut sub = cluster.sub_cluster(
-            HashSet::from([id_a]),
-            HashSet::new(),
-        );
+        let mut sub = cluster.sub_cluster(HashSet::from([id_a]), HashSet::new());
         assert!(sub.add_node(id_a).is_ok());
         assert!(sub.add_node(MemoryId::new()).is_err());
     }
@@ -817,10 +810,7 @@ mod tests2 {
         let id_a = node_a.note().id();
         cluster.add_single_node(node_a);
 
-        let mut sub = cluster.sub_cluster(
-            HashSet::new(),
-            HashSet::new(),
-        );
+        let mut sub = cluster.sub_cluster(HashSet::new(), HashSet::new());
         assert!(sub.add_nodes(&[id_a]).is_ok());
         let missing = MemoryId::new();
         assert!(sub.add_nodes(&[id_a, missing]).is_err());
@@ -896,7 +886,7 @@ mod tests2 {
         let pending = cluster
             .incompletely_linked_note
             .get(&id_b)
-            .map(|v| v.clone())
+            .cloned()
             .unwrap_or_default();
         assert!(
             pending.iter().all(|(origin, _)| *origin != id_a),
@@ -917,7 +907,11 @@ mod tests2 {
         let outgoing = cluster.get_directed_linked_edges(id_a, petgraph::Direction::Outgoing);
         assert!(outgoing.is_some());
         assert_eq!(outgoing.unwrap().count(), 1);
-        assert!(cluster.get_directed_linked_edges(MemoryId::new(), petgraph::Direction::Outgoing).is_none());
+        assert!(
+            cluster
+                .get_directed_linked_edges(MemoryId::new(), petgraph::Direction::Outgoing)
+                .is_none()
+        );
     }
 
     #[test]
@@ -947,7 +941,10 @@ mod tests2 {
         cluster.add_single_node(node_b);
 
         let edge_index = cluster.get_link_index(link_id).expect("edge index exists");
-        let graph_link = cluster.graph().edge_weight(edge_index).expect("edge weight");
+        let graph_link = cluster
+            .graph()
+            .edge_weight(edge_index)
+            .expect("edge weight");
         assert_eq!(graph_link.intensity(), 0.9);
         assert_eq!(graph_link.id(), link_id);
         assert!(matches!(graph_link.link_type(), MemoryLinkType::Sem(_)));
@@ -966,21 +963,16 @@ mod tests2 {
         let mut cluster = MemoryCluster::new();
         let other = MemoryCluster::new();
         let result = cluster.merge_cluster(other);
-        assert!(matches!(
-            result,
-            Err(ClusterError::NotImplemented(_))
-        ));
+        assert!(matches!(result, Err(ClusterError::NotImplemented(_))));
     }
 
     #[test]
     fn test_cluster_debug_format() {
         let mut cluster = MemoryCluster::new();
         let node = sem_note("A");
-        let id = node.note().id();
         cluster.add_single_node(node);
         let debug = format!("{:?}", cluster);
         assert!(debug.contains("MemoryCluster"), "debug was: {debug}");
         assert!(!debug.is_empty());
     }
 }
-

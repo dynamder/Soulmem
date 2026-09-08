@@ -284,17 +284,17 @@ impl DynWeightFuncBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soul_mem_core::memory_links::sem_mem::SemMemLink;
     use soul_mem_core::memory_links::MemoryLink;
+    use soul_mem_core::memory_links::sem_mem::SemMemLink;
     use soul_mem_core::memory_note::{
-        sem_mem::{ConceptType, SemMemory},
         MemoryNoteBuilder, MemoryType,
+        sem_mem::{ConceptType, SemMemory},
     };
+    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::embedding::note::{
         EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
     };
     use soul_mem_query::embedding::sem::SemanticEmbedding;
-    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_runtime::working_memory::WorkingMemory;
 
     fn create_mock_working_memory_with_links() -> (WorkingMemory, Vec<MemoryId>) {
@@ -313,7 +313,6 @@ mod tests {
                 aliases: vec![],
                 concept_type: ConceptType::Entity,
                 description: String::new(),
-                ..Default::default()
             }))
             .id(ids[0])
             .mem_links(vec![link1])
@@ -337,7 +336,6 @@ mod tests {
                 aliases: vec![],
                 concept_type: ConceptType::Entity,
                 description: String::new(),
-                ..Default::default()
             }))
             .id(ids[1])
             .mem_links(vec![link2])
@@ -361,7 +359,6 @@ mod tests {
                 aliases: vec![],
                 concept_type: ConceptType::Entity,
                 description: String::new(),
-                ..Default::default()
             }))
             .id(ids[2])
             .build()
@@ -751,7 +748,10 @@ mod tests {
 
             let weight_fn = DynWeightFuncBuilder::new(TypePreference::Situation).build();
             let w: f64 = weight_fn(graph, &edge, None).into_inner();
-            assert!(w.is_finite() && w > 0.0, "weight should be positive, got {w}");
+            assert!(
+                w.is_finite() && w > 0.0,
+                "weight should be positive, got {w}"
+            );
         });
     }
 }

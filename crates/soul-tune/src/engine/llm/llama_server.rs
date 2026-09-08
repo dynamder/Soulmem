@@ -48,12 +48,12 @@ impl LlamaServer {
 
         let api_url = format!("http://127.0.0.1:{}", port);
 
-        if let Ok(url) = std::env::var("SOUL_TUNE_LLAMA_URL") {
-            if super::resolver::probe_health(&url) {
-                return Self::connect(&url);
-            }
-            // URL 已配置但不可达：回退到下方拉起本地模型
+        if let Ok(url) = std::env::var("SOUL_TUNE_LLAMA_URL")
+            && super::resolver::probe_health(&url)
+        {
+            return Self::connect(&url);
         }
+        // URL 已配置但不可达：回退到下方拉起本地模型
 
         let server_path = std::env::var("SOUL_TUNE_LLAMA_SERVER_PATH")
             .unwrap_or_else(|_| "llama-server".to_string());
@@ -94,7 +94,9 @@ impl LlamaServer {
                 Ok(Some(status)) => {
                     anyhow::bail!(
                         "llama-server 启动后异常退出 (exit: {})\n  路径: {}\n  模型: {}\n  请手动运行检查错误信息",
-                        status, server_path, model_path
+                        status,
+                        server_path,
+                        model_path
                     );
                 }
                 Ok(None) => {}
@@ -172,7 +174,9 @@ impl LlamaServer {
         let data: serde_json::Value = resp.json().context("解析 LLM 响应 JSON 失败")?;
         // Qwen3.x 在未禁用 thinking 时内容可能落在 reasoning_content；
         // content 为空时兜底读取，两者皆空则显式报错（避免静默返回空串清空记忆）
-        let content = data["choices"][0]["message"]["content"].as_str().unwrap_or("");
+        let content = data["choices"][0]["message"]["content"]
+            .as_str()
+            .unwrap_or("");
         let reasoning = data["choices"][0]["message"]["reasoning_content"]
             .as_str()
             .unwrap_or("");

@@ -42,7 +42,10 @@ pub fn inspect_data(file_path: PathBuf) -> InspectData {
     let val: serde_json::Value = serde_json::from_str(&content).unwrap_or(serde_json::Value::Null);
 
     let (file_type, entries) = if val.is_array() {
-        (InspectFileType::Graph, parse_graph_nodes(val.as_array().unwrap()))
+        (
+            InspectFileType::Graph,
+            parse_graph_nodes(val.as_array().unwrap()),
+        )
     } else if let Some(_cases) = val.get("test_cases").and_then(|v| v.as_array()) {
         (InspectFileType::Query, parse_query_cases(&val))
     } else if let Some(nodes) = val.get("nodes").and_then(|v| v.as_array()) {
@@ -511,33 +514,33 @@ fn format_mem_type(
 }
 
 fn format_link_type(val: &serde_json::Value) -> String {
-    if let Some(obj) = val.as_object() {
-        for (k, v) in obj {
-            return match k.as_str() {
-                "Sem" => {
-                    let verb = v.get("verb").and_then(|x| x.as_str()).unwrap_or("?");
-                    let conf = v.get("confidence").and_then(|x| x.as_f64()).unwrap_or(0.0);
-                    format!("Sem[{} conf={:.1}]", verb, conf)
+    if let Some(obj) = val.as_object()
+        && let Some((k, v)) = obj.into_iter().next()
+    {
+        return match k.as_str() {
+            "Sem" => {
+                let verb = v.get("verb").and_then(|x| x.as_str()).unwrap_or("?");
+                let conf = v.get("confidence").and_then(|x| x.as_f64()).unwrap_or(0.0);
+                format!("Sem[{} conf={:.1}]", verb, conf)
+            }
+            "Proc" => {
+                if let Some(inner) = v.get("TrigToAction") {
+                    let prob = inner.get("prob").and_then(|x| x.as_f64()).unwrap_or(0.0);
+                    format!("Proc::TrigToAction[prob={:.1}]", prob)
+                } else {
+                    format!("Proc[{:?}]", v)
                 }
-                "Proc" => {
-                    if let Some(inner) = v.get("TrigToAction") {
-                        let prob = inner.get("prob").and_then(|x| x.as_f64()).unwrap_or(0.0);
-                        format!("Proc::TrigToAction[prob={:.1}]", prob)
-                    } else {
-                        format!("Proc[{:?}]", v)
-                    }
+            }
+            "Situation" => {
+                if v.get("AbstractToSpecific").is_some() {
+                    "Sit::AbstractToSpecific".to_string()
+                } else {
+                    "Situation[...]".to_string()
                 }
-                "Situation" => {
-                    if v.get("AbstractToSpecific").is_some() {
-                        "Sit::AbstractToSpecific".to_string()
-                    } else {
-                        "Situation[...]".to_string()
-                    }
-                }
-                "Coref" => "Coref".to_string(),
-                _ => format!("{}[...]", k),
-            };
-        }
+            }
+            "Coref" => "Coref".to_string(),
+            _ => format!("{}[...]", k),
+        };
     }
     val.to_string()
 }
@@ -611,11 +614,7 @@ fn load_graph_stats(path: &std::path::Path) -> Option<Vec<String>> {
         }
     }
 
-    if lines.is_empty() {
-        None
-    } else {
-        Some(lines)
-    }
+    if lines.is_empty() { None } else { Some(lines) }
 }
 
 fn format_variant_preview(val: &serde_json::Value, indent: usize) -> Vec<String> {

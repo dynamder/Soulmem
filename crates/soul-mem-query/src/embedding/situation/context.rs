@@ -12,12 +12,12 @@ use soul_mem_core::memory_note::situation_mem::Context;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ContextEmbedding {
-    location: Option<LocationEmbedding>,
-    fused_participant: Option<ParticipantEmbedding>,
-    fused_emotion: Option<EmotionEmbedding>,
-    fused_sensory_data: Option<SensoryDataEmbedding>,
-    environment: EnvironmentEmbedding,
-    fused_event: Option<EventEmbedding>,
+    pub location: Option<LocationEmbedding>,
+    pub fused_participant: Option<ParticipantEmbedding>,
+    pub fused_emotion: Option<EmotionEmbedding>,
+    pub fused_sensory_data: Option<SensoryDataEmbedding>,
+    pub environment: EnvironmentEmbedding,
+    pub fused_event: Option<EventEmbedding>,
 }
 impl ContextEmbedding {
     pub fn location(&self) -> Option<&LocationEmbedding> {
@@ -133,8 +133,8 @@ pub struct EmbeddedContext {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::embedding::embedding_model::bge::BgeSmallZh;
     use crate::embedding::EmbeddingVec;
+    use crate::embedding::embedding_model::bge::BgeSmallZh;
     use soul_mem_core::memory_note::situation_mem::{
         Emotion, Environment, Event, Location, Participant, SensoryData,
     };

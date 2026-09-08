@@ -1,7 +1,7 @@
 use crate::embedding::{
+    Embeddable, EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
     blend_weights::BlendWeights,
     query::{sem::SemanticQueryUnitEmbedding, situation::SituationQueryUnitEmbedding},
-    Embeddable, EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
 };
 use crate::query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant};
 
@@ -107,6 +107,18 @@ impl MemoryRetrieveQueryEmbedding {
         self.string_blend_alpha = bw.string_blend_alpha;
         self.variant.set_blend_weights(&bw);
         self
+    }
+
+    /// 解构取所有权：tag 与 variant（移动而非克隆，供消费性链路零拷贝传递）。
+    pub fn into_parts(self) -> (EmbeddingVec, MemoryRetrieveQueryVariantEmbedding) {
+        let Self {
+            tag,
+            variant,
+            tag_weight: _,
+            variant_weight: _,
+            string_blend_alpha: _,
+        } = self;
+        (tag, variant)
     }
 }
 
@@ -220,8 +232,10 @@ mod tests {
             ),
             SemanticQueryUnitEmbedding::test_new(None, None, BlendWeights::default()),
         ]);
-        let mut bw = BlendWeights::default();
-        bw.tag = 0.7;
+        let bw = BlendWeights {
+            tag: 0.7,
+            ..Default::default()
+        };
         embedding.set_blend_weights(&bw);
         match embedding {
             MemoryRetrieveQueryVariantEmbedding::Semantic(units) => {
@@ -245,8 +259,10 @@ mod tests {
                 BlendWeights::default(),
             ),
         ]);
-        let mut bw = BlendWeights::default();
-        bw.tag = 0.7;
+        let bw = BlendWeights {
+            tag: 0.7,
+            ..Default::default()
+        };
         embedding.set_blend_weights(&bw);
         match embedding {
             MemoryRetrieveQueryVariantEmbedding::Situation(units) => {
@@ -265,13 +281,29 @@ mod tests {
         assert_eq!(query.variant_weight, 0.7);
         assert_eq!(query.string_blend_alpha, 0.6);
 
-        let mut bw = BlendWeights::default();
-        bw.tag = 0.2;
-        bw.variant = 0.8;
-        bw.string_blend_alpha = 0.5;
+        let bw = BlendWeights {
+            tag: 0.2,
+            variant: 0.8,
+            string_blend_alpha: 0.5,
+            ..Default::default()
+        };
         let query = query.with_weights(bw);
         assert_eq!(query.tag_weight, 0.2);
         assert_eq!(query.variant_weight, 0.8);
         assert_eq!(query.string_blend_alpha, 0.5);
+    }
+
+    #[test]
+    fn test_into_parts_moves_tag_and_variant() {
+        let tag = EmbeddingVec::new(vec![1.0, 0.0]);
+        let variant =
+            MemoryRetrieveQueryVariantEmbedding::Semantic(vec![SemanticQueryUnitEmbedding::new(
+                Some(EmbeddingVec::new(vec![0.9, 0.1])),
+                None,
+            )]);
+        let query = MemoryRetrieveQueryEmbedding::new(tag.clone()).with_variant(variant.clone());
+        let (t, v) = query.into_parts();
+        assert_eq!(t, tag, "tag 应移动而非克隆");
+        assert_eq!(v, variant);
     }
 }

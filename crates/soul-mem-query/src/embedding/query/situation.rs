@@ -1,10 +1,11 @@
 use crate::embedding::blend_weights::BlendWeights;
 use crate::embedding::{
+    Embeddable, EmbeddingVec,
     query::situation::{
         environment::EnvironmentQueryUnitEmbedding, event::EventQueryUnitEmbedding,
         location::LocationQueryUnitEmbedding, participant::ParticipantQueryUnitEmbedding,
     },
-    vec_batch_embed, Embeddable, EmbeddingVec,
+    vec_batch_embed,
 };
 use crate::query::retrieve::SituationQueryUnit;
 
@@ -23,6 +24,25 @@ pub struct SituationQueryUnitEmbedding {
     pub blend_weights: BlendWeights,
 }
 impl SituationQueryUnitEmbedding {
+    /// 公开构造（外部/测试构造用；blend_weights 取默认值）。
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        narrative: Option<EmbeddingVec>,
+        location: Option<LocationQueryUnitEmbedding>,
+        participants: Option<ParticipantQueryUnitEmbedding>,
+        environment: Option<EnvironmentQueryUnitEmbedding>,
+        event: Option<EventQueryUnitEmbedding>,
+    ) -> Self {
+        Self {
+            narrative,
+            location,
+            participants,
+            environment,
+            event,
+            blend_weights: BlendWeights::default(),
+        }
+    }
+
     pub fn narrative(&self) -> Option<&EmbeddingVec> {
         self.narrative.as_ref()
     }
@@ -53,6 +73,28 @@ impl SituationQueryUnitEmbedding {
         if let Some(ref mut evt) = self.event {
             evt.set_blend_weights(bw);
         }
+    }
+
+    /// 解构取所有权：narrative 与各子单元（移动而非克隆）。
+    #[allow(clippy::type_complexity)]
+    pub fn into_parts(
+        self,
+    ) -> (
+        Option<EmbeddingVec>,
+        Option<LocationQueryUnitEmbedding>,
+        Option<ParticipantQueryUnitEmbedding>,
+        Option<EnvironmentQueryUnitEmbedding>,
+        Option<EventQueryUnitEmbedding>,
+    ) {
+        let Self {
+            narrative,
+            location,
+            participants,
+            environment,
+            event,
+            blend_weights: _,
+        } = self;
+        (narrative, location, participants, environment, event)
     }
 }
 #[cfg(test)]
@@ -215,8 +257,10 @@ mod tests {
 
     #[test]
     fn test_set_blend_weights_propagates() {
-        let mut bw = BlendWeights::default();
-        bw.tag = 0.9;
+        let bw = BlendWeights {
+            tag: 0.9,
+            ..Default::default()
+        };
 
         let mut embedding = SituationQueryUnitEmbedding {
             narrative: Some(EmbeddingVec::new(vec![1.0])),
@@ -247,8 +291,14 @@ mod tests {
         embedding.set_blend_weights(&bw);
         assert_eq!(embedding.blend_weights.tag, 0.9);
         assert_eq!(embedding.location.as_ref().unwrap().blend_weights.tag, 0.9);
-        assert_eq!(embedding.participants.as_ref().unwrap().blend_weights.tag, 0.9);
-        assert_eq!(embedding.environment.as_ref().unwrap().blend_weights.tag, 0.9);
+        assert_eq!(
+            embedding.participants.as_ref().unwrap().blend_weights.tag,
+            0.9
+        );
+        assert_eq!(
+            embedding.environment.as_ref().unwrap().blend_weights.tag,
+            0.9
+        );
         assert_eq!(embedding.event.as_ref().unwrap().blend_weights.tag, 0.9);
     }
 
@@ -284,5 +334,41 @@ mod tests {
         assert!(embedding.participants().is_some());
         assert!(embedding.environment().is_some());
         assert!(embedding.event().is_some());
+    }
+
+    #[test]
+    fn test_into_parts_moves_all_fields() {
+        let narrative = EmbeddingVec::new(vec![0.8, 0.2]);
+        let location = LocationQueryUnitEmbedding::new(EmbeddingVec::new(vec![0.7, 0.3]), None);
+        let participants =
+            ParticipantQueryUnitEmbedding::new(Some(EmbeddingVec::new(vec![0.6, 0.4])), None);
+        let environment =
+            EnvironmentQueryUnitEmbedding::new(Some(EmbeddingVec::new(vec![0.5, 0.5])), None);
+        let event = EventQueryUnitEmbedding::new(EmbeddingVec::new(vec![0.4, 0.6]), None, None);
+
+        let unit = SituationQueryUnitEmbedding::new(
+            Some(narrative.clone()),
+            Some(location.clone()),
+            Some(participants.clone()),
+            Some(environment.clone()),
+            Some(event.clone()),
+        );
+        let (n, l, p, e, v) = unit.into_parts();
+        assert_eq!(n, Some(narrative), "narrative 应移动而非克隆");
+        assert_eq!(l, Some(location));
+        assert_eq!(p, Some(participants));
+        assert_eq!(e, Some(environment));
+        assert_eq!(v, Some(event));
+    }
+
+    #[test]
+    fn test_into_parts_all_none() {
+        let unit = SituationQueryUnitEmbedding::new(None, None, None, None, None);
+        let (n, l, p, e, v) = unit.into_parts();
+        assert!(n.is_none());
+        assert!(l.is_none());
+        assert!(p.is_none());
+        assert!(e.is_none());
+        assert!(v.is_none());
     }
 }

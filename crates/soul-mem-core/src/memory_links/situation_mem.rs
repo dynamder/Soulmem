@@ -25,6 +25,12 @@ impl AbstractToSpecific {
 /// 具体情境到抽象情境的关联（空结构，方向由边 from/to 表达）。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SpecificToAbstract {}
+impl Default for SpecificToAbstract {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SpecificToAbstract {
     pub fn new() -> Self {
         SpecificToAbstract {}

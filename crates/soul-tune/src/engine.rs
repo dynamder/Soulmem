@@ -1,13 +1,13 @@
-pub mod suite;
-pub mod dataset;
-pub mod loader;
-pub mod compare;
 pub mod batch;
-pub mod retrieve;
-pub mod playtest;
-pub mod metrics;
-pub mod llm;
+pub mod compare;
+pub mod dataset;
 pub mod inspect;
+pub mod llm;
+pub mod loader;
+pub mod metrics;
+pub mod playtest;
+pub mod retrieve;
+pub mod suite;
 
 pub mod consolidate;
 pub mod forget;

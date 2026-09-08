@@ -7,9 +7,9 @@ use soul_mem_core::memory_note::situation_mem::Participant;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ParticipantEmbedding {
-    name: EmbeddingVec,
-    role: EmbeddingVec,
-    fused: EmbeddingVec,
+    pub name: EmbeddingVec,
+    pub role: EmbeddingVec,
+    pub fused: EmbeddingVec,
 }
 impl ParticipantEmbedding {
     pub fn name(&self) -> &EmbeddingVec {
@@ -20,7 +20,8 @@ impl ParticipantEmbedding {
     }
     pub fn fused(&self) -> &EmbeddingVec {
         &self.fused
-    }    pub fn mean_pooling(vecs: &[Self]) -> EmbeddingCalcResult<Option<Self>> {
+    }
+    pub fn mean_pooling(vecs: &[Self]) -> EmbeddingCalcResult<Option<Self>> {
         if vecs.is_empty() {
             return Ok(None);
         }

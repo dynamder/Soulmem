@@ -108,6 +108,37 @@ impl RetrStrategy for RetrBayesAction {
         })
     }
 }
+fn get_possible_actions(
+    cluster: &MemoryCluster,
+    source: &[(MemoryId, f64)],
+) -> HashMap<MemoryId, f64> {
+    source
+        .iter()
+        .filter_map(|&(id, _weight)| {
+            let idx = cluster.get_mem_index(id)?;
+            //同时检查邻居节点类型(Procedure)与链接类型(Proc)，
+            //只有经Proc链接可达的动作节点才会指导行为，避免Sem/Situation链接
+            //可达的Procedure节点以0.0分挤占top_k
+            let action_neighbors =
+                cluster
+                    .graph()
+                    .edges_directed(idx, Outgoing)
+                    .filter_map(|edge| {
+                        let node_idx = edge.target();
+                        if !matches!(edge.weight().link_type(), MemoryLinkType::Proc(_)) {
+                            return None;
+                        }
+                        let note = cluster.graph().node_weight(node_idx)?;
+                        match note.note().mem_type() {
+                            MemoryType::Procedure(_) => Some((note.note().id(), 0.0)),
+                            _ => None,
+                        }
+                    });
+            Some(action_neighbors)
+        })
+        .flatten()
+        .collect()
+}
 
 #[cfg(test)]
 mod tests {
@@ -154,7 +185,6 @@ mod tests {
                 aliases: vec![],
                 concept_type: ConceptType::Entity,
                 description: String::new(),
-                ..Default::default()
             });
             let source_note = MemoryNoteBuilder::new(source_mem_type)
                 .id(source_id)
@@ -287,7 +317,10 @@ mod tests {
                     EmbeddingVec::zero(128),
                     MemoryEmbeddingVariant::Procedure(),
                 );
-                c.add_single_node(EmbeddedMemoryNote { note, embedding: emb });
+                c.add_single_node(EmbeddedMemoryNote {
+                    note,
+                    embedding: emb,
+                });
             }
         });
 
@@ -331,7 +364,10 @@ mod tests {
                         EmbeddingVec::zero(128),
                     )),
                 );
-                c.add_single_node(EmbeddedMemoryNote { note, embedding: emb });
+                c.add_single_node(EmbeddedMemoryNote {
+                    note,
+                    embedding: emb,
+                });
             }
 
             let action_note = MemoryNoteBuilder::new(MemoryType::Procedure(ProcMemory::new(
@@ -340,10 +376,8 @@ mod tests {
             .id(action_id)
             .build()
             .unwrap();
-            let action_emb = MemoryEmbedding::new(
-                EmbeddingVec::zero(128),
-                MemoryEmbeddingVariant::Procedure(),
-            );
+            let action_emb =
+                MemoryEmbedding::new(EmbeddingVec::zero(128), MemoryEmbeddingVariant::Procedure());
             c.add_single_node(EmbeddedMemoryNote {
                 note: action_note,
                 embedding: action_emb,
@@ -390,7 +424,10 @@ mod tests {
                     EmbeddingVec::zero(128),
                 )),
             );
-            c.add_single_node(EmbeddedMemoryNote { note, embedding: emb });
+            c.add_single_node(EmbeddedMemoryNote {
+                note,
+                embedding: emb,
+            });
 
             let a_note = MemoryNoteBuilder::new(MemoryType::Procedure(ProcMemory::new(
                 Action::new("Test".into(), ActionType::new_speak()),
@@ -398,10 +435,8 @@ mod tests {
             .id(action_id)
             .build()
             .unwrap();
-            let a_emb = MemoryEmbedding::new(
-                EmbeddingVec::zero(128),
-                MemoryEmbeddingVariant::Procedure(),
-            );
+            let a_emb =
+                MemoryEmbedding::new(EmbeddingVec::zero(128), MemoryEmbeddingVariant::Procedure());
             c.add_single_node(EmbeddedMemoryNote {
                 note: a_note,
                 embedding: a_emb,
@@ -419,34 +454,4 @@ mod tests {
             "Expected {expected}, got {score}"
         );
     }
-}
-fn get_possible_actions(
-    cluster: &MemoryCluster,
-    source: &[(MemoryId, f64)],
-) -> HashMap<MemoryId, f64> {
-    source
-        .iter()
-        .filter_map(|&(id, _weight)| {
-            let idx = cluster.get_mem_index(id)?;
-            //同时检查邻居节点类型(Procedure)与链接类型(Proc)，
-            //只有经Proc链接可达的动作节点才会指导行为，避免Sem/Situation链接
-            //可达的Procedure节点以0.0分挤占top_k
-            let action_neighbors = cluster
-                .graph()
-                .edges_directed(idx, Outgoing)
-                .filter_map(|edge| {
-                    let node_idx = edge.target();
-                    if !matches!(edge.weight().link_type(), MemoryLinkType::Proc(_)) {
-                        return None;
-                    }
-                    let note = cluster.graph().node_weight(node_idx)?;
-                    match note.note().mem_type() {
-                        MemoryType::Procedure(_) => Some((note.note().id(), 0.0)),
-                        _ => None,
-                    }
-                });
-            Some(action_neighbors)
-        })
-        .flatten()
-        .collect()
 }

@@ -33,11 +33,18 @@ soul-tune run <algo> <dataset> [--batch]
 ```
 
 `algo`：
-- `retrieve/embedding`（`re`）/ `retrieve/association`（`ra`）/ `retrieve/full`（`rf`）
+- `retrieve/embedding`（`re`）/ `retrieve/association`（`ra`）/ `retrieve/full`（`rf`）：
+  直接模式——example_data（`graph.json`）全量载入工作记忆后跑检索；
+- `retrieve/db`（`rd`）/ `retrieve/db/embedding`（`rde`）/ `retrieve/db/association`（`rda`）：
+  数据库模式——example_data 先全量写入 mem 数据库（默认进程内 kv-mem），
+  每个用例先经 DB 召回（HNSW 候选 + 一跳邻居）构建工作记忆子图，再跑同一条检索管线；
+- `compare/db` / `compare/db/embedding` / `compare/db/association`：
+  同管线「直接 vs 数据库」逐用例对比（两侧 Hit/MRR/Recall@3 与差量、提升/回退/持平计数）；
 - `consolidate`（`c`）
 - `forget`（`f`）/ `forget/mask`（`fm`）/ `forget/revise`（`fr`）
 
-`--batch` 模式仅支持 retrieve：递归扫描目录下全部 `question.json` 并并发执行。
+`--batch` 模式仅支持 retrieve：递归扫描目录下全部 `question.json` 并并发执行
+（直接模式与 `retrieve/db/*` 数据库模式均可）。
 
 ### 角色扮演测试
 
@@ -61,6 +68,15 @@ soul-tune playtest <graph_dir> <dialogue_file>
   "test_cases": [ { "name": "...", "sub_queries": [...], "expected_combined_ranking": [...] } ]
 }
 ```
+
+`config` 额外可选字段：
+
+- `db_candidate_k`：数据库模式（`retrieve/db/*`）下，DB 端每个槽位的 HNSW KNN 候选召回预算
+  （精确重排与 top-k 截断在内存侧完成）。缺省用启发式 `max(2 * max_results, 20)`；
+  也可在 GUI/API 参数中传 `db_candidate_k` 覆盖。预算越小，召回子图越接近真实 DB 路径
+  （可能漏掉低相似度期望节点）；预算 ≥ 图节点数时 DB 路径与直接模式结果一致。
+- 数据库模式默认使用进程内 kv-mem 内存库（无磁盘残留）；传参 `db_path=<目录>` 时改用
+  磁盘 SurrealKv 验证持久化读回。
 
 ## 架构
 

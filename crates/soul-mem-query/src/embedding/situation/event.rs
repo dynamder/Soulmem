@@ -5,10 +5,10 @@ use soul_mem_core::memory_note::situation_mem::Event;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EventEmbedding {
-    action: EmbeddingVec,
-    initiator: EmbeddingVec,
-    target: EmbeddingVec,
-    intensity: f32,
+    pub action: EmbeddingVec,
+    pub initiator: EmbeddingVec,
+    pub target: EmbeddingVec,
+    pub intensity: f32,
 }
 impl EventEmbedding {
     pub fn action(&self) -> &EmbeddingVec {
@@ -189,7 +189,12 @@ mod tests {
         assert!(result.unwrap().is_none());
     }
 
-    fn embed_event(action: Vec<f32>, initiator: Vec<f32>, target: Vec<f32>, intensity: f32) -> EventEmbedding {
+    fn embed_event(
+        action: Vec<f32>,
+        initiator: Vec<f32>,
+        target: Vec<f32>,
+        intensity: f32,
+    ) -> EventEmbedding {
         EventEmbedding {
             action: EmbeddingVec::new(action),
             initiator: EmbeddingVec::new(initiator),
@@ -203,9 +208,7 @@ mod tests {
         // 两事件：intensity 0.5 + 0.5 = 1.0，权重各为 0.5
         let e1 = embed_event(vec![1.0, 10.0], vec![1.0, 10.0], vec![1.0, 10.0], 0.5);
         let e2 = embed_event(vec![3.0, 20.0], vec![3.0, 20.0], vec![3.0, 20.0], 0.5);
-        let pooled = EventEmbedding::weight_pooling(&[e1, e2])
-            .unwrap()
-            .unwrap();
+        let pooled = EventEmbedding::weight_pooling(&[e1, e2]).unwrap().unwrap();
         assert_close(pooled.action.iter().copied().collect::<Vec<_>>()[0], 2.0);
         assert_close(pooled.action.iter().copied().collect::<Vec<_>>()[1], 15.0);
         assert_close(pooled.initiator.iter().copied().collect::<Vec<_>>()[0], 2.0);
@@ -218,9 +221,7 @@ mod tests {
         // 权重不对称：0.75 / 0.25
         let e1 = embed_event(vec![4.0], vec![0.0], vec![2.0], 3.0);
         let e2 = embed_event(vec![0.0], vec![0.0], vec![0.0], 1.0);
-        let pooled = EventEmbedding::weight_pooling(&[e1, e2])
-            .unwrap()
-            .unwrap();
+        let pooled = EventEmbedding::weight_pooling(&[e1, e2]).unwrap().unwrap();
         // action: 4*0.75 + 0*0.25 = 3.0; target: 2*0.75 + 0*0.25 = 1.5
         assert_close(pooled.action.iter().copied().next().unwrap(), 3.0);
         assert_close(pooled.target.iter().copied().next().unwrap(), 1.5);
@@ -232,9 +233,7 @@ mod tests {
         // 三个字段都带非零值，验证每个字段的加权融合
         let e1 = embed_event(vec![1.0, 2.0], vec![3.0, 4.0], vec![5.0, 6.0], 1.0);
         let e2 = embed_event(vec![7.0, 8.0], vec![9.0, 10.0], vec![11.0, 12.0], 1.0);
-        let pooled = EventEmbedding::weight_pooling(&[e1, e2])
-            .unwrap()
-            .unwrap();
+        let pooled = EventEmbedding::weight_pooling(&[e1, e2]).unwrap().unwrap();
         let action_vals = pooled.action.iter().copied().collect::<Vec<_>>();
         let initiator_vals = pooled.initiator.iter().copied().collect::<Vec<_>>();
         let target_vals = pooled.target.iter().copied().collect::<Vec<_>>();
@@ -266,6 +265,9 @@ mod tests {
     }
 
     fn assert_close(actual: f32, expected: f32) {
-        assert!((actual - expected).abs() < 1e-5, "expected {actual} close to {expected}");
+        assert!(
+            (actual - expected).abs() < 1e-5,
+            "expected {actual} close to {expected}"
+        );
     }
 }

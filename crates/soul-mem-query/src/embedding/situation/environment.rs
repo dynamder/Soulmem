@@ -5,8 +5,8 @@ use soul_mem_core::memory_note::situation_mem::Environment;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EnvironmentEmbedding {
-    atmosphere: EmbeddingVec,
-    tone: EmbeddingVec,
+    pub atmosphere: EmbeddingVec,
+    pub tone: EmbeddingVec,
 }
 impl EnvironmentEmbedding {
     pub fn atmosphere(&self) -> &EmbeddingVec {

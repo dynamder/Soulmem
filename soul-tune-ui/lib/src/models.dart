@@ -399,7 +399,7 @@ class ParamSpec {
       );
 }
 
-// ── 对比（embedding vs full）──
+// ── 对比（embedding vs full / 同管线 直接 vs 数据库）──
 
 sealed class CompareEvent {
   const CompareEvent();
@@ -503,11 +503,16 @@ class CompareCase {
   final double fullpipelineMrr;
   final List<(int, double)> embeddingRecallAt;
   final List<(int, double)> fullpipelineRecallAt;
+  final List<(int, double)> embeddingPrecisionAt;
+  final List<(int, double)> fullpipelinePrecisionAt;
+  final List<(int, double)> embeddingNdcgAt;
+  final List<(int, double)> fullpipelineNdcgAt;
   final List<String> embeddingRetrieved;
   final List<String> fullpipelineRetrieved;
   final List<String> expected;
   final bool improvedHit;
   final bool improvedMrr;
+  final List<CompareCasePerQuery> perQuery;
 
   CompareCase({
     required this.caseName,
@@ -520,15 +525,33 @@ class CompareCase {
     required this.fullpipelineMrr,
     required this.embeddingRecallAt,
     required this.fullpipelineRecallAt,
+    required this.embeddingPrecisionAt,
+    required this.fullpipelinePrecisionAt,
+    required this.embeddingNdcgAt,
+    required this.fullpipelineNdcgAt,
     required this.embeddingRetrieved,
     required this.fullpipelineRetrieved,
     required this.expected,
     required this.improvedHit,
     required this.improvedMrr,
+    this.perQuery = const [],
   });
 
   double get hitDelta => fullpipelineHit - embeddingHit;
   double get mrrDelta => fullpipelineMrr - embeddingMrr;
+  bool get regressedHit => hitDelta < -0.0001;
+  bool get regressedMrr => mrrDelta < -0.0001;
+
+  /// 侧 A（embedding_* 字段）在某 K 下的 Recall 值。
+  double sideARecallAt(int k) => _valueAt(embeddingRecallAt, k);
+  double sideBRecallAt(int k) => _valueAt(fullpipelineRecallAt, k);
+
+  static double _valueAt(List<(int, double)> pairs, int k) {
+    for (final (kk, v) in pairs) {
+      if (kk == k) return v;
+    }
+    return 0;
+  }
 
   factory CompareCase.fromJson(Map<String, dynamic> j) => CompareCase(
         caseName: j['case_name'] as String? ?? '',
@@ -541,11 +564,19 @@ class CompareCase {
         fullpipelineMrr: (j['fullpipeline_mrr'] as num?)?.toDouble() ?? 0,
         embeddingRecallAt: _parsePairs(j['embedding_recall_at']),
         fullpipelineRecallAt: _parsePairs(j['fullpipeline_recall_at']),
+        embeddingPrecisionAt: _parsePairs(j['embedding_precision_at']),
+        fullpipelinePrecisionAt: _parsePairs(j['fullpipeline_precision_at']),
+        embeddingNdcgAt: _parsePairs(j['embedding_ndcg_at']),
+        fullpipelineNdcgAt: _parsePairs(j['fullpipeline_ndcg_at']),
         embeddingRetrieved: (j['embedding_retrieved'] as List?)?.cast<String>() ?? const [],
         fullpipelineRetrieved: (j['fullpipeline_retrieved'] as List?)?.cast<String>() ?? const [],
         expected: (j['expected_combined_ranking'] as List?)?.cast<String>() ?? const [],
         improvedHit: j['improved_hit'] as bool? ?? false,
         improvedMrr: j['improved_mrr'] as bool? ?? false,
+        perQuery: (j['per_query'] as List?)
+                ?.map((e) => CompareCasePerQuery.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            const [],
       );
 
   static List<(int, double)> _parsePairs(dynamic raw) => (raw as List?)
@@ -556,6 +587,53 @@ class CompareCase {
           })
           .toList() ??
       [];
+}
+
+/// 单个子查询的双侧指标（embedding_* = 侧 A，fullpipeline_* = 侧 B；
+/// direct_db 对比时 A=直接、B=数据库）。
+class CompareCasePerQuery {
+  final int queryIndex;
+  final double embeddingMrr;
+  final double fullpipelineMrr;
+  final double embeddingHit;
+  final double fullpipelineHit;
+  final List<(int, double)> embeddingRecallAt;
+  final List<(int, double)> fullpipelineRecallAt;
+  final List<(int, double)> embeddingPrecisionAt;
+  final List<(int, double)> fullpipelinePrecisionAt;
+  final List<(int, double)> embeddingNdcgAt;
+  final List<(int, double)> fullpipelineNdcgAt;
+
+  CompareCasePerQuery({
+    required this.queryIndex,
+    required this.embeddingMrr,
+    required this.fullpipelineMrr,
+    required this.embeddingHit,
+    required this.fullpipelineHit,
+    required this.embeddingRecallAt,
+    required this.fullpipelineRecallAt,
+    required this.embeddingPrecisionAt,
+    required this.fullpipelinePrecisionAt,
+    required this.embeddingNdcgAt,
+    required this.fullpipelineNdcgAt,
+  });
+
+  double get mrrDelta => fullpipelineMrr - embeddingMrr;
+  double get hitDelta => fullpipelineHit - embeddingHit;
+
+  factory CompareCasePerQuery.fromJson(Map<String, dynamic> j) => CompareCasePerQuery(
+        queryIndex: j['query_index'] as int? ?? 0,
+        embeddingMrr: (j['embedding_mrr'] as num?)?.toDouble() ?? 0,
+        fullpipelineMrr: (j['fullpipeline_mrr'] as num?)?.toDouble() ?? 0,
+        embeddingHit: (j['embedding_hit'] as num?)?.toDouble() ?? 0,
+        fullpipelineHit: (j['fullpipeline_hit'] as num?)?.toDouble() ?? 0,
+        embeddingRecallAt: CompareCase._parsePairs(j['embedding_recall_at']),
+        fullpipelineRecallAt: CompareCase._parsePairs(j['fullpipeline_recall_at']),
+        embeddingPrecisionAt: CompareCase._parsePairs(j['embedding_precision_at']),
+        fullpipelinePrecisionAt: CompareCase._parsePairs(j['fullpipeline_precision_at']),
+        embeddingNdcgAt: CompareCase._parsePairs(j['embedding_ndcg_at']),
+        fullpipelineNdcgAt: CompareCase._parsePairs(j['fullpipeline_ndcg_at']),
+      );
 }
 
 class CompareReport {
