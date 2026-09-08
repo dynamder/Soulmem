@@ -29,6 +29,7 @@ use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType};
 use soul_mem_core::memory_note::proc_mem::{Action, ActionType, ProcMemory};
 use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
 use soul_mem_core::memory_note::{MemoryId, MemoryNoteBuilder, MemoryType};
+use soul_mem_query::embedding::EmbeddingVec;
 use soul_mem_query::embedding::note::{
     EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
 };
@@ -36,7 +37,6 @@ use soul_mem_query::embedding::query::note::{
     EmbeddedMemoryRetrieveQuery, MemoryRetrieveQueryEmbedding,
 };
 use soul_mem_query::embedding::sem::SemanticEmbedding;
-use soul_mem_query::embedding::EmbeddingVec;
 use soul_mem_query::query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant};
 use soul_mem_runtime::working_memory::WorkingMemory;
 
@@ -100,9 +100,7 @@ fn out_neighbors(i: usize, n: usize, topo: Topo, state: &mut u64) -> Vec<(usize,
                 vec![(0, 0.7)]
             }
         }
-        Topo::Dense { degree } => (1..=degree)
-            .map(|d| (((i + d) % n), 0.7))
-            .collect(),
+        Topo::Dense { degree } => (1..=degree).map(|d| (((i + d) % n), 0.7)).collect(),
         Topo::Cluster { communities } => {
             let gs = (n / communities).max(1);
             let group = i / gs;
@@ -162,7 +160,12 @@ fn sem_link(from: MemoryId, to: MemoryId, label: String, intensity: f32) -> Memo
     )
 }
 
-fn sem_note(id: MemoryId, content: String, links: Vec<MemoryLink>, block: usize) -> EmbeddedMemoryNote {
+fn sem_note(
+    id: MemoryId,
+    content: String,
+    links: Vec<MemoryLink>,
+    block: usize,
+) -> EmbeddedMemoryNote {
     let note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
         content,
         aliases: vec![],
@@ -271,9 +274,11 @@ fn main() {
         topo.name()
     );
 
-    let (wm, edges) =
-        hotpath::measure_block!("1_build_graph", build_working_memory(nodes, topo));
-    println!("   graph: {nodes} sem nodes, {edges} edges, {} action nodes", nodes / 64 + 1);
+    let (wm, edges) = hotpath::measure_block!("1_build_graph", build_working_memory(nodes, topo));
+    println!(
+        "   graph: {nodes} sem nodes, {edges} edges, {} action nodes",
+        nodes / 64 + 1
+    );
     let config = pipeline_config();
 
     let mut total_hits: usize = 0;

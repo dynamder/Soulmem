@@ -120,16 +120,28 @@ impl EmbeddingVec {
             .sum::<f32>()
             .sqrt())
     }
+    /// 单遍融合余弦：一次循环同时累计 dot、双方平方和并隐式完成零向量检测，
+    /// 替代原先"零检查×2 + dot + norm×2（各带 sqrt）"共 5 遍扫描。
+    /// 数值等价（零向量 ⇔ 平方和为 0；分母 sqrt(na·nb) 与 sqrt(na)·sqrt(nb) 仅 ~1ulp 舍入差）。
+    #[hotpath::measure]
     pub fn cosine_similarity(&self, other: &Self) -> EmbeddingCalcResult<f32> {
-        if self.shape() != other.shape() {
+        let a = &self.0;
+        let b = &other.0;
+        if a.len() != b.len() {
             return Err(super::EmbeddingCalcError::ShapeMismatch);
         }
-        if self.0.iter().all(|&i| i == 0.0) || other.0.iter().all(|&i| i == 0.0) {
+        let mut dot = 0.0f32;
+        let mut sum_sq_a = 0.0f32;
+        let mut sum_sq_b = 0.0f32;
+        for (x, y) in a.iter().zip(b.iter()) {
+            dot += x * y;
+            sum_sq_a += x * x;
+            sum_sq_b += y * y;
+        }
+        if sum_sq_a == 0.0 || sum_sq_b == 0.0 {
             return Ok(0.0);
         }
-        let dot_product = self.dot(other)?;
-        let norm_product = self.norm()? * other.norm()?;
-        Ok(dot_product / norm_product)
+        Ok(dot / (sum_sq_a * sum_sq_b).sqrt())
     }
 }
 ////////////////////////////////////////////////////////////////

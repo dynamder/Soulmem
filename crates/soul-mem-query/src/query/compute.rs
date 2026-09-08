@@ -259,6 +259,7 @@ impl AnonymousQueryCompute for SituationEmbedding {
 
 impl AnonymousQueryCompute for SemanticEmbedding {
     type Query = SemanticQueryUnitEmbedding;
+    #[hotpath::measure]
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
         let concept_main_score = query
             .concept_identifier()
@@ -323,6 +324,7 @@ impl AnonymousQueryCompute for MemoryEmbeddingVariant {
 
 impl AnonymousQueryCompute for MemoryEmbedding {
     type Query = MemoryRetrieveQueryEmbedding;
+    #[hotpath::measure]
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
         // tag 通道缺失（任一侧无 tag，零向量占位）时，不把缺失通道当 0 分参与加权，
         // 否则 Situation 等无 tag 场景的分数会被压缩到 0.4×0+0.6×variant，理论最高仅 0.6。
@@ -349,6 +351,7 @@ impl EmbeddedMemoryNote {
     /// 两个分量均为 [0, 1] 量纲，`string_blend_alpha` 为 embedding 所占权重。
     /// 字符串分量仅对精确标识符（concept_identifier / AbstractSituation 结构化字段）生效，
     /// 变体不匹配时字符串分量返回 0.0，此时混合分退化为纯 embedding 分，保持与旧行为一致。
+    #[hotpath::measure]
     pub fn compute_fused(
         &self,
         query: &EmbeddedMemoryRetrieveQuery,

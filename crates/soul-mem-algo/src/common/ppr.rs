@@ -465,7 +465,10 @@ where
                             + damping_factor * edge_w.value * residue_i.value;
                         residue_vec[idx].value = new_value;
                         if new_value > residue_threshold {
-                            residue_heap.push(ResidueUnit { idx, value: new_value });
+                            residue_heap.push(ResidueUnit {
+                                idx,
+                                value: new_value,
+                            });
                         }
                     });
                 }
@@ -480,7 +483,10 @@ where
                             + damping_factor * residue_i.value / source_node_count;
                         residue_vec[idx].value = new_value;
                         if new_value > residue_threshold {
-                            residue_heap.push(ResidueUnit { idx, value: new_value });
+                            residue_heap.push(ResidueUnit {
+                                idx,
+                                value: new_value,
+                            });
                         }
                     });
                 }
