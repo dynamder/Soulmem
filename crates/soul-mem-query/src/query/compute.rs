@@ -328,9 +328,10 @@ impl AnonymousQueryCompute for MemoryEmbedding {
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
         // tag 通道缺失（任一侧无 tag，零向量占位）时，不把缺失通道当 0 分参与加权，
         // 否则 Situation 等无 tag 场景的分数会被压缩到 0.4×0+0.6×variant，理论最高仅 0.6。
-        let tag_score = self.tag().cosine_similarity(query.tag())?;
+        // 零向量标记由单遍融合 cosine 顺带给出，避免对 tag 再做两遍 is_zero 全扫。
+        let (tag_score, tag_zero) = self.tag().cosine_similarity_and_zero(query.tag())?;
         let variant_score = self.variant().anonymous_compute(query.variant())?;
-        if self.tag().is_zero() || query.tag().is_zero() {
+        if tag_zero {
             return Ok(variant_score);
         }
         Ok(query.tag_weight * tag_score + query.variant_weight * variant_score)

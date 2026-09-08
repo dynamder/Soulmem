@@ -132,16 +132,25 @@ impl EmbeddingVec {
     #[hotpath::measure]
     pub fn cosine_similarity(&self, other: &Self) -> EmbeddingCalcResult<f32> {
         match fused_cosine_core(&self.0, &other.0) {
-            Some(v) => Ok(v),
+            Some((v, _)) => Ok(v),
             None => Err(super::EmbeddingCalcError::ShapeMismatch),
         }
     }
+
+    /// 余弦相似度 + 零向量标记，单遍完成：调用方（如融合打分）常需区分
+    /// "相似度恰为 0" 与 "tag 通道缺失（任一侧为零向量）"，此前需额外
+    /// `is_zero()` 再各扫一遍全向量；本方法一次循环同时给出两者。
+    #[hotpath::measure]
+    pub fn cosine_similarity_and_zero(&self, other: &Self) -> EmbeddingCalcResult<(f32, bool)> {
+        fused_cosine_core(&self.0, &other.0).ok_or(super::EmbeddingCalcError::ShapeMismatch)
+    }
 }
 ///////////////////////////////////////////////////////////////
-/// 融合余弦核心：`None` 表示形状不匹配；零向量（任一侧平方和为 0）返回 `0.0`。
+/// 融合余弦核心：`None` 表示形状不匹配；返回 `(cosine, either_zero)`，
+/// 其中 either_zero=true 表示任一侧平方和为 0（零向量占位），此时 cosine 为 0.0。
 /// 单一可移植实现：LLVM 按架构基线自动向量化（x86_64 SSE2 / aarch64 NEON）。
 #[inline(always)]
-fn fused_cosine_core(a: &[f32], b: &[f32]) -> Option<f32> {
+fn fused_cosine_core(a: &[f32], b: &[f32]) -> Option<(f32, bool)> {
     if a.len() != b.len() {
         return None;
     }
@@ -153,10 +162,11 @@ fn fused_cosine_core(a: &[f32], b: &[f32]) -> Option<f32> {
         sum_sq_a += x * x;
         sum_sq_b += y * y;
     }
-    if sum_sq_a == 0.0 || sum_sq_b == 0.0 {
-        return Some(0.0);
+    let either_zero = sum_sq_a == 0.0 || sum_sq_b == 0.0;
+    if either_zero {
+        return Some((0.0, true));
     }
-    Some(dot / (sum_sq_a * sum_sq_b).sqrt())
+    Some((dot / (sum_sq_a * sum_sq_b).sqrt(), false))
 }
 
 pub fn raw_linear_blend(
@@ -263,6 +273,26 @@ mod cosine_simd_tests {
         let a = EmbeddingVec::zero(128);
         let b = EmbeddingVec::zero(129);
         assert!(a.cosine_similarity(&b).is_err());
+    }
+
+    #[test]
+    fn cosine_and_zero_flag() {
+        let z = EmbeddingVec::zero(128);
+        let v = EmbeddingVec::new(vec![1.0; 128]);
+        // 任一侧零向量：score=0 且 zero 标记=true
+        assert_eq!(z.cosine_similarity_and_zero(&v).unwrap(), (0.0, true));
+        assert_eq!(z.cosine_similarity_and_zero(&z).unwrap(), (0.0, true));
+        assert_eq!(v.cosine_similarity_and_zero(&z).unwrap(), (0.0, true));
+        // 非零两侧：zero=false 且分数与 cosine_similarity 一致
+        let w = EmbeddingVec::new(vec![1.0f32; 128]);
+        let (s, zero) = v.cosine_similarity_and_zero(&w).unwrap();
+        assert!(!zero);
+        assert!((s - v.cosine_similarity(&w).unwrap()).abs() < 1e-6);
+        // 形状不匹配仍为 Err
+        assert!(
+            v.cosine_similarity_and_zero(&EmbeddingVec::zero(129))
+                .is_err()
+        );
     }
 
     #[test]
