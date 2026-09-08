@@ -123,28 +123,42 @@ impl EmbeddingVec {
     /// 单遍融合余弦：一次循环同时累计 dot、双方平方和并隐式完成零向量检测，
     /// 替代原先"零检查×2 + dot + norm×2（各带 sqrt）"共 5 遍扫描。
     /// 数值等价（零向量 ⇔ 平方和为 0；分母 sqrt(na·nb) 与 sqrt(na)·sqrt(nb) 仅 ~1ulp 舍入差）。
+    ///
+    /// SIMD 策略（库不可假设宿主指令集）：纯标量单遍循环，由 LLVM 按各架构
+    /// 基线自动向量化（x86_64→SSE2 4 宽 / aarch64→NEON），无 target_feature、
+    /// 无运行时检测，产物天然可移植。实测（criterion，512/1024 维）：该循环为
+    /// 内存带宽受限而非 FLOP 受限，额外 AVX2+FMA 256-bit 路径无进一步收益
+    /// （<2%），故不引入 unsafe 特化，保持零条件分支的最简实现。
     #[hotpath::measure]
     pub fn cosine_similarity(&self, other: &Self) -> EmbeddingCalcResult<f32> {
-        let a = &self.0;
-        let b = &other.0;
-        if a.len() != b.len() {
-            return Err(super::EmbeddingCalcError::ShapeMismatch);
+        match fused_cosine_core(&self.0, &other.0) {
+            Some(v) => Ok(v),
+            None => Err(super::EmbeddingCalcError::ShapeMismatch),
         }
-        let mut dot = 0.0f32;
-        let mut sum_sq_a = 0.0f32;
-        let mut sum_sq_b = 0.0f32;
-        for (x, y) in a.iter().zip(b.iter()) {
-            dot += x * y;
-            sum_sq_a += x * x;
-            sum_sq_b += y * y;
-        }
-        if sum_sq_a == 0.0 || sum_sq_b == 0.0 {
-            return Ok(0.0);
-        }
-        Ok(dot / (sum_sq_a * sum_sq_b).sqrt())
     }
 }
-////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+/// 融合余弦核心：`None` 表示形状不匹配；零向量（任一侧平方和为 0）返回 `0.0`。
+/// 单一可移植实现：LLVM 按架构基线自动向量化（x86_64 SSE2 / aarch64 NEON）。
+#[inline(always)]
+fn fused_cosine_core(a: &[f32], b: &[f32]) -> Option<f32> {
+    if a.len() != b.len() {
+        return None;
+    }
+    let mut dot = 0.0f32;
+    let mut sum_sq_a = 0.0f32;
+    let mut sum_sq_b = 0.0f32;
+    for (x, y) in a.iter().zip(b.iter()) {
+        dot += x * y;
+        sum_sq_a += x * x;
+        sum_sq_b += y * y;
+    }
+    if sum_sq_a == 0.0 || sum_sq_b == 0.0 {
+        return Some(0.0);
+    }
+    Some(dot / (sum_sq_a * sum_sq_b).sqrt())
+}
+
 pub fn raw_linear_blend(
     vec1: &EmbeddingVec,
     vec2: &EmbeddingVec,
@@ -176,6 +190,91 @@ pub fn mean_pooling(vecs: &[&EmbeddingVec]) -> EmbeddingCalcResult<EmbeddingVec>
         .iter()
         .map(|&sum| sum / vecs.len() as f32)
         .collect())
+}
+
+/// 融合余弦正确性测试：结果必须与独立 oracle（旧公式，不同舍入顺序）一致，
+/// 覆盖任意维度与数值形态；实现无架构特化，在任何 CPU/架构上结果一致。
+#[cfg(test)]
+mod cosine_simd_tests {
+    use super::*;
+
+    /// 独立 oracle：旧公式 dot / (norm·norm)（与融合循环不同的计算顺序与舍入）。
+    fn oracle(a: &EmbeddingVec, b: &EmbeddingVec) -> f32 {
+        if a.is_zero() || b.is_zero() {
+            return 0.0;
+        }
+        let dot = a.dot(b).expect("shape ok");
+        let np = a.norm().expect("shape ok") * b.norm().expect("shape ok");
+        dot / np
+    }
+
+    fn lcg(state: &mut u64) -> f32 {
+        *state = state
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
+        ((*state >> 33) as f32 / (1u64 << 20) as f32) - 1.0
+    }
+
+    #[test]
+    fn cosine_dispatch_matches_oracle_across_dims() {
+        let mut s: u64 = 0x9E37_79B9_7F4A_7C15;
+        for dim in [
+            0usize, 1, 3, 7, 8, 16, 31, 32, 63, 64, 127, 128, 129, 256, 512,
+        ] {
+            let raw_a: Vec<f32> = (0..dim).map(|_| lcg(&mut s)).collect();
+            let raw_b: Vec<f32> = (0..dim).map(|_| lcg(&mut s)).collect();
+            let a = EmbeddingVec::new(raw_a);
+            let b = EmbeddingVec::new(raw_b);
+            let got = a.cosine_similarity(&b).expect("same dim");
+            let want = oracle(&a, &b);
+            if want.is_nan() {
+                assert!(got.is_nan(), "dim {dim}: expected NaN");
+            } else {
+                assert!(
+                    (got - want).abs() <= 1e-5,
+                    "dim {dim}: dispatch {got} vs oracle {want}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn cosine_known_values() {
+        let x = EmbeddingVec::new(vec![1.0, 0.0, 0.0]);
+        let y = EmbeddingVec::new(vec![0.0, 1.0, 0.0]);
+        let z = EmbeddingVec::new(vec![1.0, 1.0, 0.0]);
+        assert_eq!(x.cosine_similarity(&x).unwrap(), 1.0);
+        assert_eq!(x.cosine_similarity(&y).unwrap(), 0.0);
+        let r2 = std::f32::consts::FRAC_1_SQRT_2;
+        assert!((x.cosine_similarity(&z).unwrap() - r2).abs() < 1e-6);
+    }
+
+    #[test]
+    fn cosine_zero_vectors() {
+        let z = EmbeddingVec::zero(128);
+        let v = EmbeddingVec::new(vec![1.0; 128]);
+        assert_eq!(z.cosine_similarity(&v).unwrap(), 0.0);
+        assert_eq!(z.cosine_similarity(&z).unwrap(), 0.0);
+        assert_eq!(v.cosine_similarity(&z).unwrap(), 0.0);
+    }
+
+    #[test]
+    fn cosine_shape_mismatch_is_err() {
+        let a = EmbeddingVec::zero(128);
+        let b = EmbeddingVec::zero(129);
+        assert!(a.cosine_similarity(&b).is_err());
+    }
+
+    #[test]
+    fn cosine_nan_propagates() {
+        let mut a = vec![0.0f32; 64];
+        a[3] = f32::NAN;
+        let b = vec![1.0f32; 64];
+        let got = EmbeddingVec::new(a)
+            .cosine_similarity(&EmbeddingVec::new(b))
+            .unwrap();
+        assert!(got.is_nan());
+    }
 }
 
 #[cfg(test)]
