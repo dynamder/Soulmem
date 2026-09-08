@@ -133,6 +133,7 @@ impl RetrRequest for AssociationRequest {}
 impl RetrStrategy for RetrAssociation {
     type Request = AssociationRequest;
     type Return<'a> = Vec<(MemoryId, f64)>;
+    #[hotpath::measure]
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
         if request.source.is_empty() {
             return Vec::new();
