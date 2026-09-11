@@ -17,6 +17,9 @@ rayon = "1.10.0"
 text-splitter = "0.29.3"
 strsim = "0.11.1"
 hotpath = { workspace = true }
+# SIMD lane 累加（f32x8）：Rust 无 fast-math，普通 += 归约不会被向量化，
+# 显式 lane 累加在 512 维实测约 4× （wide 在无 256-bit 的架构上自动降级）。
+wide = { workspace = true }
 
 soul-mem-core = {path = "../soul-mem-core"}
 

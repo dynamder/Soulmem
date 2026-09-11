@@ -40,7 +40,7 @@ use soul_mem_query::embedding::sem::SemanticEmbedding;
 use soul_mem_query::query::retrieve::{MemoryRetrieveQuery, MemoryRetrieveQueryVariant};
 use soul_mem_runtime::working_memory::WorkingMemory;
 
-const EMB_DIM: usize = 128;
+const EMB_DIM: usize = 512;
 const BLOCKS: usize = 32;
 
 #[derive(Debug, Clone, Copy, PartialEq)]

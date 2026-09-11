@@ -29,6 +29,8 @@ parking_lot = "0.12"
 async-openai = { version = "0.32.4", features = ["chat-completion"] }
 dotenvy = "0.15"
 hotpath = "0.24"
+# 可移植 SIMD（stable，无 unsafe API、零传递依赖）：融合 cos 的 lane 累加
+wide = "1.7"
 
 [profile.release]
 lto = true
