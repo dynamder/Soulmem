@@ -14,9 +14,7 @@ const DIMS: [usize; 2] = [512, 1024];
 fn make_vecs(dim: usize) -> (Vec<f32>, Vec<f32>) {
     // 确定性数据：a 稀疏块基、b 连续值，保证数值非退化
     let mut a = vec![0.0f32; dim];
-    for d in 0..3 {
-        a[d] = 1.0;
-    }
+    a[..3].fill(1.0);
     let b: Vec<f32> = (0..dim)
         .map(|i| ((i as f32 + 1.0) / dim as f32).sin())
         .collect();
@@ -112,49 +110,53 @@ fn cosine_wide(a: &[f32], b: &[f32]) -> f32 {
     }
 }
 
-/// d) AVX2+FMA 内联（x86_64 专用；bench 外调用需运行时特性检测，此处由 bench 环境保证）。
+/// d) AVX2+FMA 内联（x86_64 专用；调用方须先做运行时特性检测，见下方安全包装）。
 #[cfg(target_arch = "x86_64")]
 #[target_feature(enable = "avx2,fma")]
 unsafe fn cosine_avx2_fma(a: &[f32], b: &[f32]) -> f32 {
-    use std::arch::x86_64::*;
-    let n = a.len();
-    let mut i = 0usize;
-    let mut d = _mm256_setzero_ps();
-    let mut sa = _mm256_setzero_ps();
-    let mut sb = _mm256_setzero_ps();
-    while i + 8 <= n {
-        let va = _mm256_loadu_ps(a.as_ptr().add(i));
-        let vb = _mm256_loadu_ps(b.as_ptr().add(i));
-        d = _mm256_fmadd_ps(va, vb, d);
-        sa = _mm256_fmadd_ps(va, va, sa);
-        sb = _mm256_fmadd_ps(vb, vb, sb);
-        i += 8;
-    }
-    let mut dv = 0.0f32;
-    let mut sav = 0.0f32;
-    let mut sbv = 0.0f32;
-    let mut lane = [0.0f32; 8];
-    _mm256_storeu_ps(lane.as_mut_ptr(), d);
-    for v in lane {
-        dv += v;
-    }
-    _mm256_storeu_ps(lane.as_mut_ptr(), sa);
-    for v in lane {
-        sav += v;
-    }
-    _mm256_storeu_ps(lane.as_mut_ptr(), sb);
-    for v in lane {
-        sbv += v;
-    }
-    for (x, y) in a[i..].iter().zip(&b[i..]) {
-        dv += x * y;
-        sav += x * x;
-        sbv += y * y;
-    }
-    if sav == 0.0 || sbv == 0.0 {
-        0.0
-    } else {
-        dv / (sav * sbv).sqrt()
+    // edition 2024：unsafe fn 体内仍需显式 unsafe 块包裹 unsafe 操作
+    // （unsafe_op_in_unsafe_fn 在 -D warnings 下会升级为错误）。
+    unsafe {
+        use std::arch::x86_64::*;
+        let n = a.len();
+        let mut i = 0usize;
+        let mut d = _mm256_setzero_ps();
+        let mut sa = _mm256_setzero_ps();
+        let mut sb = _mm256_setzero_ps();
+        while i + 8 <= n {
+            let va = _mm256_loadu_ps(a.as_ptr().add(i));
+            let vb = _mm256_loadu_ps(b.as_ptr().add(i));
+            d = _mm256_fmadd_ps(va, vb, d);
+            sa = _mm256_fmadd_ps(va, va, sa);
+            sb = _mm256_fmadd_ps(vb, vb, sb);
+            i += 8;
+        }
+        let mut dv = 0.0f32;
+        let mut sav = 0.0f32;
+        let mut sbv = 0.0f32;
+        let mut lane = [0.0f32; 8];
+        _mm256_storeu_ps(lane.as_mut_ptr(), d);
+        for v in lane {
+            dv += v;
+        }
+        _mm256_storeu_ps(lane.as_mut_ptr(), sa);
+        for v in lane {
+            sav += v;
+        }
+        _mm256_storeu_ps(lane.as_mut_ptr(), sb);
+        for v in lane {
+            sbv += v;
+        }
+        for (x, y) in a[i..].iter().zip(&b[i..]) {
+            dv += x * y;
+            sav += x * x;
+            sbv += y * y;
+        }
+        if sav == 0.0 || sbv == 0.0 {
+            0.0
+        } else {
+            dv / (sav * sbv).sqrt()
+        }
     }
 }
 

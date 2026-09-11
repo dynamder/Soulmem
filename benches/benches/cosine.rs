@@ -15,9 +15,7 @@ const DIMS: [usize; 3] = [128, 512, 1024];
 fn make_vecs(dim: usize) -> (EmbeddingVec, EmbeddingVec, Vec<f32>, Vec<f32>) {
     // a 为块基（少量 1.0），b 为接近单位范数的确定性值
     let mut a = vec![0.0f32; dim];
-    for d in 0..3 {
-        a[d] = 1.0;
-    }
+    a[..3].fill(1.0);
     let b: Vec<f32> = (0..dim)
         .map(|i| ((i as f32 + 1.0) / dim as f32).sin())
         .collect();
