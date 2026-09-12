@@ -1,0 +1,53 @@
+[package]
+name = "soul-mem"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "SoulMem 顶层服务封装：串联 core/query/runtime/algo，对外仅通过 zenoh 的订阅/发布通信。"
+publish = false
+# 显式声明 bin 目标（关闭自动发现），保证可执行名稳定：
+# - 服务端：soul-mem
+# - 模拟器：mock-device（对应 `cargo run -p soul-mem --bin mock-device`）
+autobins = false
+
+[[bin]]
+name = "soul-mem"
+path = "src/main.rs"
+
+[[bin]]
+name = "mock-device"
+path = "src/bin/mock_device/main.rs"
+
+[features]
+default = ["zenoh", "file-store"]
+# zenoh 通道（pub/sub）。这是唯一的设备间通信方式。
+zenoh = ["dep:zenoh"]
+# 文件快照持久化实现（demo 用）。关闭后仅保留内存/无持久化 store。
+file-store = []
+
+[dependencies]
+soul-mem-core = { path = "../soul-mem-core" }
+soul-mem-query = { path = "../soul-mem-query" }
+soul-mem-runtime = { path = "../soul-mem-runtime" }
+soul-mem-algo = { path = "../soul-mem-algo" }
+
+anyhow = { workspace = true }
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+petgraph = { workspace = true }
+log = { workspace = true }
+prost = { workspace = true }
+env_logger = "0.11"
+
+zenoh = { workspace = true, optional = true }
+
+[build-dependencies]
+prost-build = "0.14"
+protoc-bin-vendored = "3.2.0"
+
+[dev-dependencies]
+tempfile = "3"

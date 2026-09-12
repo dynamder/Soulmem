@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/soul-mem-algo","crates/soul-mem-core", "crates/soul-mem-query", "crates/soul-mem-runtime", "benches", "crates/soul-tune", "crates/soul-tune-api"]
+members = ["crates/soul-mem-algo","crates/soul-mem-core", "crates/soul-mem-query", "crates/soul-mem-runtime", "benches", "crates/soul-tune", "crates/soul-tune-api", "crates/soul-mem"]
 
 # esaxx-rs 硬编码 static_crt(true)(/MT)，与 llama-cpp-sys-2(/MD) 在 MSVC 链接冲突，
 # 本地补丁移除 static_crt 使整个依赖树统一使用 /MD 运行时。
@@ -28,6 +28,13 @@ rand = "0.9"
 parking_lot = "0.12"
 async-openai = { version = "0.32.4", features = ["chat-completion"] }
 dotenvy = "0.15"
+
+# soul-mem 顶层服务 crate 依赖（crates/soul-mem）
+# 理由：仅在 crates/soul-mem 需要跨设备通信依赖；集中到 workspace 统一版本，避免各 crate 各自锁版本。
+# 设备间通信仅使用 zenoh 的订阅/发布（pub/sub），消息协议由 .proto 定义、protobuf 编码。
+zenoh = "1"
+prost = "0.14"
+log = "0.4"
 
 [profile.release]
 lto = true

@@ -1,0 +1,351 @@
+syntax = "proto3";
+
+// SoulMem 收发协议（唯一事实源）。
+//
+// 传输：zenoh 订阅/发布（pub/sub）。
+// 编码：protobuf 二进制（由 prost 生成 Rust 类型）。
+//
+// 主题与载荷约定（见 crate `zenoh/keys.rs`）：
+// - `<prefix>/request`  ：RequestEnvelope（payload 为各操作的请求消息 bytes）
+// - `<prefix>/reply/<id>`：ReplyEnvelope（payload 为对应响应消息 bytes）
+// - `<prefix>/ingest`   ：IngestRequest（单向推式输入）
+package soulmem;
+
+// ============ 基础 ============
+
+message Empty {}
+
+// ============ ping / ingest ============
+
+enum MessageRole {
+  ROLE_UNSPECIFIED = 0;
+  ROLE_USER = 1;
+  ROLE_ASSISTANT = 2;
+}
+
+message InfoDelta {
+  MessageRole role = 1;
+  string content = 2;
+}
+
+message IngestRequest {
+  repeated InfoDelta deltas = 1;
+}
+
+message Ack {
+  string message = 1;
+}
+
+message PingResponse {
+  string device_id = 1;
+}
+
+// ============ 检索 query ============
+
+message SemanticQueryUnit {
+  optional string concept_identifier = 1;
+  optional string description = 2;
+}
+
+message LocationQueryUnit {
+  string name = 1;
+  optional string coordinates = 2;
+}
+
+message ParticipantQueryUnit {
+  optional string name = 1;
+  optional string role = 2;
+}
+
+message EnvironmentQueryUnit {
+  optional string atmosphere = 1;
+  optional string tone = 2;
+}
+
+message EventQueryUnit {
+  string action = 1;
+  optional string initiator = 2;
+  optional string target = 3;
+}
+
+message TimeSpanQueryUnit {
+  // RFC3339 时间字符串
+  optional string start = 1;
+  optional string end = 2;
+}
+
+message SituationQueryUnit {
+  optional string narrative = 1;
+  repeated LocationQueryUnit location = 2;
+  repeated ParticipantQueryUnit participants = 3;
+  repeated TimeSpanQueryUnit time_span = 4;
+  EnvironmentQueryUnit environment = 5;
+  repeated EventQueryUnit event = 6;
+}
+
+message SemanticQueryList {
+  repeated SemanticQueryUnit units = 1;
+}
+
+message SituationQueryList {
+  repeated SituationQueryUnit units = 1;
+}
+
+message MemoryRetrieveQuery {
+  repeated string tag = 1;
+  oneof variant {
+    SemanticQueryList semantic = 2;
+    SituationQueryList situation = 3;
+  }
+}
+
+message PrioritizedQuery {
+  uint32 priority = 1;
+  MemoryRetrieveQuery query = 2;
+}
+
+message RetrieveRequest {
+  repeated PrioritizedQuery queries = 1;
+}
+
+message ShortItem {
+  string role = 1;
+  string content = 2;
+}
+
+message NoteHit {
+  double score = 1;
+  MemoryNote note = 2;
+}
+
+message RetrieveResponse {
+  repeated NoteHit hits = 1;
+  string summary = 2;
+  repeated ShortItem short_history = 3;
+}
+
+// ============ MemoryNote 数据模型 ============
+
+enum ConceptType {
+  CONCEPT_UNSPECIFIED = 0;
+  CONCEPT_ENTITY = 1;
+  CONCEPT_ABSTRACT = 2;
+}
+
+message SemMemory {
+  string content = 1;
+  repeated string aliases = 2;
+  ConceptType concept_type = 3;
+  string description = 4;
+}
+
+message Location {
+  string name = 1;
+  string coordinates = 2;
+}
+
+message Participant {
+  string name = 1;
+  string role = 2;
+}
+
+message Environment {
+  string atmosphere = 1;
+  string tone = 2;
+}
+
+message Event {
+  string action = 1;
+  float action_intensity = 2;
+  string initiator = 3;
+  string target = 4;
+}
+
+message Emotion {
+  string name = 1;
+  float intensity = 2;
+}
+
+message SensoryData {
+  string name = 1;
+  float intensity = 2;
+}
+
+message Context {
+  Location location = 1;
+  repeated Participant participants = 2;
+  repeated Emotion emotions = 3;
+  repeated SensoryData sensory_data = 4;
+  Environment environment = 5;
+  repeated Event event = 6;
+}
+
+message SpecificSituation {
+  string narrative = 1;
+  // RFC3339 时间字符串
+  string time_span = 2;
+  Context context = 3;
+}
+
+message AbstractSituation {
+  oneof kind {
+    Location location = 1;
+    Participant participant = 2;
+    Environment environment = 3;
+    Event event = 4;
+  }
+}
+
+message SituationNote {
+  oneof kind {
+    AbstractSituation abstract = 1;
+    SpecificSituation specific = 2;
+  }
+}
+
+enum ActionKind {
+  ACTION_UNSPECIFIED = 0;
+  ACTION_SPEAK = 1;
+  ACTION_SKILL = 2;
+  ACTION_THINK = 3;
+}
+
+message Action {
+  string content = 1;
+  ActionKind kind = 2;
+}
+
+message ProcMemory {
+  Action action = 1;
+}
+
+message SemMemLink {
+  string verb = 1;
+  float confidence = 2;
+}
+
+message TrigToAction {
+  double prob = 1;
+}
+
+message ProcMemLink {
+  oneof kind {
+    TrigToAction trig_to_action = 1;
+  }
+}
+
+message SituationMemLink {
+  oneof kind {
+    Empty abstract_to_specific = 1;
+    Empty specific_to_abstract = 2;
+  }
+}
+
+message MemoryLink {
+  string from = 1;
+  string to = 2;
+  double intensity = 3;
+  float missing_degree = 4;
+  // RFC3339 时间字符串
+  string last_forget_time = 5;
+  oneof link_type {
+    SemMemLink sem = 6;
+    ProcMemLink proc = 7;
+    SituationMemLink situation = 8;
+  }
+}
+
+message MemoryNote {
+  string id = 1; // uuid
+  repeated string tags = 2;
+  uint64 retrieval_count = 3;
+  // RFC3339 时间字符串
+  string create_time = 4;
+  string last_accessed_time = 5;
+  oneof mem_type {
+    SemMemory semantic = 6;
+    SituationNote situation = 7;
+    ProcMemory procedure = 8;
+  }
+  repeated MemoryLink mem_links = 9;
+  float missing_degree = 10;
+  string last_forget_time = 11;
+}
+
+// ============ note 读写 ============
+
+message ReadNoteRequest {
+  string id = 1;
+}
+
+message ReadNoteResponse {
+  MemoryNote note = 1;
+}
+
+message WriteNoteRequest {
+  MemoryNote note = 1;
+}
+
+message WriteNoteResponse {
+  string id = 1;
+  bool created = 2;
+}
+
+// ============ feedback / control ============
+
+enum FeedbackKind {
+  FEEDBACK_UNSPECIFIED = 0;
+  FEEDBACK_POSITIVE = 1;
+  FEEDBACK_NEGATIVE = 2;
+  FEEDBACK_NEUTRAL = 3;
+}
+
+message Feedback {
+  string note_id = 1;
+  FeedbackKind kind = 2;
+}
+
+enum ControlKind {
+  CONTROL_UNSPECIFIED = 0;
+  CONTROL_PERSIST = 1;
+  CONTROL_CONSOLIDATE = 2;
+  CONTROL_FORGET = 3;
+}
+
+message Control {
+  ControlKind kind = 1;
+}
+
+message ControlResponse {
+  string signal = 1;
+  bool ok = 2;
+  string message = 3;
+}
+
+// ============ 事件（预留） ============
+
+message EventNotice {
+  string kind = 1;
+  string detail = 2;
+}
+
+// ============ pub/sub 请求-应答信封 ============
+
+message RequestEnvelope {
+  string request_id = 1;
+  string op = 2;
+  // 具体操作的请求消息（protobuf 编码后的 bytes）
+  bytes payload = 3;
+}
+
+message ErrorPayload {
+  string code = 1;
+  string message = 2;
+}
+
+message ReplyEnvelope {
+  string request_id = 1;
+  // 具体操作的响应消息（protobuf 编码后的 bytes）
+  bytes payload = 2;
+  ErrorPayload error = 3;
+}
