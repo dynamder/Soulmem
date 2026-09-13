@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/soul-mem-algo","crates/soul-mem-core", "crates/soul-mem-query", "crates/soul-mem-runtime", "benches", "crates/soul-tune", "crates/soul-tune-api"]
+members = ["crates/soul-mem-algo","crates/soul-mem-core", "crates/soul-mem-llm", "crates/soul-mem-query", "crates/soul-mem-runtime", "benches", "crates/soul-tune", "crates/soul-tune-api"]
 
 # esaxx-rs 硬编码 static_crt(true)(/MT)，与 llama-cpp-sys-2(/MD) 在 MSVC 链接冲突，
 # 本地补丁移除 static_crt 使整个依赖树统一使用 /MD 运行时。
@@ -9,7 +9,6 @@ esaxx-rs = { path = "patches/esaxx-rs" }
 
 [workspace.dependencies]
 anyhow = "1.0.98"
-backon = "1.6"
 chrono = { version = "0.4.41", features = ["serde"] }
 petgraph = "0.8.2"
 serde = { version = "1.0.219", features = ["derive"] }
@@ -27,7 +26,18 @@ jieba-rs = "0.8"
 dashmap = "6.2.1"
 rand = "0.9"
 parking_lot = "0.12"
-async-openai = { version = "0.32.4", features = ["chat-completion"] }
+# 0.41.3 起以 tower middleware 组织 HTTP 执行路径：自带重试覆盖 429/5xx/connect
+# 并遵守 Retry-After，且错误体保留 status_code（0.32.4 这三项全缺）。
+# 版本必须与 soul-mem-llm 的 reqwest 声明（0.13）一致，否则类型无法互通。
+async-openai = { version = "0.41.3", features = ["chat-completion"] }
+# LLM 传输层栈：ServiceBuilder + 自定义重试策略（透传 async-openai 的 middleware 边界）
+tower = { version = "0.5", features = ["limit", "retry", "timeout", "util"] }
+# 消费 async-openai 的 SSE 流（byot 流式返回 Pin<Box<dyn Stream>>）
+futures = "0.3"
+# 与 async-openai 0.41.3 同版本线：自建带超时/proxy 策略的 client 需与它共用类型
+reqwest = { version = "0.13", default-features = false, features = ["json", "stream"] }
+tracing = "0.1"
+secrecy = "0.10"
 dotenvy = "0.15"
 hotpath = "0.24"
 # 可移植 SIMD（stable，无 unsafe API、零传递依赖）：融合 cos 的 lane 累加

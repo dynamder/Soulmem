@@ -1,6 +1,7 @@
 use soul_mem_core::memory_note::situation_mem::AbstractSituation;
 use soul_mem_core::memory_note::{MemoryNote, MemoryType, sem_mem::SemMemory};
 
+use crate::embedding::blend_weights::BlendWeights;
 use crate::query::retrieve::{MemoryRetrieveQuery, SemanticQueryUnit, SituationQueryUnit};
 
 /// Jaro-Winkler 字符串相似度，范围 [0, 1]。
@@ -32,7 +33,16 @@ pub fn string_distance_score(a: &str, b: &str) -> f32 {
     jaro_winkler_score(a, b).max(normalized_levenshtein_score(a, b))
 }
 
-/// 计算一条记忆笔记相对查询的"精确标识符字符串匹配"得分。
+/// 使用 [`BlendWeights::default()`] 的便捷入口。
+///
+/// 等价于 `compute_note_string_score_weighted(note, query, &BlendWeights::default())`。
+/// 评分链路上请改用后者并传入查询自带的权重（`query.embedding.blend_weights`），
+/// 否则 `with_weights()` 定制的子字段权重不会作用到字符串通道。
+pub fn compute_note_string_score(note: &MemoryNote, query: &MemoryRetrieveQuery) -> f32 {
+    compute_note_string_score_weighted(note, query, &BlendWeights::default())
+}
+
+/// 计算一条记忆笔记相对查询的"精确标识符字符串匹配"得分，显式接收权重集。
 ///
 /// 仅对以下精确标识符字段计算字符串距离（与 embedding 余弦相似度保持同一 [0,1] 量纲）：
 ///   - Semantic 的 `concept_identifier` vs 记忆的 `content` / `aliases`
@@ -41,10 +51,17 @@ pub fn string_distance_score(a: &str, b: &str) -> f32 {
 /// 描述性字段（`role`、`tone`、`description`、`narrative` 等）不做字符串比较，
 /// 以免多词描述导致得分系统性偏低、破坏与 embedding 得分的可比性。
 ///
+/// 事件的 `action` / `initiator` / `target` 三路加权**直接取自 `weights`**
+/// （`sit_event_*` 系列），与 embedding 通道同源，保证两侧同构。
+///
 /// 使用 max pooling 聚合：任一查询单元与任一目标字符串的最强命中即代表该笔记的字符串得分。
 /// 变体不匹配（如 Semantic 记忆 vs Situation 查询）返回 0.0，与 embedding 侧行为一致。
 #[hotpath::measure]
-pub fn compute_note_string_score(note: &MemoryNote, query: &MemoryRetrieveQuery) -> f32 {
+pub fn compute_note_string_score_weighted(
+    note: &MemoryNote,
+    query: &MemoryRetrieveQuery,
+    weights: &BlendWeights,
+) -> f32 {
     match (note.mem_type(), query.variant()) {
         (
             MemoryType::Semantic(sem),
@@ -55,7 +72,7 @@ pub fn compute_note_string_score(note: &MemoryNote, query: &MemoryRetrieveQuery)
                 soul_mem_core::memory_note::situation_mem::SituationType::AbstractSituation(abs),
             ),
             crate::query::retrieve::MemoryRetrieveQueryVariant::Situation(units),
-        ) => abstract_sit_string_score(abs, units),
+        ) => abstract_sit_string_score(abs, units, weights),
         _ => 0.0,
     }
 }
@@ -79,8 +96,12 @@ fn semantic_string_score(sem: &SemMemory, units: &[SemanticQueryUnit]) -> f32 {
 }
 
 /// 抽象情境字符串评分：按变体类型匹配对应的精确标识符字段。
-/// 各子字段的加权沿用 `BlendWeights` 中已定义的结构化权重，确保子字段混合与 embedding 侧同构。
-fn abstract_sit_string_score(abs: &AbstractSituation, units: &[SituationQueryUnit]) -> f32 {
+/// 事件的子字段加权取自 `weights`（`BlendWeights`），确保子字段混合与 embedding 侧同构。
+fn abstract_sit_string_score(
+    abs: &AbstractSituation,
+    units: &[SituationQueryUnit],
+    weights: &BlendWeights,
+) -> f32 {
     match abs {
         AbstractSituation::Location(loc) => units
             .iter()
@@ -114,10 +135,18 @@ fn abstract_sit_string_score(abs: &AbstractSituation, units: &[SituationQueryUni
                     .unwrap_or(0.0);
                 match (q_evt.initiator(), q_evt.target()) {
                     (Some(_), Some(_)) => {
-                        0.3 * initiator_score + 0.3 * target_score + 0.4 * action_score
+                        weights.sit_event_initiator * initiator_score
+                            + weights.sit_event_target * target_score
+                            + weights.sit_event_action * action_score
                     }
-                    (Some(_), None) => 0.4 * initiator_score + 0.6 * action_score,
-                    (None, Some(_)) => 0.4 * target_score + 0.6 * action_score,
+                    (Some(_), None) => {
+                        (1.0 - weights.sit_event_initiator_only_action) * initiator_score
+                            + weights.sit_event_initiator_only_action * action_score
+                    }
+                    (None, Some(_)) => {
+                        (1.0 - weights.sit_event_target_only_action) * target_score
+                            + weights.sit_event_target_only_action * action_score
+                    }
                     (None, None) => action_score,
                 }
             })
@@ -136,6 +165,9 @@ mod tests {
         AbstractSituation, Environment, Event, Location, Participant,
     };
     use soul_mem_core::memory_note::{MemoryNoteBuilder, sem_mem::ConceptType};
+
+    use crate::embedding::EmbeddingVec;
+    use crate::embedding::query::note::MemoryRetrieveQueryEmbedding;
 
     fn sem_note(content: &str, aliases: &[&str]) -> MemoryNote {
         MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
@@ -446,11 +478,16 @@ mod tests {
 
     #[test]
     fn test_abstract_event_weights_are_exact() {
-        // 事件加权公式的精确值验证：
-        //   双方都存在: 0.3*initiator + 0.3*target + 0.4*action
-        //   仅 initiator: 0.4*initiator + 0.6*action
-        //   仅 target:    0.4*target + 0.6*action
+        // 事件加权公式的精确值验证。系数**取自 `BlendWeights`**，推导方式与 embedding 侧
+        // `EventEmbedding::anonymous_compute` 逐字一致：
+        //   双方都存在: w_i*initiator + w_t*target + w_a*action
+        //   仅 initiator: (1 - w_ia)*initiator + w_ia*action
+        //   仅 target:    (1 - w_ta)*target + w_ta*action
+        //
+        // 注意 `1.0 - w` 在 f32 下不精确（1.0 - 0.6 != 0.4），因此期望值必须与实现同式推导，
+        // 不能写成字面量 0.4 —— 那正是旧版把字符串侧钉在一个 embedding 侧从未产生过的数值上的原因。
         // 使用字形部分重叠的字符串使各分量落在 (0,1) 区间，从而区分 * 与 /、+ 与 -。
+        let w = BlendWeights::default();
         let note = situation_note(AbstractSituation::Event(Event {
             action: "跑步".to_string(),
             action_intensity: 0.5,
@@ -467,9 +504,9 @@ mod tests {
                     .with_target("操场".to_string())],
             )]),
         );
-        let expected_both = 0.3 * string_distance_score("张三丰", "张三")
-            + 0.3 * string_distance_score("操场", "操场")
-            + 0.4 * string_distance_score("无关", "跑步");
+        let expected_both = w.sit_event_initiator * string_distance_score("张三丰", "张三")
+            + w.sit_event_target * string_distance_score("操场", "操场")
+            + w.sit_event_action * string_distance_score("无关", "跑步");
         assert_eq!(compute_note_string_score(&note, &q_both), expected_both);
 
         // 仅 initiator 命中，action 不相关
@@ -479,8 +516,9 @@ mod tests {
                 vec![EventQueryUnit::new("无关").with_initiator("张三丰".to_string())],
             )]),
         );
-        let expected_initiator = 0.4 * string_distance_score("张三丰", "张三")
-            + 0.6 * string_distance_score("无关", "跑步");
+        let a_w = w.sit_event_initiator_only_action;
+        let expected_initiator = (1.0 - a_w) * string_distance_score("张三丰", "张三")
+            + a_w * string_distance_score("无关", "跑步");
         assert_eq!(
             compute_note_string_score(&note, &q_initiator),
             expected_initiator
@@ -493,8 +531,9 @@ mod tests {
                 vec![EventQueryUnit::new("跑").with_target("操".to_string())],
             )]),
         );
-        let expected_target =
-            0.4 * string_distance_score("操", "操场") + 0.6 * string_distance_score("跑", "跑步");
+        let a_w = w.sit_event_target_only_action;
+        let expected_target = (1.0 - a_w) * string_distance_score("操", "操场")
+            + a_w * string_distance_score("跑", "跑步");
         assert_eq!(compute_note_string_score(&note, &q_target), expected_target);
 
         // 无 initiator/target，action 命中
@@ -516,5 +555,141 @@ mod tests {
             )]),
         );
         assert_eq!(compute_note_string_score(&note, &q_full), 1.0);
+    }
+
+    /// 回归测试：事件字符串评分的三路加权必须来自传入的 `BlendWeights`，
+    /// 而不是写死在函数体里的字面量。
+    ///
+    /// 手法：把权重全部压到单个分量上，评分就应**恰好**等于该分量的字符串分。
+    /// 若实现里仍残留 `0.3/0.3/0.4` 硬编码，断言必然失败。
+    ///
+    /// 注意 `test_abstract_event_weights_are_exact` **无法**发现此问题——
+    /// 它把同一组字面量（0.3/0.3/0.4、0.4/0.6）抄成了"期望值"，
+    /// 等于用实现验证实现；只有**改变权重**才能区分"读权重"与"读常量"。
+    #[test]
+    fn test_abstract_event_weights_follow_blend_weights() {
+        let note = situation_note(AbstractSituation::Event(Event {
+            action: "跑步".to_string(),
+            action_intensity: 0.5,
+            initiator: "张三".to_string(),
+            target: "操场".to_string(),
+        }));
+        let query = MemoryRetrieveQuery::new(
+            vec![],
+            MemoryRetrieveQueryVariant::Situation(vec![SituationQueryUnit::new().with_event(
+                vec![EventQueryUnit::new("无关")
+                    .with_initiator("张三丰".to_string())
+                    .with_target("操场".to_string())],
+            )]),
+        );
+
+        let action_score = string_distance_score("无关", "跑步");
+        let initiator_score = string_distance_score("张三丰", "张三");
+        let target_score = string_distance_score("操场", "操场");
+
+        // 权重全给 action → 评分恰好等于 action 分
+        let action_only = BlendWeights {
+            sit_event_initiator: 0.0,
+            sit_event_target: 0.0,
+            sit_event_action: 1.0,
+            ..BlendWeights::default()
+        };
+        assert_eq!(
+            compute_note_string_score_weighted(&note, &query, &action_only),
+            action_score,
+            "事件加权未取自 BlendWeights（疑似仍为硬编码字面量）"
+        );
+
+        // 权重全给 target → 评分恰好等于 target 分
+        let target_only = BlendWeights {
+            sit_event_initiator: 0.0,
+            sit_event_target: 1.0,
+            sit_event_action: 0.0,
+            ..BlendWeights::default()
+        };
+        assert_eq!(
+            compute_note_string_score_weighted(&note, &query, &target_only),
+            target_score
+        );
+
+        // 默认权重下与"显式引用默认值"的加权一致（不再硬编码 0.3/0.3/0.4）
+        let default = BlendWeights::default();
+        let expected_default = default.sit_event_initiator * initiator_score
+            + default.sit_event_target * target_score
+            + default.sit_event_action * action_score;
+        assert_eq!(
+            compute_note_string_score_weighted(&note, &query, &default),
+            expected_default
+        );
+
+        // 仅 initiator 的退化路径同样走权重
+        let q_initiator = MemoryRetrieveQuery::new(
+            vec![],
+            MemoryRetrieveQueryVariant::Situation(vec![SituationQueryUnit::new().with_event(
+                vec![EventQueryUnit::new("无关").with_initiator("张三丰".to_string())],
+            )]),
+        );
+        let initiator_only = BlendWeights {
+            sit_event_initiator_only_action: 1.0,
+            ..BlendWeights::default()
+        };
+        assert_eq!(
+            compute_note_string_score_weighted(&note, &q_initiator, &initiator_only),
+            action_score,
+            "仅 initiator 时未按 sit_event_initiator_only_action 加权"
+        );
+
+        // 便捷入口等价于默认权重
+        assert_eq!(
+            compute_note_string_score(&note, &query),
+            compute_note_string_score_weighted(&note, &query, &BlendWeights::default())
+        );
+    }
+
+    /// 回归测试：`with_weights()` 定制的权重必须能到达字符串通道。
+    ///
+    /// 此前 `MemoryRetrieveQueryEmbedding` 只保存 `tag_weight` / `variant_weight` /
+    /// `string_blend_alpha` 三个标量，完整权重集无处可取，字符串侧只能硬编码，
+    /// 导致 `with_weights()` 只对 embedding 侧生效、字符串侧静默沿用默认值。
+    #[test]
+    fn test_query_embedding_carries_weights_into_string_channel() {
+        let custom = BlendWeights {
+            sit_event_initiator: 0.0,
+            sit_event_target: 0.0,
+            sit_event_action: 1.0,
+            ..BlendWeights::default()
+        };
+        let embedding =
+            MemoryRetrieveQueryEmbedding::new(EmbeddingVec::zero(8)).with_weights(custom.clone());
+
+        // 完整权重集必须原样保留在查询上
+        assert_eq!(embedding.blend_weights, custom);
+
+        // 复现 compute_fused 的取权重方式：字符串通道读到的是定制权重而非默认值
+        let note = situation_note(AbstractSituation::Event(Event {
+            action: "跑步".to_string(),
+            action_intensity: 0.5,
+            initiator: "张三".to_string(),
+            target: "操场".to_string(),
+        }));
+        let query = MemoryRetrieveQuery::new(
+            vec![],
+            MemoryRetrieveQueryVariant::Situation(vec![SituationQueryUnit::new().with_event(
+                vec![EventQueryUnit::new("无关")
+                    .with_initiator("张三丰".to_string())
+                    .with_target("操场".to_string())],
+            )]),
+        );
+        assert_eq!(
+            compute_note_string_score_weighted(&note, &query, &embedding.blend_weights),
+            string_distance_score("无关", "跑步"),
+            "with_weights() 的权重未到达字符串通道"
+        );
+
+        // 与默认权重下的结果必须不同，证明定制的权重确实生效
+        assert_ne!(
+            compute_note_string_score_weighted(&note, &query, &embedding.blend_weights),
+            compute_note_string_score(&note, &query)
+        );
     }
 }

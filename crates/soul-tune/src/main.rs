@@ -309,6 +309,12 @@ fn run_headless_compare_db(
         "  MRR 提升 {} | 回退 {} | 持平 {}",
         agg.mrr_improved_count, agg.mrr_regressed_count, agg.mrr_equal_count
     );
+    println!(
+        "  DB 期望覆盖(入子图): {:.1}% | 期望漏召用例: {}/{}",
+        agg.avg_db_candidate_coverage * 100.0,
+        agg.db_missed_case_count,
+        agg.case_count
+    );
 
     println!("\n--- 逐用例（direct → db）---");
     println!("  用例                         Hit(d→db)        MRR(d→db)    Recall@3(d→db)");
@@ -339,6 +345,23 @@ fn run_headless_compare_db(
                 "✓"
             }
         );
+        // 回退/漏召用例：附 prefetch_db 召回详情，区分「DB 未召回到期望」与「召回到但重排未进」
+        if let Some(r) = &c.db_recall
+            && (c.regressed_hit || c.regressed_mrr || !r.expected_missed.is_empty())
+        {
+            println!(
+                "        DB 召回: 候选 {} +邻居 {} = 子图 {} ({} 查询 × 预算 {}) | 期望覆盖 {}/{} (must {}) | 漏召 {}",
+                r.candidate_count,
+                r.neighbor_count,
+                r.subgraph_count,
+                r.query_count,
+                r.candidate_k,
+                r.expected_in_subgraph,
+                r.expected_count,
+                r.must_in_subgraph,
+                r.expected_missed.len()
+            );
+        }
     }
     Ok(())
 }
@@ -543,6 +566,35 @@ fn write_retrieve_log(outcomes: &[TestCaseOutcome]) {
                 ));
             } else {
                 out.push_str("  动作: N/A（无 expected_actions）\n");
+            }
+            if let Some(r) = &data.db_recall {
+                out.push_str(&format!(
+                    "  DB 召回: 候选 {} +邻居 {} → 子图 {} ({} 查询 × 预算 {})\n",
+                    r.candidate_count,
+                    r.neighbor_count,
+                    r.subgraph_count,
+                    r.query_count,
+                    r.candidate_k
+                ));
+                out.push_str(&format!(
+                    "  期望覆盖: {}/{} 进入子图（候选内 {}，must {}）\n",
+                    r.expected_in_subgraph,
+                    r.expected_count,
+                    r.expected_in_candidates,
+                    r.must_in_subgraph
+                ));
+                if !r.expected_missed.is_empty() {
+                    out.push_str("  期望未召回（DB 结构性漏召候选）:\n");
+                    for id in &r.expected_missed {
+                        let name = data
+                            .graph_names
+                            .as_ref()
+                            .and_then(|m| m.get(id))
+                            .cloned()
+                            .unwrap_or_else(|| format!("{id:?}"));
+                        out.push_str(&format!("    - {name}\n"));
+                    }
+                }
             }
             out.push_str(&format!(
                 "  检索到 {} 节点:\n",

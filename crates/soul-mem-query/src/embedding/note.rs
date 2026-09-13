@@ -1,6 +1,6 @@
 use crate::embedding::{
-    Embeddable, EmbeddingCalcResult, EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
-    sem::SemanticEmbedding, situation::SituationEmbedding,
+    Embeddable, EmbeddingGenResult, EmbeddingModel, EmbeddingVec, sem::SemanticEmbedding,
+    situation::SituationEmbedding,
 };
 use serde::{Deserialize, Serialize};
 use soul_mem_core::memory_note::{MemoryNote, MemoryType};
@@ -64,41 +64,10 @@ impl EmbeddedMemoryType {
     }
 }
 
-impl MemoryEmbedding {
-    pub fn euclidean_distance(
-        &self,
-        _other: &MemoryEmbedding,
-        _hyperparams: VecBlendHyperParams,
-    ) -> EmbeddingCalcResult<f32> {
-        todo!("Euclidean distance")
-    }
-    pub fn cosine_similarity(
-        &self,
-        _other: &MemoryEmbedding,
-        _hyperparams: VecBlendHyperParams,
-    ) -> EmbeddingCalcResult<f32> {
-        todo!("Cosine similarity")
-    }
-    pub fn manhattan_distance(
-        &self,
-        _other: &MemoryEmbedding,
-        _hyperparams: VecBlendHyperParams,
-    ) -> EmbeddingCalcResult<f32> {
-        todo!("Manhattan distance")
-    }
-    pub fn linear_blend(
-        &self,
-        _other: &MemoryEmbeddingVariant,
-        _blend_factor: f32,
-    ) -> EmbeddingCalcResult<MemoryEmbeddingVariant> {
-        todo!("linear blend")
-    }
-}
-
-#[derive(Debug, Clone, Copy, Default)]
-pub struct VecBlendHyperParams {
-    // Placeholder for vector blending hyperparameters
-}
+// `MemoryEmbedding` 刻意**不提供**向量距离/相似度方法：真实的评分入口是
+// `EmbeddedMemoryNote::compute_fused`（`crate::query::compute`）。
+// 不要在这里新增与 `EmbeddingVec` 同名的方法——同名双份 API 会让调用方在
+// 一种类型上正常、在另一种上 abort，且编译器不会提示。
 
 ////////////////////////////////////////////////////////
 impl Embeddable for MemoryType {

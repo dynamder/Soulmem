@@ -83,8 +83,17 @@ pub fn edge_decay_intensity(
 /// 避免每次从创建时间重新计算，支持惰性更新。
 ///
 /// 公式：`1 - (1 - old_missing_degree) × e^(-Δt / τ)`
-///   - `Δt` = current_time - old_time 经过的小时数
+///   - `Δt` = current_time - old_time 经过的小时数（**分数小时**，不截断）
 ///   - `τ` = adjusted_half_life / ln(2)，半衰期随激活次数延长（受 cap 限制）
+///
+/// # 为什么必须用分数小时，不能用 `num_hours()`
+///
+/// 调用方（`compute_and_update_missing_degree`、`compute_all_missing_degrees`、
+/// `decay_edge`、`decay_graph_edge`）拿到结果后会**无条件**执行
+/// `set_last_forget_time(current_time)`——已流逝的时间只会被**消费掉**，不会被延后。
+/// 因此本函数必须把亚小时的时间也计入衰减：一旦截断到整小时，那部分时间就被**丢弃**，
+/// 每十几分钟交互一次的负载下缺失度永远不涨，遗忘会完全冻结，衰减的复合律也不再成立。
+/// 用秒换算成分数小时是对刷新粒度不敏感的前提。
 pub fn update_missing_degree_incremental(
     old_missing_degree: f32,
     old_time: DateTime<Utc>,
@@ -94,7 +103,7 @@ pub fn update_missing_degree_incremental(
     active_factor: f32,
     max_activation_cap: usize,
 ) -> f32 {
-    let elapsed_hours = (current_time - old_time).num_hours() as f32;
+    let elapsed_hours = (current_time - old_time).num_seconds() as f32 / 3600.0;
     if elapsed_hours <= 0.0 {
         return old_missing_degree;
     }
@@ -136,4 +145,73 @@ pub fn node_intensity_after(
     let adjusted_half_life = half_life_hours * (1.0 + active_factor * capped as f32);
     let tau = adjusted_half_life / std::f32::consts::LN_2;
     initial_intensity * (-duration_hours / tau).exp()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::{Duration, TimeZone};
+
+    const BASE_HALF_LIFE: f32 = 24.0;
+    const ACTIVE_FACTOR: f32 = 0.1;
+    const CAP: usize = 50;
+
+    fn base_time() -> DateTime<Utc> {
+        match Utc.with_ymd_and_hms(2026, 1, 1, 0, 0, 0) {
+            chrono::LocalResult::Single(t) => t,
+            other => panic!("固定时钟解析失败: {other:?}"),
+        }
+    }
+
+    fn step(old_md: f32, from: DateTime<Utc>, to: DateTime<Utc>) -> f32 {
+        update_missing_degree_incremental(
+            old_md,
+            from,
+            to,
+            /*retrieval_count=*/ 0,
+            BASE_HALF_LIFE,
+            ACTIVE_FACTOR,
+            CAP,
+        )
+    }
+
+    /// 钉住衰减增量的**复合律**：把总时长切成若干段逐段施加，必须等于一次性施加总时长。
+    ///
+    /// 这既是数学上正确的契约，也是"与刷新粒度无关"这一可观察行为的直接表述。
+    /// 它与 `test_sub_hour_elapsed_produces_nonzero_decay` 一起锁死分数小时语义——
+    /// 两者都必须保持通过，否则说明 `update_missing_degree_incremental` 又退回了
+    /// 会被刷新粒度影响的实现。
+    #[test]
+    fn test_incremental_decay_composes_over_sub_hour_refresh() {
+        let base = base_time();
+
+        // 参照：一次性跨 4 小时
+        let once = step(0.0, base, base + Duration::hours(4));
+        assert!(once > 0.0, "前置条件：跨 4 小时应产生衰减，实际 {once}");
+
+        // 复现：每 30 分钟刷新一次，累计同样 4 小时
+        let mut md = 0.0f32;
+        let mut last = base;
+        for step_no in 1..=8 {
+            let now = base + Duration::minutes(30 * step_no);
+            md = step(md, last, now);
+            last = now;
+        }
+
+        assert!(
+            (md - once).abs() < 1e-3,
+            "衰减不满足复合律（亚小时刷新丢弃了流逝时间）：逐步累积 md={md}，一次性 md={once}"
+        );
+    }
+
+    /// 最小可观察证据：30 分钟流逝必须产生非零衰减（曾被 `num_hours()` 截断为 0）。
+    #[test]
+    fn test_sub_hour_elapsed_produces_nonzero_decay() {
+        let base = base_time();
+        let after_30min = step(0.0, base, base + Duration::minutes(30));
+        assert!(
+            after_30min > 0.0,
+            "30 分钟流逝被 num_hours() 截断为 0，衰减完全丢失：{after_30min}"
+        );
+    }
 }

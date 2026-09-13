@@ -6,10 +6,13 @@ license = "MIT"
 
 [dependencies]
 anyhow = { workspace = true }
-backon = { workspace = true }
 soul-mem-core = { path = "../soul-mem-core" }
 soul-mem-query = { path = "../soul-mem-query" }
 soul-mem-runtime = { path = "../soul-mem-runtime" }
+# LLM 调用统一走这条栈：算法层只表达语义请求，不再自己摊平 transport
+soul-mem-llm = { path = "../soul-mem-llm" }
+# 遗忘补全失败时必须留日志（旧实现静默吞掉错误）
+log = "0.4.27"
 petgraph = { workspace = true }
 ordered-float = "5.0.0"
 serde = { workspace = true }
@@ -30,5 +33,4 @@ hotpath = ["hotpath/hotpath"]
 [dev-dependencies]
 insta.workspace = true
 tokio = { workspace = true }
-async-openai = { workspace = true }
 dotenvy = { workspace = true }
