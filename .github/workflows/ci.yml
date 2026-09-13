@@ -58,17 +58,20 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - name: Check formatting
-        run: cargo fmt --all --check
-
+      # 两个纯文本门禁放在最前面：不需要工具链、秒级返回，而且——关键——它们必须在
+      # `cargo fmt` 之前运行。此前它们排在 fmt 之后，于是 fmt 一红这两步就被 skip，
+      # 门禁等于没装（正是这条注释原本想表达的意思，但位置写错了）。
+      #
       # 中文注释被 GBK 保存会变成乱码且部分字节永久丢失（memory_cluster.rs 曾丢 16 行）。
-      # 纯文本检查，不需要工具链，故意放在最前面以便快速失败。
       - name: Check text encoding
         run: python3 scripts/check_encoding.py
 
       # 模块布局约定：一律 xxx.rs + xxx/，禁止 mod.rs。
       - name: Check module layout
         run: python3 scripts/check_layout.py
+
+      - name: Check formatting
+        run: cargo fmt --all --check
 
       - name: Clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
