@@ -12,6 +12,7 @@ SoulMem 是**角色扮演用的记忆系统**，本质是一个"向量检索 + �
 
 - **目标**：让 LLM 扮演的角色像人一样记住重要的、情感相关的、能驱动行为的事件，并建立联想。**不**追求精确记忆细节与事实性知识。
 - **目标环境**：个人用户的家用电脑。不是企业级方案——不要为高并发/多租户做设计。
+- **非商业化**：本项目是个人自用 + 公开源码的项目，不做商业化运营。这条会影响若干判断（§6 里 fixtures 的许可结论就依赖它），不要顺手改掉。
 - **技术栈**：Rust（edition 2024）+ SurrealDB（向量 + 图 + 时间序列一体，嵌入式运行）+ async-openai。GUI 是 Flutter（`soul-tune-ui/`），经 FRB 桥接。
 - **核心原则**：**能不用 LLM 就不用 LLM**。LLM 调用是秒级延迟且要花钱，只在复杂整合/抽取时使用，并保证提示词精简。
 
@@ -111,7 +112,7 @@ cargo mutants --workspace                 # 杀灭率 ≥90%，门禁见 scripts
   [`docs/architecture/测试数据格式.md`](docs/architecture/测试数据格式.md) 描述的是**上游生产者**（`soul_scraper`）的格式，命名与字段都不同。
 - **当前架构**看 [`docs/architecture/orchestration.md`](docs/architecture/orchestration.md)。
   [`docs/architecture/beta_ver.md`](docs/architecture/beta_ver.md) 是**设计历史**（含未决问题与 `- [ ]` 待办），部分已被实现取代，不要当作现状。
-- **`fixtures/example_data/` 里的数据是萌娘百科文本的演绎作品**，按其上游许可（CC BY-NC-SA 3.0 CN，禁止商业使用）提供，**与仓库的 MIT 不是同一套许可**。新增 fixture 或改写现有 fixture 之前，先读 [`docs/测试数据规范.md`](docs/测试数据规范.md) 第六节。
+- **`fixtures/example_data/` 里的数据是萌娘百科文本的演绎作品**，按其上游许可（CC BY-NC-SA 3.0 CN）提供。本项目**非商业化**，因此上游的 NC 条款不构成冲突；但演绎作品须继续以同协议提供，且转载须给出原页面 URL 署名。新增或改写 fixture 之前，先读 [`docs/测试数据规范.md`](docs/测试数据规范.md) 第六节。
 
 ---
 
