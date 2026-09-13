@@ -1,7 +1,10 @@
 name: CI
 
+# 主题分支的 push 不再触发：此前 `push:` 没有分支过滤，任何分支每推一次都会跑
+# 三平台全量测试。现在只在两条长期分支的 push 与所有 PR 上运行。
 on:
   push:
+    branches: [main, dev]
   pull_request:
 
 concurrency:
