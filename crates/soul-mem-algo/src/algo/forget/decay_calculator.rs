@@ -83,8 +83,17 @@ pub fn edge_decay_intensity(
 /// 避免每次从创建时间重新计算，支持惰性更新。
 ///
 /// 公式：`1 - (1 - old_missing_degree) × e^(-Δt / τ)`
-///   - `Δt` = current_time - old_time 经过的小时数
+///   - `Δt` = current_time - old_time 经过的小时数（**分数小时**，不截断）
 ///   - `τ` = adjusted_half_life / ln(2)，半衰期随激活次数延长（受 cap 限制）
+///
+/// # 为什么必须用分数小时，不能用 `num_hours()`
+///
+/// 调用方（`compute_and_update_missing_degree`、`compute_all_missing_degrees`、
+/// `decay_edge`、`decay_graph_edge`）拿到结果后会**无条件**执行
+/// `set_last_forget_time(current_time)`——已流逝的时间只会被**消费掉**，不会被延后。
+/// 因此本函数必须把亚小时的时间也计入衰减：一旦截断到整小时，那部分时间就被**丢弃**，
+/// 每十几分钟交互一次的负载下缺失度永远不涨，遗忘会完全冻结，衰减的复合律也不再成立。
+/// 用秒换算成分数小时是对刷新粒度不敏感的前提。
 pub fn update_missing_degree_incremental(
     old_missing_degree: f32,
     old_time: DateTime<Utc>,
@@ -94,7 +103,7 @@ pub fn update_missing_degree_incremental(
     active_factor: f32,
     max_activation_cap: usize,
 ) -> f32 {
-    let elapsed_hours = (current_time - old_time).num_hours() as f32;
+    let elapsed_hours = (current_time - old_time).num_seconds() as f32 / 3600.0;
     if elapsed_hours <= 0.0 {
         return old_missing_degree;
     }
@@ -166,29 +175,13 @@ mod tests {
         )
     }
 
-    /// 已知缺陷，**尚未修复**，故标记 `#[ignore]`（修复后去掉即可转正）。
+    /// 钉住衰减增量的**复合律**：把总时长切成若干段逐段施加，必须等于一次性施加总时长。
     ///
-    /// 缺陷：`update_missing_degree_incremental` 用 `num_hours()` 把时长**截断到整小时**，
-    /// 且 `elapsed_hours <= 0.0` 时直接原值返回。于是：
-    ///   - 亚小时刷新（< 1h）贡献 **0** 衰减；
-    ///   - 即便刷新间隔 ≥ 1h，也只能按整小时前进，每次最多白丢 59 分钟。
-    ///
-    /// 这个缺陷之所以危险，是因为**调用方还会无条件推进时钟**：
-    /// `compute_and_update_missing_degree`、`compute_all_missing_degrees`、
-    /// `decay_edge`、`decay_graph_edge` 都执行 `set_last_forget_time(current_time)`。
-    /// 时间因此被**丢弃**而不是**延后**——持续交互（每十几分钟刷新一次）会让缺失度
-    /// 永远不涨，即遗忘被完全冻结。
-    ///
-    /// 本测试钉住的是衰减增量的**复合律**：把总时长切成若干段逐段施加，
-    /// 必须等于一次性施加总时长。这既是数学上正确的契约，
-    /// 也是"与刷新粒度无关"这一可观察行为的直接表述。
-    ///
-    /// 注意该契约**无法由当前 API 形状满足**：函数只返回 `f32`，不返回"消费掉了多少时长"，
-    /// 因此调用方无从延后剩余时间。修复方向二选一：
-    ///   (a) 改用分数小时（`num_seconds() as f64 / 3600.0`）；
-    ///   (b) 保持整小时粒度，但改为返回"已消费时长"，由调用方按消费量推进时钟。
+    /// 这既是数学上正确的契约，也是"与刷新粒度无关"这一可观察行为的直接表述。
+    /// 它与 `test_sub_hour_elapsed_produces_nonzero_decay` 一起锁死分数小时语义——
+    /// 两者都必须保持通过，否则说明 `update_missing_degree_incremental` 又退回了
+    /// 会被刷新粒度影响的实现。
     #[test]
-    #[ignore = "documents an unfixed defect: num_hours() truncation discards elapsed decay time"]
     fn test_incremental_decay_composes_over_sub_hour_refresh() {
         let base = base_time();
 
@@ -211,9 +204,8 @@ mod tests {
         );
     }
 
-    /// 同一缺陷的最小可观察证据：30 分钟流逝必须产生非零衰减，实际被截断为 0。
+    /// 最小可观察证据：30 分钟流逝必须产生非零衰减（曾被 `num_hours()` 截断为 0）。
     #[test]
-    #[ignore = "documents an unfixed defect: num_hours() truncation drops sub-hour elapsed time"]
     fn test_sub_hour_elapsed_produces_nonzero_decay() {
         let base = base_time();
         let after_30min = step(0.0, base, base + Duration::minutes(30));
