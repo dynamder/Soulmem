@@ -16,7 +16,7 @@ use serde::Serialize;
 use soul_mem_core::memory_note::MemoryId;
 
 use crate::base::{RetrieveFlavor, RetrieveMode};
-use crate::engine::retrieve::data::RetrieveCaseData;
+use crate::engine::retrieve::data::{DbRecallDetail, RetrieveCaseData};
 use crate::engine::retrieve::suite::RetrieveSuite;
 use crate::engine::suite::{TestCaseOutcome, TestSuite};
 
@@ -40,6 +40,9 @@ pub struct DbCompareCaseData {
     pub direct_retrieved: Vec<MemoryId>,
     pub db_retrieved: Vec<MemoryId>,
     pub expected_combined_ranking: Vec<MemoryId>,
+    /// DB 侧 prefetch_db 召回观测（候选/邻居/子图规模与期望覆盖；
+    /// DB 回退用例可借此判断是「DB 未召回到期望」还是「召回到但重排没进 top-k」）。
+    pub db_recall: Option<DbRecallDetail>,
 
     pub hit_delta: f64,
     pub mrr_delta: f64,
@@ -68,6 +71,11 @@ pub struct DbCompareAggregate {
     pub mrr_improved_count: usize,
     pub mrr_regressed_count: usize,
     pub mrr_equal_count: usize,
+    /// DB 侧「期望覆盖」均值：期望进入召回子图的比例（仅统计带期望真值的用例；
+    /// embedding vs full 对比无 db_recall，保持 0）。
+    pub avg_db_candidate_coverage: f64,
+    /// 期望中存在「DB 未召回」节点的用例数（DB 结构性漏召）。
+    pub db_missed_case_count: usize,
 }
 
 #[derive(Clone, Serialize)]
@@ -198,6 +206,7 @@ pub fn build_db_compare_report(
                 .map(|d| d.combined_retrieved_ids.clone())
                 .unwrap_or_default(),
             expected_combined_ranking: direct.expected_combined_ranking.clone(),
+            db_recall: db.and_then(|d| d.db_recall.clone()),
             hit_delta: db_hit - direct_hit,
             mrr_delta: db_mrr - direct_mrr,
             improved_hit: db_hit > direct_hit,
@@ -237,6 +246,37 @@ pub fn build_db_compare_report(
         agg.mrr_improved_count = cases.iter().filter(|c| c.improved_mrr).count();
         agg.mrr_regressed_count = cases.iter().filter(|c| c.regressed_mrr).count();
         agg.mrr_equal_count = case_count - agg.mrr_improved_count - agg.mrr_regressed_count;
+
+        // DB 召回观测聚合：期望覆盖均值 + 结构性漏召用例数
+        let with_expected: Vec<&DbCompareCaseData> = cases
+            .iter()
+            .filter(|c| {
+                c.db_recall
+                    .as_ref()
+                    .map(|r| r.expected_count > 0)
+                    .unwrap_or(false)
+            })
+            .collect();
+        if !with_expected.is_empty() {
+            let m = with_expected.len() as f64;
+            agg.avg_db_candidate_coverage = with_expected
+                .iter()
+                .map(|c| {
+                    let r = c.db_recall.as_ref().expect("filtered above");
+                    r.expected_in_subgraph as f64 / r.expected_count as f64
+                })
+                .sum::<f64>()
+                / m;
+        }
+        agg.db_missed_case_count = cases
+            .iter()
+            .filter(|c| {
+                c.db_recall
+                    .as_ref()
+                    .map(|r| !r.expected_missed.is_empty())
+                    .unwrap_or(false)
+            })
+            .count();
     }
 
     DbCompareReport {
@@ -275,6 +315,7 @@ mod tests {
             description: format!("desc {name}"),
             combined_retrieved_ids: vec![],
             combined_ranking_metrics: metrics(hit, mrr, hit),
+            db_recall: None,
             per_query_metrics: vec![],
             action_metrics: ActionMetrics {
                 action_hit_rate: 0.0,

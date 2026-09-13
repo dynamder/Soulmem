@@ -32,7 +32,7 @@ use crate::engine::dataset::TestCaseConfig;
 use crate::engine::loader::{cached_load_graph, get_bge_model};
 use crate::engine::metrics::ranking::{compute_action_metrics, compute_ranking_metrics};
 use crate::engine::retrieve::data::{
-    ActionMetrics, NodeSummary, PerQueryMetrics, RankingMetrics, RetrieveCaseData,
+    ActionMetrics, DbRecallDetail, NodeSummary, PerQueryMetrics, RankingMetrics, RetrieveCaseData,
 };
 use crate::engine::retrieve::dataset::{PerQueryExpectation, SubQuery, TestCaseQuery};
 use crate::engine::suite::{DetailRow, SuiteReport, TestCaseOutcome, TestSuite, key_value_metric};
@@ -372,6 +372,7 @@ impl RetrieveSuite {
             description: format!("{}（{}）", test_case.description, message),
             combined_retrieved_ids: Vec::new(),
             combined_ranking_metrics: zero_metrics,
+            db_recall: None,
             per_query_metrics: Vec::new(),
             action_metrics: ActionMetrics {
                 action_hit_rate: 0.0,
@@ -412,7 +413,9 @@ impl TestSuite for RetrieveSuite {
         // - 直接模式：套件加载时全量载入的全图工作记忆；
         // - DB 模式：一次性预取该用例全部子查询（DB 端 HNSW 候选召回 + 一跳邻居
         //   扩展）到用例级临时工作记忆——管线只跑在 DB 召回子图上。
-        let wm: Arc<WorkingMemory> = match &self.db {
+        // 同时用与 prefetch_db 相同的只读 repo 调用（similarity_fetch + fetch_neighbors）
+        // 采集「候选 / 邻居」观测，供 DbRecallDetail 记录（不改动 prefetch_db 本身）。
+        let (wm, db_recall): (Arc<WorkingMemory>, Option<DbRecallDetail>) = match &self.db {
             Some(db) => {
                 let queries: Vec<EmbeddedMemoryRetrieveQuery> = test_case
                     .sub_queries
@@ -423,6 +426,28 @@ impl TestSuite for RetrieveSuite {
                         query: MemoryRetrieveQuery::new(sq.tags.clone(), sq.variant.clone()),
                     })
                     .collect();
+
+                // 观测（只读、确定性一致）：候选 = similarity_fetch union，邻居 = 一跳扩展
+                let obs_embeddings: Vec<MemoryRetrieveQueryEmbedding> =
+                    queries.iter().map(|q| q.embedding.clone()).collect();
+                let obs = (|| -> Option<(Vec<MemoryId>, Vec<MemoryId>)> {
+                    let candidate_ids: Vec<MemoryId> = db
+                        .rt
+                        .block_on(db.repo.similarity_fetch(obs_embeddings, db.candidate_k))
+                        .ok()?
+                        .into_iter()
+                        .map(|n| n.note().id())
+                        .collect();
+                    let neighbor_ids: Vec<MemoryId> = db
+                        .rt
+                        .block_on(db.repo.fetch_neighbors(&candidate_ids, 1))
+                        .ok()?
+                        .into_iter()
+                        .map(|n| n.note().id())
+                        .collect();
+                    Some((candidate_ids, neighbor_ids))
+                })();
+
                 let case_wm = Arc::new(WorkingMemory::new(10));
                 if let Err(e) =
                     db.rt
@@ -430,9 +455,28 @@ impl TestSuite for RetrieveSuite {
                 {
                     return self.db_failed_outcome(index, format!("DB 预取失败: {e}"));
                 }
-                case_wm
+                // 实际写入的子图以工作记忆为准（与 prefetch_db 写入顺序/去重一致）
+                let detail = obs.map(|(candidate_ids, neighbor_ids)| {
+                    let subgraph_ids: Vec<MemoryId> =
+                        case_wm.memory_cluster().read_or_compute(|c| {
+                            c.graph().node_weights().map(|n| n.note().id()).collect()
+                        });
+                    DbRecallDetail::from_prefetch(
+                        &candidate_ids,
+                        &neighbor_ids,
+                        &subgraph_ids,
+                        &test_case.expected_combined_ranking,
+                        &test_case.bonus_combined_ranking,
+                        test_case.sub_queries.len(),
+                        db.candidate_k,
+                    )
+                });
+                (case_wm, detail)
             }
-            None => Arc::clone(self.wm_direct.as_ref().expect("direct mode working memory")),
+            None => (
+                Arc::clone(self.wm_direct.as_ref().expect("direct mode working memory")),
+                None,
+            ),
         };
         let flavor = self.mode.flavor();
 
@@ -712,6 +756,7 @@ impl TestSuite for RetrieveSuite {
                 description: test_case.description.clone(),
                 combined_retrieved_ids: combined_ids,
                 combined_ranking_metrics: combined_ranking,
+                db_recall,
                 per_query_metrics,
                 action_metrics,
                 has_expected_abstract,
@@ -754,6 +799,7 @@ impl TestSuite for RetrieveSuite {
                         ndcg_at: data.combined_ranking_metrics.ndcg_at.clone(),
                         hit_rate: data.combined_ranking_metrics.hit_rate,
                     },
+                    db_recall: data.db_recall.clone(),
                     per_query_metrics: Vec::new(),
                     action_metrics: ActionMetrics {
                         action_hit_rate: data.action_metrics.action_hit_rate,
@@ -866,11 +912,84 @@ impl TestSuite for RetrieveSuite {
                 } else {
                     format!("{:28}", data.case_name)
                 };
+                // DB 模式：行尾附带回溯观测摘要（期望全入子图 / 漏召 n）
+                let db_suffix = match data.db_recall.as_ref() {
+                    Some(r) if r.expected_count > 0 && r.expected_missed.is_empty() => format!(
+                        " | DB 期望 {}/{} 全入子图",
+                        r.expected_in_subgraph, r.expected_count
+                    ),
+                    Some(r) if r.expected_count > 0 => {
+                        format!(
+                            " | DB 漏召 {}/{}",
+                            r.expected_missed.len(),
+                            r.expected_count
+                        )
+                    }
+                    _ => String::new(),
+                };
                 detail_rows.push(DetailRow {
-                    text: format!("  {:28}  {:.4}  {:.2}    {}", name, mrr, hit, status),
+                    text: format!(
+                        "  {:28}  {:.4}  {:.2}    {}{}",
+                        name, mrr, hit, status, db_suffix
+                    ),
                     has_error: hit <= 0.0 && !data.case_name.contains("无意义"),
                 });
             }
+        }
+
+        // DB 模式汇总：prefetch_db 召回观测（候选/邻居/子图均值、期望覆盖、漏召用例数）。
+        // 直接模式所有用例 db_recall 为 None，此块自动跳过。
+        let db_observed: Vec<&DbRecallDetail> = outcomes
+            .iter()
+            .filter_map(|o| {
+                o.data
+                    .downcast_ref::<RetrieveCaseData>()
+                    .and_then(|d| d.db_recall.as_ref())
+            })
+            .collect();
+        if !db_observed.is_empty() {
+            let n = db_observed.len() as f64;
+            let avg_candidate = db_observed
+                .iter()
+                .map(|r| r.candidate_count as f64)
+                .sum::<f64>()
+                / n;
+            let avg_neighbor = db_observed
+                .iter()
+                .map(|r| r.neighbor_count as f64)
+                .sum::<f64>()
+                / n;
+            let avg_subgraph = db_observed
+                .iter()
+                .map(|r| r.subgraph_count as f64)
+                .sum::<f64>()
+                / n;
+            metrics.push(key_value_metric(
+                "候选/邻居/子图（均值）",
+                "DB 召回观察",
+                format!("{avg_candidate:.1} / {avg_neighbor:.1} / {avg_subgraph:.1}"),
+            ));
+            let expected_total: usize = db_observed.iter().map(|r| r.expected_count).sum();
+            if expected_total > 0 {
+                let covered_total: usize = db_observed.iter().map(|r| r.expected_in_subgraph).sum();
+                metrics.push(key_value_metric(
+                    "期望覆盖（进入子图）",
+                    "DB 召回观察",
+                    format!(
+                        "{:.1}%",
+                        covered_total as f64 / expected_total as f64 * 100.0
+                    ),
+                ));
+            }
+            let missed_cases = db_observed
+                .iter()
+                .filter(|r| !r.expected_missed.is_empty())
+                .count();
+            metrics.push(key_value_metric(
+                "期望漏召用例",
+                "DB 召回观察",
+                format!("{missed_cases}/{}", db_observed.len()),
+            ));
         }
 
         SuiteReport {
