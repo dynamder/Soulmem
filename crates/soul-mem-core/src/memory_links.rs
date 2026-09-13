@@ -1,3 +1,26 @@
+//! 记忆之间的有向边。
+//!
+//! [`MemoryLink`] 描述 `from → to` 的一条记忆关联：身份（[`LinkId`]）、两端节点 id、
+//! 连接强度 `intensity`、遗忘状态，以及一个 [`MemoryLinkType`] 载荷。
+//!
+//! 载荷分布（与 [`memory_note`](crate::memory_note) 的类型一一对应）：
+//! [`situation_mem`] / [`sem_mem`] / [`proc_mem`]。
+//!
+//! 边是**有向**的，且约定从一条记忆节点出发的边集合（`MemoryNote::links()`）
+//! 是该节点的**完整出边集**——`soul-mem-runtime` 的 `upsert_notes` 依赖这一点：
+//! 写一个节点会在同一事务内**重建其全部出边**（先删后写）。因此传入一个
+//! 只填了部分边的节点会**静默丢弃**它的其余出边。
+//!
+//! # 字段可见性（与节点不一致，改动时留意）
+//!
+//! `intensity` 与 `missing_degree` 是 **`pub` 字段**，而节点侧的对应字段是私有且带
+//! `clamp` 的 setter。也就是说 `link.missing_degree = 5.0` 能编译通过并破坏
+//! "0.0 新鲜 ~ 1.0 完全遗忘"这一约定；`intensity` 则连取值范围都没有文档。
+//! 新增字段请优先走私有字段 + 访问器。
+//!
+//! `missing_degree` / `last_forget_time` 带 `#[serde(default = ...)]`，
+//! 保证老数据缺字段时仍可反序列化——不要移除。
+
 use std::fmt::Display;
 
 use chrono::{DateTime, Utc};
