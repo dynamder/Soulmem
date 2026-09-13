@@ -1,0 +1,94 @@
+name: Branch drift
+
+# `main` 曾经在无人察觉的情况下落后 `dev` 162 个提交，两条线看起来像两个项目。
+# 这个 workflow 让漂移自己报警，而不是等某天突然发现「进度割裂」。
+#
+# 阈值与处理流程见 CONTRIBUTING.md 的「分支模型」与「发布流程」两节。
+
+# 注意：GitHub 的 schedule 触发器**只在默认分支（main）上生效**。所以这个检查要等本文件
+# 进入 main 之后才会真正开始跑；在那之前可以用 workflow_dispatch 手动验证。
+on:
+  schedule:
+    # 每周一 01:00 UTC（北京时间 09:00）
+    - cron: '0 1 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  # 超过多少个提交就算漂移。调这个值即可，不需要动下面的脚本。
+  DRIFT_THRESHOLD: 30
+  # issue 的固定标题：脚本靠它去重，不要在标题里放会变的数字。
+  ISSUE_TITLE: '[drift] main 落后 dev 过多提交，请开 release PR'
+
+jobs:
+  drift:
+    name: main ↔ dev 漂移检查
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # 需要完整历史才能数提交数
+          fetch-depth: 0
+
+      - name: 统计 main 落后 dev 的提交数
+        id: count
+        run: |
+          git fetch --quiet origin main dev
+          behind=$(git rev-list --count origin/main..origin/dev)
+          echo "behind=$behind" >> "$GITHUB_OUTPUT"
+          echo "main 落后 dev $behind 个提交（阈值 $DRIFT_THRESHOLD）"
+
+      - name: 超阈值开 issue，回到阈值内自动关闭
+        uses: actions/github-script@v7
+        env:
+          BEHIND: ${{ steps.count.outputs.behind }}
+          THRESHOLD: ${{ env.DRIFT_THRESHOLD }}
+          TITLE: ${{ env.ISSUE_TITLE }}
+        with:
+          script: |
+            const behind = Number(process.env.BEHIND);
+            const threshold = Number(process.env.THRESHOLD);
+            const title = process.env.TITLE;
+            const repo = context.repo;
+
+            // 按标题查已有的开启中 issue，避免每次告警都新建一个
+            const { data } = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${repo.owner}/${repo.repo} is:issue is:open in:title "${title}"`,
+            });
+            const existing = data.items[0];
+
+            if (behind > threshold) {
+              const body = [
+                `\`main\` 落后 \`dev\` **${behind}** 个提交（阈值 ${threshold}）。`,
+                '',
+                '按 `CONTRIBUTING.md` 的发布流程，此时应当开一个 release PR（`dev` → `main`），',
+                '合并后打 annotated tag，然后把 `main` 合回 `dev`。',
+                '',
+                `本次检查：${new Date().toISOString()}`,
+              ].join('\n');
+
+              if (existing) {
+                await github.rest.issues.createComment({
+                  ...repo, issue_number: existing.number, body,
+                });
+              } else {
+                await github.rest.issues.create({ ...repo, title, body });
+              }
+              return;
+            }
+
+            // 漂移回到阈值内：关闭遗留的告警 issue，别留下永久红灯
+            if (existing) {
+              await github.rest.issues.createComment({
+                ...repo,
+                issue_number: existing.number,
+                body: `\`main\` 落后 \`dev\` 已回到 ${behind} 个提交（阈值 ${threshold}），自动关闭。`,
+              });
+              await github.rest.issues.update({
+                ...repo, issue_number: existing.number, state: 'closed',
+              });
+            }
