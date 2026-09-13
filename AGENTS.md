@@ -12,6 +12,7 @@ SoulMem 是**角色扮演用的记忆系统**，本质是一个"向量检索 + �
 
 - **目标**：让 LLM 扮演的角色像人一样记住重要的、情感相关的、能驱动行为的事件，并建立联想。**不**追求精确记忆细节与事实性知识。
 - **目标环境**：个人用户的家用电脑。不是企业级方案——不要为高并发/多租户做设计。
+- **非商业化**：本项目是个人自用 + 公开源码的项目，不做商业化运营。这条会影响若干判断（§6 里 fixtures 的许可结论就依赖它），不要顺手改掉。
 - **技术栈**：Rust（edition 2024）+ SurrealDB（向量 + 图 + 时间序列一体，嵌入式运行）+ async-openai。GUI 是 Flutter（`soul-tune-ui/`），经 FRB 桥接。
 - **核心原则**：**能不用 LLM 就不用 LLM**。LLM 调用是秒级延迟且要花钱，只在复杂整合/抽取时使用，并保证提示词精简。
 
@@ -105,12 +106,13 @@ cargo mutants --workspace                 # 杀灭率 ≥90%，门禁见 scripts
 > **不要批量改写、重排或"优化"书正文**——那不是可以自动化的区域。需要文档改动时改 `docs/` 或 crate 内注释。
 > 书源码保留在 `doc/book` 分支，当前分支**不含**书源码（磁盘上的 `book/book/` 只是 HTML 构建产物）。
 
-**取用文档时的两条规则**：
+**取用文档时的三条规则**：
 
 - **测试数据集**以 [`docs/测试数据规范.md`](docs/测试数据规范.md) 为准。
   [`docs/architecture/测试数据格式.md`](docs/architecture/测试数据格式.md) 描述的是**上游生产者**（`soul_scraper`）的格式，命名与字段都不同。
 - **当前架构**看 [`docs/architecture/orchestration.md`](docs/architecture/orchestration.md)。
   [`docs/architecture/beta_ver.md`](docs/architecture/beta_ver.md) 是**设计历史**（含未决问题与 `- [ ]` 待办），部分已被实现取代，不要当作现状。
+- **`fixtures/example_data/` 里的数据是萌娘百科文本的演绎作品**，按其上游许可（CC BY-NC-SA 3.0 CN）提供。本项目**非商业化**，因此上游的 NC 条款不构成冲突；但演绎作品须继续以同协议提供，且转载须给出原页面 URL 署名。新增或改写 fixture 之前，先读 [`docs/测试数据规范.md`](docs/测试数据规范.md) 第六节。
 
 ---
 
@@ -145,7 +147,7 @@ cargo mutants --workspace                 # 杀灭率 ≥90%，门禁见 scripts
 | `#![allow(dead_code)]` 在两个 crate 级放行，掩盖真实死代码；`dead_code` 警告因此局部失效 | `crates/soul-tune/src/main.rs`、`crates/soul-tune-api/src/lib.rs` |
 | `tests_playtest_mock.rs` 定义了 `MockLlm` 却从未传给 `PlayTestRunner`，并未真正覆盖 playtest | `crates/soul-tune/src/tests_playtest_mock.rs` |
 
-**本地配置导致的差异**：`.git/info/exclude`（**不随仓库分发**）在维护者机器上排除了 `fixtures/` 与 `soul-tune-ui/`。因此这两处的**新增文件在维护者机器上不会出现在 `git status` 里**；在其他环境里它们是正常的未跟踪文件。
+**本地配置不再排除任何目录**：`.git/info/exclude`（**不随仓库分发**）曾排除 `fixtures/` 与 `soul-tune-ui/`，目的是在同一个工作副本里切到 `doc/book` 分支时不把这两处显示成成片未追踪。代价是本机新增的这两个目录下的文件在 `git status` 里**完全不可见**，会被静默漏提交——`soul-tune-ui/` 在 `dev` 上是已跟踪目录，风险尤其大。现在改为给 `doc/book` 一个独立工作区（`git worktree add ../SoulMem-book doc/book`），排除项已清空。实测这两个目录的构建产物已被根 `.gitignore` 与 `soul-tune-ui/.gitignore` 完整覆盖，移除排除项后未追踪文件数为 0。
 
 ---
 
