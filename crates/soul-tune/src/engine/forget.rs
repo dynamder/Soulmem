@@ -22,9 +22,7 @@
 //! LLM 后端与 playtest 完全一致：统一来源解析（见 `engine::llm::resolver`）——
 //! 先探测运行中的 llama-server，没有则自动拉起本地缓存模型，都没有则降级遮罩。
 
-use std::future::Future;
 use std::path::Path;
-use std::pin::Pin;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -50,6 +48,7 @@ use soul_mem_core::memory_note::situation_mem::SituationType;
 use soul_mem_core::memory_note::{MemoryId, MemoryNote, MemoryNoteBuilder, MemoryType};
 use soul_mem_runtime::cluster::memory_cluster::MemoryCluster;
 
+// 同步外壳 trait：run_revise_case 直接调用 `chat()`，需要它在本作用域内
 use crate::engine::llm::{LlamaServer, LlmBackend};
 use crate::engine::loader::{build_reverse_id_map, load_graph_cluster};
 use crate::engine::suite::{
@@ -59,16 +58,6 @@ use crate::engine::suite::{
 // ========================================================================
 // 共享：LLM 闭包与通用工具
 // ========================================================================
-
-/// `lazy_forget` 要求的 LLM 调用闭包：`(system, user) -> Future<Result<String>>`
-type LlmCall = Box<
-    dyn FnOnce(
-        &str,
-        &str,
-    ) -> Pin<
-        Box<dyn Future<Output = Result<String, Box<dyn std::error::Error + Send + Sync>>> + Send>,
-    >,
->;
 
 /// 记忆补全的最大生成 token 数（与 playtest 的生成调用量级一致）
 const LLM_MAX_TOKENS: u32 = 1024;
@@ -86,43 +75,11 @@ const FORGET_SYSTEM_PROMPT: &str = "You are a memory reconstruction assistant. \
     output exactly: \"I totally forget it and cannot recall anything.\" \
     Output only the completed text, no explanation.";
 
-/// 使用 soul-tune 的 `LlamaServer`（与 playtest 相同后端）的闭包。
-///
-/// `LlmBackend::chat` 是阻塞调用（reqwest::blocking），必须通过 `spawn_blocking`
-/// 移到 tokio 阻塞线程池执行——直接在 `block_on` 的异步上下文里调用会让 reqwest
-/// 内部创建的 runtime 在异步上下文里被 drop 而 panic。
-fn llama_closure(server: Arc<Mutex<LlamaServer>>) -> LlmCall {
-    Box::new(move |system: &str, user: &str| {
-        let s = server.clone();
-        let sys = system.to_string();
-        let usr = user.to_string();
-        Box::pin(async move {
-            let result = tokio::task::spawn_blocking(move || {
-                let mut guard = s.lock().expect("llama-server 锁");
-                guard.chat(&sys, &usr, LLM_MAX_TOKENS)
-            })
-            .await
-            .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> {
-                format!("spawn_blocking 失败: {e}").into()
-            })?;
-            result.map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { e.into() })
-        })
-    })
-}
-
-/// LLM 不可用时传入的错误闭包：算法应优雅降级为 MaskOnly（遮罩不回退）
-fn failing_llm_closure() -> LlmCall {
-    Box::new(|_system: &str, _user: &str| {
-        Box::pin(async {
-            Err::<String, Box<dyn std::error::Error + Send + Sync>>(
-                "LLM 未配置（llama-server 不可用）".into(),
-            )
-        })
-    })
-}
-
 /// 按统一来源解析创建 LLM 后端（见 [`crate::engine::llm::resolver`]）：
 /// 复用运行中的 llama-server → 自动拉起本地缓存模型 → 降级为 None（遮罩路径）。
+///
+/// 返回 `None` 不再需要"伪造一个失败的闭包"：算法层的 `engine` 参数本身就是
+/// `Option<&LlmEngine>`，"没有 LLM"是显式状态。
 fn try_create_llm() -> Option<Arc<Mutex<LlamaServer>>> {
     let resolution = crate::engine::llm::resolve_llm();
     match resolution.server {
@@ -648,19 +605,19 @@ impl ForgetReviseSuite {
     fn run_revise_case(&self, sample: &ReviseSample) -> ReviseCaseData {
         let llm_available = self.llm.is_some();
         let (reply, llm_err) = match &self.llm {
-            Some(llm) => {
-                let runtime = tokio::runtime::Builder::new_multi_thread()
-                    .enable_all()
-                    .build()
-                    .expect("tokio runtime");
-                let closure = llama_closure(llm.clone());
+            Some(server) => {
                 // 与算法层 `reconstruct_summary` 完全一致的提示词（user 带占位符计数说明），
-                // 保证修订测试 = 真实管线行为
+                // 保证修订测试 = 真实管线行为。
+                //
+                // 这里刻意**直接调用**同步外壳而不是走 `reconstruct_summary`：后者的
+                // "全遮罩直接返回固定遗忘句"是管线语义，而本套件要测的是 LLM 面对遮罩输入
+                // 的真实产出（含 md=1.0 的极端档），不能被短路掉。
                 let (system, user) =
                     build_reconstruct_prompt(&sample.masked, Some(FORGET_SYSTEM_PROMPT));
-                match runtime.block_on(closure(&system, &user)) {
-                    Ok(r) => (r, None),
-                    Err(e) => (String::new(), Some(format!("{e}"))),
+                let mut guard = server.lock().expect("llama-server 锁");
+                match guard.chat(&system, &user, LLM_MAX_TOKENS) {
+                    Ok(reply) => (reply, None),
+                    Err(error) => (String::new(), Some(format!("{error}"))),
                 }
             }
             None => (String::new(), Some("llama-server 不可用".into())),
@@ -1165,17 +1122,26 @@ impl ForgetPipelineSuite {
                 let node = &mut g.node_weight_mut(idx).expect("node").note;
                 let orig = get_summary(node).unwrap_or_default();
                 let orig_words = mask_word_count(&self.jieba, &orig);
-                let closure: LlmCall = if use_llm && revise_set.contains(&idx) {
-                    llama_closure(self.llm.as_ref().expect("llm").clone())
+                // 只有"确实要用 LLM 且该节点需要修订"时才给出引擎；
+                // 其余情况显式传 None，由算法层降级为仅遮罩
+                let server = if use_llm && revise_set.contains(&idx) {
+                    Some(
+                        self.llm
+                            .as_ref()
+                            .expect("llm")
+                            .lock()
+                            .expect("llama-server 锁"),
+                    )
                 } else {
-                    failing_llm_closure()
+                    None
                 };
+                let engine = server.as_ref().map(|guard| guard.engine());
                 let act = runtime.block_on(lazy_forget(
                     node,
                     now,
                     &self.jieba,
                     Some(FORGET_SYSTEM_PROMPT),
-                    closure,
+                    engine,
                 ));
                 let after = node.missing_degree();
                 (act, after, orig_words, orig)
@@ -1552,17 +1518,25 @@ impl ForgetPipelineSuite {
                 let (action, after) = {
                     let g = cluster.graph_mut();
                     let node = &mut g.node_weight_mut(*idx).expect("node").note;
-                    let closure: LlmCall = if use_llm && revise_set.contains(idx) {
-                        llama_closure(self.llm.as_ref().expect("llm").clone())
+                    // 与上面一致：没有可用 LLM 时显式传 None，而不是伪造失败
+                    let server = if use_llm && revise_set.contains(idx) {
+                        Some(
+                            self.llm
+                                .as_ref()
+                                .expect("llm")
+                                .lock()
+                                .expect("llama-server 锁"),
+                        )
                     } else {
-                        failing_llm_closure()
+                        None
                     };
+                    let engine = server.as_ref().map(|guard| guard.engine());
                     let act = runtime.block_on(lazy_forget(
                         node,
                         now,
                         &self.jieba,
                         Some(FORGET_SYSTEM_PROMPT),
-                        closure,
+                        engine,
                     ));
                     (act, node.missing_degree())
                 };
