@@ -1,0 +1,2341 @@
+{
+  "name": "batch_桑多涅_https_zh_moegirl_org_cn_E6_A1_91_E5_A4_9A_E6_B6_85",
+  "description": "Batch generated test data for 桑多涅_https_zh_moegirl_org_cn_E6_A1_91_E5_A4_9A_E6_B6_85",
+  "graph_path": "graph.json",
+  "config": {
+    "similarity_threshold": 0.0,
+    "max_results": 10,
+    "test_k_values": [
+      1,
+      3,
+      5
+    ]
+  },
+  "test_cases": [
+    {
+      "name": "query_0",
+      "description": "atomic query 0",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "创造者"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "枫丹最伟大的奇械公",
+                "description": "我的创造者，发明芒荒湮灭体系、创立枫丹动能工程科学研究院的那位天才"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_alan"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_alan"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_1",
+      "description": "atomic query 1",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "第三席少女",
+                "description": "整天唱歌、性格天真烂漫，像霜月女神一样的人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_columbia"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_tea_party"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_columbia"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_tea_party"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_2",
+      "description": "atomic query 2",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "敌人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "第二席博士",
+                "description": "那个自以为能掌控一切、把我当机器看的疯子"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_dottore"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_fatui_harbingers"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_dottore"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_fatui_harbingers"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "金发的变数",
+                "description": "在挪德卡莱搅局、把我当成凯瑟琳的那位旅行者"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_traveler"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_catherine"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_traveler"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_catherine"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "造物",
+            "人物"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "冒险家协会接待员",
+                "description": "站在柜台前的那位仿生人偶，以及她背后的那一整套人偶体系"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_catherine"
+          ],
+          "bonus_ranking": [
+            "sem_catherine_network",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_catherine"
+      ],
+      "bonus_combined_ranking": [
+        "sem_catherine_network",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "造物",
+            "角色"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "大型机器人战友",
+                "description": "在挪德卡莱用月矩力火炮迎战敌人的巨型机械，核心藏着术式成果"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_pronenia"
+          ],
+          "bonus_ranking": [
+            "sem_moon_force",
+            "sem_alan"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_pronenia"
+      ],
+      "bonus_combined_ranking": [
+        "sem_moon_force",
+        "sem_alan"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "社交",
+            "茶会"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "发条公主的茶会",
+                "description": "由少女、仆人、女士和我组成的固定聚会"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_tea_party"
+          ],
+          "bonus_ranking": [
+            "sem_columbia",
+            "sem_arlecchino",
+            "sem_rosalyne"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_tea_party"
+      ],
+      "bonus_combined_ranking": [
+        "sem_columbia",
+        "sem_arlecchino",
+        "sem_rosalyne"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "盟友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "前愚人众第六席",
+                "description": "主动送上门用世界树核心算力帮忙、还总爱拌嘴的那个怪人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_wanderer"
+          ],
+          "bonus_ranking": [
+            "sem_columbia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_wanderer"
+      ],
+      "bonus_combined_ranking": [
+        "sem_columbia"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "上级"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "至冬的君主",
+                "description": "那位放任我自由研究、很少过问我研究什么的上级"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_tsaritsa"
+          ],
+          "bonus_ranking": [
+            "sem_fatui_harbingers"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_tsaritsa"
+      ],
+      "bonus_combined_ranking": [
+        "sem_fatui_harbingers"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "地点"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "枫丹的老孤儿院",
+                "description": "阿兰和玛丽安他们长大的地方，也是阿兰最后的安息地"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_narcissus_cross"
+          ],
+          "bonus_ranking": [
+            "sem_alan"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_narcissus_cross"
+      ],
+      "bonus_combined_ranking": [
+        "sem_alan"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "理念",
+            "灵魂"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "人造灵魂的证明",
+                "description": "阿兰认为我这个发条机关并非简单机械、而是拥有真正灵魂的理念"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_soul_second_birth"
+          ],
+          "bonus_ranking": [
+            "sem_alan",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_soul_second_birth"
+      ],
+      "bonus_combined_ranking": [
+        "sem_alan",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "价值观",
+            "理性"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "公式万物论",
+                "description": "相信世界可以用理性和公式来理解的那套价值观"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_engineering_thought"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "proc_think_rational"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_engineering_thought"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "proc_think_rational"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "阿兰",
+            "临终"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "世间很美，美丽到你无法想象，所以去寻找你自己的愿望吧——这句话是谁在什么时候对我说的",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_alan_last_words"
+          ],
+          "bonus_ranking": [
+            "sem_alan",
+            "sem_self_salvation"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_alan_last_words"
+      ],
+      "bonus_combined_ranking": [
+        "sem_alan",
+        "sem_self_salvation"
+      ],
+      "expected_actions": [
+        "proc_think_rational"
+      ]
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "牺牲",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "多托雷那一下本来是冲着金发旅行者去的，最后打在了我身上",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_take_blow"
+          ],
+          "bonus_ranking": [
+            "sem_traveler",
+            "sem_dottore",
+            "sem_self_salvation"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_take_blow"
+      ],
+      "bonus_combined_ranking": [
+        "sem_traveler",
+        "sem_dottore",
+        "sem_self_salvation"
+      ],
+      "expected_actions": [
+        "proc_think_rational"
+      ]
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "术式",
+            "研究"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "为了把困在月亮倒影空间里的朋友带回来，秘密研发跨时空连接术式的那段日子",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_develop_core_spell"
+          ],
+          "bonus_ranking": [
+            "sem_columbia",
+            "sem_dottore",
+            "sem_pronenia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_develop_core_spell"
+      ],
+      "bonus_combined_ranking": [
+        "sem_columbia",
+        "sem_dottore",
+        "sem_pronenia"
+      ],
+      "expected_actions": [
+        "proc_research_obsession"
+      ]
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "葬礼",
+            "愚人众"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "冬夜愚戏上，有人躺在灵柩里，周围却只剩下争吵的那场葬礼",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_rosalyne_funeral"
+          ],
+          "bonus_ranking": [
+            "sem_rosalyne",
+            "sem_fatui_harbingers"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_rosalyne_funeral"
+      ],
+      "bonus_combined_ranking": [
+        "sem_rosalyne",
+        "sem_fatui_harbingers"
+      ],
+      "expected_actions": [
+        "proc_diary_weather"
+      ]
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "茶会"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "哥伦比娅总是抢走最大一块点心、阿蕾奇诺严肃喝茶的聚会",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_tea_party_memory"
+          ],
+          "bonus_ranking": [
+            "sem_tea_party",
+            "sem_columbia",
+            "sem_arlecchino"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_tea_party_memory"
+      ],
+      "bonus_combined_ranking": [
+        "sem_tea_party",
+        "sem_columbia",
+        "sem_arlecchino"
+      ],
+      "expected_actions": [
+        "proc_tea_party"
+      ]
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "友人"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "深夜总在我房间外唱歌、还试过背发条生活的那位少女",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_columbia_singing"
+          ],
+          "bonus_ranking": [
+            "sem_columbia",
+            "sit_abs_participants_close_friends"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_columbia_singing"
+      ],
+      "bonus_combined_ranking": [
+        "sem_columbia",
+        "sit_abs_participants_close_friends"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "误会"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在那夏镇冒险家协会被人当成凯瑟琳，当场纠正还配合演了一段接待语的事",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_mistaken_catherine"
+          ],
+          "bonus_ranking": [
+            "sem_traveler",
+            "sem_catherine"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_mistaken_catherine"
+      ],
+      "bonus_combined_ranking": [
+        "sem_traveler",
+        "sem_catherine"
+      ],
+      "expected_actions": [
+        "proc_speak_tsundere"
+      ]
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "战斗",
+            "挪德卡莱"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "普隆尼亚用强化火炮迎战雷利尔、最后核心被藏起来的战场",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_nod_krai_battle"
+          ],
+          "bonus_ranking": [
+            "sem_pronenia",
+            "sem_moon_force",
+            "sem_traveler"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_nod_krai_battle"
+      ],
+      "bonus_combined_ranking": [
+        "sem_pronenia",
+        "sem_moon_force",
+        "sem_traveler"
+      ],
+      "expected_actions": [
+        "proc_sword_float"
+      ]
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "事件",
+            "出丑"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "哥伦比娅转身离开时我小声说了句她走了，结果被派蒙听见的丢人场面",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_qiyue_night"
+          ],
+          "bonus_ranking": [
+            "sem_columbia",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_qiyue_night"
+      ],
+      "bonus_combined_ranking": [
+        "sem_columbia",
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_speak_tsundere"
+      ]
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "习惯",
+            "说话方式"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "被亲近的人戳穿口是心非时的反应，明明关心却要嘴硬",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_columbia_clockwork_back"
+          ],
+          "bonus_ranking": [
+            "sit_abs_event_teasing",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_columbia_clockwork_back"
+      ],
+      "bonus_combined_ranking": [
+        "sit_abs_event_teasing",
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_speak_tsundere"
+      ]
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "研究"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "沉迷机械研究时大部分时间待在实验室、熬夜忘记吃饭的生活状态",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_develop_core_spell"
+          ],
+          "bonus_ranking": [
+            "sit_abs_event_late_research",
+            "sem_engineering_thought"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_develop_core_spell"
+      ],
+      "bonus_combined_ranking": [
+        "sit_abs_event_late_research",
+        "sem_engineering_thought"
+      ],
+      "expected_actions": [
+        "proc_research_obsession"
+      ]
+    },
+    {
+      "name": "query_23",
+      "description": "atomic query 23",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "日记"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "写日记只写一两句、用天气来映射心情的习惯，比如大雪代表悲伤",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_rosalyne_funeral"
+          ],
+          "bonus_ranking": [
+            "sit_abstract_diary_writing",
+            "sem_rosalyne"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_rosalyne_funeral"
+      ],
+      "bonus_combined_ranking": [
+        "sit_abstract_diary_writing",
+        "sem_rosalyne"
+      ],
+      "expected_actions": [
+        "proc_diary_weather"
+      ]
+    },
+    {
+      "name": "query_24",
+      "description": "atomic query 24",
+      "sub_queries": [
+        {
+          "priority": 7,
+          "tag": [
+            "技能",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "让悬浮的双手剑在空中旋转后精准击出的战斗方式",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_nod_krai_battle"
+          ],
+          "bonus_ranking": [
+            "sit_abs_environment_battle",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_nod_krai_battle"
+      ],
+      "bonus_combined_ranking": [
+        "sit_abs_environment_battle",
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_sword_float"
+      ]
+    },
+    {
+      "name": "set_columbia",
+      "description": "查询最在乎的挚友哥伦比娅",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "第三席少女",
+                "description": "整天唱歌、性格天真良善的愚人众执行官"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "霜月女神",
+                "description": "生日正好在我后一天的那位少女"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "房外唱歌的人",
+                "description": "在至冬总部总喜欢在我房间外唱歌的人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被我亲手救回来的朋友",
+                "description": "为了让她从月亮倒影空间回归，我连命都搭上了"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "说知道我其实很勇敢的那个人",
+                "description": "她回来后告诉我，她一直知道我真正的心意"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "挚友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "茶会里抢最大点心的人",
+                "description": "我的定期茶会上最闹腾的那位常客"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_columbia"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_columbia"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_columbia"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_tea_party"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_columbia"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_tea_party"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_columbia"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_columbia"
+          ],
+          "bonus_ranking": [
+            "sem_tea_party"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_columbia"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_tea_party"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_alan_last_words",
+      "description": "查询阿兰临终前的对话与嘱托",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "阿兰",
+            "临终"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "他临终前对我说，这个世界美到无法想象，让我去找自己的愿望",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "阿兰",
+            "临终"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "阿兰让我销毁他所有手稿、把普隆尼亚送去科学院的那次临终嘱托",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "阿兰",
+            "临终"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "我问『自救是否足以成为救世的理由』时，他回答『足够了』",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "阿兰",
+            "临终"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在隐居工坊里，他最后那段静谧而哀伤的告别",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "静谧而哀伤",
+                  "tone": "灰暗"
+                },
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "阿兰",
+            "临终"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "他说过，我拥有属于自己的人生，而不必活成谁的替代品",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "阿兰",
+            "临终"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "听他最后说做自己想做的事那次，我守在床边",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "阿兰·吉约丹",
+                    "role": "临终的创造者"
+                  },
+                  {
+                    "name": "我",
+                    "role": "陪伴者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_alan_last_words"
+          ],
+          "bonus_ranking": [
+            "sem_alan",
+            "sem_self_salvation"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_alan_last_words"
+          ],
+          "bonus_ranking": [
+            "sem_alan",
+            "sem_pronenia"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_alan_last_words"
+          ],
+          "bonus_ranking": [
+            "sem_alan",
+            "sem_self_salvation"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_alan_last_words"
+          ],
+          "bonus_ranking": [
+            "sem_alan"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_alan_last_words"
+          ],
+          "bonus_ranking": [
+            "sem_alan",
+            "sem_soul_second_birth"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_alan_last_words"
+          ],
+          "bonus_ranking": [
+            "sem_alan"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_alan_last_words"
+      ],
+      "bonus_combined_ranking": [
+        "sem_alan",
+        "sem_self_salvation",
+        "sem_pronenia",
+        "sem_soul_second_birth"
+      ],
+      "expected_actions": [
+        "proc_think_rational"
+      ]
+    },
+    {
+      "name": "set_take_blow",
+      "description": "查询决战中为旅行者挡下致命一击的事件",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "牺牲",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "多托雷那记攻击本来是冲着金发旅行者的，最后打在了我身上",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "牺牲",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "『那是我唯一的选择，也是我为自己做出的选择』说的那件事",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "牺牲",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "我死过一次又好好站在这儿的缘由",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "牺牲",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "决战里挡在旅行者前面、用身体接下那一击的瞬间",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "牺牲",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "明知自己有假核心兜底，还是选择硬接博士杀招的那次",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "牺牲",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "生死一线、血色氛围的那场决战中，我替变数挡下攻击",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "生死一线",
+                  "tone": "血色"
+                },
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_take_blow"
+          ],
+          "bonus_ranking": [
+            "sem_traveler",
+            "sem_dottore"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_take_blow"
+          ],
+          "bonus_ranking": [
+            "sem_self_salvation",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_take_blow"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_self_salvation"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_take_blow"
+          ],
+          "bonus_ranking": [
+            "sem_traveler",
+            "sem_dottore"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_take_blow"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_dottore"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_take_blow"
+          ],
+          "bonus_ranking": [
+            "sem_traveler",
+            "sit_abs_environment_battle"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_take_blow"
+      ],
+      "bonus_combined_ranking": [
+        "sem_traveler",
+        "sem_dottore",
+        "sem_self_salvation",
+        "sem_self",
+        "sit_abs_environment_battle"
+      ],
+      "expected_actions": [
+        "proc_think_rational"
+      ]
+    },
+    {
+      "name": "set_tea_party",
+      "description": "查询定期茶会及其参加者",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "社交",
+            "茶会"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "茶会四人组",
+                "description": "由少女、仆人、女士和我组成的定期聚会"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "社交",
+            "茶会"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "愚人众的茶会",
+                "description": "执行官之间少有的非正式社交形式"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "社交",
+            "茶会",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "哥伦比娅抢走最大一块点心、阿蕾奇诺严肃喝茶的聚会场景",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "热闹而温馨",
+                  "tone": "暖色"
+                },
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "社交",
+            "茶会",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "定期准备很多点心、邀请熟悉的同僚来坐坐的习惯",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "社交",
+            "茶会"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "队长偶尔带公子来的茶会",
+                "description": "罗莎琳走后剩下三个人的那种聚会"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "社交",
+            "茶会",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "罗莎琳还在时也常来的、那种热闹又温馨的茶会午后",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "哥伦比娅",
+                    "role": "常客"
+                  },
+                  {
+                    "name": "阿蕾奇诺",
+                    "role": "常客"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "社交",
+            "茶会",
+            "习惯"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "生活单调无聊到让人发闷时，会想到要做的事",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_tea_party"
+          ],
+          "bonus_ranking": [
+            "sem_columbia",
+            "sem_arlecchino",
+            "sem_rosalyne"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_tea_party"
+          ],
+          "bonus_ranking": [
+            "sem_fatui_harbingers"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_tea_party_memory"
+          ],
+          "bonus_ranking": [
+            "sem_columbia",
+            "sem_arlecchino"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_tea_party_memory"
+          ],
+          "bonus_ranking": [
+            "sem_tea_party",
+            "sem_columbia"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_tea_party"
+          ],
+          "bonus_ranking": [
+            "sem_rosalyne",
+            "sem_fatui_harbingers"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_tea_party_memory"
+          ],
+          "bonus_ranking": [
+            "sem_rosalyne",
+            "sem_columbia"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_tea_party_memory"
+          ],
+          "bonus_ranking": [
+            "sem_tea_party",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_tea_party",
+        "sit_tea_party_memory"
+      ],
+      "bonus_combined_ranking": [
+        "sem_columbia",
+        "sem_arlecchino",
+        "sem_rosalyne",
+        "sem_fatui_harbingers",
+        "sem_tea_party",
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_tea_party"
+      ]
+    },
+    {
+      "name": "set_dottore_conflict",
+      "description": "查询敌对的多托雷以及防备他的谋划",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "敌人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "愚人众第二席博士",
+                "description": "那个自以为能操控一切、最不能容忍我存在的疯子"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "敌人",
+            "谋划"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "把真正的术式核心藏进普隆尼亚体内、骗过博士眼睛的谋划",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "多托雷",
+                    "role": "监视者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "敌人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被我用死亡摆了一道的自大狂",
+                "description": "认定我只是个可以拆解的机器的那位同僚"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "敌人",
+            "谋划"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "明知道会被盯着，还是用机械造物打掩护完成了跨时空术式那段机密研究",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "人物",
+            "敌人",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "与博士的博弈",
+                "description": "他以为看穿一切，却没正眼看过我的机械造物"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "敌人",
+            "谋划"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "那次研发核心术式时，把真正的成果藏在不起眼的机械里的秘密对抗",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_dottore"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_fatui_harbingers"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_develop_core_spell"
+          ],
+          "bonus_ranking": [
+            "sem_dottore",
+            "sem_pronenia"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_dottore"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_develop_core_spell"
+          ],
+          "bonus_ranking": [
+            "sem_dottore",
+            "sem_columbia"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_dottore"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_fatui_harbingers"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_develop_core_spell"
+          ],
+          "bonus_ranking": [
+            "sem_dottore",
+            "sem_pronenia",
+            "sem_columbia"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_dottore",
+        "sit_develop_core_spell"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_fatui_harbingers",
+        "sem_dottore",
+        "sem_pronenia",
+        "sem_columbia"
+      ],
+      "expected_actions": [
+        "proc_think_rational"
+      ]
+    },
+    {
+      "name": "set_diary_habit",
+      "description": "查询用天气映射心情的日记习惯",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "日记"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "罗莎琳葬礼那天，日记里只写了一句话：那天的天气是大雪",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "日记"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "遇到很糟心的事时，会用天气来记录心情的那种独处时刻",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "日记"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "『大雪』这个天气，在日记里代表什么样的心情",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "日记"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "深夜一个人在安静角落写日记整理情绪的场面",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": {
+                  "atmosphere": "安静独处",
+                  "tone": "夜色"
+                },
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "日记"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "冬夜愚戏里同僚在灵柩前争吵后，我记录感受的方式",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "日记"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "写日记时习惯只用一两句话、把悲伤藏在天气里的做法",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "习惯",
+            "日记"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她怎么把罗莎琳的死写进日记本里",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_rosalyne_funeral"
+          ],
+          "bonus_ranking": [
+            "sem_rosalyne",
+            "sit_abstract_diary_writing"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_rosalyne_funeral"
+          ],
+          "bonus_ranking": [
+            "sit_abstract_diary_writing"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_rosalyne_funeral"
+          ],
+          "bonus_ranking": [
+            "sem_rosalyne"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_rosalyne_funeral"
+          ],
+          "bonus_ranking": [
+            "sit_abstract_diary_writing"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_rosalyne_funeral"
+          ],
+          "bonus_ranking": [
+            "sem_fatui_harbingers",
+            "sem_rosalyne"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_rosalyne_funeral"
+          ],
+          "bonus_ranking": [
+            "sit_abstract_diary_writing"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sit_rosalyne_funeral"
+          ],
+          "bonus_ranking": [
+            "sem_rosalyne"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_rosalyne_funeral"
+      ],
+      "bonus_combined_ranking": [
+        "sem_rosalyne",
+        "sit_abstract_diary_writing",
+        "sem_fatui_harbingers"
+      ],
+      "expected_actions": [
+        "proc_diary_weather"
+      ]
+    }
+  ]
+}

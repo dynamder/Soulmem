@@ -1,0 +1,2305 @@
+{
+  "name": "batch_常陆茉子_https_zh_moegirl_org_cn_E5_B8_B8_E9_99_86_E8_8C_89_E5_AD_90",
+  "description": "Batch generated test data for 常陆茉子_https_zh_moegirl_org_cn_E5_B8_B8_E9_99_86_E8_8C_89_E5_AD_90",
+  "graph_path": "graph.json",
+  "config": {
+    "similarity_threshold": 0.0,
+    "max_results": 10,
+    "test_k_values": [
+      1,
+      3,
+      5
+    ]
+  },
+  "test_cases": [
+    {
+      "name": "query_0",
+      "description": "atomic query 0",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "角色",
+            "自身"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "常陆茉子",
+                "description": "世世代代侍奉朝武家的忍者少女，喜欢恶作剧又害怕高处"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "sem_chang_lu",
+            "sem_mischief"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_self"
+      ],
+      "bonus_combined_ranking": [
+        "sem_chang_lu",
+        "sem_mischief"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_1",
+      "description": "atomic query 1",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "恋人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她第一次爱上的人",
+                "description": "向她告白、把她从只为他人而活的人生中拉出来的城市青年"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_jiang_chen"
+          ],
+          "bonus_ranking": [
+            "sem_love",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_jiang_chen"
+      ],
+      "bonus_combined_ranking": [
+        "sem_love",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_2",
+      "description": "atomic query 2",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "侍奉"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "从小侍奉的巫女姬",
+                "description": "受到诅咒折磨却一直坚强的朝武家大小姐，茉子想用一生守护的人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fang_nai"
+          ],
+          "bonus_ranking": [
+            "sem_curse",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fang_nai"
+      ],
+      "bonus_combined_ranking": [
+        "sem_curse",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_3",
+      "description": "atomic query 3",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "初次见面"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "第一次见到将臣时她正在洗澡，慌乱中用替身术把闯入者打晕",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "她"
+                  },
+                  {
+                    "name": "将臣",
+                    "role": "闯入者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_first_meeting"
+          ],
+          "bonus_ranking": [
+            "sem_jiang_chen",
+            "sem_substitution"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_first_meeting"
+      ],
+      "bonus_combined_ranking": [
+        "sem_jiang_chen",
+        "sem_substitution"
+      ],
+      "expected_actions": [
+        "proc_shy_escape"
+      ]
+    },
+    {
+      "name": "query_4",
+      "description": "atomic query 4",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "兽灵"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "被污秽兽灵袭击后变成一只小狗，被将臣照顾的那段又丢人又暖心的经历",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "她",
+                    "role": "受害者"
+                  },
+                  {
+                    "name": "兽灵",
+                    "role": "袭击者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_dog_form"
+          ],
+          "bonus_ranking": [
+            "sem_beast_spirit",
+            "sem_jiang_chen"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_dog_form"
+      ],
+      "bonus_combined_ranking": [
+        "sem_beast_spirit",
+        "sem_jiang_chen"
+      ],
+      "expected_actions": [
+        "proc_shy_escape"
+      ]
+    },
+    {
+      "name": "query_5",
+      "description": "atomic query 5",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "战斗",
+            "结局"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "最后和将臣一起挥刀斩向污秽的一战，光芒和温暖令她永生难忘",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": [
+                  {
+                    "action": "斩击",
+                    "initiator": "她和将臣",
+                    "target": "污秽"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_final_battle"
+          ],
+          "bonus_ranking": [
+            "sem_jiang_chen",
+            "sem_fang_nai",
+            "sem_jian_shi"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_final_battle"
+      ],
+      "bonus_combined_ranking": [
+        "sem_jiang_chen",
+        "sem_fang_nai",
+        "sem_jian_shi"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_6",
+      "description": "atomic query 6",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "约会"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "被将臣带去田心屋打扮一番，互相喂食装情侣，心跳快得压不住",
+                "location": [
+                  {
+                    "name": "田心屋"
+                  }
+                ],
+                "participants": [
+                  {
+                    "name": "她"
+                  },
+                  {
+                    "name": "将臣"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_tianxin_date"
+          ],
+          "bonus_ranking": [
+            "sem_tian_xin_wu",
+            "sem_jiang_chen"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_tianxin_date"
+      ],
+      "bonus_combined_ranking": [
+        "sem_tian_xin_wu",
+        "sem_jiang_chen"
+      ],
+      "expected_actions": [
+        "proc_shy_escape"
+      ]
+    },
+    {
+      "name": "query_7",
+      "description": "atomic query 7",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "情感",
+            "成长"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "第一次体会到的心动",
+                "description": "遇上将臣之后才明白什么是爱，也懂得了真正的强大包括去爱"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_love"
+          ],
+          "bonus_ranking": [
+            "sem_jiang_chen",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_love"
+      ],
+      "bonus_combined_ranking": [
+        "sem_jiang_chen",
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_8",
+      "description": "atomic query 8",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "神刀"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "住在神刀里的谜之少女",
+                "description": "只有将臣能碰到她，曾在茉子的恋情里稀里糊涂促成临时情侣关系"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_cong_yu"
+          ],
+          "bonus_ranking": [
+            "sem_cong_yu_dao",
+            "sem_jiang_chen"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_cong_yu"
+      ],
+      "bonus_combined_ranking": [
+        "sem_cong_yu_dao",
+        "sem_jiang_chen"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_9",
+      "description": "atomic query 9",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "好友"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "金发的外来同学",
+                "description": "在旅馆当服务员，是她的好友，曾撞见她变成狗的样子被吓了一跳"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_lei_na"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sit_dog_form"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_lei_na"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_dog_form"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_10",
+      "description": "atomic query 10",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "技能",
+            "忍术"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "圆木替身术",
+                "description": "她最拿手的忍术，能瞬间把自己变成一根圆木躲避危险"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_substitution"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sit_first_meeting"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_substitution"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_first_meeting"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_11",
+      "description": "atomic query 11",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "同学",
+            "成长"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "指出她人生问题的那个人",
+                "description": "小春的哥哥，也是她同学，一句话点破她生活全部是服侍芳乃的现状"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_lian_tai_lang"
+          ],
+          "bonus_ranking": [
+            "sem_xiao_chun",
+            "sem_fang_nai"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_lian_tai_lang"
+      ],
+      "bonus_combined_ranking": [
+        "sem_xiao_chun",
+        "sem_fang_nai"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_12",
+      "description": "atomic query 12",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "转折"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "以为自己搞砸了将臣和芳乃的婚约而崩溃，结果反而促成了她和将臣的缘分",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "她",
+                    "role": "自责者"
+                  },
+                  {
+                    "name": "芳乃",
+                    "role": "当事人"
+                  },
+                  {
+                    "name": "将臣",
+                    "role": "当事人"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_engagement_break"
+          ],
+          "bonus_ranking": [
+            "sem_fang_nai",
+            "sem_jiang_chen"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_engagement_break"
+      ],
+      "bonus_combined_ranking": [
+        "sem_fang_nai",
+        "sem_jiang_chen"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_13",
+      "description": "atomic query 13",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "朝武家"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "芳乃的父亲",
+                "description": "建实神社的神主，常说家里没有茉子就维持不下去，对她非常信任"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_an_qing"
+          ],
+          "bonus_ranking": [
+            "sem_fang_nai",
+            "sem_jian_shi"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_an_qing"
+      ],
+      "bonus_combined_ranking": [
+        "sem_fang_nai",
+        "sem_jian_shi"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_14",
+      "description": "atomic query 14",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "诅咒",
+            "污秽"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "想搞懂恋爱的污秽兽灵",
+                "description": "残留在宿体中的污秽，曾把她变成小狗，最后见证她和将臣的感情后消散"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_beast_spirit"
+          ],
+          "bonus_ranking": [
+            "sem_curse",
+            "sit_dog_form"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_beast_spirit"
+      ],
+      "bonus_combined_ranking": [
+        "sem_curse",
+        "sit_dog_form"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_15",
+      "description": "atomic query 15",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "事件",
+            "害羞"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "将臣把她按在墙上想吻她，她吓到当场变成小狗溜走",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "她",
+                    "role": "被壁咚者"
+                  },
+                  {
+                    "name": "将臣",
+                    "role": "壁咚者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_wall_dong"
+          ],
+          "bonus_ranking": [
+            "sem_jiang_chen",
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_wall_dong"
+      ],
+      "bonus_combined_ranking": [
+        "sem_jiang_chen",
+        "sem_self"
+      ],
+      "expected_actions": [
+        "proc_shy_escape"
+      ]
+    },
+    {
+      "name": "query_16",
+      "description": "atomic query 16",
+      "sub_queries": [
+        {
+          "priority": 5,
+          "tag": [
+            "弱点",
+            "心理"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "害怕高处的毛病",
+                "description": "身手不错却恐高，爬到高处往下看就腿软下不来，是不好意思承认的弱点"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fear_heights"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fear_heights"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_17",
+      "description": "atomic query 17",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "性格",
+            "爱好"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "爱捉弄人的性格",
+                "description": "最喜欢看别人困扰或害羞的表情，总忍不住开玩笑和恶作剧"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_mischief"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_mischief"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_18",
+      "description": "atomic query 18",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "习惯",
+            "语言"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的口头禅",
+                "description": "总把‘我可是忍者呢’挂在嘴边的那句话"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_self"
+          ],
+          "bonus_ranking": [
+            "proc_phrase",
+            "sem_substitution"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_self"
+      ],
+      "bonus_combined_ranking": [
+        "proc_phrase",
+        "sem_substitution"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_19",
+      "description": "atomic query 19",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "家族",
+            "历史"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她背后的忍者家族",
+                "description": "战败长子的后裔，为赎罪世代作为忍者侍奉保护朝武家的家族来历"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_chang_lu"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_loyalty"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_chang_lu"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_loyalty"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_20",
+      "description": "atomic query 20",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "地点",
+            "家乡"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "深山里的家乡小镇",
+                "description": "连公交都不通、藏在大山深处的温泉小镇，如今成了旅游胜地"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_sui_zhi"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sit_daily_life_loc"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_sui_zhi"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sit_daily_life_loc"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_21",
+      "description": "atomic query 21",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "地点",
+            "神社"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "供奉神刀的神社",
+                "description": "神主是安晴大人，神刀丛雨丸原本一直插在岩石中直到将臣来折断"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_jian_shi"
+          ],
+          "bonus_ranking": [
+            "sem_cong_yu_dao",
+            "sem_an_qing"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_jian_shi"
+      ],
+      "bonus_combined_ranking": [
+        "sem_cong_yu_dao",
+        "sem_an_qing"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_22",
+      "description": "atomic query 22",
+      "sub_queries": [
+        {
+          "priority": 4,
+          "tag": [
+            "物品",
+            "神刀"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "插在石头里的神刀",
+                "description": "传说无人能拔出的刀，被将臣折断后引发婚约等一连串事件"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_cong_yu_dao"
+          ],
+          "bonus_ranking": [
+            "sem_jian_shi",
+            "sem_cong_yu"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_cong_yu_dao"
+      ],
+      "bonus_combined_ranking": [
+        "sem_jian_shi",
+        "sem_cong_yu"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "query_23",
+      "description": "atomic query 23",
+      "sub_queries": [
+        {
+          "priority": 3,
+          "tag": [
+            "地点",
+            "旅馆"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "将臣在穗织的住处",
+                "description": "将臣和他外公经营的旅馆，也是他在穗织镇的落脚处"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_zhi_na_du"
+          ],
+          "bonus_ranking": [
+            "sem_jiang_chen"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_zhi_na_du"
+      ],
+      "bonus_combined_ranking": [
+        "sem_jiang_chen"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_jiang_chen",
+      "description": "查询茉子的恋人·有地将臣",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "恋人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "有地将臣",
+                "description": "从大城市来到深山小镇的青年，后来和她成为恋人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "恋人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "主动向她告白的人",
+                "description": "表达心意并帮助她发现可以为自己而活的那个人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "外来的青年",
+                "description": "初来穗织时和她闹出误会，后来成为朝武家一员的男性"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "神刀"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "折断丛雨丸的男人",
+                "description": "把传说无人能拔出的神刀从岩石中弄断，引发一连串连锁反应"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "误闯她洗澡的地方被她打晕，后来却和她走到一起的那个人",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "她",
+                    "role": "袭击者"
+                  },
+                  {
+                    "name": "闯入者",
+                    "role": "被打晕者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "战斗"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "和她并肩挥刀斩向污秽、把她从自我牺牲中带出来的人",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "恋人"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "她的恋人",
+                "description": "让她第一次体验到恋爱感觉、并互相珍视彼此的那个人"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_jiang_chen"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_jiang_chen"
+          ],
+          "bonus_ranking": [
+            "sem_love",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_jiang_chen"
+          ],
+          "bonus_ranking": [
+            "sem_fang_nai"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_jiang_chen"
+          ],
+          "bonus_ranking": [
+            "sem_cong_yu_dao"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_first_meeting"
+          ],
+          "bonus_ranking": [
+            "sem_jiang_chen",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_final_battle"
+          ],
+          "bonus_ranking": [
+            "sem_jiang_chen",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_jiang_chen"
+          ],
+          "bonus_ranking": [
+            "sem_love"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_jiang_chen",
+        "sit_first_meeting",
+        "sit_final_battle"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_love",
+        "sem_fang_nai",
+        "sem_cong_yu_dao",
+        "sem_jiang_chen"
+      ],
+      "expected_actions": [
+        "proc_shy_escape"
+      ]
+    },
+    {
+      "name": "set_fang_nai",
+      "description": "查询茉子侍奉的巫女姬·朝武芳乃",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "侍奉"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "朝武芳乃",
+                "description": "从小被茉子侍奉的巫女姬，朝武家的继承人"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 9,
+          "tag": [
+            "人物",
+            "诅咒"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "被诅咒缠身的大小姐",
+                "description": "因诅咒长期受苦却一天天变得坚强的朝武家女儿"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "人物",
+            "关系"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "茉子豁出性命也想保护的人",
+                "description": "被她视为最重要的人之一的巫女姬，主从情谊深厚"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "人物",
+            "羁绊"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "祝福她恋情的大小姐",
+                "description": "在茉子与将臣的感情道路上，选择理解并给予支持的那位主君"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "人物",
+            "事件"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "婚约解除风波里让茉子崩溃自责，最后却间接促成她新缘分的那位大小姐",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "人物",
+            "地点"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "建实神社的巫女姬",
+                "description": "父亲是神主安晴大人，本人是神社与朝武家当代的继承者"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fang_nai"
+          ],
+          "bonus_ranking": [
+            "sem_self",
+            "sem_an_qing"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_fang_nai"
+          ],
+          "bonus_ranking": [
+            "sem_curse"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sem_fang_nai"
+          ],
+          "bonus_ranking": [
+            "sem_loyalty",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_fang_nai"
+          ],
+          "bonus_ranking": [
+            "sem_jiang_chen",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_engagement_break"
+          ],
+          "bonus_ranking": [
+            "sem_fang_nai",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_fang_nai"
+          ],
+          "bonus_ranking": [
+            "sem_jian_shi",
+            "sem_an_qing"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fang_nai",
+        "sit_engagement_break"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_an_qing",
+        "sem_curse",
+        "sem_loyalty",
+        "sem_jiang_chen",
+        "sem_fang_nai",
+        "sem_jian_shi"
+      ],
+      "expected_actions": []
+    },
+    {
+      "name": "set_dog_form",
+      "description": "查询茉子被兽灵变成小狗的事件",
+      "sub_queries": [
+        {
+          "priority": 9,
+          "tag": [
+            "事件",
+            "兽灵"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她有一次变成一只小狗的那件怪事",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "兽灵"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "被污秽兽灵袭击后变成小动物的那段经历",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "她"
+                  },
+                  {
+                    "name": "污秽兽灵",
+                    "role": "袭击者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "照顾"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "变成狗以后被那个人细心照料，既委屈又温暖的回忆",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "她",
+                    "role": "受害者"
+                  },
+                  {
+                    "name": "将臣",
+                    "role": "照顾者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "好友"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "金发好友撞见她变成狗的样子被吓得够呛的那件事",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "蕾娜",
+                    "role": "目击者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "事件",
+            "害羞"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "变成小狗后害羞得不敢见人的窘事",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "诅咒",
+            "污秽"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "把人变成狗的兽灵",
+                "description": "想了解恋爱为何物而袭击茉子的污秽存在，最终因见证感情而消散"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_dog_form"
+          ],
+          "bonus_ranking": [
+            "sem_beast_spirit",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_dog_form"
+          ],
+          "bonus_ranking": [
+            "sem_beast_spirit"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_dog_form"
+          ],
+          "bonus_ranking": [
+            "sem_jiang_chen"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_dog_form"
+          ],
+          "bonus_ranking": [
+            "sem_lei_na",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_dog_form"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sem_beast_spirit"
+          ],
+          "bonus_ranking": [
+            "sit_dog_form",
+            "sem_curse"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_dog_form",
+        "sem_beast_spirit"
+      ],
+      "bonus_combined_ranking": [
+        "sem_beast_spirit",
+        "sem_self",
+        "sem_jiang_chen",
+        "sem_lei_na",
+        "sit_dog_form",
+        "sem_curse"
+      ],
+      "expected_actions": [
+        "proc_shy_escape"
+      ]
+    },
+    {
+      "name": "set_first_meeting",
+      "description": "查询茉子和将臣的初次见面",
+      "sub_queries": [
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "初次见面"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "两人第一次碰面是在浴室，而她当时正在洗澡",
+                "location": [
+                  {
+                    "name": "朝武家的浴室"
+                  }
+                ],
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "误会"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "被闯进来的男人撞见，她慌乱中把木头替身留在原地绕后反击",
+                "location": null,
+                "participants": [
+                  {
+                    "name": "她"
+                  },
+                  {
+                    "name": "闯入者"
+                  }
+                ],
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "事件",
+            "冲突"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "初次见面就打起来，她把对方打晕的那个乌龙事件",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "事件",
+            "尴尬"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "她洗澡时有人闯进来，她慌张变成木头躲开的那场闹剧",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 5,
+          "tag": [
+            "事件",
+            "技能"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "朝武家浴室里的初遇：她本能用上替身术让场面变得更加混乱",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "初见"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "见到那个外来的青年第一面就把他放倒的经过",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_first_meeting"
+          ],
+          "bonus_ranking": [
+            "sem_jiang_chen"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_first_meeting"
+          ],
+          "bonus_ranking": [
+            "sem_substitution",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_first_meeting"
+          ],
+          "bonus_ranking": [
+            "sem_jiang_chen",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_first_meeting"
+          ],
+          "bonus_ranking": [
+            "sem_substitution",
+            "sem_zhi_na_du"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_first_meeting"
+          ],
+          "bonus_ranking": [
+            "sem_substitution"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_first_meeting"
+          ],
+          "bonus_ranking": [
+            "sem_jiang_chen"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_first_meeting"
+      ],
+      "bonus_combined_ranking": [
+        "sem_jiang_chen",
+        "sem_substitution",
+        "sem_self",
+        "sem_zhi_na_du"
+      ],
+      "expected_actions": [
+        "proc_shy_escape"
+      ]
+    },
+    {
+      "name": "set_shy_escape",
+      "description": "查询茉子害羞时会逃跑的行为习惯",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "害羞"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "被人夸奖或表白的时候，她会忍不住想躲开",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "事件",
+            "害羞"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "被壁咚时吓得当场变成小狗逃走的反应",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "习惯",
+            "逃避"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "只要遇到让心跳加速的场面，第一反应就是开溜",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 7,
+          "tag": [
+            "技能",
+            "忍术"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "圆木替身术",
+                "description": "既是她的战斗技能，也是她害羞时用来逃跑的惯用忍术"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "事件",
+            "约会"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在约会中被喂食、被打扮，她心里小鹿乱撞又不好意思的状态",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "习惯",
+            "反应"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "一害羞就原地消失，留对方愣在原地的那种逃跑方式",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "技能",
+            "习惯"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "忍者式的害羞逃生术",
+                "description": "遇到让她难为情的场景就条件反射地用替身术溜之大吉"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sit_shy_event"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sit_wall_dong"
+          ],
+          "bonus_ranking": [
+            "sem_jiang_chen",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_shy_event"
+          ],
+          "bonus_ranking": [
+            "proc_shy_escape"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sem_substitution"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sit_tianxin_date"
+          ],
+          "bonus_ranking": [
+            "sem_tian_xin_wu",
+            "sem_jiang_chen"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_shy_event"
+          ],
+          "bonus_ranking": [
+            "sem_substitution",
+            "proc_shy_escape"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_substitution"
+          ],
+          "bonus_ranking": [
+            "sit_shy_event",
+            "sem_mischief"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sit_shy_event",
+        "sit_wall_dong",
+        "sem_substitution",
+        "sit_tianxin_date"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_jiang_chen",
+        "proc_shy_escape",
+        "sem_tian_xin_wu",
+        "sem_substitution",
+        "sit_shy_event",
+        "sem_mischief"
+      ],
+      "expected_actions": [
+        "proc_shy_escape"
+      ]
+    },
+    {
+      "name": "set_fear_heights",
+      "description": "查询茉子害怕高处的弱点",
+      "sub_queries": [
+        {
+          "priority": 6,
+          "tag": [
+            "弱点",
+            "心理"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "害怕高处",
+                "description": "她身手很好却恐高，站在高处就会腿软"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 8,
+          "tag": [
+            "弱点",
+            "秘密"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "不敢说出口的秘密",
+                "description": "帅气忍者其实有怕高这个不为人知的软肋"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "事件",
+            "尴尬"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "爬树溜得很但上去之后下不来，只能等人来救的可怜场面",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "弱点",
+            "行为"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "一到高处就僵住，腿软到没法自己移动的状态",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "弱点",
+            "性格反差"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "反差萌弱点",
+                "description": "平时厉害得很，唯一会让她露怯的就是高处"
+              }
+            ]
+          }
+        },
+        {
+          "priority": 6,
+          "tag": [
+            "地点",
+            "日常"
+          ],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "在屋顶行动没问题，但一旦往下看就完全不敢动",
+                "location": null,
+                "participants": null,
+                "time_span": null,
+                "environment": null,
+                "event": null
+              }
+            ]
+          }
+        },
+        {
+          "priority": 4,
+          "tag": [
+            "弱点",
+            "求助"
+          ],
+          "variant": {
+            "Semantic": [
+              {
+                "concept_identifier": "恐高的忍者小姐",
+                "description": "需要别人帮忙才能从高处下来，是她少数会示弱的时刻"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        {
+          "q": 0,
+          "ranking": [
+            "sem_fear_heights"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 1,
+          "ranking": [
+            "sem_fear_heights"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        },
+        {
+          "q": 2,
+          "ranking": [
+            "sit_daily_life_loc"
+          ],
+          "bonus_ranking": [
+            "sem_fear_heights",
+            "sem_self"
+          ]
+        },
+        {
+          "q": 3,
+          "ranking": [
+            "sit_daily_life_loc"
+          ],
+          "bonus_ranking": [
+            "sem_fear_heights"
+          ]
+        },
+        {
+          "q": 4,
+          "ranking": [
+            "sem_fear_heights"
+          ],
+          "bonus_ranking": [
+            "sem_mischief"
+          ]
+        },
+        {
+          "q": 5,
+          "ranking": [
+            "sit_daily_life_loc"
+          ],
+          "bonus_ranking": [
+            "sem_fear_heights"
+          ]
+        },
+        {
+          "q": 6,
+          "ranking": [
+            "sem_fear_heights"
+          ],
+          "bonus_ranking": [
+            "sem_self"
+          ]
+        }
+      ],
+      "expected_combined_ranking": [
+        "sem_fear_heights",
+        "sit_daily_life_loc"
+      ],
+      "bonus_combined_ranking": [
+        "sem_self",
+        "sem_fear_heights",
+        "sem_mischief"
+      ],
+      "expected_actions": [
+        "proc_fear_heights"
+      ]
+    }
+  ]
+}

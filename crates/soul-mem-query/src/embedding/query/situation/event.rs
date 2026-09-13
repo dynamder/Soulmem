@@ -1,0 +1,245 @@
+use crate::embedding::blend_weights::BlendWeights;
+use crate::embedding::{Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling};
+use crate::query::retrieve::EventQueryUnit;
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct EventQueryUnitEmbedding {
+    action: EmbeddingVec,
+    initiator: Option<EmbeddingVec>,
+    target: Option<EmbeddingVec>,
+    pub blend_weights: BlendWeights,
+}
+impl EventQueryUnitEmbedding {
+    /// 公开构造（外部/测试构造用；blend_weights 取默认值）。
+    pub fn new(
+        action: EmbeddingVec,
+        initiator: Option<EmbeddingVec>,
+        target: Option<EmbeddingVec>,
+    ) -> Self {
+        Self {
+            action,
+            initiator,
+            target,
+            blend_weights: BlendWeights::default(),
+        }
+    }
+
+    pub fn action(&self) -> &EmbeddingVec {
+        &self.action
+    }
+    pub fn initiator(&self) -> Option<&EmbeddingVec> {
+        self.initiator.as_ref()
+    }
+    pub fn target(&self) -> Option<&EmbeddingVec> {
+        self.target.as_ref()
+    }
+
+    pub fn set_blend_weights(&mut self, bw: &BlendWeights) {
+        self.blend_weights = bw.clone();
+    }
+    /// 解构取所有权：action、initiator 与 target（移动而非克隆）。
+    pub fn into_parts(self) -> (EmbeddingVec, Option<EmbeddingVec>, Option<EmbeddingVec>) {
+        let Self {
+            action,
+            initiator,
+            target,
+            blend_weights: _,
+        } = self;
+        (action, initiator, target)
+    }
+    pub fn mean_pooling(vecs: &[EventQueryUnitEmbedding]) -> EmbeddingCalcResult<Option<Self>> {
+        if vecs.is_empty() {
+            return Ok(None);
+        }
+        let actions = vecs.iter().map(|vec| vec.action()).collect::<Vec<_>>();
+        let initiators = vecs
+            .iter()
+            .filter_map(|vec| vec.initiator())
+            .collect::<Vec<_>>();
+        let targets = vecs
+            .iter()
+            .filter_map(|vec| vec.target())
+            .collect::<Vec<_>>();
+
+        let action_vec = mean_pooling(&actions)?;
+
+        let initiator_vec = if initiators.is_empty() {
+            None
+        } else {
+            Some(mean_pooling(&initiators)?)
+        };
+
+        let target_vec = if targets.is_empty() {
+            None
+        } else {
+            Some(mean_pooling(&targets)?)
+        };
+
+        Ok(Some(Self {
+            action: action_vec,
+            initiator: initiator_vec,
+            target: target_vec,
+            blend_weights: BlendWeights::default(),
+        }))
+    }
+}
+#[cfg(test)]
+impl EventQueryUnitEmbedding {
+    pub(crate) fn test_new(
+        action: EmbeddingVec,
+        initiator: Option<EmbeddingVec>,
+        target: Option<EmbeddingVec>,
+        blend_weights: BlendWeights,
+    ) -> Self {
+        Self {
+            action,
+            initiator,
+            target,
+            blend_weights,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct EmbedEventQueryUnit {
+    pub embedding: EventQueryUnitEmbedding,
+    pub query: EventQueryUnit,
+}
+
+impl Embeddable for EventQueryUnit {
+    type EmbeddingGen = EventQueryUnitEmbedding;
+    type EmbeddingFused = EmbedEventQueryUnit;
+    fn embed(
+        &self,
+        model: &dyn crate::embedding::EmbeddingModel,
+    ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
+        let [action_vec] = model
+            .infer_query_batch(&[self.action()])?
+            .try_into()
+            .unwrap(); //SAFEUNWRAP: 此处长度必为1
+
+        let initiator_batch_vec = self
+            .initiator()
+            .map(|initiator| model.infer_query_batch(&[initiator]))
+            .transpose()?;
+
+        let initiator_vec = initiator_batch_vec.and_then(|vec| vec.into_iter().next());
+
+        let target_batch_vec = self
+            .target()
+            .map(|target| model.infer_query_batch(&[target]))
+            .transpose()?;
+
+        let target_vec = target_batch_vec.and_then(|vec| vec.into_iter().next());
+
+        Ok(EventQueryUnitEmbedding {
+            action: action_vec,
+            initiator: initiator_vec,
+            target: target_vec,
+            blend_weights: BlendWeights::default(),
+        })
+    }
+    fn embed_and_fuse(
+        self,
+        model: &dyn crate::embedding::EmbeddingModel,
+    ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingFused> {
+        Ok(EmbedEventQueryUnit {
+            embedding: self.embed(model)?,
+            query: self,
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_event_query_unit_embedding_accessors() {
+        let mut embedding = EventQueryUnitEmbedding::test_new(
+            EmbeddingVec::new(vec![1.0]),
+            Some(EmbeddingVec::new(vec![2.0])),
+            Some(EmbeddingVec::new(vec![3.0])),
+            BlendWeights::default(),
+        );
+        assert_eq!(embedding.action().shape(), 1);
+        assert_eq!(embedding.initiator().unwrap().shape(), 1);
+        assert_eq!(embedding.target().unwrap().shape(), 1);
+
+        let bw = BlendWeights {
+            tag: 0.8,
+            ..Default::default()
+        };
+        embedding.set_blend_weights(&bw);
+        assert_eq!(embedding.blend_weights.tag, 0.8);
+    }
+
+    #[test]
+    fn test_event_query_unit_embedding_optional_fields_none() {
+        let embedding = EventQueryUnitEmbedding::test_new(
+            EmbeddingVec::new(vec![1.0]),
+            None,
+            None,
+            BlendWeights::default(),
+        );
+        assert!(embedding.initiator().is_none());
+        assert!(embedding.target().is_none());
+        assert_eq!(embedding.action().shape(), 1);
+    }
+
+    #[test]
+    fn test_event_query_unit_mean_pooling() {
+        let e1 = EventQueryUnitEmbedding::test_new(
+            EmbeddingVec::new(vec![1.0, 2.0]),
+            Some(EmbeddingVec::new(vec![1.0, 2.0])),
+            Some(EmbeddingVec::new(vec![1.0, 2.0])),
+            BlendWeights::default(),
+        );
+        let e2 = EventQueryUnitEmbedding::test_new(
+            EmbeddingVec::new(vec![3.0, 4.0]),
+            None,
+            None,
+            BlendWeights::default(),
+        );
+        let pooled = EventQueryUnitEmbedding::mean_pooling(&[e1, e2])
+            .unwrap()
+            .unwrap();
+        assert_eq!(pooled.action().shape(), 2);
+        // initiator/target 只出现在一个元素里 → 仍保留
+        assert!(pooled.initiator().is_some());
+        assert!(pooled.target().is_some());
+    }
+
+    #[test]
+    fn test_event_query_unit_mean_pooling_empty() {
+        assert!(
+            EventQueryUnitEmbedding::mean_pooling(&[])
+                .unwrap()
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn test_into_parts_moves_fields() {
+        let action = EmbeddingVec::new(vec![1.0, 0.0]);
+        let initiator = EmbeddingVec::new(vec![0.5, 0.5]);
+        let target = EmbeddingVec::new(vec![0.3, 0.7]);
+        let evt = EventQueryUnitEmbedding::new(
+            action.clone(),
+            Some(initiator.clone()),
+            Some(target.clone()),
+        );
+        let (a, i, t) = evt.into_parts();
+        assert_eq!(a, action, "action 应移动而非克隆");
+        assert_eq!(i, Some(initiator));
+        assert_eq!(t, Some(target));
+    }
+
+    #[test]
+    fn test_into_parts_optional_fields_none() {
+        let evt = EventQueryUnitEmbedding::new(EmbeddingVec::new(vec![1.0]), None, None);
+        let (_, i, t) = evt.into_parts();
+        assert!(i.is_none());
+        assert!(t.is_none());
+    }
+}

@@ -1,0 +1,89 @@
+name: CI
+
+# 主题分支的 push 不再触发：此前 `push:` 没有分支过滤，任何分支每推一次都会跑
+# 三平台全量测试。现在只在两条长期分支的 push 与所有 PR 上运行。
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      # bge-small-zh 模型在测试时由 hf-hub 下载，缓存避免三平台重复下载。
+      - name: Cache embedding model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-${{ runner.os }}-bge-small-zh
+
+      - name: Build all targets
+        run: cargo build --workspace --all-targets
+
+      - name: Run tests
+        run: cargo test --workspace
+
+  quality:
+    name: Quality (fmt + clippy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      # 两个纯文本门禁放在最前面：不需要工具链、秒级返回，而且——关键——它们必须在
+      # `cargo fmt` 之前运行。此前它们排在 fmt 之后，于是 fmt 一红这两步就被 skip，
+      # 门禁等于没装（正是这条注释原本想表达的意思，但位置写错了）。
+      #
+      # 中文注释被 GBK 保存会变成乱码且部分字节永久丢失（memory_cluster.rs 曾丢 16 行）。
+      - name: Check text encoding
+        run: python3 scripts/check_encoding.py
+
+      # 模块布局约定：一律 xxx.rs + xxx/，禁止 mod.rs。
+      - name: Check module layout
+        run: python3 scripts/check_layout.py
+
+      - name: Check formatting
+        run: cargo fmt --all --check
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+  security:
+    name: Security (cargo-deny)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check
+          arguments: --workspace

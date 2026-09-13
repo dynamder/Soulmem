@@ -1,11 +1,31 @@
 /target
+/*.embcache
+**/*.embcache
 /.fastembed_cache
 /.idea
+/.zed
 /test
 .env
 /developing_notes
 /.vscode
+/references
+*.log
 
 .DS_Store
 .AppleDouble
 .LSOverride
+.opencode
+
+/mutants.out/
+/mutants.out.old/
+graph_stats.json
+raw_failed_*.json
+
+# mdBook 构建产物：只忽略 HTML 输出目录。
+# 切勿写成 /book/ —— 那会把书源码（book/book.toml、book/src/**）一起忽略，
+# 导致之后手写的新章节静默不入库（doc/book 分支用的是 /book/book/）。
+/book/book/
+
+# Python 工具脚本（scripts/）的字节码缓存
+__pycache__/
+*.pyc

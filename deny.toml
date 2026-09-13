@@ -1,0 +1,54 @@
+# cargo-deny 配置：安全公告 + 许可证合规
+[advisories]
+version = 2
+yanked = "deny"
+# unmaintained 只作提示，不阻塞：依赖树里多处传递依赖（backoff/instant/
+# number_prefix/paste/rand_os 等）被 embed_anything 0.6.7 钉死，无安全升级。
+unmaintained = "none"
+# 以下漏洞均来自 embed_anything 0.6.7 的传递依赖，无法在保持该版本的
+# 前提下升级修复；升级 embed_anything（如 feature/test_framework 分支的
+# 0.7.1）后应移除对应条目：
+# - RUSTSEC-2026-0187: lopdf 解析深层 PDF 对象时栈溢出；pdf-extract 0.9.0 钉死
+#   lopdf 0.36，0.42+ 不可达。SoulMem 不解析不可信 PDF。
+# - RUSTSEC-2026-0098/0099: rustls-webpki 0.101 的 name-constraint 校验问题；
+#   仅在被错误签发的证书 + 自定义 name-constraint 场景下可被利用，且 rustls 0.21
+#   钉死 webpki 0.101，需随 aws-sdk/rustls 升级（embed_anything 依赖链）才能修复。
+# - RUSTSEC-2026-0104: rustls-webpki CRL 解析可达 panic；应用不使用 CRL，不受影响。
+ignore = [
+    "RUSTSEC-2026-0187",
+    "RUSTSEC-2026-0098",
+    "RUSTSEC-2026-0099",
+    "RUSTSEC-2026-0104",
+    # RUSTSEC-2023-0071: rsa crate Marvin Attack（时序侧信道，CVSS 7.4）。
+    # 经 jsonwebtoken 10.4.0 ← surrealdb 链传递引入；rsa 上游 patched=[] 自 2023
+    # 年至今无修复版（最新 0.9.10 仍受影响，0.10 尚在 rc）。影响面：攻击者可观测
+    # 时序时恢复私钥。SoulMem 仅在本地/可信环境使用 SurrealDB 嵌入式存储，
+    # 不暴露给可观测时序的网络攻击者，故忽略并跟踪上游修复。
+    "RUSTSEC-2023-0071",
+]
+
+[bans]
+multiple-versions = "warn"
+
+[licenses]
+version = 2
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+    "Zlib",
+    "BSL-1.0",
+    "NCSA",
+    "CDLA-Permissive-2.0",
+    "CC0-1.0",
+    "MPL-2.0",
+    "Unlicense",
+    # surrealdb 3.x 为 BUSL-1.1（非 OSI 许可）：Additional Use Grant 仅禁止用作
+    # "Database Service"（向第三方提供数据库功能）；soul-mem-runtime 以嵌入式
+    # kv-mem/kv-surrealkv 本地使用，落在授权内，无需商业许可。Change Date
+    # 2030-01-01 后转 Apache-2.0。
+    "BUSL-1.1",
+]
