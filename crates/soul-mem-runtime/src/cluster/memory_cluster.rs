@@ -17,7 +17,7 @@ use soul_mem_core::memory_links::{LinkId, MemoryLinkType};
 
 use soul_mem_core::memory_note::MemoryId;
 
-use soul_mem_core::memory_links::MemoryLink;
+use soul_mem_core::memory_links::{MemoryLink, MemoryLinkBuilder};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct GraphMemoryLink {
@@ -178,17 +178,42 @@ impl MemoryCluster {
                         .unwrap()
                         .note()
                         .id();
-                    let mem_link = MemoryLink::new(
+                    // 必须保留原边的 id 与全部状态：`MemoryLink::new` 会生成新的 LinkId
+                    // 并把 intensity / missing_degree / last_forget_time 重置为默认值。
+                    // 那样重放出来的边在 link_id_to_index 里是另一个身份，
+                    // 既无法按原 id 找回（has_edge/get_link_index 失配），
+                    // 也会把这条边独立累积的遗忘状态清零。
+                    let mem_link = MemoryLinkBuilder::new(
                         source_id,
                         target_id,
                         edge_ref.weight().to_owned().link_type,
-                    );
+                    )
+                    .id(edge_ref.weight().id())
+                    .intensity(edge_ref.weight().intensity())
+                    .missing_degree(edge_ref.weight().missing_degree())
+                    .last_forget_time(edge_ref.weight().last_forget_time())
+                    .build();
                     (source_id, mem_link)
                 })
                 .collect::<Vec<_>>();
 
             self.incompletely_linked_note
                 .insert(node_id, incoming_neighbors);
+            // graph.remove_node 会一并删除所有关联边（petgraph 文档保证：删除节点即删除其入射边），
+            // 但 link_id_to_index 不会自动同步。残留条目会让 has_edge() 永久返回 true，
+            // 于是 merge_edge 的 `if !self.has_edge(edge.id())` 守卫会永久跳过这条边——
+            // 该链接再也无法重建（图里已无此边，note.links() 里却仍列着它）。
+            // 另外 petgraph 会复用被释放的索引槽位，陈旧 EdgeIndex 可能指向后来新建的边。
+            // 因此在 remove_node 之前，必须先把关联边的 id 从索引表里摘除。
+            let incident_link_ids: Vec<LinkId> = self
+                .graph
+                .edges_directed(idx, Direction::Incoming)
+                .chain(self.graph.edges_directed(idx, Direction::Outgoing))
+                .map(|edge_ref| edge_ref.weight().id())
+                .collect();
+            for link_id in incident_link_ids {
+                self.link_id_to_index.remove(&link_id);
+            }
             self.graph.remove_node(idx)
         } else {
             None
@@ -462,6 +487,49 @@ mod tests {
             cluster.refresh_node(&a);
         });
         assert!(handle.read_or_compute(|cluster| cluster.has_edge(link_ac.id())));
+    }
+
+    /// 回归：删除节点时必须同步清理 `link_id_to_index`，否则关联边**永远无法重建**。
+    ///
+    /// `graph.remove_node` 会一并删除所有关联边（petgraph 保证），但索引表不会自动更新。
+    /// 残留条目让 `has_edge()` 永久返回 true，于是 `merge_edge` 里的
+    /// `if !self.has_edge(edge.id())` 守卫永久跳过这条边：
+    /// 结果是"图里已经不存在这条边、`note.links()` 里却仍列着它"，且重新加入节点也恢复不了。
+    #[test]
+    fn test_remove_node_prunes_link_index_so_edge_can_be_rebuilt() {
+        let mut cluster = MemoryCluster::new();
+        let a = MemoryId::new();
+        let b = MemoryId::new();
+        let link_ab = MemoryLink::new(
+            a,
+            b,
+            MemoryLinkType::Sem(SemMemLink::new("relates".to_string(), 1.0)),
+        );
+
+        let mut node_a = mock_node(a);
+        node_a.note.links_mut().push(link_ab.clone());
+        cluster.add_single_node(node_a);
+        cluster.add_single_node(mock_node(b));
+        assert!(cluster.has_edge(link_ab.id()), "前置条件：A→B 边应已建立");
+
+        // 删除 B：关联边随节点被删除，索引表必须同步
+        cluster.remove_single_node(b).expect("B 应存在");
+        assert!(
+            !cluster.has_edge(link_ab.id()),
+            "删除节点后 link_id_to_index 仍残留该边 id，has_edge() 会永久返回 true"
+        );
+
+        // 重新加入 B：pending 边应被重放，A→B 必须恢复
+        cluster.add_single_node(mock_node(b));
+        assert!(
+            cluster.has_edge(link_ab.id()),
+            "重新加入节点后 A→B 边未能重建（被 has_edge 守卫永久跳过）"
+        );
+        let edge_index = cluster.get_link_index(link_ab.id()).expect("索引应已重建");
+        assert!(
+            cluster.graph().edge_weight(edge_index).is_some(),
+            "重建的 EdgeIndex 必须指向真实存在的边"
+        );
     }
 }
 

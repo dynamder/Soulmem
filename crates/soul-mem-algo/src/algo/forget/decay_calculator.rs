@@ -137,3 +137,89 @@ pub fn node_intensity_after(
     let tau = adjusted_half_life / std::f32::consts::LN_2;
     initial_intensity * (-duration_hours / tau).exp()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::{Duration, TimeZone};
+
+    const BASE_HALF_LIFE: f32 = 24.0;
+    const ACTIVE_FACTOR: f32 = 0.1;
+    const CAP: usize = 50;
+
+    fn base_time() -> DateTime<Utc> {
+        match Utc.with_ymd_and_hms(2026, 1, 1, 0, 0, 0) {
+            chrono::LocalResult::Single(t) => t,
+            other => panic!("固定时钟解析失败: {other:?}"),
+        }
+    }
+
+    fn step(old_md: f32, from: DateTime<Utc>, to: DateTime<Utc>) -> f32 {
+        update_missing_degree_incremental(
+            old_md,
+            from,
+            to,
+            /*retrieval_count=*/ 0,
+            BASE_HALF_LIFE,
+            ACTIVE_FACTOR,
+            CAP,
+        )
+    }
+
+    /// 已知缺陷，**尚未修复**，故标记 `#[ignore]`（修复后去掉即可转正）。
+    ///
+    /// 缺陷：`update_missing_degree_incremental` 用 `num_hours()` 把时长**截断到整小时**，
+    /// 且 `elapsed_hours <= 0.0` 时直接原值返回。于是：
+    ///   - 亚小时刷新（< 1h）贡献 **0** 衰减；
+    ///   - 即便刷新间隔 ≥ 1h，也只能按整小时前进，每次最多白丢 59 分钟。
+    ///
+    /// 这个缺陷之所以危险，是因为**调用方还会无条件推进时钟**：
+    /// `compute_and_update_missing_degree`、`compute_all_missing_degrees`、
+    /// `decay_edge`、`decay_graph_edge` 都执行 `set_last_forget_time(current_time)`。
+    /// 时间因此被**丢弃**而不是**延后**——持续交互（每十几分钟刷新一次）会让缺失度
+    /// 永远不涨，即遗忘被完全冻结。
+    ///
+    /// 本测试钉住的是衰减增量的**复合律**：把总时长切成若干段逐段施加，
+    /// 必须等于一次性施加总时长。这既是数学上正确的契约，
+    /// 也是"与刷新粒度无关"这一可观察行为的直接表述。
+    ///
+    /// 注意该契约**无法由当前 API 形状满足**：函数只返回 `f32`，不返回"消费掉了多少时长"，
+    /// 因此调用方无从延后剩余时间。修复方向二选一：
+    ///   (a) 改用分数小时（`num_seconds() as f64 / 3600.0`）；
+    ///   (b) 保持整小时粒度，但改为返回"已消费时长"，由调用方按消费量推进时钟。
+    #[test]
+    #[ignore = "documents an unfixed defect: num_hours() truncation discards elapsed decay time"]
+    fn test_incremental_decay_composes_over_sub_hour_refresh() {
+        let base = base_time();
+
+        // 参照：一次性跨 4 小时
+        let once = step(0.0, base, base + Duration::hours(4));
+        assert!(once > 0.0, "前置条件：跨 4 小时应产生衰减，实际 {once}");
+
+        // 复现：每 30 分钟刷新一次，累计同样 4 小时
+        let mut md = 0.0f32;
+        let mut last = base;
+        for step_no in 1..=8 {
+            let now = base + Duration::minutes(30 * step_no);
+            md = step(md, last, now);
+            last = now;
+        }
+
+        assert!(
+            (md - once).abs() < 1e-3,
+            "衰减不满足复合律（亚小时刷新丢弃了流逝时间）：逐步累积 md={md}，一次性 md={once}"
+        );
+    }
+
+    /// 同一缺陷的最小可观察证据：30 分钟流逝必须产生非零衰减，实际被截断为 0。
+    #[test]
+    #[ignore = "documents an unfixed defect: num_hours() truncation drops sub-hour elapsed time"]
+    fn test_sub_hour_elapsed_produces_nonzero_decay() {
+        let base = base_time();
+        let after_30min = step(0.0, base, base + Duration::minutes(30));
+        assert!(
+            after_30min > 0.0,
+            "30 分钟流逝被 num_hours() 截断为 0，衰减完全丢失：{after_30min}"
+        );
+    }
+}

@@ -74,6 +74,11 @@ pub struct MemoryRetrieveQueryEmbedding {
     pub variant_weight: f32,
     /// embedding 在最终混合分中的权重，`1 - string_blend_alpha` 为字符串得分权重
     pub string_blend_alpha: f32,
+    /// 完整权重集。字符串通道的子字段加权与 embedding 通道必须共用同一来源：
+    /// 上面三个标量字段只覆盖顶层混合，字符串通道所需的子字段权重
+    /// （如 `sit_event_*`）此前无处可取，导致字符串侧硬编码常量、`with_weights()`
+    /// 只对 embedding 侧生效。
+    pub blend_weights: BlendWeights,
 }
 impl MemoryRetrieveQueryEmbedding {
     pub fn tag(&self) -> &EmbeddingVec {
@@ -91,6 +96,7 @@ impl MemoryRetrieveQueryEmbedding {
             tag_weight: bw.tag,
             variant_weight: bw.variant,
             string_blend_alpha: bw.string_blend_alpha,
+            blend_weights: bw,
         }
     }
 
@@ -106,6 +112,7 @@ impl MemoryRetrieveQueryEmbedding {
         self.variant_weight = bw.variant;
         self.string_blend_alpha = bw.string_blend_alpha;
         self.variant.set_blend_weights(&bw);
+        self.blend_weights = bw;
         self
     }
 
@@ -117,6 +124,7 @@ impl MemoryRetrieveQueryEmbedding {
             tag_weight: _,
             variant_weight: _,
             string_blend_alpha: _,
+            blend_weights: _,
         } = self;
         (tag, variant)
     }
@@ -149,6 +157,7 @@ impl Embeddable for MemoryRetrieveQuery {
             tag_weight: bw.tag,
             variant_weight: bw.variant,
             string_blend_alpha: bw.string_blend_alpha,
+            blend_weights: bw,
         })
     }
     fn embed_and_fuse(
