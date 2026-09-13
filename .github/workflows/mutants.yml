@@ -86,14 +86,24 @@ jobs:
       - name: Install cargo-mutants
         run: cargo install cargo-mutants --version 27.1.0
 
+      # `core.quotepath=false` 是必须的：git 默认把非 ASCII 路径用 C 风格引号包起来、并把
+      # 字节写成八进制转义（`"docs/architecture/\346\265\213..."`），而 cargo-mutants 的 diff
+      # 解析器按 Rust 字符串转义规则处理引号内内容，`\346` 不是合法转义 —— 于是整个 job 以
+      # `ERROR Failed to parse diff: invalid escaped character`（exit 6）失败，与改动内容无关。
+      # 只要一个 PR 同时改了 crates/** 和本仓库里任一非 ASCII 文件名的文件就会命中。
       - name: Generate PR diff
         run: |
-          git diff "${{ github.event.pull_request.base.sha }}...${{ github.sha }}" > "$RUNNER_TEMP/pr.diff"
+          git -c core.quotepath=false diff "${{ github.event.pull_request.base.sha }}...${{ github.sha }}" > "$RUNNER_TEMP/pr.diff"
 
       - name: Run cargo mutants (PR diff)
         run: cargo mutants --workspace --in-diff "$RUNNER_TEMP/pr.diff"
 
+      # cargo-mutants 在「没有变异体可测」时（例如 PR 只往 .rs 里加文档注释）**不会创建**
+      # mutants.out/，而 mutants_gate.py 把「输出缺失」判为硬错误（exit 2）—— 那个判定要保留，
+      # 它用来抓 cargo-mutants 崩溃。所以这里只在确实有产物时才跑门禁；上一步失败时 job 已经
+      # 红了，不存在漏判。
       - name: Check kill rate
+        if: hashFiles('mutants.out/**') != ''
         run: python3 scripts/mutants_gate.py --out-dir mutants.out --threshold 90
 
       - name: Upload mutants report
