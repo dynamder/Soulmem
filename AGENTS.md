@@ -105,12 +105,13 @@ cargo mutants --workspace                 # 杀灭率 ≥90%，门禁见 scripts
 > **不要批量改写、重排或"优化"书正文**——那不是可以自动化的区域。需要文档改动时改 `docs/` 或 crate 内注释。
 > 书源码保留在 `doc/book` 分支，当前分支**不含**书源码（磁盘上的 `book/book/` 只是 HTML 构建产物）。
 
-**取用文档时的两条规则**：
+**取用文档时的三条规则**：
 
 - **测试数据集**以 [`docs/测试数据规范.md`](docs/测试数据规范.md) 为准。
   [`docs/architecture/测试数据格式.md`](docs/architecture/测试数据格式.md) 描述的是**上游生产者**（`soul_scraper`）的格式，命名与字段都不同。
 - **当前架构**看 [`docs/architecture/orchestration.md`](docs/architecture/orchestration.md)。
   [`docs/architecture/beta_ver.md`](docs/architecture/beta_ver.md) 是**设计历史**（含未决问题与 `- [ ]` 待办），部分已被实现取代，不要当作现状。
+- **`fixtures/example_data/` 里的数据是萌娘百科文本的演绎作品**，按其上游许可（CC BY-NC-SA 3.0 CN，禁止商业使用）提供，**与仓库的 MIT 不是同一套许可**。新增 fixture 或改写现有 fixture 之前，先读 [`docs/测试数据规范.md`](docs/测试数据规范.md) 第六节。
 
 ---
 
@@ -145,7 +146,7 @@ cargo mutants --workspace                 # 杀灭率 ≥90%，门禁见 scripts
 | `#![allow(dead_code)]` 在两个 crate 级放行，掩盖真实死代码；`dead_code` 警告因此局部失效 | `crates/soul-tune/src/main.rs`、`crates/soul-tune-api/src/lib.rs` |
 | `tests_playtest_mock.rs` 定义了 `MockLlm` 却从未传给 `PlayTestRunner`，并未真正覆盖 playtest | `crates/soul-tune/src/tests_playtest_mock.rs` |
 
-**本地配置导致的差异**：`.git/info/exclude`（**不随仓库分发**）在维护者机器上排除了 `fixtures/` 与 `soul-tune-ui/`。因此这两处的**新增文件在维护者机器上不会出现在 `git status` 里**；在其他环境里它们是正常的未跟踪文件。
+**本地配置不再排除任何目录**：`.git/info/exclude`（**不随仓库分发**）曾排除 `fixtures/` 与 `soul-tune-ui/`，目的是在同一个工作副本里切到 `doc/book` 分支时不把这两处显示成成片未追踪。代价是本机新增的这两个目录下的文件在 `git status` 里**完全不可见**，会被静默漏提交——`soul-tune-ui/` 在 `dev` 上是已跟踪目录，风险尤其大。现在改为给 `doc/book` 一个独立工作区（`git worktree add ../SoulMem-book doc/book`），排除项已清空。实测这两个目录的构建产物已被根 `.gitignore` 与 `soul-tune-ui/.gitignore` 完整覆盖，移除排除项后未追踪文件数为 0。
 
 ---
 
