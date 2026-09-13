@@ -94,6 +94,7 @@ impl RetrStrategy for RetrAssociateWithAction {
     type Request = AssociateWithActionRequest;
     type Return<'a> = AssociateWithActionResult;
 
+    #[hotpath::measure]
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
         let working_mem = Arc::clone(&request.association.working_mem);
         // 相似度种子（直接命中）与 PPR 关联结果的并集共同作为 Bayes 源候选，
@@ -144,6 +145,7 @@ impl RetrStrategy for RetrAssociateWithAction {
 
 /// 合并相似度种子与 PPR 关联结果（同 id 取 max），只返回 Situation 节点，
 /// 附带是否为抽象情境的标记（`true` = AbstractSituation，`false` = SpecificSituation）。
+#[hotpath::measure]
 fn merge_situation_sources(
     working_mem: &Arc<WorkingMemory>,
     sim_sources: &[(MemoryId, f32)],

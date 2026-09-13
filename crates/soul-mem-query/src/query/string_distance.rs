@@ -43,6 +43,7 @@ pub fn string_distance_score(a: &str, b: &str) -> f32 {
 ///
 /// 使用 max pooling 聚合：任一查询单元与任一目标字符串的最强命中即代表该笔记的字符串得分。
 /// 变体不匹配（如 Semantic 记忆 vs Situation 查询）返回 0.0，与 embedding 侧行为一致。
+#[hotpath::measure]
 pub fn compute_note_string_score(note: &MemoryNote, query: &MemoryRetrieveQuery) -> f32 {
     match (note.mem_type(), query.variant()) {
         (

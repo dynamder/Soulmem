@@ -55,6 +55,7 @@ impl RetrStrategy for RetrSimilarity {
     type Request = SimilarityRequest;
     type Return<'a> = Vec<(MemoryId, f32)>;
 
+    #[hotpath::measure]
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
         //TODO: 添加从数据库的向量相似结果并混合
         let string_blend_alpha = request.query.embedding.string_blend_alpha;

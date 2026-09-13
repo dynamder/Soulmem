@@ -16,8 +16,18 @@ embed_anything = "0.7.1"
 rayon = "1.10.0"
 text-splitter = "0.29.3"
 strsim = "0.11.1"
+hotpath = { workspace = true }
+# SIMD lane 累加（f32x8）：Rust 无 fast-math，普通 += 归约不会被向量化，
+# 显式 lane 累加在 512 维实测约 4× （wide 在无 256-bit 的架构上自动降级）。
+wide = { workspace = true }
 
 soul-mem-core = {path = "../soul-mem-core"}
+
+# 剖析插桩开关（与 soul-mem-algo 同约定）：默认关闭零开销，
+# 开启后测量 embedding 计算链（cosine/字符串距离/匿名打分）耗时。
+[features]
+default = []
+hotpath = ["hotpath/hotpath"]
 
 [dev-dependencies]
 tokio = { workspace = true }

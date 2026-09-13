@@ -9,6 +9,7 @@ esaxx-rs = { path = "patches/esaxx-rs" }
 
 [workspace.dependencies]
 anyhow = "1.0.98"
+backon = "1.6"
 chrono = { version = "0.4.41", features = ["serde"] }
 petgraph = "0.8.2"
 serde = { version = "1.0.219", features = ["derive"] }
@@ -28,6 +29,9 @@ rand = "0.9"
 parking_lot = "0.12"
 async-openai = { version = "0.32.4", features = ["chat-completion"] }
 dotenvy = "0.15"
+hotpath = "0.24"
+# 可移植 SIMD（stable，无 unsafe API、零传递依赖）：融合 cos 的 lane 累加
+wide = "1.7"
 
 [profile.release]
 lto = true

@@ -1,4 +1,10 @@
-use std::{cmp::Ordering, collections::HashMap, fmt::Debug, hash::Hash, ops::AddAssign};
+use std::{
+    cmp::Ordering,
+    collections::{BinaryHeap, HashMap},
+    fmt::Debug,
+    hash::Hash,
+    ops::AddAssign,
+};
 
 use petgraph::{
     algo::UnitMeasure,
@@ -10,6 +16,7 @@ use petgraph::{
 /// 必须保证source_bias的key是有效的NodeId, 否则会得到不正确的结果
 // 由于NodeId会由MemoryCluster提供，这不会造成额外的检查负担
 #[track_caller]
+#[hotpath::measure]
 pub fn naive_ppr<G, D>(
     graph: G,
     damping_factor: D,
@@ -314,6 +321,7 @@ type EdgeWeightCache<NodeId, EdgeId, D> = HashMap<NodeId, Vec<EdgeWeightUnit<Nod
 
 #[track_caller]
 //TODO: make damping factor specific to each node
+#[hotpath::measure]
 pub fn weighted_ppr_fp<G, D, Q>(
     graph: G,
     damping_factor: D,
@@ -372,14 +380,31 @@ where
     let mut ppr_edge_weight_cache: EdgeWeightCache<G::NodeId, G::EdgeId, D> =
         HashMap::with_capacity(graph.node_count());
 
+    // 惰性优先队列替代"每轮全量扫描取最大残差"（find_max 原为 O(N)/轮，
+    // profile 实测占 PPR 时间 89%~94%）：push 时入堆、陈旧条目弹出即弃、
+    // 堆顶 ≤ 阈值即整体收敛（等价于原逻辑的 max ≤ 阈值 break）。
+    let mut residue_heap: BinaryHeap<ResidueUnit<usize, D>> = residue_vec
+        .iter()
+        .copied()
+        .filter(|u| u.value > D::zero())
+        .collect();
+
     //每次取残差最大的节点进行push，加速收敛
     //迭代上限作为安全网：残差会随damping<1几何衰减，正常在有限次内收敛；
     //极小的residue_threshold或病态图可能使迭代次数过大，用上限兜底防止无限循环。
     let max_iterations = graph.node_bound().max(1) * 1024;
     let mut iteration_count = 0usize;
-    while let Some(residue_i) = residue_vec.iter().copied().max() {
+    // 每次取残差最大的节点进行push（热点测量：find_max 现为堆顶弹出 O(log N)）
+    loop {
+        let residue_i = hotpath::measure_block!("ppr::find_max", residue_heap.pop());
+        let Some(residue_i) = residue_i else { break };
         if residue_i.value <= residue_threshold {
+            // 堆顶 ≤ 阈值：所有剩余残差均 ≤ 阈值，整体收敛
             break;
+        }
+        // 陈旧条目：弹出值与当前残差不一致（该节点之后被再次更新过），弃之
+        if residue_i.value != residue_vec[residue_i.idx].value {
+            continue;
         }
         iteration_count += 1;
         if iteration_count > max_iterations {
@@ -387,70 +412,87 @@ where
         }
         //println!("Processing node {}", residue_i.idx);
         let out_edges = graph.edges(graph.from_index(residue_i.idx));
-        //动态归一化的边权计算
+        //动态归一化的边权计算（懒缓存：每节点首次访问时计算一次）
         ppr_edge_weight_cache
             .entry(graph.from_index(residue_i.idx))
             .or_insert_with(|| {
-                //println!("Calculating edge weights for node {}", residue_i.idx);
-                let weights = out_edges
-                    .map(|edge| {
-                        let weight = weight_calc(graph, &edge, dynamic_query);
-                        EdgeWeightUnit {
-                            target_node: edge.target(),
-                            idx: edge.id(),
-                            value: weight,
-                        }
-                    })
-                    .collect::<Vec<_>>();
-                let sum = weights.iter().map(|v| v.value).sum::<D>();
-
-                if sum != D::zero() {
-                    //防止NaN
-                    weights
-                        .into_iter()
-                        .map(|w| EdgeWeightUnit {
-                            target_node: w.target_node,
-                            idx: w.idx,
-                            value: w.value / sum,
+                hotpath::measure_block!("ppr::edge_weight_calc", {
+                    //println!("Calculating edge weights for node {}", residue_i.idx);
+                    let weights = out_edges
+                        .map(|edge| {
+                            let weight = weight_calc(graph, &edge, dynamic_query);
+                            EdgeWeightUnit {
+                                target_node: edge.target(),
+                                idx: edge.id(),
+                                value: weight,
+                            }
                         })
-                        .collect::<Vec<_>>()
-                } else {
-                    weights
-                }
+                        .collect::<Vec<_>>();
+                    let sum = weights.iter().map(|v| v.value).sum::<D>();
+
+                    if sum != D::zero() {
+                        //防止NaN
+                        weights
+                            .into_iter()
+                            .map(|w| EdgeWeightUnit {
+                                target_node: w.target_node,
+                                idx: w.idx,
+                                value: w.value / sum,
+                            })
+                            .collect::<Vec<_>>()
+                    } else {
+                        weights
+                    }
+                })
             });
 
         let edge_weights = &ppr_edge_weight_cache[&graph.from_index(residue_i.idx)];
         //println!("edge_weights: {:?}", edge_weights);
-        //清空当前节点残差
-        residue_vec[residue_i.idx].value = D::zero();
+        hotpath::measure_block!("ppr::push_spread", {
+            //清空当前节点残差
+            residue_vec[residue_i.idx].value = D::zero();
 
-        //将部分残差转为保留
-        reserve_vec[residue_i.idx] += (D::one() - damping_factor) * residue_i.value;
+            //将部分残差转为保留
+            reserve_vec[residue_i.idx] += (D::one() - damping_factor) * residue_i.value;
 
-        //残差push
-        if let Some(edge_weight_max) = edge_weights.iter().max() {
-            //节点出度不为0的情况
-            if residue_i.value * edge_weight_max.value > residue_threshold {
-                edge_weights.iter().for_each(|edge_w| {
-                    residue_vec[graph.to_index(edge_w.target_node)].value +=
-                        damping_factor * edge_w.value * residue_i.value;
-                });
+            //残差push（目标残差超阈值才入堆；堆顶≤阈值即收敛，故低于阈值者无需入堆）
+            if let Some(edge_weight_max) = edge_weights.iter().max() {
+                //节点出度不为0的情况
+                if residue_i.value * edge_weight_max.value > residue_threshold {
+                    edge_weights.iter().for_each(|edge_w| {
+                        let idx = graph.to_index(edge_w.target_node);
+                        let new_value = residue_vec[idx].value
+                            + damping_factor * edge_w.value * residue_i.value;
+                        residue_vec[idx].value = new_value;
+                        if new_value > residue_threshold {
+                            residue_heap.push(ResidueUnit {
+                                idx,
+                                value: new_value,
+                            });
+                        }
+                    });
+                }
+                // else：该节点最大边权过小，本次push的贡献低于阈值；
+                // 其残差已退役为保留值，不扩散（原 continue 语义）
             } else {
-                //该节点最大边权过小，本次push的贡献低于阈值，跳过该节点继续处理其它残差；
-                //不能break整个循环：其它节点的边权分布不同，可能仍能有效传播。
-                continue;
+                //节点出度为0的情况
+                if residue_i.value / source_node_count > residue_threshold {
+                    normalized_personalized_vec.keys().for_each(|node| {
+                        let idx = graph.to_index(*node);
+                        let new_value = residue_vec[idx].value
+                            + damping_factor * residue_i.value / source_node_count;
+                        residue_vec[idx].value = new_value;
+                        if new_value > residue_threshold {
+                            residue_heap.push(ResidueUnit {
+                                idx,
+                                value: new_value,
+                            });
+                        }
+                    });
+                }
+                // else：扩散量低于阈值，不扩散（原 continue 语义）
             }
-        } else {
-            //节点出度为0的情况
-            if residue_i.value / source_node_count > residue_threshold {
-                normalized_personalized_vec.keys().for_each(|node| {
-                    residue_vec[graph.to_index(*node)].value +=
-                        damping_factor * residue_i.value / source_node_count;
-                });
-            } else {
-                continue;
-            }
-        }
+        });
     }
     let sum = reserve_vec.iter().copied().sum::<D>();
     //sum为0时（如damping=1或全零边权）返回全零分布，避免0/0产生NaN

@@ -5,17 +5,27 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
+anyhow = { workspace = true }
+backon = { workspace = true }
 soul-mem-core = { path = "../soul-mem-core" }
 soul-mem-query = { path = "../soul-mem-query" }
 soul-mem-runtime = { path = "../soul-mem-runtime" }
 petgraph = { workspace = true }
 ordered-float = "5.0.0"
 serde = { workspace = true }
+serde_json = { workspace = true }
 rayon = "1.12.0"
 chrono = { workspace = true }
 jieba-rs = { workspace = true }
 rand = { workspace = true }
 parking_lot = { workspace = true }
+hotpath = { workspace = true }
+
+# 剖析插桩开关：不开 `hotpath` 时所有宏为 noop、零开销；开启后检索
+# 链路各阶段（similarity/association/bayes/ppr/merge）输出函数级耗时。
+[features]
+default = []
+hotpath = ["hotpath/hotpath"]
 
 [dev-dependencies]
 insta.workspace = true

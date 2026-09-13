@@ -66,6 +66,7 @@ impl RetrStrategy for RetrBayesAction {
     type Request = BayesActionRequest;
     type Return<'a> = Vec<(MemoryId, f64)>;
 
+    #[hotpath::measure]
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
         let cluster = request.working_mem.memory_cluster();
 
@@ -108,6 +109,7 @@ impl RetrStrategy for RetrBayesAction {
         })
     }
 }
+#[hotpath::measure]
 fn get_possible_actions(
     cluster: &MemoryCluster,
     source: &[(MemoryId, f64)],
