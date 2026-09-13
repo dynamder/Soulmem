@@ -20,4 +20,9 @@ exclude_re = [
     'PartialEq for ResidueUnit',
     'PartialOrd for EdgeWeightUnit',
     'PartialEq for EdgeWeightUnit',
+    # similarity_fetch 的 ef = k * 2：HNSW 搜索广度调优参数（ef 越大召回越准越慢），
+    # 与 k 的倍数关系是性能选择而非正确性约束——替换为 + / 仍返回正确召回集，
+    # 测试断言（召回集包含/排除特定 id）已覆盖召回正确性，ef 具体值无需逐值断言。
+    'replace \* with \+ in .*similarity_fetch',
+    'replace \* with / in .*similarity_fetch',
 ]

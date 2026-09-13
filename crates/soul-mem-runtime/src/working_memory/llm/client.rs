@@ -30,7 +30,7 @@ impl LlmClient {
 
     pub async fn simple_call(&self, message: ChatCompletionRequestMessage) -> Result<Vec<String>> {
         let request = CreateChatCompletionRequestArgs::default()
-            .max_tokens(self.config.get_max_tokens())
+            .max_completion_tokens(self.config.get_max_tokens())
             .model(self.config.get_model().to_string())
             .messages(vec![message])
             .n(self.config.get_n())
@@ -44,7 +44,7 @@ impl LlmClient {
         messages: Vec<ChatCompletionRequestMessage>,
     ) -> Result<CreateChatCompletionRequest> {
         let request = CreateChatCompletionRequestArgs::default()
-            .max_tokens(self.config.get_max_tokens())
+            .max_completion_tokens(self.config.get_max_tokens())
             .model(self.config.get_model().to_string())
             .messages(messages)
             .n(self.config.get_n())
@@ -78,11 +78,14 @@ mod tests {
             .structured(vec![message.clone()])
             .expect("request builds");
         assert_eq!(request.model, "model-x");
-        assert_eq!(request.max_tokens, Some(256));
+        assert_eq!(request.max_completion_tokens, Some(256));
         assert_eq!(request.n, Some(2));
         assert_eq!(request.messages, vec![message]);
     }
 
+    /// `function_call` 字段在 async-openai 中已废弃（替代 `tool_calls`），但 struct 无 Default
+    /// 且字段必须显式初始化，此处构造测试响应只能显式置 None。
+    #[allow(deprecated)]
     fn response_with_contents(contents: Vec<Option<String>>) -> CreateChatCompletionResponse {
         let choices = contents
             .into_iter()

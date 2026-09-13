@@ -196,10 +196,10 @@ where
                 s.aliases = aliases;
             }
         }
-        if let Some(desc) = new_desc {
-            if !desc.is_empty() {
-                s.description = desc;
-            }
+        if let Some(desc) = new_desc
+            && !desc.is_empty()
+        {
+            s.description = desc;
         }
         if let Some(ct) = new_ct {
             s.concept_type = ct;

@@ -124,9 +124,9 @@ mod tests {
     use crate::working_memory::sliding_window::Information;
     use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
     use soul_mem_core::memory_note::{MemoryNoteBuilder, MemoryType};
+    use soul_mem_query::embedding::EmbeddingVec;
     use soul_mem_query::embedding::note::{MemoryEmbedding, MemoryEmbeddingVariant};
     use soul_mem_query::embedding::sem::SemanticEmbedding;
-    use soul_mem_query::embedding::EmbeddingVec;
 
     fn sem_note(content: &str) -> EmbeddedMemoryNote {
         let mem_type = MemoryType::Semantic(SemMemory {
@@ -259,7 +259,10 @@ mod tests {
         let node = sem_note("A");
         let id = node.note().id();
         wm.add_node(node);
-        wm.records_mut().get_mut(&id).expect("record").record_retrieval();
+        wm.records_mut()
+            .get_mut(&id)
+            .expect("record")
+            .record_retrieval();
         assert_eq!(wm.records()[&id].retrieval_count(), 1);
     }
 

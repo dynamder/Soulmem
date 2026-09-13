@@ -1,3 +1,8 @@
+// cdylib/staticlib 无 Rust 下游：pub 项仅供 FFI 导出与 Dart 端消费（rustc 无法
+// 感知外部消费者），dead_code 按 crate 视角判定属误报，统一放行；
+// not_unsafe_ptr_arg_deref 来自 FRB 生成代码（frb_generated.rs）的宏展开。
+#![allow(dead_code, clippy::not_unsafe_ptr_arg_deref)]
+
 //! soul-tune-api：FRB 桥接层（JSON-over-FRB）。
 //!
 //! 架构约定：

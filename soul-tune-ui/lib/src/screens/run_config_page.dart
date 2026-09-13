@@ -14,7 +14,8 @@ class RunConfigPage extends StatefulWidget {
 }
 
 class _RunConfigPageState extends State<RunConfigPage> {
-  String _mode = 'full';
+  String _source = 'direct'; // direct（全量载入工作记忆）| db（先入 mem 数据库再 DB 召回）
+  String _flavor = 'full'; // embedding | association | full
   final _pathCtrl = TextEditingController();
   final _topK = TextEditingController(text: '10');
   final _threshold = TextEditingController(text: '0.7');
@@ -31,11 +32,11 @@ class _RunConfigPageState extends State<RunConfigPage> {
     super.dispose();
   }
 
-  String get _algoName => switch (_mode) {
-        'embedding' => 'retrieve/embedding',
-        'association' => 'retrieve/association',
-        _ => 'retrieve/full',
-      };
+  String get _algoName {
+    final prefix = _source == 'db' ? 'retrieve/db' : 'retrieve';
+    final full = _flavor == 'full';
+    return full ? '$prefix/full' : '$prefix/$_flavor';
+  }
 
   Future<void> _pickFile() async {
     final result = await FilePicker.platform.pickFiles(
@@ -109,8 +110,25 @@ class _RunConfigPageState extends State<RunConfigPage> {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              // ① 算法与模式
+              // ① 算法与模式（记忆来源 × 管线）
               Text('算法与模式', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(
+                    value: 'direct',
+                    label: Text('直接'),
+                    tooltip: 'example_data 全量载入工作记忆',
+                  ),
+                  ButtonSegment(
+                    value: 'db',
+                    label: Text('数据库'),
+                    tooltip: 'example_data 先写入 mem 数据库，再经 DB 召回（候选+一跳邻居）',
+                  ),
+                ],
+                selected: {_source},
+                onSelectionChanged: (s) => setState(() => _source = s.first),
+              ),
               const SizedBox(height: 8),
               SegmentedButton<String>(
                 segments: const [
@@ -118,8 +136,13 @@ class _RunConfigPageState extends State<RunConfigPage> {
                   ButtonSegment(value: 'association', label: Text('association'), tooltip: '相似度 + PPR 关联'),
                   ButtonSegment(value: 'full', label: Text('full'), tooltip: '相似度 + 关联 + 动作全管线'),
                 ],
-                selected: {_mode},
-                onSelectionChanged: (s) => setState(() => _mode = s.first),
+                selected: {_flavor},
+                onSelectionChanged: (s) => setState(() => _flavor = s.first),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '执行: $_algoName${_source == 'db' ? '（DB 候选预算用 question.json 的 db_candidate_k 或默认启发式）' : ''}',
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
               const SizedBox(height: 24),
 

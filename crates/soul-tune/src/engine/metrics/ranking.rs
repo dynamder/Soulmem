@@ -151,8 +151,8 @@ mod tests {
     #[test]
     fn test_ranking_metrics_perfect_match() {
         let ids = make_ids(1);
-        let retrieved: Vec<MemoryId> = ids.iter().copied().collect();
-        let ground_truth: Vec<MemoryId> = ids.iter().copied().collect();
+        let retrieved: Vec<MemoryId> = ids.to_vec();
+        let ground_truth: Vec<MemoryId> = ids.to_vec();
         let metrics = compute_ranking_metrics(&retrieved, &ground_truth, &[1]);
         for (_, r) in &metrics.recall_at {
             assert!((*r - 1.0).abs() < 1e-6);

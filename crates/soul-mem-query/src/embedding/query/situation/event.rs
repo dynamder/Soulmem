@@ -1,5 +1,5 @@
 use crate::embedding::blend_weights::BlendWeights;
-use crate::embedding::{mean_pooling, Embeddable, EmbeddingCalcResult, EmbeddingVec};
+use crate::embedding::{Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling};
 use crate::query::retrieve::EventQueryUnit;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -10,6 +10,20 @@ pub struct EventQueryUnitEmbedding {
     pub blend_weights: BlendWeights,
 }
 impl EventQueryUnitEmbedding {
+    /// 公开构造（外部/测试构造用；blend_weights 取默认值）。
+    pub fn new(
+        action: EmbeddingVec,
+        initiator: Option<EmbeddingVec>,
+        target: Option<EmbeddingVec>,
+    ) -> Self {
+        Self {
+            action,
+            initiator,
+            target,
+            blend_weights: BlendWeights::default(),
+        }
+    }
+
     pub fn action(&self) -> &EmbeddingVec {
         &self.action
     }
@@ -22,6 +36,16 @@ impl EventQueryUnitEmbedding {
 
     pub fn set_blend_weights(&mut self, bw: &BlendWeights) {
         self.blend_weights = bw.clone();
+    }
+    /// 解构取所有权：action、initiator 与 target（移动而非克隆）。
+    pub fn into_parts(self) -> (EmbeddingVec, Option<EmbeddingVec>, Option<EmbeddingVec>) {
+        let Self {
+            action,
+            initiator,
+            target,
+            blend_weights: _,
+        } = self;
+        (action, initiator, target)
     }
     pub fn mean_pooling(vecs: &[EventQueryUnitEmbedding]) -> EmbeddingCalcResult<Option<Self>> {
         if vecs.is_empty() {
@@ -89,18 +113,21 @@ impl Embeddable for EventQueryUnit {
         &self,
         model: &dyn crate::embedding::EmbeddingModel,
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
-        let [action_vec] = model.infer_query_batch(&vec![self.action()])?.try_into().unwrap(); //SAFEUNWRAP: 此处长度必为1
+        let [action_vec] = model
+            .infer_query_batch(&[self.action()])?
+            .try_into()
+            .unwrap(); //SAFEUNWRAP: 此处长度必为1
 
         let initiator_batch_vec = self
             .initiator()
-            .map(|initiator| model.infer_query_batch(&vec![initiator]))
+            .map(|initiator| model.infer_query_batch(&[initiator]))
             .transpose()?;
 
         let initiator_vec = initiator_batch_vec.and_then(|vec| vec.into_iter().next());
 
         let target_batch_vec = self
             .target()
-            .map(|target| model.infer_query_batch(&vec![target]))
+            .map(|target| model.infer_query_batch(&[target]))
             .transpose()?;
 
         let target_vec = target_batch_vec.and_then(|vec| vec.into_iter().next());
@@ -139,8 +166,10 @@ mod tests {
         assert_eq!(embedding.initiator().unwrap().shape(), 1);
         assert_eq!(embedding.target().unwrap().shape(), 1);
 
-        let mut bw = BlendWeights::default();
-        bw.tag = 0.8;
+        let bw = BlendWeights {
+            tag: 0.8,
+            ..Default::default()
+        };
         embedding.set_blend_weights(&bw);
         assert_eq!(embedding.blend_weights.tag, 0.8);
     }
@@ -183,6 +212,34 @@ mod tests {
 
     #[test]
     fn test_event_query_unit_mean_pooling_empty() {
-        assert!(EventQueryUnitEmbedding::mean_pooling(&[]).unwrap().is_none());
+        assert!(
+            EventQueryUnitEmbedding::mean_pooling(&[])
+                .unwrap()
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn test_into_parts_moves_fields() {
+        let action = EmbeddingVec::new(vec![1.0, 0.0]);
+        let initiator = EmbeddingVec::new(vec![0.5, 0.5]);
+        let target = EmbeddingVec::new(vec![0.3, 0.7]);
+        let evt = EventQueryUnitEmbedding::new(
+            action.clone(),
+            Some(initiator.clone()),
+            Some(target.clone()),
+        );
+        let (a, i, t) = evt.into_parts();
+        assert_eq!(a, action, "action 应移动而非克隆");
+        assert_eq!(i, Some(initiator));
+        assert_eq!(t, Some(target));
+    }
+
+    #[test]
+    fn test_into_parts_optional_fields_none() {
+        let evt = EventQueryUnitEmbedding::new(EmbeddingVec::new(vec![1.0]), None, None);
+        let (_, i, t) = evt.into_parts();
+        assert!(i.is_none());
+        assert!(t.is_none());
     }
 }

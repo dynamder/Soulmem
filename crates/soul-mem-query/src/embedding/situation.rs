@@ -8,12 +8,11 @@ pub mod sensory_data;
 use serde::{Deserialize, Serialize};
 
 use crate::embedding::{
-    mean_pooling,
+    Embeddable, EmbeddingCalcResult, EmbeddingVec, mean_pooling,
     situation::{
         context::ContextEmbedding, environment::EnvironmentEmbedding, event::EventEmbedding,
         participant::ParticipantEmbedding,
     },
-    Embeddable, EmbeddingCalcResult, EmbeddingVec,
 };
 use location::LocationEmbedding;
 use soul_mem_core::memory_note::situation_mem::{
@@ -47,8 +46,8 @@ impl From<AbstractSituationEmbedding> for SituationEmbedding {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SpecificSituationEmbedding {
-    narrative: EmbeddingVec,
-    context: ContextEmbedding,
+    pub narrative: EmbeddingVec,
+    pub context: ContextEmbedding,
 }
 impl SpecificSituationEmbedding {
     pub fn narrative(&self) -> &EmbeddingVec {

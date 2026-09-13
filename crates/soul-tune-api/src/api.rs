@@ -20,18 +20,19 @@ use crate::frb_generated::StreamSink;
 
 use soul_mem_query::query::retrieve::MemoryRetrieveQueryVariant;
 use soul_tune::base::{AlgoType, RetrieveMode};
-use soul_tune::engine::batch::{scan_question_jsons, BatchResult};
-use soul_tune::engine::compare::{build_compare_report, CompareReport};
+use soul_tune::engine::batch::{BatchResult, scan_question_jsons};
+use soul_tune::engine::compare::{CompareReport, build_compare_report};
 use soul_tune::engine::forget::{
-    ideal_ebbinghaus_curve, ForgetCaseData, ForgetMaskSuite, ForgetPipelineSuite,
-    ForgetReviseSuite, MaskCaseData, NodeForgetStat, NodeSeries, ReviseCaseData,
+    ForgetCaseData, ForgetMaskSuite, ForgetPipelineSuite, ForgetReviseSuite, MaskCaseData,
+    NodeForgetStat, NodeSeries, ReviseCaseData, ideal_ebbinghaus_curve,
 };
 use soul_tune::engine::llm::LlamaServer;
 use soul_tune::engine::playtest::runner::{ConversationEntry, PlayTestRunner};
 use soul_tune::engine::playtest::trace::{HitStage, RetrievalTrace, TracedNode};
+use soul_tune::engine::retrieve::RetrieveSuite;
 use soul_tune::engine::retrieve::batch::process_one_dataset;
 use soul_tune::engine::retrieve::data::RetrieveCaseData;
-use soul_tune::engine::retrieve::RetrieveSuite;
+use soul_tune::engine::retrieve::db_compare::{DbCompareReport, build_db_compare_report};
 use soul_tune::engine::suite::{DetailRow, MetricEntry, TestCaseOutcome, TestSuite};
 
 /// 全局取消标志（单跑/批量共享）。
@@ -75,9 +76,7 @@ struct DatasetMetaJson {
 #[frb]
 pub fn dataset_meta_json(path: String) -> String {
     let content = std::fs::read_to_string(&path);
-    let v: Option<serde_json::Value> = content
-        .ok()
-        .and_then(|c| serde_json::from_str(&c).ok());
+    let v: Option<serde_json::Value> = content.ok().and_then(|c| serde_json::from_str(&c).ok());
     let Some(v) = v else {
         return serde_json::to_string(&DatasetMetaJson {
             name: String::new(),
@@ -90,7 +89,11 @@ pub fn dataset_meta_json(path: String) -> String {
         .unwrap_or_default();
     };
     let meta = DatasetMetaJson {
-        name: v.get("name").and_then(|x| x.as_str()).unwrap_or("").to_string(),
+        name: v
+            .get("name")
+            .and_then(|x| x.as_str())
+            .unwrap_or("")
+            .to_string(),
         description: v
             .get("description")
             .and_then(|x| x.as_str())
@@ -152,7 +155,9 @@ pub fn reset_cancel() {
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum RunEvent {
-    Loading { message: String },
+    Loading {
+        message: String,
+    },
     Progress {
         done: usize,
         total: usize,
@@ -161,8 +166,12 @@ enum RunEvent {
         elapsed_ms: u64,
         case_name: String,
     },
-    Done { report: ReportJson },
-    Error { message: String },
+    Done {
+        report: ReportJson,
+    },
+    Error {
+        message: String,
+    },
     Cancelled,
 }
 
@@ -219,7 +228,12 @@ fn run_suite_impl(
         .unwrap_or_default();
 
     CANCEL.store(false, Ordering::SeqCst);
-    emit(sink, &RunEvent::Loading { message: "正在加载数据集与嵌入模型...".into() });
+    emit(
+        sink,
+        &RunEvent::Loading {
+            message: "正在加载数据集与嵌入模型...".into(),
+        },
+    );
 
     let suite: Box<dyn TestSuite> = match algo {
         AlgoType::Retrieve(mode) => Box::new(
@@ -229,7 +243,12 @@ fn run_suite_impl(
         other => return Err(anyhow::anyhow!("暂不支持该算法: {other}")),
     };
     let total = suite.case_count();
-    emit(sink, &RunEvent::Loading { message: format!("准备就绪，共 {total} 个测试用例") });
+    emit(
+        sink,
+        &RunEvent::Loading {
+            message: format!("准备就绪，共 {total} 个测试用例"),
+        },
+    );
 
     let start = Instant::now();
     let mut outcomes = Vec::with_capacity(total);
@@ -318,6 +337,11 @@ fn parse_algo(s: &str) -> anyhow::Result<AlgoType> {
         "retrieve/embedding" | "re" => Ok(AlgoType::Retrieve(RetrieveMode::Embedding)),
         "retrieve/association" | "ra" => Ok(AlgoType::Retrieve(RetrieveMode::Association)),
         "retrieve/full" | "retrieve" | "rf" => Ok(AlgoType::Retrieve(RetrieveMode::FullPipeline)),
+        "retrieve/db/embedding" | "rde" => Ok(AlgoType::Retrieve(RetrieveMode::EmbeddingDb)),
+        "retrieve/db/association" | "rda" => Ok(AlgoType::Retrieve(RetrieveMode::AssociationDb)),
+        "retrieve/db" | "retrieve/db/full" | "rd" => {
+            Ok(AlgoType::Retrieve(RetrieveMode::FullPipelineDb))
+        }
         other => Err(anyhow::anyhow!("未知算法: {other}")),
     }
 }
@@ -327,8 +351,13 @@ fn parse_algo(s: &str) -> anyhow::Result<AlgoType> {
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum BatchEvent {
-    Scanning { dir: String },
-    Progress { done: usize, total: usize },
+    Scanning {
+        dir: String,
+    },
+    Progress {
+        done: usize,
+        total: usize,
+    },
     DatasetDone {
         index: usize,
         name: String,
@@ -339,8 +368,12 @@ enum BatchEvent {
         elapsed_ms: u64,
         error: Option<String>,
     },
-    Done { result: BatchReportJson },
-    Error { message: String },
+    Done {
+        result: BatchReportJson,
+    },
+    Error {
+        message: String,
+    },
     Cancelled,
 }
 
@@ -385,16 +418,27 @@ fn run_batch_impl(
         "embedding" => RetrieveMode::Embedding,
         "association" => RetrieveMode::Association,
         "full" | "fullpipeline" => RetrieveMode::FullPipeline,
+        "db/embedding" | "dbe" => RetrieveMode::EmbeddingDb,
+        "db/association" | "dba" => RetrieveMode::AssociationDb,
+        "db" | "db/full" | "db/fullpipeline" => RetrieveMode::FullPipelineDb,
         other => return Err(anyhow::anyhow!("未知检索模式: {other}")),
     };
     let dir_path = PathBuf::from(dir);
 
     CANCEL.store(false, Ordering::SeqCst);
-    emit(sink, &BatchEvent::Scanning { dir: dir_path.to_string_lossy().to_string() });
+    emit(
+        sink,
+        &BatchEvent::Scanning {
+            dir: dir_path.to_string_lossy().to_string(),
+        },
+    );
 
     let datasets = scan_question_jsons(&dir_path);
     if datasets.is_empty() {
-        return Err(anyhow::anyhow!("目录下未找到 question.json: {}", dir_path.display()));
+        return Err(anyhow::anyhow!(
+            "目录下未找到 question.json: {}",
+            dir_path.display()
+        ));
     }
 
     let result: BatchResult = soul_tune::engine::batch::run_batch(
@@ -483,7 +527,9 @@ fn run_batch_impl(
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum CompareEvent {
-    Loading { message: String },
+    Loading {
+        message: String,
+    },
     Progress {
         phase: String,
         done: usize,
@@ -493,8 +539,12 @@ enum CompareEvent {
         elapsed_ms: u64,
         case_name: String,
     },
-    Done { report: CompareReportJson },
-    Error { message: String },
+    Done {
+        report: CompareReportJson,
+    },
+    Error {
+        message: String,
+    },
     Cancelled,
 }
 
@@ -521,11 +571,148 @@ struct CompareCaseJson {
     fullpipeline_mrr: f64,
     embedding_recall_at: Vec<(usize, f64)>,
     fullpipeline_recall_at: Vec<(usize, f64)>,
+    embedding_precision_at: Vec<(usize, f64)>,
+    fullpipeline_precision_at: Vec<(usize, f64)>,
+    embedding_ndcg_at: Vec<(usize, f64)>,
+    fullpipeline_ndcg_at: Vec<(usize, f64)>,
     embedding_retrieved: Vec<String>,
     fullpipeline_retrieved: Vec<String>,
     expected_combined_ranking: Vec<String>,
     improved_hit: bool,
     improved_mrr: bool,
+    /// 各子查询双侧指标（详情页钻取用；两侧按 query_index 对齐）
+    per_query: Vec<ComparePerQueryJson>,
+}
+
+/// 单个子查询的双侧指标（embedding_* 承载侧 A、fullpipeline_* 承载侧 B，
+/// 与用例字段的命名约定一致：direct_db 对比时 A=直接、B=数据库）。
+#[derive(Serialize)]
+struct ComparePerQueryJson {
+    query_index: usize,
+    embedding_mrr: f64,
+    fullpipeline_mrr: f64,
+    embedding_hit: f64,
+    fullpipeline_hit: f64,
+    embedding_recall_at: Vec<(usize, f64)>,
+    fullpipeline_recall_at: Vec<(usize, f64)>,
+    embedding_precision_at: Vec<(usize, f64)>,
+    fullpipeline_precision_at: Vec<(usize, f64)>,
+    embedding_ndcg_at: Vec<(usize, f64)>,
+    fullpipeline_ndcg_at: Vec<(usize, f64)>,
+}
+
+/// 从每侧用例结果中抽取详情用扩展数据（Precision/NDCG/逐子查询），
+/// 统一由 [`retrieve::data::RankingMetrics`] 提供，无需改动引擎对比报告结构。
+fn find_query_metrics(
+    idx: usize,
+    list: &[soul_tune::engine::retrieve::data::PerQueryMetrics],
+) -> Option<&soul_tune::engine::retrieve::data::RankingMetrics> {
+    list.iter()
+        .find(|p| p.query_index == idx)
+        .map(|p| &p.ranking_metrics)
+}
+
+#[allow(clippy::type_complexity)] // 内部聚合：多通道指标以元组返回，比中间结构更直观
+fn case_extras_json(
+    key: &(String, u32, u32),
+    emb_map: &HashMap<(String, u32, u32), &RetrieveCaseData>,
+    full_map: &HashMap<(String, u32, u32), &RetrieveCaseData>,
+) -> (
+    Vec<(usize, f64)>, // emb precision
+    Vec<(usize, f64)>, // full precision
+    Vec<(usize, f64)>, // emb ndcg
+    Vec<(usize, f64)>, // full ndcg
+    Vec<ComparePerQueryJson>,
+) {
+    use soul_tune::engine::retrieve::data::RankingMetrics;
+    fn metrics_of<'a>(
+        map: &'a HashMap<(String, u32, u32), &'a RetrieveCaseData>,
+        key: &(String, u32, u32),
+    ) -> Option<&'a RankingMetrics> {
+        map.get(key).map(|d| &d.combined_ranking_metrics)
+    }
+    let zero = || Vec::<(usize, f64)>::new();
+    let emb_m = metrics_of(emb_map, key);
+    let full_m = metrics_of(full_map, key);
+    let emb_precision = emb_m.map(|m| m.precision_at.clone()).unwrap_or_else(zero);
+    let full_precision = full_m.map(|m| m.precision_at.clone()).unwrap_or_else(zero);
+    let emb_ndcg = emb_m.map(|m| m.ndcg_at.clone()).unwrap_or_else(zero);
+    let full_ndcg = full_m.map(|m| m.ndcg_at.clone()).unwrap_or_else(zero);
+
+    // 逐子查询：取两侧 query_index 并集（按序），缺失侧给零指标
+    let emb_pq = emb_map
+        .get(key)
+        .map(|d| &d.per_query_metrics)
+        .cloned()
+        .unwrap_or_default();
+    let full_pq = full_map
+        .get(key)
+        .map(|d| &d.per_query_metrics)
+        .cloned()
+        .unwrap_or_default();
+    let mut indices: Vec<usize> = emb_pq
+        .iter()
+        .map(|p| p.query_index)
+        .chain(full_pq.iter().map(|p| p.query_index))
+        .collect();
+    indices.sort_unstable();
+    indices.dedup();
+
+    let empty_metrics = RankingMetrics {
+        recall_at: Vec::new(),
+        precision_at: Vec::new(),
+        mrr: 0.0,
+        ndcg_at: Vec::new(),
+        hit_rate: 0.0,
+    };
+    let per_query = indices
+        .into_iter()
+        .map(|idx| {
+            let e = find_query_metrics(idx, &emb_pq).unwrap_or(&empty_metrics);
+            let f = find_query_metrics(idx, &full_pq).unwrap_or(&empty_metrics);
+            ComparePerQueryJson {
+                query_index: idx,
+                embedding_mrr: e.mrr,
+                fullpipeline_mrr: f.mrr,
+                embedding_hit: e.hit_rate,
+                fullpipeline_hit: f.hit_rate,
+                embedding_recall_at: e.recall_at.clone(),
+                fullpipeline_recall_at: f.recall_at.clone(),
+                embedding_precision_at: e.precision_at.clone(),
+                fullpipeline_precision_at: f.precision_at.clone(),
+                embedding_ndcg_at: e.ndcg_at.clone(),
+                fullpipeline_ndcg_at: f.ndcg_at.clone(),
+            }
+        })
+        .collect();
+
+    (
+        emb_precision,
+        full_precision,
+        emb_ndcg,
+        full_ndcg,
+        per_query,
+    )
+}
+
+fn compare_key(name: &str, tag_weight: f32, variant_weight: f32) -> (String, u32, u32) {
+    (
+        name.to_string(),
+        (tag_weight * 100.0).round() as u32,
+        (variant_weight * 100.0).round() as u32,
+    )
+}
+
+/// 按用例键索引一侧的 RetrieveCaseData（用于抽取 Precision/NDCG/逐子查询等扩展数据）。
+fn index_side_data(outcomes: &[TestCaseOutcome]) -> HashMap<(String, u32, u32), &RetrieveCaseData> {
+    let mut map: HashMap<(String, u32, u32), &RetrieveCaseData> = HashMap::new();
+    for o in outcomes {
+        if let Some(d) = o.data.downcast_ref::<RetrieveCaseData>() {
+            let key = compare_key(&d.case_name, d.tag_weight, d.variant_weight);
+            map.insert(key, d);
+        }
+    }
+    map
 }
 
 #[derive(Serialize)]
@@ -556,33 +743,68 @@ fn run_compare_impl(
         .map(|n| n.to_string_lossy().to_string())
         .unwrap_or_default();
 
+    // 对比类型：embedding_full（embedding vs full pipeline，默认）| direct_db（同管线 直接 vs 数据库）
+    let kind = params
+        .get("kind")
+        .map(String::as_str)
+        .unwrap_or("embedding_full");
+    if kind == "direct_db" {
+        return run_compare_db_impl(&params, &dataset_name, &dataset_path, sink);
+    }
+
     CANCEL.store(false, Ordering::SeqCst);
 
     // 阶段 1：embedding
-    emit(sink, &CompareEvent::Loading { message: "正在加载 Embedding 套件...".into() });
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: "正在加载 Embedding 套件...".into(),
+        },
+    );
     let emb_suite: Box<dyn TestSuite> = Box::new(
         RetrieveSuite::load_with_params(&dataset_path, RetrieveMode::Embedding, Some(&params))
             .map_err(|e| anyhow::anyhow!("加载 Embedding 套件失败: {e}"))?,
     );
     let emb_total = emb_suite.case_count();
-    emit(sink, &CompareEvent::Loading { message: format!("Embedding 就绪，共 {emb_total} 个用例") });
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: format!("Embedding 就绪，共 {emb_total} 个用例"),
+        },
+    );
     let (emb_outcomes, _, _) = run_compare_phase(emb_suite.as_ref(), "embedding", emb_total, sink)?;
 
     // 阶段 2：full pipeline
-    emit(sink, &CompareEvent::Loading { message: "正在加载 FullPipeline 套件...".into() });
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: "正在加载 FullPipeline 套件...".into(),
+        },
+    );
     let full_suite: Box<dyn TestSuite> = Box::new(
         RetrieveSuite::load_with_params(&dataset_path, RetrieveMode::FullPipeline, Some(&params))
             .map_err(|e| anyhow::anyhow!("加载 FullPipeline 套件失败: {e}"))?,
     );
     let full_total = full_suite.case_count();
-    emit(sink, &CompareEvent::Loading { message: format!("FullPipeline 就绪，共 {full_total} 个用例") });
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: format!("FullPipeline 就绪，共 {full_total} 个用例"),
+        },
+    );
     let (full_outcomes, _, _) = run_compare_phase(full_suite.as_ref(), "full", full_total, sink)?;
 
     let report = build_compare_report(&emb_outcomes, &full_outcomes);
     emit(
         sink,
         &CompareEvent::Done {
-            report: build_compare_json(report, &emb_outcomes, &dataset_name, &dataset_path),
+            report: build_compare_json(
+                report,
+                &emb_outcomes,
+                &full_outcomes,
+                &dataset_name,
+                &dataset_path,
+            ),
         },
     );
     Ok(())
@@ -630,25 +852,25 @@ fn run_compare_phase(
 fn build_compare_json(
     report: CompareReport,
     emb_outcomes: &[TestCaseOutcome],
+    full_outcomes: &[TestCaseOutcome],
     dataset_name: &str,
     dataset_path: &Path,
 ) -> CompareReportJson {
-    // 从 embedding 用例数据中收集节点名映射（graph_names）
-    let mut name_map: HashMap<soul_mem_core::memory_note::MemoryId, String> = HashMap::new();
-    for o in emb_outcomes {
-        if let Some(d) = o.data.downcast_ref::<RetrieveCaseData>() {
-            if let Some(names) = d.graph_names.as_ref() {
-                for (id, n) in names.iter() {
-                    name_map.insert(*id, n.clone());
-                }
-            }
-        }
-    }
+    // 从一侧用例数据中收集节点名映射（graph_names），两侧共用同一张图
+    let name_map = collect_graph_names(emb_outcomes);
     let names = |ids: &[soul_mem_core::memory_note::MemoryId]| -> Vec<String> {
         ids.iter()
-            .map(|id| name_map.get(id).cloned().unwrap_or_else(|| format!("{id:?}")))
+            .map(|id| {
+                name_map
+                    .get(id)
+                    .cloned()
+                    .unwrap_or_else(|| format!("{id:?}"))
+            })
             .collect()
     };
+    // 两侧 RetrieveCaseData 索引（供 Precision/NDCG/逐子查询扩展字段）
+    let emb_map = index_side_data(emb_outcomes);
+    let full_map = index_side_data(full_outcomes);
     let agg = &report.aggregate;
     CompareReportJson {
         dataset_name: dataset_name.to_string(),
@@ -665,22 +887,203 @@ fn build_compare_json(
         cases: report
             .cases
             .iter()
-            .map(|c| CompareCaseJson {
-                case_name: c.case_name.clone(),
-                description: c.description.clone(),
-                tag_weight: c.tag_weight,
-                variant_weight: c.variant_weight,
-                embedding_hit: c.embedding_hit,
-                fullpipeline_hit: c.fullpipeline_hit,
-                embedding_mrr: c.embedding_mrr,
-                fullpipeline_mrr: c.fullpipeline_mrr,
-                embedding_recall_at: c.embedding_recall_at.clone(),
-                fullpipeline_recall_at: c.fullpipeline_recall_at.clone(),
-                embedding_retrieved: names(&c.embedding_retrieved),
-                fullpipeline_retrieved: names(&c.fullpipeline_retrieved),
-                expected_combined_ranking: names(&c.expected_combined_ranking),
-                improved_hit: c.fullpipeline_hit > c.embedding_hit,
-                improved_mrr: c.fullpipeline_mrr > c.embedding_mrr,
+            .map(|c| {
+                let key = compare_key(&c.case_name, c.tag_weight, c.variant_weight);
+                let (emb_precision, full_precision, emb_ndcg, full_ndcg, per_query) =
+                    case_extras_json(&key, &emb_map, &full_map);
+                CompareCaseJson {
+                    case_name: c.case_name.clone(),
+                    description: c.description.clone(),
+                    tag_weight: c.tag_weight,
+                    variant_weight: c.variant_weight,
+                    embedding_hit: c.embedding_hit,
+                    fullpipeline_hit: c.fullpipeline_hit,
+                    embedding_mrr: c.embedding_mrr,
+                    fullpipeline_mrr: c.fullpipeline_mrr,
+                    embedding_recall_at: c.embedding_recall_at.clone(),
+                    fullpipeline_recall_at: c.fullpipeline_recall_at.clone(),
+                    embedding_precision_at: emb_precision,
+                    fullpipeline_precision_at: full_precision,
+                    embedding_ndcg_at: emb_ndcg,
+                    fullpipeline_ndcg_at: full_ndcg,
+                    embedding_retrieved: names(&c.embedding_retrieved),
+                    fullpipeline_retrieved: names(&c.fullpipeline_retrieved),
+                    expected_combined_ranking: names(&c.expected_combined_ranking),
+                    improved_hit: c.fullpipeline_hit > c.embedding_hit,
+                    improved_mrr: c.fullpipeline_mrr > c.embedding_mrr,
+                    per_query,
+                }
+            })
+            .collect(),
+    }
+}
+
+/// 从用例结果中收集 graph_names（MemoryId → 图内可读名），供检索列表展示。
+fn collect_graph_names(
+    outcomes: &[TestCaseOutcome],
+) -> HashMap<soul_mem_core::memory_note::MemoryId, String> {
+    let mut name_map: HashMap<soul_mem_core::memory_note::MemoryId, String> = HashMap::new();
+    for o in outcomes {
+        if let Some(d) = o.data.downcast_ref::<RetrieveCaseData>()
+            && let Some(names) = d.graph_names.as_ref()
+        {
+            for (id, n) in names.iter() {
+                name_map.insert(*id, n.clone());
+            }
+        }
+    }
+    name_map
+}
+
+// ======================= 对比（同管线 直接 vs 数据库） =======================
+
+/// params flavor（"full"/"embedding"/"association"，缺省 full）→ (直接模式, 数据库模式)。
+fn compare_db_modes(flavor: &str) -> (RetrieveMode, RetrieveMode) {
+    let direct = match flavor {
+        "embedding" => RetrieveMode::Embedding,
+        "association" => RetrieveMode::Association,
+        _ => RetrieveMode::FullPipeline,
+    };
+    let db = direct
+        .db_mode()
+        .expect("direct retrieve mode always maps to a db mode");
+    (direct, db)
+}
+
+/// 直接 vs 数据库 对比：同一 question.json、同一管线（flavor），两阶段执行后配对报告。
+fn run_compare_db_impl(
+    params: &HashMap<String, String>,
+    dataset_name: &str,
+    dataset_path: &Path,
+    sink: &StreamSink<String>,
+) -> anyhow::Result<()> {
+    let flavor = params.get("flavor").map(String::as_str).unwrap_or("full");
+    let (direct_mode, db_mode) = compare_db_modes(flavor);
+
+    CANCEL.store(false, Ordering::SeqCst);
+
+    // 阶段 1：直接（全量工作记忆）
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: format!("正在加载直接套件（{direct_mode}）..."),
+        },
+    );
+    let direct_suite: Box<dyn TestSuite> = Box::new(
+        RetrieveSuite::load_with_params(dataset_path, direct_mode, Some(params))
+            .map_err(|e| anyhow::anyhow!("加载直接套件失败: {e}"))?,
+    );
+    let direct_total = direct_suite.case_count();
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: format!("直接套件就绪，共 {direct_total} 个用例"),
+        },
+    );
+    let (direct_outcomes, _, _) =
+        run_compare_phase(direct_suite.as_ref(), "direct", direct_total, sink)?;
+
+    // 阶段 2：数据库（example_data 先入 mem 数据库，再 DB 召回）
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: format!("正在加载数据库套件（{db_mode}）..."),
+        },
+    );
+    let db_suite: Box<dyn TestSuite> = Box::new(
+        RetrieveSuite::load_with_params(dataset_path, db_mode, Some(params))
+            .map_err(|e| anyhow::anyhow!("加载数据库套件失败: {e}"))?,
+    );
+    let db_total = db_suite.case_count();
+    emit(
+        sink,
+        &CompareEvent::Loading {
+            message: format!("数据库套件就绪，共 {db_total} 个用例"),
+        },
+    );
+    let (db_outcomes, _, _) = run_compare_phase(db_suite.as_ref(), "db", db_total, sink)?;
+
+    let report = build_db_compare_report(&direct_outcomes, &db_outcomes, flavor.to_string());
+    emit(
+        sink,
+        &CompareEvent::Done {
+            report: build_db_compare_json(
+                report,
+                &direct_outcomes,
+                &db_outcomes,
+                dataset_name,
+                dataset_path,
+            ),
+        },
+    );
+    Ok(())
+}
+
+/// 把引擎的 DB 对比报告映射为 UI 既有 CompareReportJson 契约：
+/// embedding_* 字段承载「直接」侧，fullpipeline_* 字段承载「数据库」侧
+/// （UI 依据 kind/flavor 参数决定展示标签，无需改动 FRB 绑定）。
+fn build_db_compare_json(
+    report: DbCompareReport,
+    direct_outcomes: &[TestCaseOutcome],
+    db_outcomes: &[TestCaseOutcome],
+    dataset_name: &str,
+    dataset_path: &Path,
+) -> CompareReportJson {
+    let name_map = collect_graph_names(direct_outcomes);
+    let names = |ids: &[soul_mem_core::memory_note::MemoryId]| -> Vec<String> {
+        ids.iter()
+            .map(|id| {
+                name_map
+                    .get(id)
+                    .cloned()
+                    .unwrap_or_else(|| format!("{id:?}"))
+            })
+            .collect()
+    };
+    let direct_map = index_side_data(direct_outcomes);
+    let db_map = index_side_data(db_outcomes);
+    let agg = &report.aggregate;
+    CompareReportJson {
+        dataset_name: dataset_name.to_string(),
+        dataset_path: dataset_path.to_string_lossy().to_string(),
+        aggregate: CompareAggregateJson {
+            case_count: agg.case_count,
+            avg_embedding_hit: agg.avg_direct_hit,
+            avg_fullpipeline_hit: agg.avg_db_hit,
+            avg_embedding_mrr: agg.avg_direct_mrr,
+            avg_fullpipeline_mrr: agg.avg_db_mrr,
+            hit_improvement_count: agg.hit_improved_count,
+            mrr_improvement_count: agg.mrr_improved_count,
+        },
+        cases: report
+            .cases
+            .iter()
+            .map(|c| {
+                let key = compare_key(&c.case_name, c.tag_weight, c.variant_weight);
+                let (emb_precision, full_precision, emb_ndcg, full_ndcg, per_query) =
+                    case_extras_json(&key, &direct_map, &db_map);
+                CompareCaseJson {
+                    case_name: c.case_name.clone(),
+                    description: c.description.clone(),
+                    tag_weight: c.tag_weight,
+                    variant_weight: c.variant_weight,
+                    embedding_hit: c.direct_hit,
+                    fullpipeline_hit: c.db_hit,
+                    embedding_mrr: c.direct_mrr,
+                    fullpipeline_mrr: c.db_mrr,
+                    embedding_recall_at: c.direct_recall_at.clone(),
+                    fullpipeline_recall_at: c.db_recall_at.clone(),
+                    embedding_precision_at: emb_precision,
+                    fullpipeline_precision_at: full_precision,
+                    embedding_ndcg_at: emb_ndcg,
+                    fullpipeline_ndcg_at: full_ndcg,
+                    embedding_retrieved: names(&c.direct_retrieved),
+                    fullpipeline_retrieved: names(&c.db_retrieved),
+                    expected_combined_ranking: names(&c.expected_combined_ranking),
+                    improved_hit: c.improved_hit,
+                    improved_mrr: c.improved_mrr,
+                    per_query,
+                }
             })
             .collect(),
     }
@@ -792,7 +1195,9 @@ pub fn inspect_file_json(path: String) -> String {
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum ForgetEvent {
-    Loading { message: String },
+    Loading {
+        message: String,
+    },
     Progress {
         done: usize,
         total: usize,
@@ -801,8 +1206,12 @@ enum ForgetEvent {
         elapsed_ms: u64,
         case_name: String,
     },
-    Done { report: ForgetReportJson },
-    Error { message: String },
+    Done {
+        report: ForgetReportJson,
+    },
+    Error {
+        message: String,
+    },
     Cancelled,
 }
 
@@ -883,7 +1292,12 @@ fn run_forget_impl(mode: &str, dataset: &str, sink: &StreamSink<String>) -> anyh
         .unwrap_or_default();
 
     CANCEL.store(false, Ordering::SeqCst);
-    emit(sink, &ForgetEvent::Loading { message: "正在加载遗忘套件...".into() });
+    emit(
+        sink,
+        &ForgetEvent::Loading {
+            message: "正在加载遗忘套件...".into(),
+        },
+    );
 
     let suite: Box<dyn TestSuite> = match mode {
         "mask" => Box::new(
@@ -917,7 +1331,12 @@ fn run_forget_impl(mode: &str, dataset: &str, sink: &StreamSink<String>) -> anyh
         other => return Err(anyhow::anyhow!("未知遗忘模式: {other}")),
     };
     let total = suite.case_count();
-    emit(sink, &ForgetEvent::Loading { message: format!("准备就绪，共 {total} 个用例") });
+    emit(
+        sink,
+        &ForgetEvent::Loading {
+            message: format!("准备就绪，共 {total} 个用例"),
+        },
+    );
 
     let start = Instant::now();
     let mut outcomes = Vec::with_capacity(total);
@@ -1011,25 +1430,25 @@ fn run_forget_impl(mode: &str, dataset: &str, sink: &StreamSink<String>) -> anyh
                     metrics: d.metrics.clone(),
                     detail_lines: d.detail_lines.clone(),
                 })
-            } else if let Some(d) = o.data.downcast_ref::<MaskCaseData>() {
-                Some(ForgetObserverCaseJson::Text {
-                    case_name: d.case_name.clone(),
-                    node_id: Some(d.node_id.clone()),
-                    passed: d.passed,
-                    llm_available: false,
-                    original: Some(d.original.clone()),
-                    masked: Some(d.masked.clone()),
-                    mask_ratio: if d.total_count > 0 {
-                        Some(d.masked_count as f64 / d.total_count as f64)
-                    } else {
-                        None
-                    },
-                    llm_reply: None,
-                    metrics: d.metrics.clone(),
-                    detail_lines: d.detail_lines.clone(),
-                })
             } else {
-                None
+                o.data
+                    .downcast_ref::<MaskCaseData>()
+                    .map(|d| ForgetObserverCaseJson::Text {
+                        case_name: d.case_name.clone(),
+                        node_id: Some(d.node_id.clone()),
+                        passed: d.passed,
+                        llm_available: false,
+                        original: Some(d.original.clone()),
+                        masked: Some(d.masked.clone()),
+                        mask_ratio: if d.total_count > 0 {
+                            Some(d.masked_count as f64 / d.total_count as f64)
+                        } else {
+                            None
+                        },
+                        llm_reply: None,
+                        metrics: d.metrics.clone(),
+                        detail_lines: d.detail_lines.clone(),
+                    })
             }
         })
         .collect();
@@ -1124,14 +1543,19 @@ pub fn playtest_start(graph_dir: String, user_role: String) -> String {
             .parent()
             .map(|p| p.to_path_buf())
             .unwrap_or_else(|| graph_path.to_path_buf());
-        (parent, graph_path.file_name().map(|n| n.to_string_lossy().to_string()))
+        (
+            parent,
+            graph_path
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string()),
+        )
     };
     let graph_file = resolved_dir.join("graph.json");
     if !graph_file.exists() {
         let hint = match &picked_file {
-            Some(f) if f != "graph.json" => format!(
-                "所选文件不是 graph.json（实际为 {f}）。请选择角色图目录下的 graph.json"
-            ),
+            Some(f) if f != "graph.json" => {
+                format!("所选文件不是 graph.json（实际为 {f}）。请选择角色图目录下的 graph.json")
+            }
             _ => format!("未找到角色图: {}", graph_file.display()),
         };
         return err(hint);
@@ -1305,7 +1729,10 @@ fn query_preview(v: &MemoryRetrieveQueryVariant) -> String {
                 if let Some(ps) = u.participants() {
                     p.push(format!(
                         "人物:{}",
-                        ps.iter().filter_map(|x| x.name()).collect::<Vec<_>>().join(",")
+                        ps.iter()
+                            .filter_map(|x| x.name())
+                            .collect::<Vec<_>>()
+                            .join(",")
                     ));
                 }
                 p.join(" ")

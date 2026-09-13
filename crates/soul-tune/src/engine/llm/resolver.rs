@@ -157,8 +157,7 @@ pub fn probe_status() -> LlmStatus {
                 source: if exists { "spawned" } else { "unavailable" }.into(),
                 url: None,
                 model_path: Some(p),
-                reason: (!exists)
-                    .then(|| "SOUL_TUNE_CANDLE_MODEL_PATH 指向的文件不存在".into()),
+                reason: (!exists).then(|| "SOUL_TUNE_CANDLE_MODEL_PATH 指向的文件不存在".into()),
             };
         }
     }

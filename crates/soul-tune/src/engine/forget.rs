@@ -36,24 +36,24 @@ use rand::{Rng, SeedableRng};
 use serde::Serialize;
 
 use soul_mem_algo::algo::forget::decay_calculator::{
-    compute_missing_degree, update_missing_degree_incremental, DEFAULT_MAX_ACTIVATION_CAP,
+    DEFAULT_MAX_ACTIVATION_CAP, compute_missing_degree, update_missing_degree_incremental,
 };
 use soul_mem_algo::algo::forget::decay_revise::{
+    DEFAULT_ACTIVE_FACTOR, DEFAULT_BASE_HALF_LIFE_HOURS, ForgetAction, REVISE_THRESHOLD,
     compute_all_missing_degrees, current_missing_degree, decay_graph_edge, get_summary,
-    lazy_forget, weight_placeholder, ForgetAction, DEFAULT_ACTIVE_FACTOR,
-    DEFAULT_BASE_HALF_LIFE_HOURS, REVISE_THRESHOLD,
+    lazy_forget, weight_placeholder,
 };
 use soul_mem_algo::algo::forget::llm_completion::build_reconstruct_prompt;
-use soul_mem_algo::algo::forget::mask::{mask_text, MASK_WORD};
+use soul_mem_algo::algo::forget::mask::{MASK_WORD, mask_text};
 use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
 use soul_mem_core::memory_note::situation_mem::SituationType;
 use soul_mem_core::memory_note::{MemoryId, MemoryNote, MemoryNoteBuilder, MemoryType};
 use soul_mem_runtime::cluster::memory_cluster::MemoryCluster;
 
-use crate::engine::llm::{LlmBackend, LlamaServer};
+use crate::engine::llm::{LlamaServer, LlmBackend};
 use crate::engine::loader::{build_reverse_id_map, load_graph_cluster};
 use crate::engine::suite::{
-    chart_metric, key_value_metric, DetailRow, Series, SuiteReport, TestCaseOutcome, TestSuite,
+    DetailRow, Series, SuiteReport, TestCaseOutcome, TestSuite, chart_metric, key_value_metric,
 };
 
 // ========================================================================
@@ -66,10 +66,7 @@ type LlmCall = Box<
         &str,
         &str,
     ) -> Pin<
-        Box<
-            dyn Future<Output = Result<String, Box<dyn std::error::Error + Send + Sync>>>
-                + Send,
-        >,
+        Box<dyn Future<Output = Result<String, Box<dyn std::error::Error + Send + Sync>>> + Send>,
     >,
 >;
 
@@ -228,10 +225,7 @@ fn build_node_mask_cases(nodes: &[(String, String)]) -> Vec<MaskCaseSpec> {
 
 /// 内置文本集：短 / 中 / 长中文文本（无图依赖，测试/快速验证使用）
 const MASK_TEXTS: [(&str, &str); 3] = [
-    (
-        "short",
-        "格蕾修是逐火十三英桀之一也是用画笔说话的画家",
-    ),
+    ("short", "格蕾修是逐火十三英桀之一也是用画笔说话的画家"),
     (
         "medium",
         "红魔馆的女仆长十六夜咲夜擅长投掷银质小刀她害怕烫的食物是众所周知的猫舌",
@@ -324,7 +318,8 @@ impl ForgetMaskSuite {
                 ok = false;
             }
             // md=1 全遮（total>0 时）
-            if spec.missing_degree >= 1.0 && r1.total_count > 0 && r1.masked_count != r1.total_count {
+            if spec.missing_degree >= 1.0 && r1.total_count > 0 && r1.masked_count != r1.total_count
+            {
                 ok = false;
             }
             // 长文本比例校验（词数足够多时容差更严格）
@@ -357,17 +352,22 @@ impl ForgetMaskSuite {
 
         // 确定性：同输入再跑一次
         let r2 = mask_text(&spec.text, spec.missing_degree, &self.jieba);
-        if spec.name.ends_with("-determinism") {
-            if r1.masked_text != r2.masked_text {
-                detail_lines.push("  确定性检查: 两次结果不一致！".into());
-            }
+        if spec.name.ends_with("-determinism") && r1.masked_text != r2.masked_text {
+            detail_lines.push("  确定性检查: 两次结果不一致！".into());
         }
 
         let metrics = vec![
             (
                 "遮罩".into(),
                 format!("{} 遮罩率", spec.node_id),
-                format!("{:.0}%", if r1.total_count > 0 { r1.masked_count as f32 / r1.total_count as f32 * 100.0 } else { 0.0 }),
+                format!(
+                    "{:.0}%",
+                    if r1.total_count > 0 {
+                        r1.masked_count as f32 / r1.total_count as f32 * 100.0
+                    } else {
+                        0.0
+                    }
+                ),
             ),
             (
                 "遮罩".into(),
@@ -406,10 +406,7 @@ impl TestSuite for ForgetMaskSuite {
         let passed = data.passed;
         TestCaseOutcome {
             case_name: format!("mask/{}", data.case_name),
-            description: format!(
-                "遮罩验证: md={:.2}",
-                self.cases[index].missing_degree
-            ),
+            description: format!("遮罩验证: md={:.2}", self.cases[index].missing_degree),
             passed,
             data: Box::new(data),
         }
@@ -702,17 +699,19 @@ impl ForgetReviseSuite {
             }
         }
 
-        let metrics = vec![
-            (
-                "补全".into(),
-                format!(
-                    "{} md{:.2} 回复字数",
-                    sample.node_id.chars().take(8).collect::<String>(),
-                    sample.mask_md
-                ),
-                if llm_err.is_none() { reply.chars().count().to_string() } else { "失败".into() },
+        let metrics = vec![(
+            "补全".into(),
+            format!(
+                "{} md{:.2} 回复字数",
+                sample.node_id.chars().take(8).collect::<String>(),
+                sample.mask_md
             ),
-        ];
+            if llm_err.is_none() {
+                reply.chars().count().to_string()
+            } else {
+                "失败".into()
+            },
+        )];
 
         ReviseCaseData {
             // 用例名带遮罩水平（观测页按 节点 × 梯度 聚合，x 轴 = 缺失度）
@@ -1183,60 +1182,67 @@ impl ForgetPipelineSuite {
             };
 
             // 动作分类、遮罩统计与 LLM 原始回复
-            let (action_name, masked_words_this, mask_ratio_this, llm_reply, masked_text, effective) =
-                match &action {
-                    ForgetAction::NoAction => ("NoAction", 0usize, None, None, None, false),
-                    ForgetAction::MaskOnly {
-                        masked_count,
-                        masked_text,
-                        ..
-                    } => {
-                        let ratio = if orig_words > 0 {
-                            Some(*masked_count as f32 / orig_words as f32)
-                        } else {
-                            None
-                        };
-                        (
-                            "MaskOnly",
-                            *masked_count,
-                            ratio,
-                            None,
-                            Some(masked_text.clone()),
-                            false,
-                        )
-                    }
-                    ForgetAction::Revised {
-                        masked_text, new_summary, ..
-                    } => {
-                        let masked = count_masked(masked_text);
-                        let ratio = if orig_words > 0 {
-                            Some(masked as f32 / orig_words as f32)
-                        } else {
-                            None
-                        };
-                        let effective = is_effective_revision(new_summary);
-                        (
-                            "Revised",
-                            masked,
-                            ratio,
-                            Some(new_summary.clone()),
-                            Some(masked_text.clone()),
-                            effective,
-                        )
-                    }
-                };
+            let (
+                action_name,
+                masked_words_this,
+                mask_ratio_this,
+                llm_reply,
+                masked_text,
+                effective,
+            ) = match &action {
+                ForgetAction::NoAction => ("NoAction", 0usize, None, None, None, false),
+                ForgetAction::MaskOnly {
+                    masked_count,
+                    masked_text,
+                    ..
+                } => {
+                    let ratio = if orig_words > 0 {
+                        Some(*masked_count as f32 / orig_words as f32)
+                    } else {
+                        None
+                    };
+                    (
+                        "MaskOnly",
+                        *masked_count,
+                        ratio,
+                        None,
+                        Some(masked_text.clone()),
+                        false,
+                    )
+                }
+                ForgetAction::Revised {
+                    masked_text,
+                    new_summary,
+                    ..
+                } => {
+                    let masked = count_masked(masked_text);
+                    let ratio = if orig_words > 0 {
+                        Some(masked as f32 / orig_words as f32)
+                    } else {
+                        None
+                    };
+                    let effective = is_effective_revision(new_summary);
+                    (
+                        "Revised",
+                        masked,
+                        ratio,
+                        Some(new_summary.clone()),
+                        Some(masked_text.clone()),
+                        effective,
+                    )
+                }
+            };
 
             if is_maskable_type(type_name) {
                 if orig_words > 0 {
                     masked_words_total += masked_words_this;
                     total_words_total += orig_words;
                 }
-                if orig_words >= 8 {
-                    if let Some(r) = mask_ratio_this {
-                        if (r - after).abs() > 0.15 {
-                            passed = false;
-                        }
-                    }
+                if orig_words >= 8
+                    && let Some(r) = mask_ratio_this
+                    && (r - after).abs() > 0.15
+                {
+                    passed = false;
                 }
             }
 
@@ -1567,7 +1573,9 @@ impl ForgetPipelineSuite {
                         ("MaskOnly", Some(masked_text.clone()), None, false)
                     }
                     ForgetAction::Revised {
-                        masked_text, new_summary, ..
+                        masked_text,
+                        new_summary,
+                        ..
                     } => {
                         let eff = is_effective_revision(new_summary);
                         (
@@ -1725,11 +1733,7 @@ impl ForgetPipelineSuite {
                 "受影响的节点数".into(),
                 node_count.to_string(),
             ),
-            (
-                "多步遗忘".into(),
-                "边数".into(),
-                edge_count.to_string(),
-            ),
+            ("多步遗忘".into(), "边数".into(), edge_count.to_string()),
         ];
         out_metrics.extend(metrics);
 
@@ -1842,10 +1846,17 @@ impl ForgetPipelineSuite {
             e.1 += md_theory;
             e.2 += 1;
 
-            let short_id: String = display_id(&self.id_rev, n.note().id()).chars().take(8).collect();
+            let short_id: String = display_id(&self.id_rev, n.note().id())
+                .chars()
+                .take(8)
+                .collect();
             detail_lines.push(format!(
                 "{} 激活{}次 md实测{:.3} 理论{:.3} 偏差{:.5}",
-                short_id, count, md_actual, md_theory, md_actual - md_theory
+                short_id,
+                count,
+                md_actual,
+                md_theory,
+                md_actual - md_theory
             ));
         }
 
@@ -2047,8 +2058,7 @@ impl ForgetPipelineSuite {
         let originals: Vec<String> = node_indices
             .iter()
             .map(|idx| {
-                get_summary(&trt.graph().node_weight(*idx).expect("node").note)
-                    .unwrap_or_default()
+                get_summary(&trt.graph().node_weight(*idx).expect("node").note).unwrap_or_default()
             })
             .collect();
 
@@ -2058,14 +2068,16 @@ impl ForgetPipelineSuite {
         let batches: Vec<(i64, Vec<(usize, usize)>)> = match schedule {
             ExcitationSchedule::Early => vec![(
                 0,
-                (0..n).filter(|&i| dose[i] > 0).map(|i| (i, dose[i])).collect(),
+                (0..n)
+                    .filter(|&i| dose[i] > 0)
+                    .map(|i| (i, dose[i]))
+                    .collect(),
             )],
             ExcitationSchedule::Spaced => {
                 let mut b24 = Vec::new();
                 let mut b48 = Vec::new();
                 let mut b72 = Vec::new();
-                for i in 0..n {
-                    let d = dose[i];
+                for (i, &d) in dose.iter().enumerate() {
                     if d == 0 {
                         continue;
                     }
@@ -2092,7 +2104,10 @@ impl ForgetPipelineSuite {
             }
             ExcitationSchedule::Late => vec![(
                 48,
-                (0..n).filter(|&i| dose[i] > 0).map(|i| (i, dose[i])).collect(),
+                (0..n)
+                    .filter(|&i| dose[i] > 0)
+                    .map(|i| (i, dose[i]))
+                    .collect(),
             )],
         };
 
@@ -2232,7 +2247,7 @@ impl ForgetPipelineSuite {
 
                 // E5 事件研究：已激发节点出现延缓；未激发节点无差异
                 let delta = md_c - md_t;
-                let activated_by_now = activated_at[i].map_or(false, |at| at <= t_hours);
+                let activated_by_now = activated_at[i].is_some_and(|at| at <= t_hours);
                 if activated_by_now {
                     if delta <= 1e-3 {
                         passed = false;
@@ -2424,7 +2439,11 @@ impl ForgetPipelineSuite {
             let cnt = groups.get(d).map(|e| e.2).unwrap_or(0);
             detail_lines.push(format!(
                 "剂量组 dose={}: 平均缺失度 对照 {:.3} / 激发 {:.3}（Δ{:.3}，{}节点）",
-                d, sc, st, sc - st, cnt
+                d,
+                sc,
+                st,
+                sc - st,
+                cnt
             ));
         }
         for d in [1usize, 3, 10, 30, 50, 100] {
@@ -2455,7 +2474,7 @@ impl ForgetPipelineSuite {
             let mut cnt_inact = 0usize;
             for i in 0..n {
                 let delta = (ctrl_series[i][k] - trt_series[i][k]).abs();
-                if activated_at[i].map_or(false, |at| at <= t_hours) {
+                if activated_at[i].is_some_and(|at| at <= t_hours) {
                     sum_act += delta;
                     cnt_act += 1;
                 } else {
@@ -2534,9 +2553,9 @@ impl ForgetPipelineSuite {
                     .map(|k| NodeStepStat {
                         hours: checkpoints[k],
                         step: k,
-                        md: trt_series[i][k], // 激发组（y 主曲线）
+                        md: trt_series[i][k],             // 激发组（y 主曲线）
                         md_ctrl: Some(ctrl_series[i][k]), // 对照组（配对对照曲线）
-                        action: if activated_at[i].map_or(false, |at| at <= checkpoints[k]) {
+                        action: if activated_at[i].is_some_and(|at| at <= checkpoints[k]) {
                             "Activated"
                         } else {
                             "Control"
@@ -2549,7 +2568,10 @@ impl ForgetPipelineSuite {
             })
             .collect();
 
-        let max_md = trt_series.iter().map(|s| s[last_idx]).fold(0.0f32, f32::max);
+        let max_md = trt_series
+            .iter()
+            .map(|s| s[last_idx])
+            .fold(0.0f32, f32::max);
 
         ForgetCaseData {
             case_name: format!("excitation-{}", schedule.tag()),
@@ -2618,10 +2640,22 @@ impl ForgetPipelineSuite {
             "全量24h缺失度={:.4}，增量12h+12h缺失度={:.4}，差值={:.5}（从创建时间算起={:.4}）",
             full_md, inc_md, diff, from_create
         ));
-        metrics.push(("增量一致性".into(), "全量24h缺失度".into(), format!("{:.4}", full_md)));
-        metrics.push(("增量一致性".into(), "两次12h增量缺失度".into(), format!("{:.4}", inc_md)));
+        metrics.push((
+            "增量一致性".into(),
+            "全量24h缺失度".into(),
+            format!("{:.4}", full_md),
+        ));
+        metrics.push((
+            "增量一致性".into(),
+            "两次12h增量缺失度".into(),
+            format!("{:.4}", inc_md),
+        ));
         metrics.push(("增量一致性".into(), "差值".into(), format!("{:.5}", diff)));
-        metrics.push(("增量一致性".into(), "中间态12h缺失度".into(), format!("{:.4}", mid_md)));
+        metrics.push((
+            "增量一致性".into(),
+            "中间态12h缺失度".into(),
+            format!("{:.4}", mid_md),
+        ));
 
         if diff > 1e-3 {
             passed = false;
@@ -2878,6 +2912,8 @@ mod tests {
     use super::*;
     use std::path::PathBuf;
 
+    use soul_mem_algo::algo::forget::llm_completion::FULLY_MASKED_REPLY;
+
     /// 仓库内真实 fixture：格蕾修角色图
     fn fixture_graph() -> PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -2899,8 +2935,7 @@ mod tests {
             assert!(
                 outcome.passed,
                 "遮罩用例 {} 失败: {}",
-                outcome.case_name,
-                outcome.description
+                outcome.case_name, outcome.description
             );
         }
     }
@@ -2915,8 +2950,7 @@ mod tests {
             assert!(
                 outcome.passed,
                 "遮罩用例 {} 失败: {}",
-                outcome.case_name,
-                outcome.description
+                outcome.case_name, outcome.description
             );
         }
     }
@@ -2928,12 +2962,7 @@ mod tests {
         for md in [0.2f32, 0.5, 0.87] {
             let r = mask_text(text, md, &jieba);
             let ratio = r.masked_count as f32 / r.total_count.max(1) as f32;
-            assert!(
-                (ratio - md).abs() < 0.15,
-                "md={} ratio={}",
-                md,
-                ratio
-            );
+            assert!((ratio - md).abs() < 0.15, "md={} ratio={}", md, ratio);
             assert_eq!(count_masked(&r.masked_text), r.masked_count);
         }
     }
@@ -2951,8 +2980,7 @@ mod tests {
 
     #[test]
     fn test_revise_suite_loads_fixture_samples() {
-        let suite =
-            ForgetReviseSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        let suite = ForgetReviseSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         assert!(suite.llm.is_none(), "测试环境不应配置 LLM");
         assert!(!suite.samples.is_empty(), "全量模式应覆盖全部可遗忘节点");
         // 全量覆盖：可遗忘节点（SemMemory/SpecificSituation）全部进入
@@ -2960,7 +2988,10 @@ mod tests {
         let maskable = cluster
             .graph()
             .node_weights()
-            .filter(|n| is_maskable(n.note()) && !get_summary(n.note()).unwrap_or_default().trim().is_empty())
+            .filter(|n| {
+                is_maskable(n.note())
+                    && !get_summary(n.note()).unwrap_or_default().trim().is_empty()
+            })
             .count();
         assert_eq!(
             suite.samples.len(),
@@ -2992,15 +3023,13 @@ mod tests {
         let a = ForgetReviseSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         let all_types: std::collections::HashSet<&'static str> =
             a.samples.iter().map(|s| s.type_name).collect();
-        let s1 =
-            ForgetReviseSuite::load_with_mode(&fixture_graph(), ReviseMode::Sampled(42))
-                .expect("加载 fixture 图");
-        let s2 =
-            ForgetReviseSuite::load_with_mode(&fixture_graph(), ReviseMode::Sampled(42))
-                .expect("加载 fixture 图");
+        let s1 = ForgetReviseSuite::load_with_mode(&fixture_graph(), ReviseMode::Sampled(42))
+            .expect("加载 fixture 图");
+        let s2 = ForgetReviseSuite::load_with_mode(&fixture_graph(), ReviseMode::Sampled(42))
+            .expect("加载 fixture 图");
         assert!(
             s1.samples.len() <= REVISE_MAX_SAMPLES * REVISE_MASK_GRADIENTS.len()
-                && s1.samples.len() > 0,
+                && !s1.samples.is_empty(),
             "抽样应约 {} 节点 × {} 梯度，实际 {}",
             REVISE_MAX_SAMPLES,
             REVISE_MASK_GRADIENTS.len(),
@@ -3028,8 +3057,7 @@ mod tests {
 
     #[test]
     fn test_revise_case_fails_without_llm() {
-        let suite =
-            ForgetReviseSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        let suite = ForgetReviseSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         let outcome = suite.run_case(0); // 第一个样本（无 probe）
         assert!(!outcome.passed, "无 LLM 时补全用例应失败");
         assert_ne!(outcome.case_name, "forget/revise/probe", "probe 应已移除");
@@ -3039,7 +3067,8 @@ mod tests {
 
     #[test]
     fn test_pipeline_loads_real_fixture_graph() {
-        let suite = ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        let suite =
+            ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         assert!(suite.llm.is_none());
         let node_count = suite.graph.graph().node_count();
         let edge_count = suite.graph.graph().edge_count();
@@ -3049,34 +3078,51 @@ mod tests {
 
     #[test]
     fn test_pipeline_all_cases_pass_without_llm() {
-        let suite = ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        let suite =
+            ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         for i in 0..suite.case_count() {
             let outcome = suite.run_case(i);
             assert!(
                 outcome.passed,
                 "用例 {} 失败: {}",
-                outcome.case_name,
-                outcome.description
+                outcome.case_name, outcome.description
             );
         }
     }
 
     #[test]
     fn test_pipeline_multi_step_without_llm() {
-        // 多步遗忘：无 LLM 时应全走遮罩降级且通过（缺失度单调不减）
-        let suite = ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        // 多步遗忘：无 LLM 时全走确定性降级路径且通过（缺失度单调不减）。
+        // 注意：全遮罩文本由 llm_completion 短路直接返回固定遗忘句（不调用 LLM），
+        // lazy_forget 会将其记为 Revised——因此无 LLM 时不再要求"零修订"，
+        // 而是断言 Revised 的内容只能是该固定遗忘句。
+        let suite =
+            ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         let data = suite.run_multi_step_case();
         assert!(data.passed, "多步遗忘失败");
         assert!(data.node_count > 10, "应覆盖全图节点");
         assert!(!data.detail_lines.is_empty());
-        // 无 LLM 时不应有修订
-        assert_eq!(data.llm_revised, 0);
+        assert!(
+            !data.llm_available,
+            "无 LLM 加载时 llm_available 应为 false"
+        );
+        // 无 LLM：任何 Revised 的内容只能是全遮罩兜底的固定遗忘句
+        for stat in &data.nodes {
+            if stat.action == "Revised" {
+                assert_eq!(
+                    stat.llm_reply.as_deref(),
+                    Some(FULLY_MASKED_REPLY),
+                    "无 LLM 时 Revised 只能来自全遮罩确定性兜底"
+                );
+            }
+        }
     }
 
     #[test]
     fn test_pipeline_activation_reflects_design() {
         // 激活测试：确定性（固定种子），激活多的节点缺失度更低，实测=理论
-        let suite = ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        let suite =
+            ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         let data = suite.run_activation_case();
         assert!(data.passed, "激活测试失败");
         // 理论公式自检：激活10次 vs 0次在72h的缺失度
@@ -3112,7 +3158,9 @@ mod tests {
             );
             // 延缓指标已产出（时间域：到达 md=0.5）
             assert!(
-                data.metrics.iter().any(|(_, label, _)| label.contains("延缓")),
+                data.metrics
+                    .iter()
+                    .any(|(_, label, _)| label.contains("延缓")),
                 "应产出延缓指标"
             );
         }
@@ -3146,7 +3194,10 @@ mod tests {
             ForgetPipelineSuite::load_excitation_only(&fixture_graph()).expect("加载 fixture 图");
         assert_eq!(suite.cases.len(), 3, "应只加载 3 个激发用例");
         assert!(
-            suite.cases.iter().all(|c| c.name.starts_with("excitation-")),
+            suite
+                .cases
+                .iter()
+                .all(|c| c.name.starts_with("excitation-")),
             "用例应全部为 excitation-*"
         );
         assert!(suite.llm.is_none(), "激发测试不应启用 LLM");
@@ -3155,20 +3206,19 @@ mod tests {
             assert!(
                 outcome.passed,
                 "激发用例 {} 失败: {}",
-                outcome.case_name,
-                outcome.description
+                outcome.case_name, outcome.description
             );
         }
     }
 
     #[test]
     fn test_pipeline_report_builds_metrics_and_rows() {
-        let suite = ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        let suite =
+            ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         let n = suite.case_count();
         let outcomes: Vec<TestCaseOutcome> = (0..n).map(|i| suite.run_case(i)).collect();
         let passed = outcomes.iter().filter(|o| o.passed).count();
-        let report =
-            suite.build_report(outcomes, Duration::from_millis(10), n, passed, n - passed);
+        let report = suite.build_report(outcomes, Duration::from_millis(10), n, passed, n - passed);
         assert!(!report.metrics.is_empty());
         assert!(!report.detail_rows.is_empty());
         assert_eq!(report.outcomes.len(), n);
@@ -3176,7 +3226,8 @@ mod tests {
 
     #[test]
     fn test_incremental_consistency() {
-        let suite = ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        let suite =
+            ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         let data = suite.run_incremental_case();
         assert!(data.passed, "增量一致性失败");
     }
@@ -3185,14 +3236,14 @@ mod tests {
     fn test_observer_downcast_roundtrip() {
         // 验证 TUI 观测页的数据通路：build_report 后 outcomes.data
         // 仍可 downcast 回 ForgetCaseData 且 nodes 非空（节点 0/0 的回归测试）
-        let suite = ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
+        let suite =
+            ForgetPipelineSuite::load_without_llm(&fixture_graph()).expect("加载 fixture 图");
         let n = suite.case_count();
         let outcomes: Vec<TestCaseOutcome> = (0..n).map(|i| suite.run_case(i)).collect();
         let passed = outcomes.iter().filter(|o| o.passed).count();
         // 诊断：run_case 返回的 data 是否可直接识别
         let direct_ok = outcomes[0].data.is::<ForgetCaseData>();
-        let report =
-            suite.build_report(outcomes, Duration::from_millis(10), n, passed, n - passed);
+        let report = suite.build_report(outcomes, Duration::from_millis(10), n, passed, n - passed);
         let report_ok = report
             .outcomes
             .first()

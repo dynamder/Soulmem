@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 use crate::algo::retrieve::RetrRequest;
-use soul_mem_runtime::working_memory::{sliding_window::Information, WorkingMemory};
+use soul_mem_runtime::working_memory::{WorkingMemory, sliding_window::Information};
 use std::sync::Arc;
 
 use super::RetrStrategy;

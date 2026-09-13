@@ -356,7 +356,8 @@ mod tests {
             MemoryRetrieveQueryVariant::make_semantic(vec![]),
         );
         assert_eq!(query.tag(), &["a".to_string(), "b".to_string()]);
-        let empty = MemoryRetrieveQuery::new(vec![], MemoryRetrieveQueryVariant::make_semantic(vec![]));
+        let empty =
+            MemoryRetrieveQuery::new(vec![], MemoryRetrieveQueryVariant::make_semantic(vec![]));
         assert!(empty.tag().is_empty());
     }
 
@@ -438,7 +439,9 @@ mod tests {
         let unit = ParticipantQueryUnit::new();
         assert_eq!(unit.name(), None);
         assert_eq!(unit.role(), None);
-        let unit = unit.with_name("张三".to_string()).with_role("学生".to_string());
+        let unit = unit
+            .with_name("张三".to_string())
+            .with_role("学生".to_string());
         assert_eq!(unit.name(), Some("张三"));
         assert_eq!(unit.role(), Some("学生"));
     }
@@ -448,7 +451,9 @@ mod tests {
         let unit = EnvironmentQueryUnit::new();
         assert_eq!(unit.atmosphere(), None);
         assert_eq!(unit.tone(), None);
-        let unit = unit.with_atmosphere("安静".to_string()).with_tone("温暖".to_string());
+        let unit = unit
+            .with_atmosphere("安静".to_string())
+            .with_tone("温暖".to_string());
         assert_eq!(unit.atmosphere(), Some("安静"));
         assert_eq!(unit.tone(), Some("温暖"));
     }
@@ -459,7 +464,9 @@ mod tests {
         assert_eq!(unit.action(), "跑步");
         assert_eq!(unit.initiator(), None);
         assert_eq!(unit.target(), None);
-        let unit = unit.with_initiator("张三".to_string()).with_target("操场".to_string());
+        let unit = unit
+            .with_initiator("张三".to_string())
+            .with_target("操场".to_string());
         assert_eq!(unit.initiator(), Some("张三"));
         assert_eq!(unit.target(), Some("操场"));
     }
