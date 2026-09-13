@@ -5,14 +5,29 @@
 #
 #   1. **等价变异体**——语义与原代码完全相同，任何测试都不可能区分；
 #   2. **调优参数**——描述性能选择而非正确性约束，逐值断言属于针对变异体的过度拟合；
-#   3. **不可达/不可观测**——变异后的分支在公开 API 下无法到达。
+#   3. **不可达/不可观测**——变异后的分支在公开 API 下无法到达；
+#   4. **测试目标之外**——所在目标不被 `cargo test` 编译或运行，其中的变异体原理上
+#      不可能被杀灭。这是"目标范围"问题，不是"缺测试"问题；但每加一条这样的 glob，
+#      都必须说明该目标为何不属于测试范围。
 #
 # 反之：**行为可观测但当前没有测试覆盖，应当补测试，而不是加排除项。**
 #
 # 每条排除项都写清"为什么这个变异体杀不掉"。改动排除项后请复核：
 #   cargo mutants -p <crate> --re '<pattern>'
 
-exclude_globs = ["**/embedding_model/**"]
+# exclude_globs 的每一项都写明它属于上面哪一类。
+#
+# **/embedding_model/**（第 4 类）：真实模型加载依赖联网下载，CI 上用
+# additional_cargo_test_args 跳过两个模型用例；该目录内的实现在无模型环境下不可执行。
+#
+# benches/**（第 4 类）：criterion 基准与 e2e_profile 是"性能夹具"型的可执行目标，
+# `cargo test` 既不编译也不运行它们。实测 perf/retrieval-hotpaths 那次 PR-diff 运行：
+# 210 个变异体里 87 个 MISSED 集中在 benches/（绝大多数在 e2e_profile.rs 的构造与算术），
+# 没有任何测试能观测它们——把它们留在分母里只会把杀灭率压成噪音。
+#
+# ⚠️ 这条排除**不是**"bench 里不必断言正确性"的许可：bench 若需要断言，应把断言放进
+# tests/，而不是留在 bench 里靠排除掩盖。
+exclude_globs = ["**/embedding_model/**", "benches/**"]
 additional_cargo_test_args = ["--", "--skip", "test_bge_small_zh_cpu", "--skip", "test_qwen3_embedding_600m_cpu"]
 exclude_re = [
     # ---------------------------------------------------------------- 等价变异体
