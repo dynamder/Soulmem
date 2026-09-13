@@ -58,6 +58,15 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all --check
 
+      # 中文注释被 GBK 保存会变成乱码且部分字节永久丢失（memory_cluster.rs 曾丢 16 行）。
+      # 纯文本检查，不需要工具链，故意放在最前面以便快速失败。
+      - name: Check text encoding
+        run: python3 scripts/check_encoding.py
+
+      # 模块布局约定：一律 xxx.rs + xxx/，禁止 mod.rs。
+      - name: Check module layout
+        run: python3 scripts/check_layout.py
+
       - name: Clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
 

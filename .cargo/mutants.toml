@@ -1,17 +1,40 @@
+# cargo-mutants 配置。
+#
+# 本文件定义**杀灭率的门槛**，不是"跑不过就排除"的垃圾桶。CONTRIBUTING.md 要求每个
+# 排除项都写明原因。只有以下三类才允许排除：
+#
+#   1. **等价变异体**——语义与原代码完全相同，任何测试都不可能区分；
+#   2. **调优参数**——描述性能选择而非正确性约束，逐值断言属于针对变异体的过度拟合；
+#   3. **不可达/不可观测**——变异后的分支在公开 API 下无法到达。
+#
+# 反之：**行为可观测但当前没有测试覆盖，应当补测试，而不是加排除项。**
+#
+# 每条排除项都写清"为什么这个变异体杀不掉"。改动排除项后请复核：
+#   cargo mutants -p <crate> --re '<pattern>'
+
 exclude_globs = ["**/embedding_model/**"]
 additional_cargo_test_args = ["--", "--skip", "test_bge_small_zh_cpu", "--skip", "test_qwen3_embedding_600m_cpu"]
 exclude_re = [
+    # ---------------------------------------------------------------- 等价变异体
+    # string_distance_score 的空串短路：仅一方为空时，两个分量本身都返回 0
+    # （jaro_winkler 见 strsim 源码；normalized_levenshtein 对一侧空串亦为 0）。
+    # 因此 `is_empty() || is_empty()` 改成 `&&` 后会落到 max(0.0, 0.0)，仍是 0.0，
+    # 与提前 return 完全等价；双方均空的分支由相邻的 `&&`（未受影响）兜住。
+    # 结论：没有测试能区分该变异体。
     'replace \|\| with && in string_distance_score',
-    'LlmClient::call_llm',
-    'LlmClient::simple_call',
-    'SlidingWindow::summarize',
-    'Config for LLMConfig>::query',
-    'replace match guard .* in MemoryCluster::merge_node',
-    'replace / with \* in naive_ppr',
-    'weighted_ppr_fp',
-    'in weighted_ppr_fp',
+    # <impl UnitMeasure for OrdFloat<F>>::zero 换成 Default::default() 是等价的：
+    # OrdFloat 的 Default 走 OrderedFloat::default()（common/ord_float.rs），
+    # 而 ordered-float 5.x 对 OrderedFloat 是 derive(Default)，即 OrderedFloat(F::default())——
+    # 对 f32/f64 与 F::zero() 同为 0.0。
+    # 现有断言 zero().into_inner() == 0.0 对两者都成立。
     'UnitMeasure for OrdFloat<F>>::zero',
-    'from struct AssociationConfig expression',
+
+    # ---------------------------------------------------------------- 调优参数
+    # similarity_fetch 的 ef = k * 2：HNSW 搜索广度调优参数（ef 越大召回越准越慢），
+    # 与 k 的倍数关系是性能选择而非正确性约束——替换为 + / 仍返回正确召回集，
+    # 测试断言（召回集包含/排除特定 id）已覆盖召回正确性，ef 具体值无需逐值断言。
+    'replace \* with \+ in .*similarity_fetch',
+    'replace \* with / in .*similarity_fetch',
     # PPR 内部比较算子：ResidueUnit 为私有类型，EdgeWeightUnit 为内部表示，
     # 算法通过 Iterator::max()（Ord::cmp）使用它们，公开行为已由 PPR 输出测试覆盖；
     # PartialOrd/PartialEq 各算子未被算法直接使用，为其逐个写断言属于针对变异体的过度拟合。
@@ -20,9 +43,58 @@ exclude_re = [
     'PartialEq for ResidueUnit',
     'PartialOrd for EdgeWeightUnit',
     'PartialEq for EdgeWeightUnit',
-    # similarity_fetch 的 ef = k * 2：HNSW 搜索广度调优参数（ef 越大召回越准越慢），
-    # 与 k 的倍数关系是性能选择而非正确性约束——替换为 + / 仍返回正确召回集，
-    # 测试断言（召回集包含/排除特定 id）已覆盖召回正确性，ef 具体值无需逐值断言。
-    'replace \* with \+ in .*similarity_fetch',
-    'replace \* with / in .*similarity_fetch',
+
+    # ------------------------------------------------- 部分不可达：只排除确实杀不掉的那一侧
+    # merge_node 的 match guard `self.graph.contains_node(index)` 换成 **true** 后，
+    # 只有当 mem_id_to_index 里的索引已从图中消失时行为才不同——而 remove_single_node
+    # 会先摘除映射（cluster/memory_cluster/mod.rs），公开 API 造不出该状态，
+    # 仅 graph_mut() 直接动图才可能，现有测试无法观测。该守卫本身是防御
+    # petgraph 索引复用的（见同文件相关注释）。
+    # 刻意**不排除换成 false 的那一支**：它会让每次 merge 都新增节点，
+    # 已被 test_add_single_node_deduplicates（断言 node_count 必须为 1）杀灭。
+    'replace match guard .* with true in MemoryCluster::merge_node',
+
+    # ------------------------------------------------- 已知偏宽，待收窄（见各自 TODO）
+    # naive_ppr 的 `/` → `*`：其中两处是**可证等价**的——
+    #   (1) `bias / personalized_sum`：该向量同时用作初值与重启项，每轮又按 sum 归一化，
+    #       对它的统一缩放会被归一化完全抹平，任何图、任何测试都无法区分；
+    #   (2) 末尾 `ppr_ranks / sum`：循环已把向量归一化，执行到此处 sum 恒为 1.0
+    #       （sum == 0 的情形在上面已提前返回），`/=` 与 `*=` 同为恒等。
+    # TODO(收窄)：本模式同时也会排除该函数内**可被现有测试杀灭**的站点（改变转移算子的那处），
+    # 以及**当前无测试覆盖**的悬挂源分支。收窄需要一次 scoped run：
+    #   cargo mutants -p soul-mem-algo --re 'naive_ppr'
+    # 只保留确实存活/超时的站点；对可覆盖的站点应补测试而不是继续排除。
+    'replace / with \* in naive_ppr',
+    # weighted_ppr_fp 是**整函数**排除（约 20 个变异体），其中至少 3 个可被现有测试杀灭：
+    # 两个返回 `vec![]` / `vec![(default, default)]` 的变体，以及堆预筛
+    # `.filter(|u| u.value > 0)` 的比较算子替换——三者都会让 Σppr ≈ 1 的断言失败。
+    # TODO(收窄)：整函数排除等于把可杀灭的变异体从杀灭率里摘掉。收窄同样需要一次
+    # scoped run（cargo mutants -p soul-mem-algo --re 'weighted_ppr_fp'），
+    # 只保留真正存活/超时（例如循环安全网被破坏导致不终止）的站点。
+    'weighted_ppr_fp',
 ]
+
+# ---------------------------------------------------------------------------
+# 已删除的历史排除项（请勿重新加回；重新加回等于放宽门槛）
+#
+#   LlmClient::call_llm / LlmClient::simple_call / Config for LLMConfig>::query
+#       引用的代码已不存在。`LlmClient` 与 `simple_call` 在 `crates/` 中 0 命中
+#       （由 07879ac「引入 soul-mem-llm 统一调用层，清除四套重复 LLM 实现」删除）；
+#       `LLMConfig` 只在 `CandleLlmConfig` 里作为子串存在，而 `Config` trait 现在由
+#       `OaiCompatProvider` 实现。三者对全部变异体名 0 匹配。
+#
+#   in weighted_ppr_fp
+#       与 `weighted_ppr_fp` 严格冗余：匹配名集合是后者的子集（实测 18 ⊂ 20）。
+#
+#   SlidingWindow::summarize
+#       该变异体（整个方法体替换为 `Ok(())`）会影响"LLM 调用次数"与"摘要内容"，
+#       而 `sliding_window/tests.rs` 中的用例同时断言这两者，因此它**是可被现有测试杀灭的**——
+#       排除它属于陈旧条目，不是等价变异体。
+#
+#   from struct AssociationConfig expression
+#       **从未生效**。在 cargo-mutants 27.1.0 中，`exclude_re` / `--exclude-re` / `--re`
+#       不作用于结构体字面量字段变异体（`delete field … from struct … expression` 一类）：
+#       把 `exclude_re` 设为 `["e"]`（匹配所有名字）仍会剩下恰好这些 24 行。
+#       若那几个变异体确实杀不掉，应改用源码内的 `#[mutants::skip]` 标注，
+#       并把 `exclude_re` 的覆盖缺口反馈上游。
+# ---------------------------------------------------------------------------
