@@ -2,9 +2,13 @@
 
 [简体中文](README.md) | [English](README_en.md)
 
-[![Project Status: WIP](https://img.shields.io/badge/Status-Active%20Development-orange)](https://github.com/your-username/SoulMem)
+[![Project Status: WIP](https://img.shields.io/badge/Status-Active%20Development-orange)](https://github.com/dynamder/Soulmem)
 
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+
+[![CI](https://github.com/dynamder/Soulmem/actions/workflows/ci.yml/badge.svg)](https://github.com/dynamder/Soulmem/actions/workflows/ci.yml)
+
+[![Mutants](https://github.com/dynamder/Soulmem/actions/workflows/mutants.yml/badge.svg)](https://github.com/dynamder/Soulmem/actions/workflows/mutants.yml)
 
 SoulMem是一个专为角色扮演任务设计的记忆系统，它**旨在**使LLM的输出更拟人化成为可能，让模拟角色像人一样记住重要的、情感相关的、可驱动行为的事件，并建立关联。**它不旨在**精确无误地记忆事件的细节，或事实性知识。
 
@@ -42,13 +46,54 @@ SoulMem 的核心设计哲学是：***“一切特征和事件都属于记忆”
 
 - ***重要通知***：项目已进行架构重构。`main` 分支为最新版本，旧的 alpha 版本代码可在 [`alpha_deprecated`](https://github.com/dynamder/SoulMem/tree/alpha_deprecated) 分支找到。
 
-- ***详细架构***：请参阅 [`docs/architecture/beta_ver.md`](docs/architecture/beta_ver.md) 了解最新的技术架构说明。
+- ***当前架构***：请参阅 [`docs/architecture/orchestration.md`](docs/architecture/orchestration.md)——它带 ✅/🔲 标注，区分**已实现**与**规划中**，是与代码同步的架构说明。
 
+- ***设计历史***：[`docs/architecture/beta_ver.md`](docs/architecture/beta_ver.md) 是 beta 阶段的**设计设想**（含未决问题与 `- [ ]` 待办），其中一部分已被实现取代，请勿当作现状。
 
+- ***给 AI 代理与贡献者***：先读 [`AGENTS.md`](AGENTS.md)，其中有仓库地图、"从哪里开始读"索引、必须保持的不变量，以及不会报错但会静默出错的已知陷阱。
+
+### 仓库结构
+
+| 路径 | 说明 |
+|---|---|
+| `crates/soul-mem-core` | 纯数据模型（`MemoryNote` / `MemoryLink`），无内部依赖 |
+| `crates/soul-mem-query` | 文本→向量嵌入、Query 类型、相似度与评分计算 |
+| `crates/soul-mem-llm` | 全仓库唯一的 LLM 调用层（契约 / 传输 / 重试 / 流式 / trace） |
+| `crates/soul-mem-runtime` | 工作记忆（滑动窗口、记忆簇、活跃记录）与 SurrealDB 仓储 |
+| `crates/soul-mem-algo` | 检索策略、遗忘、巩固 |
+| `crates/soul-tune` | 测试与基准框架（headless CLI + 库），**非运行时组件** |
+| `crates/soul-tune-api` | Flutter Rust Bridge 桥接层 |
+| `soul-tune-ui/` | Flutter GUI |
+| `benches/` | criterion 基准（cosine / SIMD / PPR） |
+| `fixtures/` | 测试数据集（角色图与对话） |
+| `docs/` | 架构与规范文档（见 [`docs/README.md`](docs/README.md) 索引） |
 
 ## 🚀 快速开始
 
-目前项目处于早期开发阶段。当有可用版本时，这里将提供安装和基本使用教程。
+项目尚未发布稳定版本，但测试框架已经可用：
+
+```bash
+# 用 GUI（推荐，需要 Flutter 环境）
+cd soul-tune-ui && flutter run -d windows
+
+# 或用 headless CLI
+cargo run -p soul-tune -- inspect fixtures/graphs/rust_small_zh.json
+cargo run -p soul-tune -- run retrieve/full fixtures/example_data --batch
+cargo run -p soul-tune -- playtest <graph_dir> <dialogue_file>
+```
+
+完整的命令说明、`algo` 取值表与数据集格式见 [`crates/soul-tune/docs/user-guide.md`](crates/soul-tune/docs/user-guide.md)。
+
+> **注意**：部分测试与 playtest 需要下载嵌入模型（BGE）或本地 GGUF 模型。
+> 离线环境下失败属于环境问题，不是构建坏了——详见 [`AGENTS.md`](AGENTS.md) §5。
+
+## 🔧 开发与 CI
+
+- 构建：`cargo build --workspace --all-targets`
+- 测试：`cargo test --workspace`
+- 格式与 lint：`cargo fmt --all --check`、`cargo clippy --workspace --all-targets -- -D warnings`
+- 变异测试：`cargo mutants --workspace`（杀灭率 ≥90%，门禁脚本见 `scripts/mutants_gate.py`）
+- push/PR 会触发 Windows、Ubuntu、macOS 三平台编译+测试；PR 还会按改动范围运行 mutants；每周（每隔一周）全量跑一次 mutants。
 
 
 
@@ -63,6 +108,8 @@ SoulMem 的核心设计哲学是：***“一切特征和事件都属于记忆”
 5. 开启一个 Pull Request
 
 请确保您的代码遵循项目已有的风格。
+
+详细贡献指南请参阅 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 
 

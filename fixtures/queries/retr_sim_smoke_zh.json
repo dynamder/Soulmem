@@ -1,0 +1,96 @@
+{
+  "name": "retr_sim_smoke_zh",
+  "description": "向量相似性搜索冒烟测试 — 覆盖语义和情境混合查询",
+  "graph_path": "../graphs/rust_small_zh.json",
+  "config": {
+    "similarity_threshold": 0.0,
+    "max_results": 10,
+    "test_k_values": [1, 3, 5]
+  },
+  "test_cases": [
+    {
+      "name": "用户问-Rust资讯",
+      "description": "LLM拆解: Rust概念查询 + 编程上下文",
+      "sub_queries": [
+        {
+          "priority": 1,
+          "tag": ["Rust", "编程"],
+          "variant": {
+            "Semantic": [
+              { "concept_identifier": "Rust语言", "description": "系统编程语言" }
+            ]
+          }
+        },
+        {
+          "priority": 2,
+          "tag": ["编程"],
+          "variant": { "Semantic": [] }
+        }
+      ],
+      "expected_per_query": [
+        { "q": 0, "ranking": ["mem_rust"] },
+        { "q": 1, "ranking": ["mem_rust", "mem_python"] }
+      ],
+      "expected_combined_ranking": ["mem_rust", "mem_python"],
+      "expected_actions": []
+    },
+    {
+      "name": "用户问-今日编码",
+      "description": "混合查询: Rust标签 + 情境叙事",
+      "sub_queries": [
+        {
+          "priority": 1,
+          "tag": ["Rust", "编码"],
+          "variant": {
+            "Semantic": [
+              { "concept_identifier": "Rust" }
+            ]
+          }
+        },
+        {
+          "priority": 1,
+          "tag": ["事件"],
+          "variant": {
+            "Situation": [
+              {
+                "narrative": "用Rust写HTTP服务器",
+                "location": [{ "name": "办公室" }],
+                "participants": [{ "name": "张三", "role": "开发者" }],
+                "environment": { "atmosphere": "安静" },
+                "event": [{
+                  "action": "编写代码",
+                  "initiator": "张三",
+                  "target": "HTTP服务器"
+                }]
+              }
+            ]
+          }
+        }
+      ],
+      "expected_per_query": [
+        { "q": 0, "ranking": ["mem_rust"] },
+        { "q": 1, "ranking": ["sit_coding_day", "mem_rust"] }
+      ],
+      "expected_combined_ranking": ["mem_rust", "sit_coding_day"],
+      "expected_actions": []
+    },
+    {
+      "name": "用户问-无意义XYZ",
+      "description": "负样本 — 应返回空结果",
+      "sub_queries": [
+        {
+          "priority": 1,
+          "tag": ["XYZ"],
+          "variant": { "Semantic": [
+            { "concept_identifier": "不存在的概念" }
+          ]}
+        }
+      ],
+      "expected_per_query": [
+        { "q": 0, "ranking": [] }
+      ],
+      "expected_combined_ranking": [],
+      "expected_actions": []
+    }
+  ]
+}

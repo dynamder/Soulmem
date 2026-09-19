@@ -1,0 +1,445 @@
+//! 记忆节点：公共外壳 + 类型特定载荷。
+//!
+//! [`MemoryNote`] 是所有记忆节点的统一形态：身份（[`MemoryId`]）、标签、访问统计、
+//! **出边**（`Vec<MemoryLink>`）、遗忘状态，以及一个 [`MemoryType`] 载荷。
+//!
+//! 载荷分布：
+//!
+//! | 变体 | 载荷位置 |
+//! |---|---|
+//! | `MemoryType::Situation` | [`situation_mem`]（含 [`situation_mem::Context`]：位置 / 参与者 / 情感 / 感官 / 背景） |
+//! | `MemoryType::Semantic` | [`sem_mem`]（概念内容、别名、描述、`ConceptType`） |
+//! | `MemoryType::Procedure` | [`proc_mem`]（**尚无实际字段，仅占位**） |
+//!
+//! # 不变量
+//!
+//! - `missing_degree` 是**私有**的，只能经 `set_missing_degree` 写入，且会被
+//!   `clamp(0.0, 1.0)` 钳制。不要为了省事把它改成 `pub`——同一不变量在
+//!   [`MemoryLink`](crate::memory_links::MemoryLink) 上已经因为字段公开而可被绕过。
+//! - `missing_degree` / `last_forget_time` 带 `#[serde(default = ...)]`，
+//!   保证缺这两个字段的**老数据仍可反序列化**。删除该属性会使已持久化的记忆读不出来。
+//!
+//! # 构造
+//!
+//! 用 `MemoryNoteBuilder`，其 `build()` 返回 `Result`（会校验时间顺序等约束）。
+//! 注意同层的 `MemoryLinkBuilder::build()` 返回的是裸值——两者契约不同，别照抄。
+
+use std::fmt::Display;
+
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use thiserror::Error;
+use uuid::Uuid;
+
+pub mod proc_mem;
+pub mod sem_mem;
+pub mod situation_mem;
+
+use crate::memory_note::proc_mem::ProcMemory;
+use crate::memory_note::sem_mem::SemMemory;
+use crate::memory_note::situation_mem::SituationType;
+
+use super::memory_links::MemoryLink;
+
+//new-type pattern
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Copy, Clone, Hash, Serialize, Deserialize)]
+pub struct MemoryId(Uuid);
+impl MemoryId {
+    pub fn new() -> Self {
+        Self(Uuid::new_v4())
+    }
+}
+impl From<Uuid> for MemoryId {
+    fn from(id: Uuid) -> Self {
+        Self(id)
+    }
+}
+
+impl Default for MemoryId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+impl Display for MemoryId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+//TODO: discuss with team to decide whether add an anchor
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct MemoryNote {
+    id: MemoryId,                      // 记忆唯一id
+    tags: Vec<String>,                 //记忆的标签，暂定会成为embedding的一部分
+    retrieval_count: usize,            //记忆被提取的次数
+    create_time: DateTime<Utc>,        //记忆的创建时间
+    last_accessed_time: DateTime<Utc>, //记忆的最后访问时间
+    mem_type: MemoryType,              //记忆的类型，存储类型特定内容
+    mem_links: Vec<MemoryLink>,        //记忆的链接，用于关联其他记忆
+    #[serde(default = "default_missing_degree")]
+    missing_degree: f32, // 遗忘缺失度（0.0 新鲜 ~ 1.0 完全遗忘），所有节点类型通用
+    #[serde(default = "default_last_forget_time")]
+    last_forget_time: DateTime<Utc>, // 缺失度最近一次计算的时间，用于增量更新
+}
+
+/// serde 默认：缺失度初始为 0
+fn default_missing_degree() -> f32 {
+    0.0
+}
+
+/// serde 默认：缺失度计算时间初始为当前
+fn default_last_forget_time() -> DateTime<Utc> {
+    Utc::now()
+}
+
+impl MemoryNote {
+    pub fn is_same_id(mem1: &MemoryNote, mem2: &MemoryNote) -> bool {
+        mem1.id == mem2.id
+    }
+    pub fn id(&self) -> MemoryId {
+        self.id
+    }
+    pub fn tags(&self) -> &[String] {
+        &self.tags
+    }
+    pub fn retrieval_count(&self) -> usize {
+        self.retrieval_count
+    }
+    pub fn creation_time(&self) -> DateTime<Utc> {
+        self.create_time
+    }
+    pub fn last_accessed_time(&self) -> DateTime<Utc> {
+        self.last_accessed_time
+    }
+    pub fn mem_type(&self) -> &MemoryType {
+        &self.mem_type
+    }
+    /// 消费 self 取出 mem_type（持久化转换避免 clone）
+    pub fn into_mem_type(self) -> MemoryType {
+        self.mem_type
+    }
+    pub fn mem_type_mut(&mut self) -> &mut MemoryType {
+        &mut self.mem_type
+    }
+    pub fn links(&self) -> &Vec<MemoryLink> {
+        &self.mem_links
+    }
+    pub fn links_mut(&mut self) -> &mut Vec<MemoryLink> {
+        &mut self.mem_links
+    }
+    /// 当前存储的遗忘缺失度
+    pub fn missing_degree(&self) -> f32 {
+        self.missing_degree
+    }
+    /// 写入缺失度（自动限制在 0.0~1.0）
+    pub fn set_missing_degree(&mut self, missing_degree: f32) {
+        self.missing_degree = missing_degree.clamp(0.0, 1.0);
+    }
+    /// 缺失度最近一次计算的时间
+    pub fn last_forget_time(&self) -> DateTime<Utc> {
+        self.last_forget_time
+    }
+    /// 记录缺失度计算时间
+    pub fn set_last_forget_time(&mut self, time: DateTime<Utc>) {
+        self.last_forget_time = time;
+    }
+    pub fn retrieval_increment(&mut self) {
+        self.retrieval_count += 1;
+        self.last_accessed_time = Utc::now();
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub enum MemoryType {
+    Semantic(SemMemory),
+    Situation(SituationType),
+    Procedure(ProcMemory),
+}
+
+//Builder pattern
+pub struct MemoryNoteBuilder {
+    id: Option<MemoryId>,
+    tags: Option<Vec<String>>,
+    retrieval_count: Option<usize>,
+    create_time: Option<DateTime<Utc>>,
+    last_accessed_time: Option<DateTime<Utc>>,
+    mem_type: MemoryType,
+    mem_links: Option<Vec<MemoryLink>>,
+    missing_degree: Option<f32>,
+    last_forget_time: Option<DateTime<Utc>>,
+}
+impl MemoryNoteBuilder {
+    pub fn new(mem_type: MemoryType) -> Self {
+        Self {
+            id: None,
+            tags: None,
+            retrieval_count: None,
+            create_time: None,
+            last_accessed_time: None,
+            mem_type,
+            mem_links: None,
+            missing_degree: None,
+            last_forget_time: None,
+        }
+    }
+    pub fn id(mut self, id: impl Into<MemoryId>) -> Self {
+        self.id = Some(id.into());
+        self
+    }
+    pub fn tags(mut self, tags: impl Into<Vec<String>>) -> Self {
+        self.tags = Some(tags.into());
+        self
+    }
+    pub fn retrieval_count(mut self, retrieval_count: usize) -> Self {
+        self.retrieval_count = Some(retrieval_count);
+        self
+    }
+    pub fn create_time(mut self, create_time: DateTime<Utc>) -> Self {
+        self.create_time = Some(create_time);
+        self
+    }
+    pub fn last_accessed_time(mut self, last_accessed_time: DateTime<Utc>) -> Self {
+        self.last_accessed_time = Some(last_accessed_time);
+        self
+    }
+    pub fn mem_links(mut self, mem_links: impl Into<Vec<MemoryLink>>) -> Self {
+        self.mem_links = Some(mem_links.into());
+        self
+    }
+    pub fn missing_degree(mut self, missing_degree: f32) -> Self {
+        self.missing_degree = Some(missing_degree);
+        self
+    }
+    pub fn last_forget_time(mut self, last_forget_time: DateTime<Utc>) -> Self {
+        self.last_forget_time = Some(last_forget_time);
+        self
+    }
+    pub fn build(self) -> Result<MemoryNote, MemoryNoteBuildError> {
+        //允许对字段的自由控制，以便于调试和修正
+        if self.last_accessed_time < self.create_time {
+            return Err(MemoryNoteBuildError::TimeConflict);
+        }
+        let time_now = Utc::now(); //提前计算时间，由于unwrap_or是eagerly evaluated的，所以防止可能的重复计算
+        Ok(MemoryNote {
+            id: self.id.unwrap_or_default(),
+            tags: self.tags.unwrap_or_default(),
+            retrieval_count: self.retrieval_count.unwrap_or_default(),
+            create_time: self.create_time.unwrap_or(time_now),
+            last_accessed_time: self.last_accessed_time.unwrap_or(time_now),
+            mem_type: self.mem_type,
+            mem_links: self.mem_links.unwrap_or_default(),
+            missing_degree: self.missing_degree.unwrap_or(0.0),
+            last_forget_time: self.last_forget_time.unwrap_or(time_now),
+        })
+    }
+}
+
+//定义错误类型，更健壮的处理
+#[derive(Debug, Error)]
+pub enum MemoryNoteBuildError {
+    #[error("The last_accessed_time is earlier than create_time")]
+    TimeConflict, //last_accessed_time比create_time更早
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::memory_note::sem_mem::ConceptType;
+    use chrono::TimeZone;
+    use uuid::Uuid;
+
+    #[test]
+    fn test_memory_id_from_uuid_and_display() {
+        let uuid = Uuid::new_v4();
+        let id = MemoryId::from(uuid);
+        assert_eq!(format!("{id}"), uuid.to_string());
+    }
+
+    #[test]
+    fn test_memory_id_default_is_new() {
+        let a = MemoryId::default();
+        let b = MemoryId::default();
+        assert_ne!(a, b, "each default MemoryId must be unique");
+    }
+
+    #[test]
+    fn test_is_same_id_true() {
+        let uuid = Uuid::new_v4();
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let note1 = MemoryNoteBuilder::new(mem_type.clone())
+            .id(uuid)
+            .build()
+            .unwrap();
+        let note2 = MemoryNoteBuilder::new(mem_type).id(uuid).build().unwrap();
+        assert!(MemoryNote::is_same_id(&note1, &note2));
+    }
+
+    #[test]
+    fn test_is_same_id_false() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let note1 = MemoryNoteBuilder::new(mem_type.clone()).build().unwrap();
+        let note2 = MemoryNoteBuilder::new(mem_type).build().unwrap();
+        assert!(!MemoryNote::is_same_id(&note1, &note2));
+    }
+
+    #[test]
+    fn test_memory_note_explicit_id_roundtrip() {
+        let uuid = Uuid::new_v4();
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let note = MemoryNoteBuilder::new(mem_type).id(uuid).build().unwrap();
+        assert_eq!(note.id(), MemoryId::from(uuid));
+    }
+
+    #[test]
+    fn test_memory_note_links_roundtrip() {
+        let uuid_from = Uuid::new_v4();
+        let uuid_to = Uuid::new_v4();
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let link = MemoryLink::new(
+            MemoryId::from(uuid_from),
+            MemoryId::from(uuid_to),
+            crate::memory_links::MemoryLinkType::Sem(
+                crate::memory_links::sem_mem::SemMemLink::new("is_related_to".to_string(), 0.9),
+            ),
+        );
+        let note = MemoryNoteBuilder::new(mem_type)
+            .mem_links(vec![link])
+            .build()
+            .unwrap();
+        assert_eq!(note.links().len(), 1);
+        assert_eq!(note.links()[0].from(), MemoryId::from(uuid_from));
+        assert_eq!(note.links()[0].to(), MemoryId::from(uuid_to));
+    }
+
+    #[test]
+    fn test_memory_note_builder_basic() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let note = MemoryNoteBuilder::new(mem_type)
+            .tags(vec!["test".to_string()])
+            .build()
+            .unwrap();
+
+        assert_eq!(note.tags(), &vec!["test".to_string()]);
+        assert_eq!(note.retrieval_count(), 0);
+    }
+
+    #[test]
+    fn test_links_mut_appends_link() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let mut note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+        assert!(note.links().is_empty());
+
+        let link = MemoryLink::new(
+            MemoryId::new(),
+            MemoryId::new(),
+            crate::memory_links::MemoryLinkType::Sem(
+                crate::memory_links::sem_mem::SemMemLink::new("relates".to_string(), 1.0),
+            ),
+        );
+        note.links_mut().push(link);
+        assert_eq!(note.links().len(), 1);
+    }
+
+    #[test]
+    fn test_memory_note_builder_with_time() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let create_time = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+        let last_accessed = Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap();
+
+        let note = MemoryNoteBuilder::new(mem_type)
+            .create_time(create_time)
+            .last_accessed_time(last_accessed)
+            .build()
+            .unwrap();
+
+        assert_eq!(note.creation_time(), create_time);
+        assert_eq!(note.last_accessed_time(), last_accessed);
+    }
+
+    #[test]
+    fn test_memory_note_builder_time_conflict() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let create_time = Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap();
+        let last_accessed = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+
+        let result = MemoryNoteBuilder::new(mem_type)
+            .create_time(create_time)
+            .last_accessed_time(last_accessed)
+            .build();
+
+        assert!(matches!(result, Err(MemoryNoteBuildError::TimeConflict)));
+    }
+
+    #[test]
+    fn test_memory_note_retrieval_increment() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let mut note = MemoryNoteBuilder::new(mem_type).build().unwrap();
+
+        assert_eq!(note.retrieval_count(), 0);
+
+        note.retrieval_increment();
+        assert_eq!(note.retrieval_count(), 1);
+
+        note.retrieval_increment();
+        assert_eq!(note.retrieval_count(), 2);
+    }
+
+    #[test]
+    fn test_memory_note_builder_with_all_fields() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let create_time = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+        let last_accessed = Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap();
+
+        let note = MemoryNoteBuilder::new(mem_type)
+            .tags(vec!["tag1".to_string(), "tag2".to_string()])
+            .retrieval_count(5)
+            .create_time(create_time)
+            .last_accessed_time(last_accessed)
+            .mem_links(vec![])
+            .build()
+            .unwrap();
+
+        assert_eq!(note.tags().len(), 2);
+        assert_eq!(note.retrieval_count(), 5);
+    }
+}

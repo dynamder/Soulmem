@@ -1,0 +1,37 @@
+[package]
+name = "soul-tune"
+version = "0.1.0"
+edition = "2024"
+description = "Test framework for SoulMem."
+license = "MIT"
+
+[dependencies]
+anyhow.workspace = true
+color-eyre = "0.6.5"
+serde_json.workspace = true
+soul-mem-core = { path = "../soul-mem-core" }
+soul-mem-algo = { path = "../soul-mem-algo" }
+soul-mem-query = { path = "../soul-mem-query" }
+soul-mem-runtime = { path = "../soul-mem-runtime" }
+# LLM 调用统一走这条栈；本 crate 不再自己拼 OpenAI-compatible 请求
+soul-mem-llm = { path = "../soul-mem-llm" }
+serde.workspace = true
+rand = "0.9"
+candle-core = { workspace = true, optional = true }
+candle-nn = { workspace = true, optional = true }
+candle-transformers = { workspace = true, optional = true }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json"] }
+paw-rs = { version = "0.2", default-features = false, features = ["llamacpp"] }
+tokio.workspace = true
+dotenvy = "0.15.7"
+chrono.workspace = true
+jieba-rs.workspace = true
+tokenizers = { version = "0.21", optional = true }
+
+[features]
+default = ["llamacpp"]
+llamacpp = []
+candle = ["dep:candle-core", "dep:candle-nn", "dep:candle-transformers", "dep:tokenizers"]
+
+[dev-dependencies]
+tempfile = "3"

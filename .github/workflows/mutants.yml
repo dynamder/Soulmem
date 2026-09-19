@@ -1,0 +1,115 @@
+name: Mutants
+
+on:
+  pull_request:
+    paths:
+      - 'crates/**'
+      - 'benches/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+  schedule:
+    # 每两周一次：周一 02:00 UTC，ISO 偶数周由 decide-weekly 跳过。
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: mutants-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  decide-weekly:
+    name: Decide weekly run
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    outputs:
+      run: ${{ steps.week.outputs.run }}
+    steps:
+      - name: Compute ISO week parity
+        id: week
+        run: |
+          WEEK=$(date +%V)
+          if [ $((10#$WEEK % 2)) -eq 1 ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  mutants-weekly:
+    name: Mutants (weekly full)
+    runs-on: ubuntu-latest
+    needs: decide-weekly
+    if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && needs.decide-weekly.outputs.run == 'true'
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-mutants
+        run: cargo install cargo-mutants --version 27.1.0
+
+      - name: Run cargo mutants (full)
+        run: cargo mutants --workspace
+
+      - name: Check kill rate
+        run: python3 scripts/mutants_gate.py --out-dir mutants.out --threshold 90
+
+      - name: Upload mutants report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutants-out-weekly
+          path: mutants.out
+          retention-days: 7
+
+  mutants-pr:
+    name: Mutants (PR diff)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-mutants
+        run: cargo install cargo-mutants --version 27.1.0
+
+      # `core.quotepath=false` 是必须的：git 默认把非 ASCII 路径用 C 风格引号包起来、并把
+      # 字节写成八进制转义（`"docs/architecture/\346\265\213..."`），而 cargo-mutants 的 diff
+      # 解析器按 Rust 字符串转义规则处理引号内内容，`\346` 不是合法转义 —— 于是整个 job 以
+      # `ERROR Failed to parse diff: invalid escaped character`（exit 6）失败，与改动内容无关。
+      # 只要一个 PR 同时改了 crates/** 和本仓库里任一非 ASCII 文件名的文件就会命中。
+      - name: Generate PR diff
+        run: |
+          git -c core.quotepath=false diff "${{ github.event.pull_request.base.sha }}...${{ github.sha }}" > "$RUNNER_TEMP/pr.diff"
+
+      - name: Run cargo mutants (PR diff)
+        run: cargo mutants --workspace --in-diff "$RUNNER_TEMP/pr.diff"
+
+      # cargo-mutants 在「没有变异体可测」时（例如 PR 只往 .rs 里加文档注释）**不会创建**
+      # mutants.out/，而 mutants_gate.py 把「输出缺失」判为硬错误（exit 2）—— 那个判定要保留，
+      # 它用来抓 cargo-mutants 崩溃。所以这里只在确实有产物时才跑门禁；上一步失败时 job 已经
+      # 红了，不存在漏判。
+      - name: Check kill rate
+        if: hashFiles('mutants.out/**') != ''
+        run: python3 scripts/mutants_gate.py --out-dir mutants.out --threshold 90
+
+      - name: Upload mutants report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutants-out-pr
+          path: mutants.out
+          retention-days: 7

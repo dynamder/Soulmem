@@ -1,0 +1,33 @@
+[package]
+name = "soul-mem-runtime"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+
+[dependencies]
+soul-mem-core = { path = "../soul-mem-core" }
+soul-mem-query = { path = "../soul-mem-query" }
+# 摘要调用统一走 soul-mem-llm；本 crate 不再直接依赖任何 provider SDK。
+soul-mem-llm = { path = "../soul-mem-llm" }
+serde = { workspace = true }
+thiserror = { workspace = true }
+petgraph = { workspace = true }
+
+chrono = { workspace = true }
+anyhow = { workspace = true }
+
+serde_json = { workspace = true }
+
+log = "0.4.27"
+parking_lot = { version = "0.12.4", features = ["serde"] }
+async-trait = { workspace = true }
+uuid = { workspace = true }
+surrealdb = { version = "3.2.4", features = ["kv-surrealkv", "kv-mem"] }
+# 摘要更新需要一把异步互斥锁来串行化"读旧摘要 → await LLM → 覆写摘要"这一复合操作。
+# 库内其余锁（parking_lot）一律不得跨 await 持有，因此不能用它们代替。
+tokio = { workspace = true }
+
+[dev-dependencies]
+soul-mem-algo = { path = "../soul-mem-algo" }
+# 仅测试读取环境变量构造真实引擎；生产路径不再加载 .env
+dotenvy = { workspace = true }

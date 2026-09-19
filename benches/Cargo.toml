@@ -1,0 +1,46 @@
+[package]
+name = "soul-mem-benches"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+
+[dependencies]
+soul-mem-core = { path = "../crates/soul-mem-core" }
+soul-mem-algo = { path = "../crates/soul-mem-algo" }
+soul-mem-query = { path = "../crates/soul-mem-query" }
+soul-mem-runtime = { path = "../crates/soul-mem-runtime" }
+petgraph = { workspace = true }
+hotpath = { workspace = true }
+
+# hotpath 剖析默认关闭：不开 `hotpath` feature 时所有宏均为 noop，
+# 不引入任何运行时/编译期开销（cargo build/test/bench 行为不变）。
+# 开启时联动 soul-mem-algo / soul-mem-query 的插桩（检索链路函数级测量）。
+[features]
+default = []
+hotpath = [
+    "hotpath/hotpath",
+    "soul-mem-algo/hotpath",
+    "soul-mem-query/hotpath",
+]
+
+[dev-dependencies]
+criterion = "0.8.2"
+wide = "1.7"
+
+[[bench]]
+name = "ppr"
+harness = false
+
+[[bench]]
+name = "cosine"
+harness = false
+
+[[bench]]
+name = "cosine_simd"
+harness = false
+
+# 端到端检索链路剖析驱动（试点）：合成记忆图 → 工作记忆 → DefaultPipeline 逐查询检索。
+# 运行：cargo run -p soul-mem-benches --features hotpath --bin e2e_profile -- [nodes] [queries]
+[[bin]]
+name = "e2e_profile"
+path = "src/bin/e2e_profile.rs"

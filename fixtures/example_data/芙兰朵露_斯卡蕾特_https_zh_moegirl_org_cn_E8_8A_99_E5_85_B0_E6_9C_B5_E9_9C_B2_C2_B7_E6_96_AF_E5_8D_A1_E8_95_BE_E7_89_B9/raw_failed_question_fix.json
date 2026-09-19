@@ -1,0 +1,224 @@
+{
+  "queries": [
+    {
+      "priority": 9,
+      "tag": ["人物"],
+      "expected": {"must_include": ["sem_remilia"], "may_include": []},
+      "variant": {"Semantic": [{"concept_identifier": "红魔馆那位操纵命运的大小姐", "description": "芙兰最喜欢的姐姐大人，拥有操纵命运的能力"}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["人物"],
+      "expected": {"must_include": ["sem_sakuya"], "may_include": []},
+      "variant": {"Semantic": [{"concept_identifier": "银发女仆", "description": "红魔馆里那个照顾她日常起居的能干女仆"}]}
+    },
+    {
+      "priority": 5,
+      "tag": ["人物"],
+      "expected": {"must_include": ["sem_patchouli"], "may_include": []},
+      "variant": {"Semantic": [{"concept_identifier": "图书馆魔女", "description": "住在红魔馆地下图书馆的魔女，会用暴雨阻止她出门"}]}
+    },
+    {
+      "priority": 3,
+      "tag": ["人物"],
+      "expected": {"must_include": ["sem_koishi"], "may_include": ["sem_self"]},
+      "variant": {"Semantic": [{"concept_identifier": "觉妖怪的妹妹", "description": "同样被姐姐管着的妹妹，偶尔会秘密潜入地下室来陪她玩"}]}
+    },
+    {
+      "priority": 8,
+      "tag": ["地点"],
+      "expected": {"must_include": ["sem_mansion"], "may_include": []},
+      "variant": {"Semantic": [{"concept_identifier": "雾之湖边的洋馆", "description": "芙兰和姐姐的家，红魔馆，位于幻想乡雾之湖附近"}]}
+    },
+    {
+      "priority": 6,
+      "tag": ["种族"],
+      "expected": {"must_include": ["sem_vampire"], "may_include": []},
+      "variant": {"Semantic": [{"concept_identifier": "暗夜贵族", "description": "芙兰是吸血鬼，害怕阳光和雨水，但能玩弄十字架"}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["年龄"],
+      "expected": {"must_include": ["sem_495_years"], "may_include": []},
+      "variant": {"Semantic": [{"concept_identifier": "芙兰之日代表的数字", "description": "她的年龄，7月4日的由来，符卡QED蕴含的年数"}]}
+    },
+    {
+      "priority": 4,
+      "tag": ["能力"],
+      "expected": {"must_include": ["sem_destruction_eye"], "may_include": []},
+      "variant": {"Semantic": [{"concept_identifier": "握拳破坏万物的能力", "description": "将所有存在之物破坏掉的程度的能力，原理是移动物体上的‘目’到手中"}]}
+    },
+    {
+      "priority": 5,
+      "tag": ["武器"],
+      "expected": {"must_include": ["sem_laevatein"], "may_include": ["sem_self"]},
+      "variant": {"Semantic": [{"concept_identifier": "北欧火焰魔剑", "description": "她符卡中使用的武器，前端像黑桃形状的软棒子，源自神话"}]}
+    },
+    {
+      "priority": 6,
+      "tag": ["身体特征"],
+      "expected": {"must_include": ["sem_crystal_wings"], "may_include": []},
+      "variant": {"Semantic": [{"concept_identifier": "彩色结晶翅膀", "description": "她背上挂着彩色结晶的特殊翅膀，由破坏修复形成"}]}
+    },
+    {
+      "priority": 3,
+      "tag": ["人物"],
+      "expected": {"must_include": ["sem_marisa"], "may_include": ["sem_self"]},
+      "variant": {"Semantic": [{"concept_identifier": "黑白魔法使", "description": "经常闯入红魔馆的人类魔法使，会来找她玩弹幕"}]}
+    },
+    {
+      "priority": 8,
+      "tag": ["事件"],
+      "expected": {"must_include": ["sit_meteor_destruction"], "may_include": ["sem_remilia"]},
+      "variant": {"Situation": [{"narrative": "为了保护红魔馆捏碎了一颗陨石", "location": [{"name": "红魔馆上空"}], "participants": [{"name": "她", "role": "破坏者"}, {"name": "姐姐", "role": "旁观者"}]}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["事件"],
+      "expected": {"must_include": ["sit_aya_interview"], "may_include": ["sem_aya"]},
+      "variant": {"Situation": [{"narrative": "天狗记者来采访关于陨石爆炸的事", "participants": [{"name": "射命丸文", "role": "记者"}]}]}
+    },
+    {
+      "priority": 5,
+      "tag": ["事件"],
+      "expected": {"must_include": ["sit_sneak_visit"], "may_include": ["sem_koishi"]},
+      "variant": {"Situation": [{"narrative": "另一个妹妹偶尔偷偷溜进地下室来找她玩", "participants": [{"name": "古明地恋", "role": "来访者"}]}]}
+    },
+    {
+      "priority": 4,
+      "tag": ["日常"],
+      "expected": {"must_include": ["sit_basement_location"], "may_include": []},
+      "variant": {"Situation": [{"narrative": "大部分时间待在红魔馆地下储藏室里过着宅女生活", "location": [{"name": "地下储藏室"}]}]}
+    },
+    {
+      "priority": 6,
+      "tag": ["事件"],
+      "expected": {"must_include": ["sit_ex_extra"], "may_include": ["sem_marisa"]},
+      "variant": {"Situation": [{"narrative": "在红魔乡的EX关卡中设计了很多有趣的弹幕", "participants": [{"name": "她", "role": "弹幕发起者"}, {"name": "魔理沙", "role": "挑战者"}]}]}
+    },
+    {
+      "priority": 8,
+      "tag": ["事件"],
+      "expected": {"must_include": ["sit_gouyoku_ijin"], "may_include": ["sem_destruction_eye"]},
+      "variant": {"Situation": [{"narrative": "被摩多罗隐岐奈诱导相信自己是破坏神", "participants": [{"name": "摩多罗隐岐奈", "role": "诱导者"}]}]}
+    },
+    {
+      "priority": 3,
+      "tag": ["战斗"],
+      "expected": {"must_include": ["sit_bullet_event"], "may_include": []},
+      "variant": {"Situation": [{"narrative": "和来访的人类或妖怪进行弹幕对战", "event": [{"action": "弹幕对战"}]}]}
+    },
+    {
+      "priority": 5,
+      "tag": ["情感"],
+      "expected": {"must_include": ["sit_misunderstood_environment"], "may_include": []},
+      "variant": {"Situation": [{"narrative": "被认为很奇怪或可怕，但她其实不太在意", "environment": {"atmosphere": "被误解的孤独感"}}]}
+    },
+    {
+      "priority": 9,
+      "tag": ["事件"],
+      "expected": {"must_include": ["sit_meteor_destruction"], "may_include": ["sem_remilia", "sem_aya"]},
+      "variant": {"Situation": [{"narrative": "有一次姐姐在旁边看着她轻松摧毁了一颗陨石", "participants": [{"name": "姐姐大人", "role": "围观者"}]}]}
+    },
+    {
+      "priority": 6,
+      "tag": ["事件"],
+      "expected": {"must_include": ["sit_aya_interview"], "may_include": ["sem_remilia"]},
+      "variant": {"Situation": [{"narrative": "采访陨石事件时姐姐也在场，把天狗记者弄糊涂了", "participants": [{"name": "天狗记者", "role": "采访者"}, {"name": "姐姐", "role": "旁听者"}]}]}
+    },
+    {
+      "priority": 7,
+      "tag": ["关系"],
+      "expected": {"must_include": ["sem_remilia", "sem_patchouli"], "may_include": ["sit_basement_location"]},
+      "variant": {"Semantic": [{"concept_identifier": "姐姐和魔女", "description": "红魔馆里不让她出门的姐姐和用暴雨阻止她的魔女"}]}
+    },
+    {
+      "priority": 4,
+      "tag": ["事件"],
+      "expected": {"must_include": ["sit_ex_extra"], "may_include": ["sem_marisa", "sem_reimu"]},
+      "variant": {"Situation": [{"narrative": "挑战她的弹幕对手中有魔理沙和灵梦", "participants": [{"name": "魔理沙", "role": "对手"}, {"name": "灵梦", "role": "对手"}]}]}
+    },
+    {
+      "priority": 5,
+      "tag": ["人物"],
+      "expected": {"must_include": ["sem_keine"], "may_include": ["sem_self"]},
+      "variant": {"Semantic": [{"concept_identifier": "家庭教师", "description": "姐姐请来教导她的上白泽慧音，据说很宠她"}]}
+    }
+  ],
+  "query_sets": [
+    {
+      "set_id": "set_remilia",
+      "description": "查询芙兰的姐姐蕾米莉亚",
+      "queries": [
+        {"priority": 9, "tag": ["人物"], "expected": {"must_include": ["sem_remilia"], "may_include": []}, "variant": {"Semantic": [{"concept_identifier": "红魔馆主人", "description": "芙兰最喜欢的姐姐，操纵命运的大小姐"}]}},
+        {"priority": 9, "tag": ["人物"], "expected": {"must_include": ["sem_remilia"], "may_include": []}, "variant": {"Semantic": [{"concept_identifier": "那家伙", "description": "总是把命运挂在嘴边，把她关在地下室的姐姐"}]}},
+        {"priority": 9, "tag": ["人物"], "expected": {"must_include": ["sem_remilia"], "may_include": []}, "variant": {"Semantic": [{"concept_identifier": "斯卡蕾特家的大小姐", "description": "拥有比妹妹弱一些的破坏力，但却是姐姐大人"}]}},
+        {"priority": 9, "tag": ["人物"], "expected": {"must_include": ["sem_remilia"], "may_include": []}, "variant": {"Semantic": [{"concept_identifier": "吸血鬼姐姐", "description": "据她自己说一切都是命运的安排的红魔馆之主"}]}},
+        {"priority": 9, "tag": ["人物"], "expected": {"must_include": ["sem_remilia"], "may_include": []}, "variant": {"Semantic": [{"concept_identifier": "最重视的亲人", "description": "就算被关在地下室也依然最喜欢的姐姐大人"}]}},
+        {"priority": 9, "tag": ["人物"], "expected": {"must_include": ["sem_remilia"], "may_include": []}, "variant": {"Semantic": [{"concept_identifier": "命运操纵者", "description": "芙兰的姐姐，表面什么都懂实际也关心妹妹"}]}}
+      ]
+    },
+    {
+      "set_id": "set_meteor",
+      "description": "查询陨石破坏事件",
+      "queries": [
+        {"priority": 9, "tag": ["事件"], "expected": {"must_include": ["sit_meteor_destruction"], "may_include": ["sem_aya"]}, "variant": {"Situation": [{"narrative": "有天一个大家伙朝红魔馆砸过来，她随手一捏就炸了", "participants": [{"name": "她", "role": "破坏者"}]}]}},
+        {"priority": 9, "tag": ["事件"], "expected": {"must_include": ["sit_meteor_destruction"], "may_include": ["sem_aya"]}, "variant": {"Situation": [{"narrative": "当时姐姐也在场，看着她把那颗石头轰隆一下弄没了", "participants": [{"name": "姐姐大人", "role": "旁观者"}]}]}},
+        {"priority": 9, "tag": ["事件"], "expected": {"must_include": ["sit_meteor_destruction"], "may_include": ["sem_aya"]}, "variant": {"Situation": [{"narrative": "后来有个天狗记者因为这事跑来采访她", "participants": [{"name": "射命丸文", "role": "记者"}]}]}},
+        {"priority": 9, "tag": ["事件"], "expected": {"must_include": ["sit_meteor_destruction"], "may_include": ["sem_aya"]}, "variant": {"Situation": [{"narrative": "为了不让红魔馆被毁掉，她展现了自己的破坏能力", "event": [{"action": "破坏陨石"}]}]}},
+        {"priority": 9, "tag": ["事件"], "expected": {"must_include": ["sit_meteor_destruction"], "may_include": ["sem_aya"]}, "variant": {"Situation": [{"narrative": "轻轻松松捏碎陨石的事迹，连姐姐都吓了一跳", "participants": [{"name": "她", "role": "执行者"}, {"name": "姐姐", "role": "见证者"}]}]}},
+        {"priority": 9, "tag": ["事件"], "expected": {"must_include": ["sit_meteor_destruction"], "may_include": ["sem_aya"]}, "variant": {"Situation": [{"narrative": "那次陨石危机之后被天狗采访，把对方搞蒙了", "participants": [{"name": "天狗", "role": "采访者"}]}]}},
+        {"priority": 9, "tag": ["事件"], "expected": {"must_include": ["sit_meteor_destruction"], "may_include": ["sem_aya"]}, "variant": {"Situation": [{"narrative": "她摧毁陨石时根本没用力，就像玩游戏一样", "environment": {"atmosphere": "轻松"}}]}
+      ]
+    },
+    {
+      "set_id": "set_koishi",
+      "description": "查询芙兰的朋友古明地恋",
+      "queries": [
+        {"priority": 7, "tag": ["人物"], "expected": {"must_include": ["sem_koishi"], "may_include": ["sem_self"]}, "variant": {"Semantic": [{"concept_identifier": "另一个妹妹", "description": "同样被姐姐管着，会秘密潜入地下室陪她玩的觉妖怪"}]}},
+        {"priority": 7, "tag": ["人物"], "expected": {"must_include": ["sem_koishi"], "may_include": ["sem_self"]}, "variant": {"Semantic": [{"concept_identifier": "封闭内心的朋友", "description": "和她一样有些特别，偶尔偷偷来找她的人类（妖怪）"}]}},
+        {"priority": 7, "tag": ["人物"], "expected": {"must_include": ["sem_koishi"], "may_include": ["sem_self"]}, "variant": {"Semantic": [{"concept_identifier": "古明地觉的妹妹", "description": "据说和她同为被姐姐管束的妹妹，有共同语言"}]}},
+        {"priority": 7, "tag": ["人物"], "expected": {"must_include": ["sem_koishi"], "may_include": ["sem_self"]}, "variant": {"Semantic": [{"concept_identifier": "地灵殿的二小姐", "description": "和她一样有一个强势的姐姐，两人因此成了朋友"}]}},
+        {"priority": 7, "tag": ["人物"], "expected": {"must_include": ["sem_koishi"], "may_include": ["sem_self"]}, "variant": {"Semantic": [{"concept_identifier": "秘密访客", "description": "芙兰在地下室接待过的唯一常客，一个自由的妖怪妹妹"}]}}
+      ]
+    },
+    {
+      "set_id": "set_interview",
+      "description": "查询天狗记者采访事件",
+      "queries": [
+        {"priority": 8, "tag": ["事件"], "expected": {"must_include": ["sit_aya_interview"], "may_include": ["sem_aya", "sem_remilia"]}, "variant": {"Situation": [{"narrative": "天狗拿着相机跑来问她陨石的事", "participants": [{"name": "射命丸文", "role": "记者"}]}]}},
+        {"priority": 8, "tag": ["事件"], "expected": {"must_include": ["sit_aya_interview"], "may_include": ["sem_aya", "sem_remilia"]}, "variant": {"Situation": [{"narrative": "那次采访姐姐也在旁边，把天狗绕晕了", "participants": [{"name": "姐姐", "role": "旁听者"}]}]}},
+        {"priority": 8, "tag": ["事件"], "expected": {"must_include": ["sit_aya_interview"], "may_include": ["sem_aya", "sem_remilia"]}, "variant": {"Situation": [{"narrative": "芙兰在接受采访时和姐姐的对话让记者一头雾水", "participants": [{"name": "芙兰", "role": "被采访者"}, {"name": "蕾米莉亚", "role": "姐姐"}]}]}},
+        {"priority": 8, "tag": ["事件"], "expected": {"must_include": ["sit_aya_interview"], "may_include": ["sem_aya", "sem_remilia"]}, "variant": {"Situation": [{"narrative": "红魔馆内发生的一场采访，关于破坏事件", "location": [{"name": "红魔馆"}]}]}},
+        {"priority": 8, "tag": ["事件"], "expected": {"must_include": ["sit_aya_interview"], "may_include": ["sem_aya", "sem_remilia"]}, "variant": {"Situation": [{"narrative": "天狗记者文询问芙兰那次陨石爆炸的细节", "participants": [{"name": "文", "role": "记者"}]}]}},
+        {"priority": 8, "tag": ["事件"], "expected": {"must_include": ["sit_aya_interview"], "may_include": ["sem_aya", "sem_remilia"]}, "variant": {"Situation": [{"narrative": "有次天狗来采访，结果被她们姐妹俩搞糊涂了", "participants": [{"name": "姐妹俩", "role": "受访者"}], "environment": {"tone": "戏谑"}}]}
+      ]
+    },
+    {
+      "set_id": "set_ability",
+      "description": "查询芙兰的破坏能力",
+      "queries": [
+        {"priority": 9, "tag": ["能力"], "expected": {"must_include": ["sem_destruction_eye"], "may_include": ["sit_meteor_destruction"]}, "variant": {"Semantic": [{"concept_identifier": "目破坏能力", "description": "将所有存在之物破坏掉的程度的能力，握拳即可破坏"}]}},
+        {"priority": 9, "tag": ["能力"], "expected": {"must_include": ["sem_destruction_eye"], "may_include": ["sit_meteor_destruction"]}, "variant": {"Semantic": [{"concept_identifier": "毁灭能力", "description": "可以移动物体上的‘目’到手中，然后破坏"}]}},
+        {"priority": 9, "tag": ["能力"], "expected": {"must_include": ["sem_destruction_eye"], "may_include": ["sit_meteor_destruction"]}, "variant": {"Semantic": [{"concept_identifier": "握拳破坏", "description": "她最恐怖的能力，连陨石都能轻易弄碎"}]}},
+        {"priority": 9, "tag": ["能力"], "expected": {"must_include": ["sem_destruction_eye"], "may_include": ["sit_meteor_destruction"]}, "variant": {"Situation": [{"narrative": "曾经用这个能力轻松摧毁了一颗陨石", "event": [{"action": "破坏陨石"}]}]}},
+        {"priority": 9, "tag": ["能力"], "expected": {"must_include": ["sem_destruction_eye"], "may_include": ["sit_meteor_destruction"]}, "variant": {"Semantic": [{"concept_identifier": "破坏神之力", "description": "有人把它和破坏神联系起来，她也确实有这个实力"}]}},
+        {"priority": 9, "tag": ["能力"], "expected": {"must_include": ["sem_destruction_eye"], "may_include": ["sit_meteor_destruction"]}, "variant": {"Semantic": [{"concept_identifier": "万物破坏能力", "description": "原理是将物体上的‘目’移动到手中，然后握拳"}]}},
+        {"priority": 9, "tag": ["能力"], "expected": {"must_include": ["sem_destruction_eye"], "may_include": ["sit_meteor_destruction"]}, "variant": {"Situation": [{"narrative": "在刚欲异闻中被诱导成破坏神，其实她的能力本身就够格", "participants": [{"name": "摩多罗", "role": "诱导者"}]}]}}
+      ]
+    },
+    {
+      "set_id": "set_life",
+      "description": "查询芙兰的日常生活与地下室生活",
+      "queries": [
+        {"priority": 5, "tag": ["习惯"], "expected": {"must_include": ["sit_basement_location"], "may_include": ["proc_stay_basement"]}, "variant": {"Situation": [{"narrative": "大部分时间都待在地下室里，过着悠闲的宅生活", "location": [{"name": "地下室"}]}]}},
+        {"priority": 5, "tag": ["习惯"], "expected": {"must_include": ["sit_basement_location"], "may_include": ["proc_stay_basement"]}, "variant": {"Situation": [{"narrative": "红魔馆地下储藏室是她的地盘，她很喜欢那里", "location": [{"name": "地下储藏室"}]}]}},
+        {"priority": 5, "tag": ["习惯"], "expected": {"must_include": ["sit_basement_location"], "may_include": ["proc_stay_basement"]}, "variant": {"Situation": [{"narrative": "虽然门锁根本关不住她，但她还是选择待在地下室", "participants": [{"name": "她", "role": "居住者"}]}]}},
+        {"priority": 5, "tag": ["习惯"], "expected": {"must_include": ["sit_basement_location"], "may_include": ["proc_stay_basement"]}, "variant": {"Situation": [{"narrative": "宅在地下室里，偶尔有朋友秘密来访", "participants": [{"name": "古明地恋", "role": "朋友"}]}]}},
+        {"priority": 5, "tag": ["习惯"], "expected": {"must_include": ["sit_basement_location"], "may_include": ["proc_stay_basement"]}, "variant": {"Situation": [{"narrative": "每天在红魔馆的地下室活动，觉得外面没什么好玩的", "location": [{"name": "红魔馆地下"}]}]}},
+        {"priority": 5, "tag": ["习惯"], "expected": {"must_include": ["sit_basement_location"], "may_include": ["proc_stay_basement"]}, "variant": {"Situation": [{"narrative": "听从姐姐的安排待在地下室里，过着舒适的宅女生活", "participants": [{"name": "姐姐", "role": "安排者"}]}]}},
+        {"priority": 5, "tag": ["习惯"], "expected": {"must_include": ["sit_basement_location"], "may_include": ["proc_stay_basement"]}, "variant": {"Situation": [{"narrative": "地下室就是她的世界，她在这里生活了很长时间", "environment": {"atmosphere": "舒适安稳"}}]}
+      ]
+    }
+  ]
+}
