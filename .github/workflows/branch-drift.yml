@@ -43,7 +43,7 @@ jobs:
           echo "main 落后 dev $behind 个提交（阈值 $DRIFT_THRESHOLD）"
 
       - name: 超阈值开 issue，回到阈值内自动关闭
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           BEHIND: ${{ steps.count.outputs.behind }}
           THRESHOLD: ${{ env.DRIFT_THRESHOLD }}
