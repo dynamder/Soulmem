@@ -1,0 +1,117 @@
+name: Deny drift
+
+# 上游 RustSec advisory 库每天都在变，而 cargo-deny 每次运行都会重新拉它。于是
+# **没有任何人改代码**，dev 上的 advisory 门禁也会自己变红，而最先撞上的是所有基于
+# dev 的 PR：2026-09-14 的 RUSTSEC-2026-0285（rustls < 0.23.45）就是这样一次性拦掉
+# 9 个 dependabot PR——连 actions/cache 这种根本不碰 Cargo.lock 的 PR 也红在同一个
+# 检查上，看起来像 PR 的问题，实际是 dev 的锁文件落后于上游公告。
+#
+# 这个 workflow 把同一份检查搬到 dev 自己的定时任务上：漂移先在这里暴露并开 issue，
+# 而不是在几十个无关 PR 上重复红。失败时的处理步骤见它打开的 issue 正文，也见
+# CONTRIBUTING.md「CI 说明」。
+#
+# 注意：GitHub 的 schedule 触发器**只在默认分支（main）上生效**。所以这个检查要等本文件
+# 进入 main 之后才会自动跑；在那之前可以用 workflow_dispatch 手动触发。
+on:
+  schedule:
+    # 每周日 12:00 UTC（北京时间周日 20:00）。dependabot 的 cargo 检查是周一 02:00
+    # （Asia/Shanghai），比它早 6 小时：漂移 issue 一般先于那一批 PR 出现。
+    - cron: '0 12 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  # issue 的固定标题：脚本靠它去重，不要在标题里放会变的数字/日期。
+  ISSUE_TITLE: '[deny] dev 的 cargo-deny 门禁因上游 advisory 漂移变红'
+
+jobs:
+  deny-drift:
+    name: cargo-deny 漂移检查（dev）
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # 定时任务本身由 main 上的本文件触发，但检查的必须是 dev 的工作树与
+          # dev 的 deny.toml。
+          ref: dev
+
+      # continue-on-error 是刻意的：这一步失败正是要观测的信号，结论交给下一步决定
+      # 是开 issue 还是关 issue，而不是让 job 在开 issue 之前就结束。
+      - name: cargo-deny check (dev)
+        id: deny
+        continue-on-error: true
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check
+          arguments: --workspace
+
+      - name: 漂移开 issue，恢复后自动关闭
+        uses: actions/github-script@v7
+        env:
+          OUTCOME: ${{ steps.deny.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TITLE: ${{ env.ISSUE_TITLE }}
+        with:
+          script: |
+            const outcome = process.env.OUTCOME;
+            const title = process.env.TITLE;
+            const runUrl = process.env.RUN_URL;
+            const repo = context.repo;
+
+            // 按标题查已有的开启中 issue，避免每次告警都新建一个
+            const { data } = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${repo.owner}/${repo.repo} is:issue is:open in:title "${title}"`,
+            });
+            const existing = data.items[0];
+
+            if (outcome !== 'success') {
+              const body = [
+                '`dev` 上的 `cargo-deny` 失败了，而**没有任何代码改动**。最常见的原因是上游',
+                'RustSec advisory 库新增了一条针对锁文件里某个版本的公告（其次是某个 crate 被 yank）。',
+                '',
+                '**先确认这不是某个 PR 的错**：advisory 检查是全局的，此时所有基于 `dev` 的 PR',
+                '都会红在同一个 `Security (cargo-deny)` 上。',
+                '',
+                '处理步骤：',
+                '1. 看本次运行日志里 `error[vulnerability]` / `error[yanked]` 的条目与它的 `Solution:` 行：',
+                `   ${runUrl}`,
+                '2. 有修复版就在 `dev` 上单独提一个 fix PR 升级它（例：`cargo update -p rustls --precise 0.23.45`，',
+                '   连带还会升 rustls-webpki / aws-lc-rs），并确认 `cargo deny check` 四段全绿；',
+                '3. 上游确实没有修复版时才写进 `deny.toml` 的 `ignore`，并在注释里写清影响面与跟踪条件；',
+                '4. 顺手删掉本次输出里 `warning[advisory-not-detected]` 指向的条目——该警告说明那条已经',
+                '   随着依赖升级失效了。',
+                '',
+                `本次检查：${new Date().toISOString()}`,
+              ].join('\n');
+
+              if (existing) {
+                await github.rest.issues.createComment({
+                  ...repo, issue_number: existing.number, body,
+                });
+              } else {
+                await github.rest.issues.create({ ...repo, title, body });
+              }
+              return;
+            }
+
+            // 门禁恢复全绿：关掉遗留的告警 issue，别留下永久红灯
+            if (existing) {
+              await github.rest.issues.createComment({
+                ...repo,
+                issue_number: existing.number,
+                body: `\`dev\` 的 cargo-deny 已恢复全绿，自动关闭。\n\n${runUrl}`,
+              });
+              await github.rest.issues.update({
+                ...repo, issue_number: existing.number, state: 'closed',
+              });
+            }
+
+      # 上面靠 continue-on-error 保住了 job，以便无论如何都能更新 issue；这里再把 run
+      # 变红，让 GitHub 的「scheduled workflow failed」通知也发出来——issue 有可能被漏看。
+      - name: 漂移时让 run 变红
+        if: steps.deny.outcome != 'success'
+        run: exit 1
