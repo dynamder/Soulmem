@@ -1,7 +1,12 @@
 version: 2
 updates:
+  # target-branch 必须显式写成 dev：不写时 dependabot 打的是**仓库默认分支**（main），
+  # 依赖更新会直接落到发布分支上，dev 的锁文件只能等下一次 dev→main 才对得齐。
+  # 2026-09-19 那批 bump PR 全部开在 main 上、又被 main 的 advisory 门禁一起拦红，
+  # 根因就在这种错位：dev 才是集成分支，bump 应当先在 dev 上过门禁。
   - package-ecosystem: cargo
     directory: /
+    target-branch: dev
     schedule:
       interval: weekly
       day: monday
@@ -11,6 +16,7 @@ updates:
 
   - package-ecosystem: github-actions
     directory: /
+    target-branch: dev
     schedule:
       interval: weekly
       day: monday
