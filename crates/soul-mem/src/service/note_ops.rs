@@ -25,6 +25,10 @@ impl SoulMemService {
     }
 
     /// 写入（新增或覆盖）一条 MemoryNote。
+    ///
+    /// upsert 语义：存在则**原地替换 note 与 embedding 并刷新边**，不存在则新增。
+    /// 关键点：不使用 `remove_node + add_node`，因为 `remove_node` 会连同 `Record`
+    /// （检索计数/反馈历史）一起删除，从而静默清空行为信号。
     pub async fn write_note(&self, req: pb::WriteNoteRequest) -> Result<pb::WriteNoteResponse> {
         let note_pb = req
             .note
@@ -39,16 +43,26 @@ impl SoulMemService {
         let note_clone = note.clone();
 
         let created = self
-            .with_wm(|wm| {
-                let existed = wm.memory_cluster().read_or_compute(|c| c.contains_node(id));
+            .with_wm(move |wm| {
+                let handle = wm.memory_cluster();
+                let existed = handle.read_or_compute(|c| c.contains_node(id));
                 if existed {
-                    let _ = wm.remove_node(id);
+                    // 原地替换内容与向量，保留该 id 对应的 Record（行为历史）。
+                    handle.write(|c| {
+                        if let Some(node) = c.get_node_mut(id) {
+                            node.note = note_clone;
+                            node.embedding = embedding;
+                        }
+                    });
+                    handle.write(|c| c.refresh_node(&id));
+                    false
+                } else {
+                    wm.add_node(EmbeddedMemoryNote {
+                        note: note_clone,
+                        embedding,
+                    });
+                    true
                 }
-                wm.add_node(EmbeddedMemoryNote {
-                    note: note_clone,
-                    embedding,
-                });
-                !existed
             })
             .await?;
 
@@ -83,5 +97,93 @@ impl SoulMemService {
         Ok(pb::Ack {
             message: format!("feedback {label} recorded for {id}"),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::{Config, EmbeddingMode};
+    use crate::store::Store;
+    use crate::wire::convert::note_to_proto;
+    use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
+    use soul_mem_core::memory_note::{MemoryNoteBuilder, MemoryType};
+
+    fn test_config() -> Config {
+        Config {
+            device_id: "note-ops-test".to_string(),
+            zenoh_key_prefix: "soulmem_note_ops".to_string(),
+            window_capacity: 8,
+            similarity_threshold: 0.05,
+            similarity_max_results: 8,
+            llm_base_url: "http://127.0.0.1:9/v1".to_string(),
+            llm_api_key: "demo".to_string(),
+            llm_model: "demo".to_string(),
+            persist_interval_secs: 0,
+            consolidate_interval_secs: 0,
+            forget_interval_secs: 0,
+            embedding_mode: EmbeddingMode::Hash,
+            store_path: None,
+        }
+    }
+
+    fn sem_note() -> soul_mem_core::memory_note::MemoryNote {
+        MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory::new(
+            "周会".to_string(),
+            ConceptType::Entity,
+            "每周一次的团队例会".to_string(),
+        )))
+        .build()
+        .expect("build note")
+    }
+
+    /// 回归：upsert 覆盖同一 id 时必须保留 Record（检索计数/反馈历史）。
+    #[tokio::test]
+    async fn write_note_upsert_preserves_record() -> Result<()> {
+        let service = SoulMemService::from_config(&test_config(), Store::default(), None).await?;
+        let note = sem_note();
+        let id = note.id();
+        let note_pb = note_to_proto(&note)?;
+
+        let first = service
+            .write_note(pb::WriteNoteRequest {
+                note: Some(note_pb.clone()),
+            })
+            .await?;
+        assert!(first.created, "first write should create");
+
+        // 制造行为历史：一次检索计数 + 一次正反馈。
+        service.with_wm(|wm| wm.record_retrieval(id)).await?;
+        service
+            .feedback(pb::Feedback {
+                note_id: id.to_string(),
+                kind: pb::FeedbackKind::FeedbackPositive as i32,
+            })
+            .await?;
+
+        let before = service
+            .with_wm(|wm| {
+                let r = wm.records().get(&id).expect("record exists");
+                (r.retrieval_count(), r.feedback_score())
+            })
+            .await?;
+        assert_eq!(before, (1, 1));
+
+        // 覆盖写：内容/向量刷新，但 Record 必须保留。
+        let second = service
+            .write_note(pb::WriteNoteRequest {
+                note: Some(note_pb),
+            })
+            .await?;
+        assert!(!second.created, "second write should be an update");
+
+        let after = service
+            .with_wm(|wm| {
+                let r = wm.records().get(&id).expect("record still exists");
+                (r.retrieval_count(), r.feedback_score())
+            })
+            .await?;
+        assert_eq!(after, (1, 1), "upsert must not clear Record");
+        Ok(())
     }
 }

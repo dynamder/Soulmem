@@ -4,13 +4,11 @@
 //! - `liveliness`：服务发现/心跳；
 //! - `request`：订阅请求主题、按 op 调用 service、发布应答（请求-应答用 pub/sub 模拟）；
 //! - `pubsub`：订阅 ingest 主题（单向推式输入）；
-//! - `publish`：事件广播；
 //! - `client`：可复用的设备端客户端（供 mock-device 等联网演示/设备端复用）。
 
 mod client;
 mod keys;
 mod liveliness;
-mod publish;
 mod pubsub;
 mod request;
 

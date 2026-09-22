@@ -8,7 +8,7 @@ use prost::Message;
 use zenoh::Session;
 
 /// 订阅 `<prefix>/ingest`：解码 `IngestRequest` 并转交 service。
-pub fn spawn_ingest_subscriber(
+pub(crate) fn spawn_ingest_subscriber(
     session: Session,
     service: SoulMemService,
     key: String,

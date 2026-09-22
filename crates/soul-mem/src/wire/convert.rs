@@ -611,3 +611,166 @@ fn link_type_from_proto(value: pb::memory_link::LinkType) -> MemoryLinkType {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::TimeZone;
+
+    /// 投影保真：MemoryNote(sem) 经 protobuf 往返后关键字段一致（LinkId 不保证）。
+    #[test]
+    fn sem_note_proto_roundtrip() {
+        let id = MemoryId::new();
+        let other = MemoryId::new();
+        let link = MemoryLink::new(
+            id,
+            other,
+            MemoryLinkType::Sem(SemMemLink::new("related".into(), 0.8)),
+        );
+        let note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+            content: "酒馆".to_string(),
+            aliases: vec![],
+            concept_type: CoreConceptType::Entity,
+            description: "人们喝酒聊天的地方".to_string(),
+        }))
+        .id(id)
+        .tags(vec!["地点".to_string()])
+        .retrieval_count(2)
+        .mem_links(vec![link])
+        .missing_degree(0.5)
+        .build()
+        .unwrap();
+
+        let proto = note_to_proto(&note).unwrap();
+        let back = note_from_proto(proto.clone()).unwrap();
+
+        assert_eq!(back.id(), note.id());
+        assert_eq!(back.tags(), note.tags());
+        assert_eq!(back.retrieval_count(), note.retrieval_count());
+        assert_eq!(back.creation_time(), note.creation_time());
+        assert_eq!(back.last_accessed_time(), note.last_accessed_time());
+        assert!((back.missing_degree() - note.missing_degree()).abs() < 1e-6);
+        assert_eq!(back.mem_type(), note.mem_type());
+        assert_eq!(back.links().len(), note.links().len());
+        assert_eq!(back.links()[0].from(), note.links()[0].from());
+        assert_eq!(back.links()[0].to(), note.links()[0].to());
+        assert_eq!(back.links()[0].intensity, note.links()[0].intensity);
+        assert_eq!(back.links()[0].link_type(), note.links()[0].link_type());
+
+        // 反向（note → proto → note）也成立，确保字段无遗漏。
+        let proto2 = note_to_proto(&back).unwrap();
+        assert_eq!(proto, proto2);
+    }
+
+    /// 投影保真：情境记忆（SpecificSituation + Context）往返。
+    #[test]
+    fn situation_note_proto_roundtrip() {
+        let time = Utc.with_ymd_and_hms(2024, 5, 1, 9, 30, 0).unwrap();
+        let context = Context::new(
+            Some(Location {
+                name: "cafe".to_string(),
+                coordinates: "0,0".to_string(),
+            }),
+            vec![Participant {
+                name: "alice".to_string(),
+                role: "friend".to_string(),
+            }],
+            vec![Emotion {
+                name: "joy".to_string(),
+                intensity: 0.8,
+            }],
+            vec![SensoryData {
+                name: "warmth".to_string(),
+                intensity: 0.5,
+            }],
+            Environment {
+                atmosphere: "cozy".to_string(),
+                tone: "warm".to_string(),
+            },
+            vec![Event {
+                action: "talk".to_string(),
+                action_intensity: 0.4,
+                initiator: "alice".to_string(),
+                target: "bob".to_string(),
+            }],
+        );
+        let specific = SpecificSituation::new("在咖啡馆聊天".to_string(), time, context);
+        let note = MemoryNoteBuilder::new(MemoryType::Situation(SituationType::SpecificSituation(
+            specific,
+        )))
+        .build()
+        .unwrap();
+
+        let back = note_from_proto(note_to_proto(&note).unwrap()).unwrap();
+        assert_eq!(back.mem_type(), note.mem_type());
+        assert_eq!(back.id(), note.id());
+    }
+
+    /// 投影保真：程序性记忆（ProcMemory/Action/ActionType）往返。
+    #[test]
+    fn proc_note_proto_roundtrip() {
+        let note = MemoryNoteBuilder::new(MemoryType::Procedure(ProcMemory::new(Action::new(
+            "打招呼".to_string(),
+            ActionType::Skill(SkillRecord {}),
+        ))))
+        .build()
+        .unwrap();
+        let back = note_from_proto(note_to_proto(&note).unwrap()).unwrap();
+        assert_eq!(back.mem_type(), note.mem_type());
+    }
+
+    /// 查询投影：protobuf query → 内部 query 保真。
+    #[test]
+    fn query_from_proto_semantic_and_situation() {
+        let proto = pb::MemoryRetrieveQuery {
+            tag: vec!["t".to_string()],
+            variant: Some(pb::memory_retrieve_query::Variant::Semantic(
+                pb::SemanticQueryList {
+                    units: vec![pb::SemanticQueryUnit {
+                        concept_identifier: Some("周会".to_string()),
+                        description: Some("例会".to_string()),
+                    }],
+                },
+            )),
+        };
+        let internal = query_from_proto(&proto).unwrap();
+        let expected = MemoryRetrieveQuery::new(
+            vec!["t".to_string()],
+            MemoryRetrieveQueryVariant::make_semantic(vec![
+                SemanticQueryUnit::new()
+                    .with_concept_identifier("周会".to_string())
+                    .with_description("例会".to_string()),
+            ]),
+        );
+        assert_eq!(internal, expected);
+
+        let situation = pb::MemoryRetrieveQuery {
+            tag: vec![],
+            variant: Some(pb::memory_retrieve_query::Variant::Situation(
+                pb::SituationQueryList {
+                    units: vec![pb::SituationQueryUnit {
+                        narrative: Some("n".to_string()),
+                        location: vec![pb::LocationQueryUnit {
+                            name: "北京".to_string(),
+                            coordinates: None,
+                        }],
+                        participants: vec![],
+                        time_span: vec![],
+                        environment: None,
+                        event: vec![],
+                    }],
+                },
+            )),
+        };
+        let internal = query_from_proto(&situation).unwrap();
+        let expected = MemoryRetrieveQuery::new(
+            vec![],
+            MemoryRetrieveQueryVariant::make_situation(vec![
+                SituationQueryUnit::new()
+                    .with_narrative("n".to_string())
+                    .with_location(vec![LocationQueryUnit::new("北京")]),
+            ]),
+        );
+        assert_eq!(internal, expected);
+    }
+}

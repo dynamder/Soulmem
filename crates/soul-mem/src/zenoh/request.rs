@@ -13,7 +13,7 @@ use prost::Message;
 use zenoh::Session;
 
 /// 订阅请求主题并逐个处理。
-pub fn spawn_request_subscriber(
+pub(crate) fn spawn_request_subscriber(
     session: Session,
     service: SoulMemService,
     keys: Keys,

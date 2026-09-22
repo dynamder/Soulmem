@@ -55,7 +55,7 @@
 
 | zenoh 机制 | 用途 | 说明 |
 |---|---|---|
-| **pub/sub（主题）** | 单向推式输入、事件广播 | 外部设备把信息增量发布到 `ingest` 主题；服务可把记忆变更广播到 `events` 主题（预留）。 |
+| **pub/sub（主题）** | 单向推式输入 | 外部设备把信息增量发布到 `ingest` 主题。 |
 | **pub/sub（模拟请求-应答）** | ping/ingest/retrieve/read/write/feedback/control | 请求方发布 `RequestEnvelope` 到 `request` 主题；服务处理后把 `ReplyEnvelope` 发布到 `reply/<request_id>`；请求方订阅该应答主题并按 `request_id` 匹配。 |
 | **liveliness** | 服务发现 / 心跳 | 服务上线声明 liveliness token（`liveliness/<device_id>`），其他设备可订阅上下线。 |
 
@@ -80,15 +80,15 @@
 
 - 后台调度器（tokio interval）按配置间隔注册：**持久化 Persist / 巩固 Consolidate / 遗忘 Forget**；间隔为 0 表示停用；单任务失败被隔离并记日志。
 - `Control`（经 zenoh 请求-应答触发）强制触发任务——对应"控制信号（强制触发定时任务）🔲"。
-- 任务体与调度解耦（`background` 各一个 `run_once`）：
-  - `persist` 调用 `service.persist()`（不门控 Idle）；
-  - `consolidate`/`forget` 经 `Idle` 门控后调用 `service.control`，因下层算法未就绪返回 `Unimplemented`，不伪造结果。
+- 任务体与调度内联在 `background/scheduler.rs`（`TaskKind` + `run_once`）：
+  - `Persist` 调用 `service.persist()`（不门控 Idle）；
+  - `Consolidate`/`Forget` 经 `Idle` 门控后调用 `service.control`，因下层算法未就绪返回 `Unimplemented`，不伪造结果。
 
 ### 2.6 持久化抽象
 
-- `MemoryStore` trait（save/load 快照）+ 后端枚举 `Store::{Noop, File}`，`Store::from_config` 依据是否配置路径选择。
+- 后端枚举 `Store::{Noop, File}`（`NoopStore`/`FileStore` 各自提供 `save`/`load`），`Store::from_config` 依据是否配置路径选择。
 - 快照 `Snapshot`：`version`、`summary`、`window`（`WindowEntryDto`）、`nodes`（`EmbeddedMemoryNote`，链接含在节点内）；`SNAPSHOT_VERSION` + `validate()`。
-- Demo 内置 `FileStore`（JSON 快照，原子写盘 + 启动恢复），**不引入 SurrealDB**。
+- Demo 内置 `FileStore`（JSON 快照，原子写盘 + 启动恢复），**不引入 SurrealDB**；`save` 串行化且临时文件名唯一，支持并发持久化调用。
 - 已知限制：`Record`（活跃记录）的检索次数/反馈历史不随快照精确还原；恢复时按 `add_node` 生成新记录处理。
 
 ### 2.7 鲁棒性要求
@@ -96,7 +96,7 @@
 - 统一 `Error` + `ErrorCode`（invalid_argument/not_found/already_exists/unavailable/failed_precondition/internal/unimplemented），映射为对外稳定错误码。
 - 所有网络入参做长度/枚举/格式校验，非法输入返回明确错误而非 panic。
 - 配置解析：`SOUL_MEM_*` 数值项**未设置或空白 → 默认值**；显式 `0` 合法（用于停用定时任务）；非法值在启动即失败。
-- 后台任务互相隔离；请求-应答带超时；提供 **graceful shutdown**（持久化 → 停后台 → 下线 zenoh）。
+- 后台任务互相隔离；请求-应答带超时；提供 **graceful shutdown**（停后台 → 下线 zenoh 静默入口 → 退出兜底持久化；持久化失败以非零退出码上报）。
 
 ---
 
@@ -118,7 +118,7 @@ crates/soul-mem/
 │  ├─ wire.rs          # wire 模块根（pb 生成代码 + op 常量）
 │  ├─ service.rs       # Service 编排层模块根（门面 + WorkingMemorySlot + Hash 模型）
 │  ├─ background.rs    # 后台任务模块根（run_background/BackgroundRuntime）
-│  ├─ store.rs         # 持久化模块根（MemoryStore trait + Store 枚举）
+│  ├─ store.rs         # 持久化模块根（Store 枚举 + Noop/File 后端）
 │  ├─ zenoh.rs         # zenoh 模块根（唯一对外通道）
 │  ├─ bin/
 │  │  └─ mock_device/  # 单机"外部设备"模拟器（bin name = mock-device）
@@ -132,10 +132,7 @@ crates/soul-mem/
 │  │  ├─ note_ops.rs   # 按 id 读写 Note、反馈
 │  │  └─ control.rs    # 控制信号 → 强制触发后台任务
 │  ├─ background/
-│  │  ├─ scheduler.rs  # 定时调度 + 失败隔离
-│  │  ├─ consolidate.rs# 巩固挂接点（Unimplemented）
-│  │  ├─ persist.rs    # 定时持久化
-│  │  └─ forget.rs     # 遗忘挂接点（Unimplemented）
+│  │  └─ scheduler.rs  # 定时调度（persist/consolidate/forget 内联）+ 失败隔离
 │  ├─ store/
 │  │  ├─ snapshot.rs   # 快照结构 + SNAPSHOT_VERSION
 │  │  └─ file_store.rs # JSON 原子写盘实现
@@ -144,7 +141,6 @@ crates/soul-mem/
 │     ├─ liveliness.rs # 服务发现/心跳
 │     ├─ request.rs    # 订阅 request → 调 service → 发布 reply
 │     ├─ pubsub.rs     # 订阅 ingest（推式输入）
-│     ├─ publish.rs    # 事件广播（预留，EventNotice）
 │     └─ client.rs     # 设备端 ZenohClient
 └─ tests/
    └─ offline.rs       # 离线集成测试（不依赖网络）
@@ -161,7 +157,7 @@ crates/soul-mem/
 #### B. `src/` 顶层单文件模块
 - `lib.rs`：`pub mod` 汇总与再导出；`#[cfg(feature="zenoh")] pub mod zenoh;`。
 - `main.rs`：服务端入口（薄）：`Config::from_env` → `RunningServer::run`。
-- `server.rs`：`RunningServer::start/run/shutdown`：装配 zenoh + 后台；优雅退出顺序「持久化 → 停后台 → 下线 zenoh」。
+- `server.rs`：`RunningServer::start/run/shutdown`：装配 zenoh + 后台；优雅退出顺序「停后台 → 下线 zenoh（静默入口）→ 退出兜底持久化」；`shutdown` 返回 `Result`（持久化失败向上传播为非零退出码）。
 - `config.rs`：`Config` + `EmbeddingMode`；`parse_u64_env`/`parse_f32_env`（空值→默认，显式 0 合法）；`validate()`；含单元测试。
 - `error.rs`：`Error` + `ErrorCode` + `Result`。
 - 模块根：`wire.rs`/`service.rs`/`background.rs`/`store.rs`/`zenoh.rs`（Rust 2024：根文件声明子模块）。
@@ -173,26 +169,23 @@ crates/soul-mem/
 #### D. `service/`（唯一业务入口）
 - `ingest.rs`：`ingest(pb::IngestRequest) -> pb::Ack`；校验（非空/长度/角色）+ 压入滑动窗口。
 - `retrieve.rs`：`retrieve(pb::RetrieveRequest) -> pb::RetrieveResponse`；query 转换 → embed → `DefaultPipeline` → 合并/topK/取全文；记录命中。
-- `note_ops.rs`：`read_note`/`write_note`/`feedback`；写入 upsert 并刷新 embedding。
+- `note_ops.rs`：`read_note`/`write_note`/`feedback`；写入 upsert **原地替换 note/embedding 并 `refresh_node`，保留 `Record`（检索计数/反馈历史）**；含回归测试。
 - `control.rs`：`control(pb::Control) -> pb::ControlResponse`；Persist 真实，Consolidate/Forget 返回 `Unimplemented`。
 - `service.rs`：`SoulMemService` 门面（`from_config`、`ping`、`persist`、`snapshot`、`device_id`、`is_idle`）、`ServiceCore`、`WorkingMemorySlot`、`HashEmbeddingModel`。
 
 #### E. `background/`
-- `scheduler.rs`：`run_background`/`BackgroundRuntime`；tokio interval；巩固/遗忘 Idle 门控；失败隔离。
-- `consolidate.rs`/`forget.rs`：`run_once` 调 `service.control(...)`（占位，Unimplemented）。
-- `persist.rs`：`run_once` 调 `service.persist()`。
+- `scheduler.rs`：`run_background`/`BackgroundRuntime` + `TaskKind` + `run_once`；persist 直接 `service.persist()`，consolidate/forget 经 Idle 门控调 `service.control`（占位）；tokio interval；失败隔离。
 
 #### F. `store/`
-- `store.rs`：`MemoryStore` trait（`#[allow(async_fn_in_trait)]`）+ `NoopStore` + `Store` 枚举（`Noop`/`File`）+ `Store::from_config`。
+- `store.rs`：`NoopStore`（空实现）+ `FileStore` 后端 + `Store` 枚举（`Noop`/`File`）+ `Store::from_config`。
 - `snapshot.rs`：`Snapshot`/`WindowEntryDto`/`SNAPSHOT_VERSION`/`validate()`。
-- `file_store.rs`：`FileStore`：JSON 原子写盘（临时文件+改名）、缺文件返回 `None`；含单元测试。
+- `file_store.rs`：`FileStore`：JSON 原子写盘（**唯一临时文件名 `<path>.<uuid>.tmp` + save 互斥**、改名提交、失败清理临时文件）、缺文件返回 `None`；含并发写/错误上报单元测试。
 
 #### G. `zenoh/`（唯一对外通道）
-- `keys.rs`：`request`/`reply/<id>`/`ingest`/`events`/`liveliness/<id>`/`liveliness/*`。
+- `keys.rs`：`request`/`reply/<id>`/`ingest`/`liveliness/<id>`/`liveliness/*`。
 - `liveliness.rs`：`announce` 声明 token（退出随 runtime 释放下线）。
 - `request.rs`：订阅 `request`：解码 `RequestEnvelope` → 按 op 解码内层消息 → 调 service → 编码 `ReplyEnvelope` 发布到 `reply/<id>`。
 - `pubsub.rs`：订阅 `ingest`：解码 `IngestRequest` 转交 service。
-- `publish.rs`：`publish_event` 发布 `EventNotice`（预留）。
 - `client.rs`：`ZenohClient`：`open/call/...`；请求-应答（订阅应答主题 + `request_id` 匹配 + 5s 超时）；`observe_liveliness` 返回样本数（best-effort）。
 
 #### H. `bin/mock_device`（单机模拟器）
@@ -269,30 +262,26 @@ crates/soul-mem/
 |---|---|
 | `src/lib.rs` | 顶层模块声明与再导出。 |
 | `src/main.rs` | 服务端入口（bin `soul-mem`）。 |
-| `src/server.rs` | `RunningServer` 装配与优雅退出。 |
+| `src/server.rs` | `RunningServer` 装配与优雅退出（停后台 → 下线 zenoh → 兜底持久化；`shutdown -> Result`）。 |
 | `src/config.rs` | `Config`/`EmbeddingMode` + `parse_u64_env`/`parse_f32_env`（空值→默认、显式 0 合法）+ `validate` + 单元测试。 |
 | `src/error.rs` | `Error` + `ErrorCode` + `Result`。 |
 | `src/wire.rs` | `pb`（prost 生成）+ `op` 常量。 |
-| `src/wire/convert.rs` | protobuf ⇄ 内部模型转换与校验。 |
+| `src/wire/convert.rs` | protobuf ⇄ 内部模型转换与校验；含投影保真测试（sem/situation/proc/query）。 |
 | `src/service.rs` | `SoulMemService`/`ServiceCore`/`WorkingMemorySlot`/`HashEmbeddingModel`；对外方法 `ping/ingest/retrieve/read_note/write_note/feedback/control/persist`。 |
 | `src/service/ingest.rs` | ingest 实现。 |
 | `src/service/retrieve.rs` | retrieve 实现。 |
-| `src/service/note_ops.rs` | read/write/feedback 实现。 |
+| `src/service/note_ops.rs` | read/write/feedback 实现；upsert 保留 Record（含回归测试）。 |
 | `src/service/control.rs` | control 实现。 |
 | `src/background.rs` | `run_background`/`BackgroundRuntime`。 |
-| `src/background/scheduler.rs` | 定时调度与失败隔离。 |
-| `src/background/consolidate.rs` | 巩固占位。 |
-| `src/background/persist.rs` | 定时持久化。 |
-| `src/background/forget.rs` | 遗忘占位。 |
-| `src/store.rs` | `MemoryStore`/`Store::{Noop,File}`/`from_config`。 |
+| `src/background/scheduler.rs` | 定时调度与失败隔离；persist/consolidate/forget 内联实现。 |
+| `src/store.rs` | `Store::{Noop,File}`/`from_config`（`NoopStore`/`FileStore` 各自 `save`/`load`）。 |
 | `src/store/snapshot.rs` | `Snapshot`/`WindowEntryDto`/`SNAPSHOT_VERSION`。 |
-| `src/store/file_store.rs` | `FileStore` JSON 原子写盘/恢复。 |
+| `src/store/file_store.rs` | `FileStore` JSON 原子写盘/恢复（唯一 tmp + save 互斥；并发/错误测试）。 |
 | `src/zenoh.rs` | `ZenohRuntime` 创建 session、liveliness、request/ingest 订阅。 |
 | `src/zenoh/keys.rs` | Key Expression 集中定义。 |
 | `src/zenoh/liveliness.rs` | 服务发现/心跳。 |
 | `src/zenoh/request.rs` | 请求-应答服务端。 |
 | `src/zenoh/pubsub.rs` | ingest 订阅。 |
-| `src/zenoh/publish.rs` | 事件广播（预留）。 |
 | `src/zenoh/client.rs` | 设备端 `ZenohClient`（含 `observe_liveliness -> usize`）。 |
 | `src/bin/mock_device/main.rs` | 模拟器入口（bin `mock-device`）。 |
 | `src/bin/mock_device/scenario.rs` | 演示场景。 |
@@ -318,10 +307,10 @@ crates/soul-mem/
 | 输出 MemoryNote 集合 | `service/retrieve.rs` + `wire/convert.rs` |
 | 多 query 合并/topK/取内容（🔲） | `service/retrieve.rs`（结构化输出；自然语言模板延后） |
 | 控制信号强制触发（🔲） | zenoh `request`(op=control) → `service/control.rs` → `background/scheduler.rs` |
-| 定时 Idle 巩固（🔲） | `background/consolidate.rs`（占位） |
-| 定时/优雅退出持久化（🔲） | `background/persist.rs` + `store/*` |
-| SurrealDb（🔲） | `store` trait 抽象预留 |
-| 遗忘机制（🔲） | `background/forget.rs` 占位 |
+| 定时 Idle 巩固（🔲） | `background/scheduler.rs`（占位） |
+| 定时/优雅退出持久化（🔲） | `background/scheduler.rs` + `store/*` |
+| SurrealDb（🔲） | `Store` 枚举抽象预留 |
+| 遗忘机制（🔲） | `background/scheduler.rs` 占位 |
 | 按 id 读写 MemoryNote（🔲） | `service/note_ops.rs` + zenoh `request`(op=read/write) |
 | liveliness/heartbeat（🔲） | `zenoh/liveliness.rs` |
 
@@ -334,7 +323,7 @@ crates/soul-mem/
 
 1. 设备 A 启动服务（zenoh + FileStore），liveliness 上线。
 2. 设备 B 经 zenoh 请求-应答：ping → ingest → write → retrieve → read → feedback → control(persist)；经 ingest 主题单向发布增量；观察 liveliness（best-effort）。
-3. 优雅退出设备 A：持久化 → 下线 → 退出码 0；重启后快照恢复。
+3. 优雅退出设备 A：停后台 → 下线 zenoh → 退出兜底持久化；成功则退出码 0，持久化失败则非零退出码；重启后快照恢复。
 4. 验证点：主链路正确、非法入参被拒、日志可观测、可重复。
 
 ---
@@ -359,7 +348,11 @@ crates/soul-mem/
 5. 日志：`log` + `env_logger`。
 6. SurrealDB：本期不引入。
 7. mock-device：默认连接已运行的服务，不自动拉起。
+8. 健壮性（按审阅 §3 修复）：`write_note` upsert 保留 `Record`；`FileStore` 唯一临时文件 + save 互斥（并发安全）；`RunningServer::shutdown` 返回 `Result`（持久化失败非零退出）；退出顺序「停后台 → 下线 zenoh → 兜底持久化」。
+9. YAGNI 清理（按审阅 §4.7b）：删除 `MemoryStore` trait（改用 `Store` 枚举 + 后端 `save`/`load`）；后台任务（persist/consolidate/forget）内联进 `background/scheduler.rs`，删除三个占位文件；移除 `wire.rs` 的 `pub use pb::*`；`spawn_*` 改 `pub(crate)`。
+10. 死代码删除（按审阅 §5.7）：删除 `zenoh/publish.rs`、`keys.rs` 的 `events()`、proto 的 `EventNotice`。
 
 **仍待确认/后续**：
 - 自然语言模板输出（本期返回结构化 MemoryNote 集合）。
 - 真机双设备验收（回环无法覆盖真实网络因素）。
+- 审阅中的架构方向（领域 API/注入点、queryable、gRPC、契约收缩等）未在本次范围内。

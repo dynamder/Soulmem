@@ -3,7 +3,6 @@
 //! 通信仅使用 zenoh 的订阅/发布：
 //! - 请求-应答：请求方发布到 `request`，服务应答到 `reply/<request_id>`；
 //! - 单向输入：外部设备发布到 `ingest`；
-//! - 事件：服务/设备发布到 `events`；
 //! - 存活：liveliness token 位于 `liveliness/<device_id>`。
 //!
 //! 集中于此可避免字符串散落拼错；本模块即“协议目录”。
@@ -38,11 +37,6 @@ impl Keys {
     /// 单向信息增量主题（服务订阅）。
     pub fn ingest(&self) -> String {
         format!("{}/ingest", self.prefix)
-    }
-
-    /// 事件广播主题。
-    pub fn events(&self) -> String {
-        format!("{}/events", self.prefix)
     }
 
     /// 某设备 liveliness token key。

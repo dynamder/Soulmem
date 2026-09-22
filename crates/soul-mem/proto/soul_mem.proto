@@ -322,13 +322,6 @@ message ControlResponse {
   string message = 3;
 }
 
-// ============ 事件（预留） ============
-
-message EventNotice {
-  string kind = 1;
-  string detail = 2;
-}
-
 // ============ pub/sub 请求-应答信封 ============
 
 message RequestEnvelope {

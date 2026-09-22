@@ -1,7 +1,13 @@
 //! 运行时装配与生命周期：把 Config 组装成可运行的服务并安排优雅退出顺序。
 //!
 //! 对外通信仅使用 zenoh 订阅/发布；启动顺序：加载快照 → 构建 ServiceCore →
-//! 启动 zenoh 与后台任务 → 等待退出信号 →「持久化 → 停后台 → 下线 zenoh」优雅退出。
+//! 启动 zenoh 与后台任务 → 等待退出信号 → 优雅退出。
+//!
+//! 优雅退出顺序（修复"先取快照、后停入口"的丢数据窗口）：
+//! 1) 停后台任务（不再有周期持久化，消除与退出兜底持久化的并发）；
+//! 2) 下线 zenoh（静默入口，不再接受新的请求）；
+//! 3) 退出兜底持久化；失败时返回 `Err`（由 main 转为非零退出码）。
+//!
 //! `main.rs` 只负责薄入口。
 
 use crate::background::{BackgroundRuntime, run_background};
@@ -26,8 +32,7 @@ impl RunningServer {
     pub async fn run(config: Config) -> Result<()> {
         let server = Self::start(config).await?;
         wait_for_shutdown_signal().await;
-        server.shutdown().await;
-        Ok(())
+        server.shutdown().await
     }
 
     /// 启动全部组件并返回运行句柄（不阻塞）。
@@ -58,25 +63,28 @@ impl RunningServer {
         Ok(server)
     }
 
-    /// 优雅退出：先持久化，再停止后台任务与 zenoh。
-    pub async fn shutdown(mut self) {
-        // 1) 退出前兜底持久化。
-        if let Err(e) = self.service.persist().await {
-            log::error!("final persist failed: {e}");
-        }
-
-        // 2) 停后台任务。
+    /// 优雅退出：停后台 → 静默入口（下线 zenoh）→ 退出兜底持久化。
+    ///
+    /// 返回最终持久化的结果：失败会向上传播为非零退出码，避免"数据已丢却假装干净退出"。
+    pub async fn shutdown(mut self) -> Result<()> {
+        // 1) 停后台任务：此后不再有周期持久化，消除与退出兜底的并发。
         if let Some(bg) = self.background.take() {
             bg.shutdown().await;
         }
 
-        // 3) 下线 zenoh（含 liveliness token）。
+        // 2) 静默入口：下线 zenoh（中止订阅任务 + 关闭 session），不再接受新请求。
         #[cfg(feature = "zenoh")]
         if let Some(zenoh) = self.zenoh.take() {
             zenoh.shutdown().await;
         }
 
-        log::info!("soul-mem server shutdown complete");
+        // 3) 退出兜底持久化；失败上报。
+        let persist_result = self.service.persist().await;
+        match &persist_result {
+            Ok(()) => log::info!("soul-mem server shutdown complete"),
+            Err(e) => log::error!("final persist failed: {e}"),
+        }
+        persist_result
     }
 }
 

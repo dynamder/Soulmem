@@ -11,8 +11,6 @@ pub mod pb {
     include!(concat!(env!("OUT_DIR"), "/soulmem.rs"));
 }
 
-pub use pb::*;
-
 /// 请求操作名常量（`RequestEnvelope.op`），服务端/客户端共用，避免魔法字符串。
 pub mod op {
     pub const PING: &str = "ping";

@@ -1,10 +1,13 @@
 //! 后台任务调度器：按配置间隔周期触发各任务，任务之间失败隔离；
 //! 通过停止信号支持优雅退出（任务最多在一个周期内退出）。
+//!
+//! 任务实现直接内联于此（persist 真实可用；consolidate/forget 为占位，
+//! 经 Idle 门控后调用 `service.control`，返回 `Unimplemented`）。
 
-use crate::background::{consolidate, forget, persist};
 use crate::config::Config;
 use crate::error::Result;
 use crate::service::SoulMemService;
+use crate::wire::pb;
 use std::time::Duration;
 use tokio::sync::watch;
 
@@ -95,8 +98,29 @@ fn spawn_task(
 /// 单次执行（错误隔离由调用方处理）。
 async fn run_once(kind: TaskKind, service: &SoulMemService) -> Result<()> {
     match kind {
-        TaskKind::Persist => persist::run_once(service).await,
-        TaskKind::Consolidate => consolidate::run_once(service).await,
-        TaskKind::Forget => forget::run_once(service).await,
+        TaskKind::Persist => service.persist().await,
+        TaskKind::Consolidate => {
+            // Idle 门控：仅空闲时允许巩固。
+            if !service.is_idle().await {
+                return Ok(());
+            }
+            service
+                .control(pb::Control {
+                    kind: pb::ControlKind::ControlConsolidate as i32,
+                })
+                .await
+                .map(|_| ())
+        }
+        TaskKind::Forget => {
+            if !service.is_idle().await {
+                return Ok(());
+            }
+            service
+                .control(pb::Control {
+                    kind: pb::ControlKind::ControlForget as i32,
+                })
+                .await
+                .map(|_| ())
+        }
     }
 }
