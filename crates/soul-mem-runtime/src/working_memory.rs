@@ -26,6 +26,8 @@ pub struct WorkingMemory {
     sliding_window: SlidingWindow,
     memory_cluster: MemoryClusterHandle,
     records: HashMap<MemoryId, Record>,
+    // 本工作循环内的提取命中计数（循环开始时清空）
+    cycle_hits: HashMap<MemoryId, u32>,
 }
 
 impl WorkingMemory {
@@ -35,6 +37,7 @@ impl WorkingMemory {
             sliding_window: SlidingWindow::new(window_capacity),
             memory_cluster: MemoryCluster::new().into_handle(),
             records: HashMap::new(),
+            cycle_hits: HashMap::new(),
         }
     }
 
@@ -44,6 +47,9 @@ impl WorkingMemory {
     }
 
     pub fn transition_to_working(&mut self) {
+        if self.state != WorkingState::Working {
+            self.cycle_hits.clear();
+        }
         self.state = WorkingState::Working;
     }
 
@@ -78,6 +84,7 @@ impl WorkingMemory {
     /// 移除节点，同时移除对应的记录
     pub fn remove_node(&mut self, node_id: MemoryId) -> Option<EmbeddedMemoryNote> {
         self.records.remove(&node_id);
+        self.cycle_hits.remove(&node_id);
         self.memory_cluster
             .write(|cluster| cluster.remove_single_node(node_id))
     }
@@ -95,6 +102,12 @@ impl WorkingMemory {
             record.record_retrieval();
             self.records.insert(node_id, record);
         }
+        *self.cycle_hits.entry(node_id).or_insert(0) += 1;
+    }
+
+    /// 本工作循环内的提取命中次数
+    pub fn cycle_hits(&self) -> &HashMap<MemoryId, u32> {
+        &self.cycle_hits
     }
 
     pub fn add_feedback(&mut self, node_id: MemoryId, feedback: UserFeedback) {
@@ -274,5 +287,50 @@ mod tests {
 
         assert!(wm.records().contains_key(&id));
         assert!(wm.memory_cluster().read_or_compute(|c| c.contains_node(id)));
+    }
+
+    #[test]
+    fn test_cycle_hits_accumulate_retrievals() {
+        let mut wm = WorkingMemory::new(10);
+        let id = MemoryId::new();
+        assert!(wm.cycle_hits().is_empty());
+
+        wm.record_retrieval(id);
+        wm.record_retrieval(id);
+
+        assert_eq!(wm.cycle_hits()[&id], 2);
+        // 与累计计数保持一致的语义
+        assert_eq!(wm.records()[&id].retrieval_count(), 2);
+    }
+
+    #[test]
+    fn test_transition_to_working_resets_cycle_hits_only_on_state_change() {
+        let mut wm = WorkingMemory::new(10);
+        let id = MemoryId::new();
+        wm.transition_to_working();
+        wm.record_retrieval(id);
+        assert_eq!(wm.cycle_hits()[&id], 1);
+
+        // 已在 Working 时重复调用不得清空本轮命中
+        wm.transition_to_working();
+        assert_eq!(wm.cycle_hits()[&id], 1);
+
+        // 一轮 Idle -> Working 的切换开启新循环
+        wm.transition_to_idle();
+        wm.transition_to_working();
+        assert!(wm.cycle_hits().is_empty());
+    }
+
+    #[test]
+    fn test_remove_node_removes_cycle_hits() {
+        let mut wm = WorkingMemory::new(10);
+        let node = sem_note("A");
+        let id = node.note().id();
+        wm.add_node(node);
+        wm.record_retrieval(id);
+        assert!(wm.cycle_hits().contains_key(&id));
+
+        wm.remove_node(id);
+        assert!(!wm.cycle_hits().contains_key(&id));
     }
 }
