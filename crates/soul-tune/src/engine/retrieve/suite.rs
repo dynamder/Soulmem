@@ -10,9 +10,9 @@ use soul_mem_algo::algo::retrieve::association::{AssociationRequest, RetrAssocia
 use soul_mem_algo::algo::retrieve::complex::{
     AssociateWithActionConfig, DefaultPipelineConfig, RetrDefaultPipeline,
 };
-use soul_mem_algo::algo::retrieve::prefetch_db;
 use soul_mem_algo::algo::retrieve::short_only::ShortOnlyConfig;
 use soul_mem_algo::algo::retrieve::similarity::{RetrSimilarity, SimilarityConfig};
+use soul_mem_algo::algo::retrieve::{DbPrefetchConfig, prefetch_db};
 use soul_mem_core::memory_note::situation_mem::SituationType;
 use soul_mem_core::memory_note::{MemoryId, MemoryNote, MemoryType};
 use soul_mem_query::embedding::Embeddable;
@@ -79,6 +79,9 @@ pub struct TestConfigRaw {
     /// DB 模式：每槽位 HNSW KNN 候选召回预算（可选，缺省用启发式默认值）。
     #[serde(default)]
     pub db_candidate_k: Option<usize>,
+    /// DB 模式：邻居扩展跳数（可选，缺省 1；0 = 关闭扩展）。
+    #[serde(default)]
+    pub db_neighbor_depth: Option<usize>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
@@ -134,44 +137,46 @@ pub struct RetrQueryFileRaw {
     pub blend_sweep: Option<BlendSweepRaw>,
 }
 
-struct TestCaseWithWeights {
-    query: TestCaseQuery,
-    tag_weight: f32,
-    variant_weight: f32,
+/// 一个测试用例 + 其权重（权重扫描会把同一用例展开成多份）。
+pub(crate) struct TestCaseWithWeights {
+    pub(crate) query: TestCaseQuery,
+    pub(crate) tag_weight: f32,
+    pub(crate) variant_weight: f32,
 }
 
-/// DB 模式后端：记忆仓库 + 驱动 async 操作的 runtime + 召回候选预算。
-struct DbBackend {
-    repo: SurrealRepository,
-    rt: Runtime,
-    /// DB 端每个槽位的 HNSW KNN 候选召回预算（精确重排与 top-k 截断在内存侧完成）。
-    candidate_k: usize,
+/// 数据集加载产物：与"记忆来源"无关的一切（全量图、查询用例、查询嵌入、元数据）。
+///
+/// 拆出这一层是为了让**加载**与**运行**解耦：`RetrieveSuite` 只负责"把某个记忆来源
+/// 接到某条管线上"，而需要同一份加载与嵌入结果的分析路径
+/// （如 [`crate::engine::retrieve::depth_audit`] 的几何审计）可以直接复用，
+/// 不必复制一遍解析/嵌入逻辑——那份副本一定会随实现演进漂移。
+///
+/// 图工作记忆以全量图为基准：DB 模式后续只在**用例级子图**上跑管线，
+/// 但全图仍保留在这里作为几何分析的参照系。
+pub(crate) struct RetrDataset {
+    /// 全量图工作记忆（直接模式的记忆来源；也是几何分析的全图基准）。
+    pub wm: Arc<WorkingMemory>,
+    /// 节点 id → 节点名（图里声明的可读名字）。
+    pub graph_names: Arc<HashMap<MemoryId, String>>,
+    /// 节点 id → 可读摘要（UI/日志用）。
+    pub id_names: Arc<HashMap<MemoryId, NodeSummary>>,
+    /// 全图抽象情境节点集合（供抽象检出/直接命中指标观测）。
+    pub abstract_ids: std::collections::HashSet<MemoryId>,
+    pub meta: TestCaseConfig,
+    pub test_cases: Vec<TestCaseWithWeights>,
+    /// 与 `test_cases` 一一对应：每个用例各子查询的嵌入。
+    pub query_embeddings: Vec<Vec<MemoryRetrieveQueryEmbedding>>,
 }
 
-pub struct RetrieveSuite {
-    /// 直接模式：全量图工作记忆；DB 模式为 None。
-    wm_direct: Option<Arc<WorkingMemory>>,
-    /// DB 模式后端；直接模式为 None。
-    db: Option<DbBackend>,
-    test_cases: Vec<TestCaseWithWeights>,
-    meta: TestCaseConfig,
-    query_embeddings: Vec<Vec<MemoryRetrieveQueryEmbedding>>,
-    /// 完整运行模式：管线（RetrieveFlavor）× 记忆来源（直接 / 数据库）。
-    mode: RetrieveMode,
-    /// 全图抽象情境节点集合（加载时预计算，两种来源共用，供抽象指标观测）。
-    abstract_ids: std::collections::HashSet<MemoryId>,
-    id_names: Arc<HashMap<MemoryId, NodeSummary>>,
-    graph_names: Arc<HashMap<MemoryId, String>>,
-}
-
-impl RetrieveSuite {
-    pub fn load(query_path: &Path, mode: RetrieveMode) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::load_with_params(query_path, mode, None)
-    }
-
-    pub fn load_with_params(
+impl RetrDataset {
+    /// 解析 question.json + 载入（带缓存）图 + 展开权重扫描 + 嵌入全部子查询。
+    ///
+    /// `flavor` 只影响权重扫描是否展开（扫描仅对相似度管线有意义），
+    /// 与记忆来源无关。`params` 可覆盖 `threshold` / `top_k` /
+    /// `db_candidate_k` / `db_neighbor_depth`。
+    pub(crate) fn load(
         query_path: &Path,
-        mode: RetrieveMode,
+        flavor: RetrieveFlavor,
         params: Option<&HashMap<String, String>>,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let file = std::fs::File::open(query_path)?;
@@ -194,6 +199,7 @@ impl RetrieveSuite {
             max_results: raw.config.max_results,
             test_k_values: raw.config.test_k_values,
             db_candidate_k: raw.config.db_candidate_k,
+            db_neighbor_depth: raw.config.db_neighbor_depth,
         };
         if let Some(p) = params {
             if let Some(v) = p.get("threshold")
@@ -211,10 +217,15 @@ impl RetrieveSuite {
             {
                 meta.db_candidate_k = Some(n);
             }
+            if let Some(v) = p.get("db_neighbor_depth")
+                && let Ok(n) = v.parse()
+            {
+                meta.db_neighbor_depth = Some(n);
+            }
         }
 
         // 权重扫描（sweep）只对相似度管线有意义：直接与 DB 源行为一致
-        let sweep_pairs = if mode.flavor() == RetrieveFlavor::Embedding {
+        let sweep_pairs = if flavor == RetrieveFlavor::Embedding {
             expand_sweep_pairs(raw.blend_sweep)
         } else {
             expand_sweep_pairs(None)
@@ -314,6 +325,68 @@ impl RetrieveSuite {
                     .collect()
             });
 
+        Ok(RetrDataset {
+            wm: Arc::new(wm),
+            graph_names,
+            id_names,
+            abstract_ids,
+            meta,
+            test_cases,
+            query_embeddings,
+        })
+    }
+
+    /// 用例数量。
+    pub(crate) fn case_count(&self) -> usize {
+        self.test_cases.len()
+    }
+}
+
+/// DB 模式后端：记忆仓库 + 驱动 async 操作的 runtime + 预取参数。
+struct DbBackend {
+    repo: SurrealRepository,
+    rt: Runtime,
+    /// DB 预取参数（每槽位候选预算 + 邻居扩展跳数）。
+    config: DbPrefetchConfig,
+}
+
+pub struct RetrieveSuite {
+    /// 直接模式：全量图工作记忆；DB 模式为 None。
+    wm_direct: Option<Arc<WorkingMemory>>,
+    /// DB 模式后端；直接模式为 None。
+    db: Option<DbBackend>,
+    test_cases: Vec<TestCaseWithWeights>,
+    meta: TestCaseConfig,
+    query_embeddings: Vec<Vec<MemoryRetrieveQueryEmbedding>>,
+    /// 完整运行模式：管线（RetrieveFlavor）× 记忆来源（直接 / 数据库）。
+    mode: RetrieveMode,
+    /// 全图抽象情境节点集合（加载时预计算，两种来源共用，供抽象指标观测）。
+    abstract_ids: std::collections::HashSet<MemoryId>,
+    id_names: Arc<HashMap<MemoryId, NodeSummary>>,
+    graph_names: Arc<HashMap<MemoryId, String>>,
+}
+
+impl RetrieveSuite {
+    pub fn load(query_path: &Path, mode: RetrieveMode) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::load_with_params(query_path, mode, None)
+    }
+
+    pub fn load_with_params(
+        query_path: &Path,
+        mode: RetrieveMode,
+        params: Option<&HashMap<String, String>>,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        // 加载与"记忆来源"无关的部分（图 / 用例 / 嵌入 / 元数据）
+        let RetrDataset {
+            wm,
+            graph_names,
+            id_names,
+            abstract_ids,
+            meta,
+            test_cases,
+            query_embeddings,
+        } = RetrDataset::load(query_path, mode.flavor(), params)?;
+
         // DB 模式：example_data 全量写入 mem 数据库（默认进程内 kv-mem；
         // params 传 db_path 时改用磁盘 SurrealKv 验证持久化读回）。
         let db = if mode.uses_db() {
@@ -321,28 +394,18 @@ impl RetrieveSuite {
                 .memory_cluster()
                 .read_or_compute(|c| c.graph().node_weights().cloned().collect());
             let rt = Runtime::new().map_err(|e| format!("创建 tokio runtime 失败: {e}"))?;
-            let candidate_k = meta
-                .db_candidate_k
-                .unwrap_or_else(|| default_db_candidate_k(meta.max_results));
+            let config = meta.db_prefetch_config();
             let db_path = params.and_then(|p| p.get("db_path")).map(PathBuf::from);
             let repo = rt
                 .block_on(connect_and_seed_repo(notes, db_path.as_deref()))
                 .map_err(|e| format!("mem 数据库初始化/写入失败: {e}"))?;
-            Some(DbBackend {
-                repo,
-                rt,
-                candidate_k,
-            })
+            Some(DbBackend { repo, rt, config })
         } else {
             None
         };
 
         Ok(Self {
-            wm_direct: if mode.uses_db() {
-                None
-            } else {
-                Some(Arc::new(wm))
-            },
+            wm_direct: if mode.uses_db() { None } else { Some(wm) },
             db,
             test_cases,
             meta,
@@ -411,10 +474,11 @@ impl TestSuite for RetrieveSuite {
 
         // 工作记忆解析：
         // - 直接模式：套件加载时全量载入的全图工作记忆；
-        // - DB 模式：一次性预取该用例全部子查询（DB 端 HNSW 候选召回 + 一跳邻居
-        //   扩展）到用例级临时工作记忆——管线只跑在 DB 召回子图上。
-        // 同时用与 prefetch_db 相同的只读 repo 调用（similarity_fetch + fetch_neighbors）
-        // 采集「候选 / 邻居」观测，供 DbRecallDetail 记录（不改动 prefetch_db 本身）。
+        // - DB 模式：一次性预取该用例全部子查询（DB 端 HNSW 候选召回 +
+        //   `db_neighbor_depth` 跳邻居扩展）到用例级临时工作记忆——
+        //   管线只跑在 DB 召回子图上。
+        // 召回观测直接取自 prefetch_db 的返回值（不再重跑一次相同查询：
+        // 重跑的副本会随实现演进与真实预取静默漂移，也让时延观测失真）。
         let (wm, db_recall): (Arc<WorkingMemory>, Option<DbRecallDetail>) = match &self.db {
             Some(db) => {
                 let queries: Vec<EmbeddedMemoryRetrieveQuery> = test_case
@@ -427,51 +491,30 @@ impl TestSuite for RetrieveSuite {
                     })
                     .collect();
 
-                // 观测（只读、确定性一致）：候选 = similarity_fetch union，邻居 = 一跳扩展
-                let obs_embeddings: Vec<MemoryRetrieveQueryEmbedding> =
-                    queries.iter().map(|q| q.embedding.clone()).collect();
-                let obs = (|| -> Option<(Vec<MemoryId>, Vec<MemoryId>)> {
-                    let candidate_ids: Vec<MemoryId> = db
-                        .rt
-                        .block_on(db.repo.similarity_fetch(obs_embeddings, db.candidate_k))
-                        .ok()?
-                        .into_iter()
-                        .map(|n| n.note().id())
-                        .collect();
-                    let neighbor_ids: Vec<MemoryId> = db
-                        .rt
-                        .block_on(db.repo.fetch_neighbors(&candidate_ids, 1))
-                        .ok()?
-                        .into_iter()
-                        .map(|n| n.note().id())
-                        .collect();
-                    Some((candidate_ids, neighbor_ids))
-                })();
-
                 let case_wm = Arc::new(WorkingMemory::new(10));
-                if let Err(e) =
-                    db.rt
-                        .block_on(prefetch_db(&db.repo, queries, db.candidate_k, &case_wm))
+                let outcome = match db
+                    .rt
+                    .block_on(prefetch_db(&db.repo, queries, db.config, &case_wm))
                 {
-                    return self.db_failed_outcome(index, format!("DB 预取失败: {e}"));
-                }
-                // 实际写入的子图以工作记忆为准（与 prefetch_db 写入顺序/去重一致）
-                let detail = obs.map(|(candidate_ids, neighbor_ids)| {
-                    let subgraph_ids: Vec<MemoryId> =
-                        case_wm.memory_cluster().read_or_compute(|c| {
-                            c.graph().node_weights().map(|n| n.note().id()).collect()
-                        });
-                    DbRecallDetail::from_prefetch(
-                        &candidate_ids,
-                        &neighbor_ids,
-                        &subgraph_ids,
-                        &test_case.expected_combined_ranking,
-                        &test_case.bonus_combined_ranking,
-                        test_case.sub_queries.len(),
-                        db.candidate_k,
-                    )
-                });
-                (case_wm, detail)
+                    Ok(outcome) => outcome,
+                    Err(e) => {
+                        return self.db_failed_outcome(index, format!("DB 预取失败: {e}"));
+                    }
+                };
+                // 实际写入的子图以工作记忆为准（而非由返回值推断）：
+                // 这样观测能暴露"召回到了却没写进工作记忆"这类写入侧偏差。
+                let subgraph_ids: Vec<MemoryId> = case_wm
+                    .memory_cluster()
+                    .read_or_compute(|c| c.graph().node_weights().map(|n| n.note().id()).collect());
+                let detail = DbRecallDetail::from_prefetch(
+                    &outcome,
+                    &subgraph_ids,
+                    &test_case.expected_combined_ranking,
+                    &test_case.bonus_combined_ranking,
+                    test_case.sub_queries.len(),
+                    db.config,
+                );
+                (case_wm, Some(detail))
             }
             None => (
                 Arc::clone(self.wm_direct.as_ref().expect("direct mode working memory")),
@@ -1001,12 +1044,6 @@ impl TestSuite for RetrieveSuite {
     }
 }
 
-/// DB 模式默认候选预算启发式：DB 只做候选召回（精确重排与 top-k 截断在内存侧），
-/// 预算需按槽位数留出余量，同时保持"召回子图小于全图"以真实反映 DB 路径。
-fn default_db_candidate_k(max_results: usize) -> usize {
-    (max_results * 2).max(20)
-}
-
 /// 连接 mem 数据库（kv-mem 默认 / db_path 走磁盘 SurrealKv）+ 幂等建 schema
 /// + 事务内全量写入 example_data 的 EmbeddedMemoryNote（含全部出边）。
 async fn connect_and_seed_repo(
@@ -1137,7 +1174,13 @@ fn priority_bonus(p: u32, p_max: u32) -> f64 {
 /// 跨查询合并："分数主导 + priority 小偏移"。
 /// 合并键 = `原始分 + priority_bonus`，同一节点跨查询命中时保留键最大的那条，
 /// 返回值为原始融合分（0–1 量纲，用于排序与指标）。
-fn merge_by_priority(results: Vec<(MemoryId, f32, u32)>, top_k: usize) -> Vec<(MemoryId, f32)> {
+///
+/// 供深度审计复用：审计在各深度的对照子图上跑同一条合并逻辑，
+/// 才能与套件指标逐点可比。
+pub(crate) fn merge_by_priority(
+    results: Vec<(MemoryId, f32, u32)>,
+    top_k: usize,
+) -> Vec<(MemoryId, f32)> {
     let p_max = results.iter().map(|(_, _, p)| *p).max().unwrap_or(0);
     let mut merged: HashMap<MemoryId, (f32, f32)> = HashMap::new(); // id -> (key, raw)
     for (id, score, priority) in results {
@@ -1167,7 +1210,8 @@ fn merge_by_priority(results: Vec<(MemoryId, f32, u32)>, top_k: usize) -> Vec<(M
         .collect()
 }
 
-fn compute_split_metrics(
+/// must/bonus 拆分指标（与套件用例判定同源；供深度审计复用以保证口径一致）。
+pub(crate) fn compute_split_metrics(
     ids: &[MemoryId],
     must: &[MemoryId],
     bonus: &[MemoryId],
@@ -1187,6 +1231,7 @@ fn compute_split_metrics(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::engine::dataset::default_db_candidate_k;
 
     #[test]
     fn test_query_file_raw_deserialize() {

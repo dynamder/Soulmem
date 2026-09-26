@@ -23,6 +23,9 @@
 //! - **`retrieve::prefetch_db` 会做数据库 IO**：它接收 `&dyn MemoryRepository` 并写入
 //!   工作记忆，因此本 crate 依赖 `soul-mem-runtime`，"算法层不做 IO"这条线在检索路径上
 //!   并不成立。`soul-mem-runtime` 反过来只在 `dev-dependencies` 依赖本 crate。
+//!   它也返回 [`algo::retrieve::PrefetchOutcome`]（候选/邻居两组 id）：调用方观测召回
+//!   应使用这份返回值，**不要为了观测重跑 `similarity_fetch`/`fetch_neighbors`**——
+//!   重跑的副本会随实现演进与真实预取静默漂移。
 //! - **打分/合并逻辑在多个文件里各有一份**（`default_pipeline::merge_note_scores`、
 //!   `assoc_with_action::merge_situation_sources`、`association` 里的排序截断），
 //!   且 NaN 策略不同（`total_cmp` vs `partial_cmp().unwrap_or(Equal)`）。

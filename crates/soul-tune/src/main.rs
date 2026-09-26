@@ -21,6 +21,10 @@ use engine::playtest::{DialogueFile, PlayTestRunner, PlayTurnResult};
 use engine::retrieve::RetrieveSuite;
 use engine::retrieve::batch::process_one_dataset;
 use engine::retrieve::data::RetrieveCaseData;
+use engine::retrieve::depth_audit::{
+    DepthAuditConfig, DepthAuditReport, DepthPoint, format_depth_audit, format_depth_audit_cases,
+    merge_aggregates, run_depth_audit,
+};
 use engine::suite::{MetricEntry, MetricFormat, TestCaseOutcome, TestSuite};
 use soul_mem_query::query::retrieve::MemoryRetrieveQueryVariant;
 
@@ -85,6 +89,10 @@ fn main() -> color_eyre::Result<()> {
         return run_headless_playtest(&args);
     }
 
+    if args.len() >= 3 && args[1] == "depth-audit" {
+        return run_headless_depth_audit(&args);
+    }
+
     if args.len() >= 4 && args[1] == "run" {
         //--batch只是开关，位置不固定：同时兼容 run <algo> <dataset> [--batch] 与 run <algo> --batch <dataset>
         let is_batch = args.iter().any(|a| a == "--batch");
@@ -142,7 +150,7 @@ fn main() -> color_eyre::Result<()> {
             run_headless_single(algo, dataset_path)?;
         }
     } else {
-        eprintln!("用法: soul-tune <inspect|playtest|run> ...");
+        eprintln!("用法: soul-tune <inspect|playtest|run|depth-audit> ...");
         eprintln!("  soul-tune inspect <graph.json|question.json>   检视数据集");
         eprintln!("  soul-tune run <algo> <dataset> [--batch]      运行测试");
         eprintln!("    检索: retrieve/embedding|association|full（直接全量工作记忆）");
@@ -152,6 +160,10 @@ fn main() -> color_eyre::Result<()> {
         eprintln!(
             "    对比: compare/db[/embedding|association|full]（同管线 直接 vs 数据库 逐用例）"
         );
+        eprintln!(
+            "  soul-tune depth-audit <question.json|目录> [--depths 0,1,2,3] [--batch] [--verbose] [--json <path>]"
+        );
+        eprintln!("    深度审计: 期望节点距 oracle 种子集的跳数分布 + 各深度的管线指标曲线");
         eprintln!("  soul-tune playtest <graph_dir> <dialogue>     角色扮演测试");
         eprintln!("GUI 前端见 soul-tune-ui/（flutter run -d windows）");
         std::process::exit(1);
@@ -271,6 +283,180 @@ fn run_headless_batch(dir: &Path, mode: RetrieveMode) {
     print_batch_result(&result);
 }
 
+/// 检索子图深度的几何审计（纯离线：读写只涉及数据集文件与内存，不碰数据库）。
+///
+/// 输出「期望节点距 oracle 种子集的跳数分布」与「各跳数对照点上的管线指标曲线」，
+/// 用来回答 `prefetch_db` 的一跳邻居扩展够不够用。详见
+/// [`engine::retrieve::depth_audit`] 的模块文档。
+fn run_headless_depth_audit(args: &[String]) -> color_eyre::Result<()> {
+    let mut positional: Vec<String> = Vec::new();
+    let mut flag_values: std::collections::HashMap<String, String> =
+        std::collections::HashMap::new();
+    let mut switches: std::collections::HashSet<String> = std::collections::HashSet::new();
+
+    let mut iter = args.iter().skip(2); // args[0]=可执行文件, args[1]="depth-audit"
+    while let Some(arg) = iter.next() {
+        match arg.as_str() {
+            "--depths" | "--json" => {
+                let key = arg.trim_start_matches("--").to_string();
+                match iter.next() {
+                    Some(value) => {
+                        flag_values.insert(key, value.clone());
+                    }
+                    None => {
+                        eprintln!("{arg} 需要一个值");
+                        std::process::exit(1);
+                    }
+                }
+            }
+            "--batch" | "--verbose" => {
+                switches.insert(arg.trim_start_matches("--").to_string());
+            }
+            other => positional.push(other.to_string()),
+        }
+    }
+
+    if positional.is_empty() {
+        eprintln!(
+            "用法: soul-tune depth-audit <question.json|目录> [--depths 0,1,2,3] [--batch] [--verbose] [--json <path>]"
+        );
+        std::process::exit(1);
+    }
+
+    let depths = match flag_values.get("depths") {
+        Some(raw) => parse_depths(raw)?,
+        None => DepthAuditConfig::default().depths,
+    };
+    let config = DepthAuditConfig { depths };
+    let is_batch = switches.contains("batch");
+    let verbose = switches.contains("verbose");
+    let path = PathBuf::from(&positional[0]);
+
+    let mut reports: Vec<DepthAuditReport> = Vec::new();
+    let mut failures: Vec<(String, String)> = Vec::new();
+
+    if is_batch {
+        let datasets = scan_question_jsons(&path);
+        if datasets.is_empty() {
+            eprintln!("在 {} 下未找到任何 question.json 文件", path.display());
+            std::process::exit(1);
+        }
+        println!("=== 深度审计（batch）===");
+        println!(
+            "目录: {} | 数据集: {} | 跳数对照: {:?}\n",
+            path.display(),
+            datasets.len(),
+            config.depths
+        );
+
+        for dataset in &datasets {
+            let name = dataset
+                .parent()
+                .and_then(|p| p.file_name())
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_else(|| dataset.display().to_string());
+            match run_depth_audit(dataset, RetrieveFlavor::FullPipeline, &config) {
+                Ok(report) => {
+                    let agg = &report.aggregate;
+                    let one_hop = agg.row(DepthPoint::Hops(1));
+                    let full = agg.row(DepthPoint::FullGraph);
+                    println!(
+                        "  {:<26} 图{:>4} 用例{:>3} 期望{:>4} ≥2跳{:>3} | 通过 1跳 {}/{} 全图 {}/{} | 1跳丢期望 {}",
+                        truncate_chars(&name, 26),
+                        agg.graph_nodes,
+                        agg.case_count,
+                        agg.hop_histogram.total(),
+                        agg.direct_retrieved_beyond_one_hop,
+                        one_hop.map(|r| r.passed_cases).unwrap_or(0),
+                        one_hop.map(|r| r.case_count).unwrap_or(0),
+                        full.map(|r| r.passed_cases).unwrap_or(0),
+                        full.map(|r| r.case_count).unwrap_or(0),
+                        one_hop.map(|r| r.lost_vs_full).unwrap_or(0),
+                    );
+                    reports.push(report);
+                }
+                Err(e) => failures.push((name, e)),
+            }
+        }
+
+        println!();
+        match merge_aggregates(&reports) {
+            Some(merged) => {
+                let summary = DepthAuditReport {
+                    dataset: format!("汇总 {} 个数据集", reports.len()),
+                    flavor: RetrieveFlavor::FullPipeline.to_string(),
+                    aggregate: merged,
+                    cases: Vec::new(),
+                };
+                print!("{}", format_depth_audit(&summary));
+            }
+            None => println!("没有成功的数据集可汇总"),
+        }
+    } else {
+        let report = run_depth_audit(&path, RetrieveFlavor::FullPipeline, &config)
+            .map_err(|e| color_eyre::eyre::eyre!("{}", e))?;
+        print!("{}", format_depth_audit(&report));
+        if verbose {
+            println!("\n--- 逐用例 ---");
+            print!("{}", format_depth_audit_cases(&report));
+        }
+        reports.push(report);
+    }
+
+    if !failures.is_empty() {
+        eprintln!("\n以下数据集审计失败（已跳过）:");
+        for (name, error) in &failures {
+            eprintln!("  {name}: {error}");
+        }
+    }
+
+    if let Some(json_path) = flag_values.get("json") {
+        let summary = merge_aggregates(&reports);
+        let bundle = serde_json::json!({
+            "config": { "depths": config.depths, "flavor": RetrieveFlavor::FullPipeline.to_string() },
+            "reports": reports,
+            "summary": summary,
+            "failures": failures.iter().map(|(n, e)| serde_json::json!({"dataset": n, "error": e})).collect::<Vec<_>>(),
+        });
+        let file = std::fs::File::create(json_path)
+            .map_err(|e| color_eyre::eyre::eyre!("创建 {json_path} 失败: {e}"))?;
+        serde_json::to_writer_pretty(std::io::BufWriter::new(file), &bundle)
+            .map_err(|e| color_eyre::eyre::eyre!("写 JSON 失败: {e}"))?;
+        println!("\nJSON 已写入: {json_path}");
+    }
+
+    Ok(())
+}
+
+/// 解析 `--depths` 的逗号分隔跳数列表。
+fn parse_depths(raw: &str) -> color_eyre::Result<Vec<usize>> {
+    let mut depths = Vec::new();
+    for part in raw.split(',') {
+        let part = part.trim();
+        if part.is_empty() {
+            continue;
+        }
+        depths.push(
+            part.parse::<usize>()
+                .map_err(|e| color_eyre::eyre::eyre!("无法解析跳数 {part:?}: {e}"))?,
+        );
+    }
+    if depths.is_empty() {
+        return Err(color_eyre::eyre::eyre!("--depths 不能为空"));
+    }
+    Ok(depths)
+}
+
+/// 按字符（非字节）截断到 `max` 个字符，避免非 ASCII 名称被截断成半个字。
+fn truncate_chars(text: &str, max: usize) -> String {
+    let count = text.chars().count();
+    if count <= max {
+        return text.to_string();
+    }
+    let kept: String = text.chars().take(max.saturating_sub(1)).collect();
+    format!("{kept}…")
+}
+
 /// 同管线「直接（全量工作记忆）vs 数据库召回」headless 对比。
 fn run_headless_compare_db(
     flavor: RetrieveFlavor,
@@ -350,12 +536,13 @@ fn run_headless_compare_db(
             && (c.regressed_hit || c.regressed_mrr || !r.expected_missed.is_empty())
         {
             println!(
-                "        DB 召回: 候选 {} +邻居 {} = 子图 {} ({} 查询 × 预算 {}) | 期望覆盖 {}/{} (must {}) | 漏召 {}",
+                "        DB 召回: 候选 {} +邻居 {} = 子图 {} ({} 查询 × 预算 {}, 深度 {}) | 期望覆盖 {}/{} (must {}) | 漏召 {}",
                 r.candidate_count,
                 r.neighbor_count,
                 r.subgraph_count,
                 r.query_count,
                 r.candidate_k,
+                r.neighbor_depth,
                 r.expected_in_subgraph,
                 r.expected_count,
                 r.must_in_subgraph,
@@ -569,12 +756,13 @@ fn write_retrieve_log(outcomes: &[TestCaseOutcome]) {
             }
             if let Some(r) = &data.db_recall {
                 out.push_str(&format!(
-                    "  DB 召回: 候选 {} +邻居 {} → 子图 {} ({} 查询 × 预算 {})\n",
+                    "  DB 召回: 候选 {} +邻居 {} → 子图 {} ({} 查询 × 预算 {}, 深度 {})\n",
                     r.candidate_count,
                     r.neighbor_count,
                     r.subgraph_count,
                     r.query_count,
-                    r.candidate_k
+                    r.candidate_k,
+                    r.neighbor_depth
                 ));
                 out.push_str(&format!(
                     "  期望覆盖: {}/{} 进入子图（候选内 {}，must {}）\n",

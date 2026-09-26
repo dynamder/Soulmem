@@ -2,11 +2,12 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 use serde::Serialize;
+use soul_mem_algo::algo::retrieve::{DbPrefetchConfig, PrefetchOutcome};
 use soul_mem_core::memory_note::MemoryId;
 
 use crate::engine::retrieve::dataset::SubQuery;
 
-#[derive(Clone, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct RankingMetrics {
     pub recall_at: Vec<(usize, f64)>,
     pub precision_at: Vec<(usize, f64)>,
@@ -15,7 +16,7 @@ pub struct RankingMetrics {
     pub hit_rate: f64,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ActionMetrics {
     pub action_hit_rate: f64,
     pub action_recall_at: Vec<(usize, f64)>,
@@ -32,14 +33,17 @@ pub struct PerQueryMetrics {
 /// prefetch_db 召回观测（DB 模式每个用例记录一次）。
 ///
 /// 回答两个问题：
-/// 1. DB 召回子图有多大（候选 HNSW 命中 / 一跳邻居 / 实际写入工作记忆的节点数）；
+/// 1. DB 召回子图有多大（候选 HNSW 命中 / 邻居扩展 / 实际写入工作记忆的节点数）；
 /// 2. 期望命中有多少进入了召回子图——没进的就是 DB 路径的结构性漏召
 ///    （`expected_missed`），与"进了子图但精确重排没排进 top-k"的原因区分开。
+///
+/// 观测数据直接取自 [`prefetch_db`] 的返回值（[`PrefetchOutcome`]），
+/// 与真实预取同源；子图规模仍以工作记忆实际内容为准。
 #[derive(Clone, Debug, Default, PartialEq, Serialize)]
 pub struct DbRecallDetail {
     /// similarity_fetch 的 union 候选数（每槽位 KNN，去重）。
     pub candidate_count: usize,
-    /// 一跳邻居扩展数。
+    /// 邻居扩展新增的节点数（`visited - 候选`）。
     pub neighbor_count: usize,
     /// 实际写入用例工作记忆的子图节点数（候选 + 邻居去重后）。
     pub subgraph_count: usize,
@@ -47,6 +51,8 @@ pub struct DbRecallDetail {
     pub query_count: usize,
     /// 每槽位 KNN 候选召回预算。
     pub candidate_k: usize,
+    /// 邻居扩展跳数（0 = 不扩展）。
+    pub neighbor_depth: usize,
     /// 期望节点总数（must + bonus 并集、去重）。
     pub expected_count: usize,
     /// 期望 ∩ 候选（仅靠嵌入相似召回即覆盖的部分）。
@@ -60,19 +66,21 @@ pub struct DbRecallDetail {
 }
 
 impl DbRecallDetail {
-    /// 由一次 prefetch_db 的观测（候选/邻居/实际子图成员）与用例期望真值构建详情。
+    /// 由一次 `prefetch_db` 的返回值与用例期望真值构建详情。
     ///
-    /// `expected_must` / `expected_bonus` 保持调用侧顺序；并集去重后与子图比对。
+    /// - `outcome`：预取返回值（候选/邻居 id），观测与实现同源；
+    /// - `subgraph_ids`：**实际写入**工作记忆的节点集合（以工作记忆为准，
+    ///   而非由返回值推断，便于发现写入侧与召回侧的偏差）；
+    /// - `expected_must` / `expected_bonus` 保持调用侧顺序；并集去重后与子图比对。
     pub fn from_prefetch(
-        candidate_ids: &[MemoryId],
-        neighbor_ids: &[MemoryId],
+        outcome: &PrefetchOutcome,
         subgraph_ids: &[MemoryId],
         expected_must: &[MemoryId],
         expected_bonus: &[MemoryId],
         query_count: usize,
-        candidate_k: usize,
+        config: DbPrefetchConfig,
     ) -> Self {
-        let candidate_set: HashSet<&MemoryId> = candidate_ids.iter().collect();
+        let candidate_set: HashSet<&MemoryId> = outcome.candidates.iter().collect();
         let subgraph_set: HashSet<&MemoryId> = subgraph_ids.iter().collect();
 
         // must + bonus 并集，保持顺序去重
@@ -103,11 +111,12 @@ impl DbRecallDetail {
             .collect();
 
         DbRecallDetail {
-            candidate_count: candidate_ids.len(),
-            neighbor_count: neighbor_ids.len(),
+            candidate_count: outcome.candidates.len(),
+            neighbor_count: outcome.neighbors.len(),
             subgraph_count: subgraph_ids.len(),
             query_count,
-            candidate_k,
+            candidate_k: config.candidate_k,
+            neighbor_depth: config.neighbor_depth,
             expected_count: expected_all.len(),
             expected_in_candidates,
             expected_in_subgraph,
@@ -237,9 +246,16 @@ pub fn build_drilldown_sections(data: &RetrieveCaseData) -> DrilldownSections {
             "  候选召回: {} 节点（{} 查询 × 每槽位预算 {}）",
             r.candidate_count, r.query_count, r.candidate_k
         ));
-        sections
-            .db_recall_lines
-            .push(format!("  一跳邻居: +{} 节点", r.neighbor_count));
+        if r.neighbor_depth == 0 {
+            sections
+                .db_recall_lines
+                .push("  邻居扩展: 关闭（深度 0）".to_string());
+        } else {
+            sections.db_recall_lines.push(format!(
+                "  邻居扩展: +{} 节点（深度 {}）",
+                r.neighbor_count, r.neighbor_depth
+            ));
+        }
         sections
             .db_recall_lines
             .push(format!("  工作记忆子图: {} 节点", r.subgraph_count));
@@ -409,6 +425,13 @@ mod tests {
         (0..n).map(|_| MemoryId::new()).collect()
     }
 
+    fn outcome(candidates: &[MemoryId], neighbors: &[MemoryId]) -> PrefetchOutcome {
+        PrefetchOutcome {
+            candidates: candidates.to_vec(),
+            neighbors: neighbors.to_vec(),
+        }
+    }
+
     #[test]
     fn test_db_recall_detail_full_coverage() {
         let candidate = ids(3); // a0..a2 进入候选
@@ -416,13 +439,20 @@ mod tests {
         let subgraph: Vec<MemoryId> = candidate.iter().chain(neighbors.iter()).copied().collect();
         let must: Vec<MemoryId> = vec![candidate[0], neighbors[0]];
         let bonus: Vec<MemoryId> = vec![candidate[1]];
-        let detail =
-            DbRecallDetail::from_prefetch(&candidate, &neighbors, &subgraph, &must, &bonus, 2, 20);
+        let detail = DbRecallDetail::from_prefetch(
+            &outcome(&candidate, &neighbors),
+            &subgraph,
+            &must,
+            &bonus,
+            2,
+            DbPrefetchConfig::new(20, 1),
+        );
         assert_eq!(detail.candidate_count, 3);
         assert_eq!(detail.neighbor_count, 1);
         assert_eq!(detail.subgraph_count, 4);
         assert_eq!(detail.query_count, 2);
         assert_eq!(detail.candidate_k, 20);
+        assert_eq!(detail.neighbor_depth, 1);
         assert_eq!(detail.expected_count, 3);
         assert_eq!(detail.expected_in_candidates, 2); // a0, a1（邻居 b0 不在候选）
         assert_eq!(detail.expected_in_subgraph, 3);
@@ -437,7 +467,14 @@ mod tests {
         let b = MemoryId::new();
         let a = MemoryId::new();
         let must = vec![b, a]; // 期望顺序：b 在前
-        let detail = DbRecallDetail::from_prefetch(&candidate, &[], &subgraph, &must, &[], 1, 4);
+        let detail = DbRecallDetail::from_prefetch(
+            &outcome(&candidate, &[]),
+            &subgraph,
+            &must,
+            &[],
+            1,
+            DbPrefetchConfig::new(4, 1),
+        );
         assert_eq!(detail.expected_count, 2);
         assert_eq!(detail.expected_in_subgraph, 0);
         // 漏召按期望原序（b 在前），便于 UI 对照期望排名
@@ -450,7 +487,14 @@ mod tests {
     fn test_db_recall_detail_bonus_dedup() {
         let (x, y) = (MemoryId::new(), MemoryId::new());
         // must 与 bonus 重复的 y 只计一次
-        let detail = DbRecallDetail::from_prefetch(&[x], &[], &[x, y], &[x, y], &[y], 1, 4);
+        let detail = DbRecallDetail::from_prefetch(
+            &outcome(&[x], &[]),
+            &[x, y],
+            &[x, y],
+            &[y],
+            1,
+            DbPrefetchConfig::new(4, 1),
+        );
         assert_eq!(detail.expected_count, 2);
         assert_eq!(detail.expected_in_subgraph, 2);
         assert_eq!(detail.must_in_subgraph, 2);
@@ -458,28 +502,49 @@ mod tests {
     }
 
     #[test]
+    fn test_db_recall_detail_depth_zero_is_recorded() {
+        // 邻居扩展关闭时，观测里必须能看出来（深度 0 与"扩展了但一个没召到"不同）
+        let x = MemoryId::new();
+        let detail = DbRecallDetail::from_prefetch(
+            &outcome(&[x], &[]),
+            &[x],
+            &[x],
+            &[],
+            1,
+            DbPrefetchConfig::new(20, 0),
+        );
+        assert_eq!(detail.neighbor_depth, 0);
+        assert_eq!(detail.neighbor_count, 0);
+    }
+
+    #[test]
     fn test_build_drilldown_db_recall_lines() {
         let mut data = mock_case_data();
         let (x, y) = (MemoryId::new(), MemoryId::new());
-        let detail =
-            DbRecallDetail::from_prefetch(&[x], &[y], &[x, y], &[x], &[MemoryId::new()], 1, 20);
+        let detail = DbRecallDetail::from_prefetch(
+            &outcome(&[x], &[y]),
+            &[x, y],
+            &[x],
+            &[MemoryId::new()],
+            1,
+            DbPrefetchConfig::new(20, 2),
+        );
         data.db_recall = Some(detail);
         // 期望含一个不在子图的节点 → 出现"期望未召回"段
         let sections = build_drilldown_sections(&data);
         assert!(!sections.db_recall_lines.is_empty());
         let joined = sections.db_recall_lines.join("\n");
         assert!(joined.contains("候选召回: 1"));
-        assert!(joined.contains("一跳邻居: +1"));
+        assert!(joined.contains("邻居扩展: +1 节点（深度 2）"));
         assert!(joined.contains("期望未召回"));
         // 全被召回时给出 ✓ 行
         data.db_recall = Some(DbRecallDetail::from_prefetch(
-            &[x],
-            &[y],
+            &outcome(&[x], &[y]),
             &[x, y],
             &[x, y],
             &[],
             1,
-            20,
+            DbPrefetchConfig::new(20, 1),
         ));
         let sections2 = build_drilldown_sections(&data);
         assert!(
@@ -487,6 +552,22 @@ mod tests {
                 .db_recall_lines
                 .join("\n")
                 .contains("期望全部进入召回子图 ✓")
+        );
+        // 深度 0 时给出"扩展关闭"而非 +0
+        data.db_recall = Some(DbRecallDetail::from_prefetch(
+            &outcome(&[x], &[]),
+            &[x],
+            &[x],
+            &[],
+            1,
+            DbPrefetchConfig::new(20, 0),
+        ));
+        let sections3 = build_drilldown_sections(&data);
+        assert!(
+            sections3
+                .db_recall_lines
+                .join("\n")
+                .contains("邻居扩展: 关闭（深度 0）")
         );
     }
 }

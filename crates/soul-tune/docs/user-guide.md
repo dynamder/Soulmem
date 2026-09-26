@@ -46,6 +46,33 @@ soul-tune run <algo> <dataset> [--batch]
 `--batch` 模式仅支持 retrieve：递归扫描目录下全部 `question.json` 并并发执行
 （直接模式与 `retrieve/db/*` 数据库模式均可）。
 
+### 检索子图深度审计
+
+```
+soul-tune depth-audit <question.json> [--depths 0,1,2,3] [--batch] [--verbose] [--json <path>]
+```
+
+**纯离线**：只读图与查询、在内存里跑 `DefaultPipeline`，**不碰数据库**。用途是判断
+`prefetch_db` 的邻居扩展深度（`db_neighbor_depth`）够不够用。输出两部分：
+
+- 期望节点距 **oracle 种子集**（全图相似度 top-k，即管线第一步）的无向最短跳数分布，
+  分 0 跳 / 1 跳 / 2 跳 / ≥3 跳 / 跨组件不可达；并给出「直接模式召回到的期望节点里
+  有多少位于 ≥2 跳」——即 **depth=1 的结构性损失上界**；
+- 各跳数对照点（种子 0 跳 / 1 跳 / … / 全图）上的子图规模、覆盖率、通过用例数、
+  期望命中数、Hit/MRR/Recall@3 与相对全图的丢失量。
+
+用 oracle 种子而非真实 DB 候选，是为了把"深度"做成单变量：DB 候选还叠加了预算、
+槽位 fan-out、HNSW 近似误差与字符串通道漏召，混在一起无法归因。
+
+`--batch` 递归扫描目录下全部 `question.json`，逐数据集给一行摘要并附跨数据集汇总；
+`--verbose` 追加逐用例明细；`--json <path>` 导出结构化结果（含各数据集的完整报告）。
+
+### 依赖深度审计的等价性约束
+
+`depth-audit` 的「全图」一行必须与 `retrieve/full` 的指标逐点一致，由
+`engine::retrieve::depth_audit` 内的 `test_full_graph_matches_direct_suite` 锁定。
+改了套件的合并/指标口径就要同步看那里。
+
 ### 角色扮演测试
 
 ```
@@ -75,6 +102,11 @@ soul-tune playtest <graph_dir> <dialogue_file>
   （精确重排与 top-k 截断在内存侧完成）。缺省用启发式 `max(2 * max_results, 20)`；
   也可在 GUI/API 参数中传 `db_candidate_k` 覆盖。预算越小，召回子图越接近真实 DB 路径
   （可能漏掉低相似度期望节点）；预算 ≥ 图节点数时 DB 路径与直接模式结果一致。
+  **注意该启发式与图规模无关**——大图上是否仍然够用需要单独验证（见 `depth-audit`）。
+- `db_neighbor_depth`：数据库模式下 `prefetch_db` 的邻居扩展跳数（缺省 `1`）。
+  `0` 表示关闭扩展（只把相似命中写进用例子图），用于观测"邻居扩展到底带来了什么"。
+  由于工作记忆只物化被写入的节点，**图上距候选集超过该跳数的节点对该子图上的任何
+  算法都不可达**，因此该值直接决定召回子图的可达范围。
 - 数据库模式默认使用进程内 kv-mem 内存库（无磁盘残留）；传参 `db_path=<目录>` 时改用
   磁盘 SurrealKv 验证持久化读回。
 
