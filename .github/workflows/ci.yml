@@ -51,6 +51,10 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
+        with:
+          # 提交信息门禁要沿 PR 范围回溯（base.sha..head），默认的浅克隆拿不到区间历史。
+          # 只有 quality 这一个 job 需要完整历史，其余 job 保持默认。
+          fetch-depth: 0
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -58,7 +62,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      # 两个纯文本门禁放在最前面：不需要工具链、秒级返回，而且——关键——它们必须在
+      # 三个纯文本门禁放在最前面：不需要工具链、秒级返回，而且——关键——它们必须在
       # `cargo fmt` 之前运行。此前它们排在 fmt 之后，于是 fmt 一红这两步就被 skip，
       # 门禁等于没装（正是这条注释原本想表达的意思，但位置写错了）。
       #
@@ -69,6 +73,17 @@ jobs:
       # 模块布局约定：一律 xxx.rs + xxx/，禁止 mod.rs。
       - name: Check module layout
         run: python3 scripts/check_layout.py
+
+      # 提交信息：Conventional Commits，只查本次 PR 新增提交的首行（docs/dev-convention.md §2）。
+      #
+      # 只在「目标分支是 dev」的 PR 上跑。dev → main 的 release PR 会把 dev 上成百个历史
+      # 提交一起带进范围，其中包含规范生效前的旧写法——那批历史按约定**不追溯、不重写**，
+      # 在 release PR 上重跑只会制造一批无解的假红。
+      - name: Check commit messages
+        if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'dev'
+        env:
+          COMMIT_RANGE: ${{ github.event.pull_request.base.sha }}..${{ github.sha }}
+        run: python3 scripts/check_commit_messages.py "$COMMIT_RANGE"
 
       - name: Check formatting
         run: cargo fmt --all --check
