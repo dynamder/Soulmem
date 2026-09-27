@@ -10,7 +10,7 @@ SoulMem 协作规范的唯一权威出处。[`CONTRIBUTING.md`](../CONTRIBUTING.
 
 | 分支 | 规则 |
 |---|---|
-| `main` | 发布线。只接受来自 `dev` 的 release PR；禁止直接提交 |
+| `main` | 发布线。只接受来自 `dev` 的 PR（release 或同步，见 §5）；禁止直接提交 |
 | `dev` | 唯一的集成分支。所有普通 PR 的目标 |
 | 主题分支 | 自 `dev` 切出。前缀 `feat/` `fix/` `chore/` `docs/` `refactor/` `perf/` |
 
@@ -87,6 +87,8 @@ python3 scripts/check_commit_messages.py <范围>
 ---
 
 ## 5. 发布流程
+
+**首个可用版本之前**：无版可发，代码同步用**同步 PR**——同样 `dev` → `main`，标题 `chore(main): 同步 dev 到 main（不发布 tag）`；下面第 1、2、4、5 步照做，跳过第 3 步（tag 与 release notes）。先例：#26。
 
 触发（任一）：
 
