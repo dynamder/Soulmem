@@ -81,7 +81,10 @@ mod tests {
         let got = select_active_nodes(&records, &hits, &cfg);
 
         assert_eq!(got.len(), 3);
-        assert_eq!(got.iter().map(|n| n.cycle_hits).collect::<Vec<_>>(), vec![5, 4, 3]);
+        assert_eq!(
+            got.iter().map(|n| n.cycle_hits).collect::<Vec<_>>(),
+            vec![5, 4, 3]
+        );
         assert_eq!(got[0].id, ids[4]);
         assert_eq!(got[1].id, ids[3]);
         assert_eq!(got[2].id, ids[2]);
