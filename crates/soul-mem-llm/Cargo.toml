@@ -1,0 +1,29 @@
+[package]
+name = "soul-mem-llm"
+version = "0.1.0"
+edition = "2024"
+description = "SoulMem 统一的 LLM 调用契约：顶层只有 trait 与语义类型，编码/解码/chunk 解析归各后端私有。"
+license = "MIT"
+
+[dependencies]
+# byot：让我们用自己的请求/响应类型（绕开 CreateChatCompletionRequest 无 extra_body 的问题）
+# middleware：暴露 tower 执行路径，用于自建重试策略与观测
+async-openai = { workspace = true, features = ["byot", "middleware"] }
+tower = { workspace = true }
+reqwest = { workspace = true }
+futures = { workspace = true }
+tracing = { workspace = true }
+secrecy = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+parking_lot = { workspace = true }
+rand = { workspace = true }
+
+[features]
+default = []
+
+[dev-dependencies]
+# 构造脚本化 HTTP 响应（reqwest::Response: From<http::Response<T>>）
+http = "1"

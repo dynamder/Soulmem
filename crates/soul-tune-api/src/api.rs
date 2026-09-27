@@ -203,13 +203,37 @@ struct OutcomeJson {
 #[frb]
 pub fn run_suite(algo: String, dataset: String, params_json: String, sink: StreamSink<String>) {
     std::thread::spawn(move || {
-        let _ = run_suite_impl(&algo, &dataset, &params_json, &sink);
+        run_stream(
+            &sink,
+            || run_suite_impl(&algo, &dataset, &params_json, &sink),
+            |message| RunEvent::Error { message },
+        );
     });
 }
 
 fn emit<T: Serialize>(sink: &StreamSink<String>, ev: &T) {
     if let Ok(json) = serde_json::to_string(ev) {
         let _ = sink.add(json);
+    }
+}
+
+/// 在 spawn 出来的线程里执行一次运行，失败时把错误推成对应的 `*Event::Error`。
+///
+/// 四处入口此前都是 `let _ = run_*_impl(...)`：算法名写错、数据集缺失、参数非法等错误
+/// 被直接丢弃，Dart 侧只会看到流静静关闭，没有任何事件可读——界面表现为"转圈之后没反应"，
+/// 调试时也没有任何线索。
+///
+/// 补发事件是在兑现既有契约而非新增契约：Dart 的 `RunEvent` / `BatchEvent` /
+/// `CompareEvent` / `ForgetEvent` 都已经实现了 `error` 分支
+/// （见 `soul-tune-ui/lib/src/models.dart`），只是 Rust 侧从未发送过。
+fn run_stream<E: Serialize>(
+    sink: &StreamSink<String>,
+    run: impl FnOnce() -> anyhow::Result<()>,
+    on_error: impl FnOnce(String) -> E,
+) {
+    if let Err(err) = run() {
+        // `{:#}` 展开 anyhow 的完整错误链，便于定位失败发生在哪一层
+        emit(sink, &on_error(format!("{err:#}")));
     }
 }
 
@@ -401,10 +425,19 @@ struct BatchReportJson {
 }
 
 /// 批量运行目录下全部检索数据集（4 worker 并发，逐数据集推流）。
+///
+/// **注意**：`params_json` 目前被忽略。`soul-tune` 的批量执行路径
+/// （`engine/batch.rs`）对每个数据集固定传 `None` 参数，因此批量运行始终使用
+/// `RetrieveSuite::load` 的默认参数。单数据集入口（`run_suite` / `run_compare`）
+/// 是认这个参数的——不要从这里的签名推断 batch 也认。
 #[frb]
 pub fn run_batch(dir: String, mode: String, params_json: String, sink: StreamSink<String>) {
     std::thread::spawn(move || {
-        let _ = run_batch_impl(&dir, &mode, &params_json, &sink);
+        run_stream(
+            &sink,
+            || run_batch_impl(&dir, &mode, &params_json, &sink),
+            |message| BatchEvent::Error { message },
+        );
     });
 }
 
@@ -612,18 +645,30 @@ fn find_query_metrics(
         .map(|p| &p.ranking_metrics)
 }
 
-#[allow(clippy::type_complexity)] // 内部聚合：多通道指标以元组返回，比中间结构更直观
+/// [`case_extras_json`] 的多通道返回值。
+///
+/// 这里刻意用**命名结构体**而不是元组：返回值是多通道指标的聚合，元组会让调用方
+/// 依赖位置记忆（原先只能靠 `// emb precision` 这类行内注释区分），而且会让
+/// "整体替换返回值" 这一类变异测试发生组合爆炸——cargo-mutants 曾为该元组单函数
+/// 生成约 4800 个变异体，占全仓库变异体总数的约 46%，把杀灭率指标完全淹掉。
+struct CaseExtras {
+    /// embedding 侧的 precision@k 曲线
+    emb_precision: Vec<(usize, f64)>,
+    /// full pipeline 侧的 precision@k 曲线
+    full_precision: Vec<(usize, f64)>,
+    /// embedding 侧的 ndcg@k 曲线
+    emb_ndcg: Vec<(usize, f64)>,
+    /// full pipeline 侧的 ndcg@k 曲线
+    full_ndcg: Vec<(usize, f64)>,
+    /// 逐查询明细
+    per_query: Vec<ComparePerQueryJson>,
+}
+
 fn case_extras_json(
     key: &(String, u32, u32),
     emb_map: &HashMap<(String, u32, u32), &RetrieveCaseData>,
     full_map: &HashMap<(String, u32, u32), &RetrieveCaseData>,
-) -> (
-    Vec<(usize, f64)>, // emb precision
-    Vec<(usize, f64)>, // full precision
-    Vec<(usize, f64)>, // emb ndcg
-    Vec<(usize, f64)>, // full ndcg
-    Vec<ComparePerQueryJson>,
-) {
+) -> CaseExtras {
     use soul_tune::engine::retrieve::data::RankingMetrics;
     fn metrics_of<'a>(
         map: &'a HashMap<(String, u32, u32), &'a RetrieveCaseData>,
@@ -686,13 +731,13 @@ fn case_extras_json(
         })
         .collect();
 
-    (
+    CaseExtras {
         emb_precision,
         full_precision,
         emb_ndcg,
         full_ndcg,
         per_query,
-    )
+    }
 }
 
 fn compare_key(name: &str, tag_weight: f32, variant_weight: f32) -> (String, u32, u32) {
@@ -727,7 +772,11 @@ struct CompareReportJson {
 #[frb]
 pub fn run_compare(dataset: String, params_json: String, sink: StreamSink<String>) {
     std::thread::spawn(move || {
-        let _ = run_compare_impl(&dataset, &params_json, &sink);
+        run_stream(
+            &sink,
+            || run_compare_impl(&dataset, &params_json, &sink),
+            |message| CompareEvent::Error { message },
+        );
     });
 }
 
@@ -889,8 +938,13 @@ fn build_compare_json(
             .iter()
             .map(|c| {
                 let key = compare_key(&c.case_name, c.tag_weight, c.variant_weight);
-                let (emb_precision, full_precision, emb_ndcg, full_ndcg, per_query) =
-                    case_extras_json(&key, &emb_map, &full_map);
+                let CaseExtras {
+                    emb_precision,
+                    full_precision,
+                    emb_ndcg,
+                    full_ndcg,
+                    per_query,
+                } = case_extras_json(&key, &emb_map, &full_map);
                 CompareCaseJson {
                     case_name: c.case_name.clone(),
                     description: c.description.clone(),
@@ -1060,8 +1114,13 @@ fn build_db_compare_json(
             .iter()
             .map(|c| {
                 let key = compare_key(&c.case_name, c.tag_weight, c.variant_weight);
-                let (emb_precision, full_precision, emb_ndcg, full_ndcg, per_query) =
-                    case_extras_json(&key, &direct_map, &db_map);
+                let CaseExtras {
+                    emb_precision,
+                    full_precision,
+                    emb_ndcg,
+                    full_ndcg,
+                    per_query,
+                } = case_extras_json(&key, &direct_map, &db_map);
                 CompareCaseJson {
                     case_name: c.case_name.clone(),
                     description: c.description.clone(),
@@ -1280,7 +1339,11 @@ struct ForgetReportJson {
 #[frb]
 pub fn run_forget(mode: String, dataset: String, sink: StreamSink<String>) {
     std::thread::spawn(move || {
-        let _ = run_forget_impl(&mode, &dataset, &sink);
+        run_stream(
+            &sink,
+            || run_forget_impl(&mode, &dataset, &sink),
+            |message| ForgetEvent::Error { message },
+        );
     });
 }
 

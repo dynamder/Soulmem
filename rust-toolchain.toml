@@ -1,4 +1,13 @@
+# 固定工具链版本，不要改回 "stable"。
+#
+# 原因：门禁用了浮动工具链，而 `cargo fmt --all --check` 的结果依赖 rustfmt 版本。
+# rustfmt 改一次默认排版规则，门禁就会在**没有任何人动代码**的情况下把 dev 变红：
+# 2026-08 发生过一次（短 if/else 被折叠成一行），dev 因此连续三周 push CI 失败，
+# 所有基于 dev 的 PR 都无法转绿，而失败信息指向的是几十个与作者无关的文件。
+#
+# 升级工具链请单独提一个 PR，并在同一个 PR 内跑一次 `cargo fmt --all` 与
+# `cargo clippy --workspace --all-targets`，让版本升级与随之而来的改动一起被评审。
 [toolchain]
-channel = "stable"
+channel = "1.97.1"
 components = ["rustfmt", "clippy"]
 profile = "minimal"

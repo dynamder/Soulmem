@@ -44,6 +44,7 @@ const MAX_PIPELINE_NOTES: usize = 10;
 /// 将相似性种子与PPR关联结果按MemoryId合并去重（同id取更高分），
 /// 按分数降序后截断到 MAX_PIPELINE_NOTES。
 /// 两种来源的分数均处于 [0,1] 量纲，可直接比较。
+#[hotpath::measure]
 fn merge_note_scores(
     similarity: Vec<(MemoryId, f32)>,
     association: Vec<(MemoryId, f64)>,
@@ -88,6 +89,7 @@ impl RetrRequest for DefaultPipelineRequest {}
 impl RetrStrategy for RetrDefaultPipeline {
     type Request = DefaultPipelineRequest;
     type Return<'a> = DefaultPipelineResult;
+    #[hotpath::measure]
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
         //短期记忆：滑动窗口和摘要
         let short_mem_request = request

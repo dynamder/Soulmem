@@ -111,39 +111,46 @@ graph TD
 
 ## 各 Crate 依赖与交互关系
 
-代码按以下 5 个 crate 分层组织，箭头表示依赖方向（被依赖方 → 依赖方）。
+代码按以下 6 个 crate 分层组织，箭头表示依赖方向（被依赖方 → 依赖方）。
 
 ```mermaid
 graph TD
     classDef core fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px,color:#1e3a8a;
     classDef layer fill:#f1f5f9,stroke:#475569,stroke-width:2px,color:#1e293b;
+    classDef llm fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#92400e;
 
     core["soul-mem-core<br/>MemoryNote / MemoryLink 数据模型<br/>✅ 已实现"]
     query["soul-mem-query<br/>Embedding 生成 / Query 类型 / 相似度计算<br/>✅ 已实现"]
-    runtime["soul-mem-runtime<br/>WorkingMemory / SlidingWindow / Cluster / Record / LLM 摘要<br/>✅ 已实现"]
-    algo["soul-mem-algo<br/>检索策略 RetrStrategy / DefaultPipeline 编排<br/>✅ 已实现"]
+    llm["soul-mem-llm<br/>统一 LLM 调用层：契约 / 传输 / 重试 / 流式 / trace<br/>✅ 已实现"]
+    runtime["soul-mem-runtime<br/>WorkingMemory / SlidingWindow / Cluster / Record<br/>✅ 已实现"]
+    algo["soul-mem-algo<br/>检索策略 RetrStrategy / DefaultPipeline / 遗忘 / 巩固<br/>✅ 已实现"]
     tune["soul-tune<br/>测试框架（GUI + headless CLI）<br/>✅ 已实现"]
 
     core --> query
     core --> runtime
     query --> runtime
+    llm --> runtime
     core --> algo
     query --> algo
     runtime --> algo
+    llm --> algo
     core --> tune
     query --> tune
     runtime --> tune
     algo --> tune
+    llm --> tune
 
     class core core;
     class query,runtime,algo,tune layer;
+    class llm llm;
 ```
 
 - `soul-mem-core`：纯数据模型，无任何内部依赖，是其余 crate 的基础。
 - `soul-mem-query`：依赖 core，负责文本→向量嵌入（BGE/Qwen3 模型）与查询类型定义。
-- `soul-mem-runtime`：依赖 core、query，维护工作记忆（滑动窗口、记忆簇、活跃记录）并封装 LLM 摘要调用。
-- `soul-mem-algo`：依赖 core、query、runtime，实现全部检索策略，其中 `RetrDefaultPipeline` 串联三步构成完整检索管线。
-- `soul-tune`：依赖全部 crate，是用于基准测试的命令行工具，非运行时组件。
+- `soul-mem-llm`：**叶子 crate，不依赖任何内部 crate**。所有 LLM 调用的唯一入口：语义契约（`ChatBackend` + `Task`/`Completion`）、OpenAI-compatible 传输、重试与超时、流式、错误分类、JSONL trace、宽容 JSON 抽取。详细数据流见 [llm-layer.md](./llm-layer.md)。
+- `soul-mem-runtime`：依赖 core、query、**llm**，维护工作记忆（滑动窗口、记忆簇、活跃记录），摘要调用走 `soul-mem-llm`。
+- `soul-mem-algo`：依赖 core、query、runtime、**llm**，实现全部检索策略与遗忘/巩固流程，其中 `RetrDefaultPipeline` 串联三步构成完整检索管线；需要 LLM 的算法入口统一接收 `&LlmEngine`。
+- `soul-tune`：依赖全部 crate，是用于基准测试的命令行工具，非运行时组件；LLM 后端（llama-server 进程管理 + candle 进程内推理）在这里，网络调用的传输细节仍归 `soul-mem-llm`。
 
 > 注：`soul-mem-runtime` 对 `soul-mem-algo` 的依赖仅存在于 `dev-dependencies`（测试用），生产依赖图中不存在反向依赖。
 

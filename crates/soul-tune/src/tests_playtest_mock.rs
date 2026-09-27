@@ -42,21 +42,21 @@ fn test_mock_llm_chat_returns_response() {
 
 #[test]
 fn test_playtest_repair_extract_think() {
-    use crate::engine::playtest::repair::extract_think_content;
+    use soul_mem_llm::json::extract_think_content;
     let input = "<think>reasoning</think>body";
     assert_eq!(extract_think_content(input), Some("reasoning".into()));
 }
 
 #[test]
 fn test_playtest_repair_strip_think() {
-    use crate::engine::playtest::repair::strip_think_block;
+    use soul_mem_llm::json::strip_think_block;
     let input = "a<think>remove</think>b";
     assert_eq!(strip_think_block(input), "ab");
 }
 
 #[test]
 fn test_playtest_repair_json_extract() {
-    use crate::engine::playtest::repair::extract_json_array;
+    use soul_mem_llm::json::extract_json_array;
     let input = r#"prefix [{"k":"v"}] suffix"#;
     assert_eq!(extract_json_array(input), Some(r#"[{"k":"v"}]"#));
 }

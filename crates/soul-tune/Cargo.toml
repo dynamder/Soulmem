@@ -13,6 +13,8 @@ soul-mem-core = { path = "../soul-mem-core" }
 soul-mem-algo = { path = "../soul-mem-algo" }
 soul-mem-query = { path = "../soul-mem-query" }
 soul-mem-runtime = { path = "../soul-mem-runtime" }
+# LLM 调用统一走这条栈；本 crate 不再自己拼 OpenAI-compatible 请求
+soul-mem-llm = { path = "../soul-mem-llm" }
 serde.workspace = true
 rand = "0.9"
 candle-core = { workspace = true, optional = true }

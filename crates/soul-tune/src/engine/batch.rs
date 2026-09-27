@@ -344,6 +344,7 @@ mod tests {
                 ndcg_at: vec![(1, 0.0)],
                 hit_rate: 0.0,
             },
+            db_recall: None,
             per_query_metrics: vec![],
             action_metrics: ActionMetrics {
                 action_hit_rate: hit,

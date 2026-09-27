@@ -45,6 +45,7 @@ impl RetrStrategy for RetrShortOnly {
         = (Arc<[Information]>, Arc<str>)
     where
         Self: 'a;
+    #[hotpath::measure]
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
         let window = {
             let mut window = request.working_mem.sliding_window().get_windows();

@@ -181,6 +181,7 @@ mod tests {
             description: format!("desc {name}"),
             combined_retrieved_ids: vec![],
             combined_ranking_metrics: metrics(hit, mrr),
+            db_recall: None,
             per_query_metrics: vec![],
             action_metrics: ActionMetrics {
                 action_hit_rate: 0.0,

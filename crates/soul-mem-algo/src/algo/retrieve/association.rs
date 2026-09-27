@@ -133,6 +133,7 @@ impl RetrRequest for AssociationRequest {}
 impl RetrStrategy for RetrAssociation {
     type Request = AssociationRequest;
     type Return<'a> = Vec<(MemoryId, f64)>;
+    #[hotpath::measure]
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
         if request.source.is_empty() {
             return Vec::new();
@@ -578,7 +579,28 @@ mod tests {
 
         assert!(!result.is_empty());
         let scores: Vec<f64> = result.iter().map(|(_, s)| *s).collect();
-        insta::assert_debug_snapshot!("multi_source_ppr", scores);
+
+        // 容差比较（不使用精确快照）：PPR 内部存在由 HashMap 迭代顺序驱动的浮点
+        // 累加顺序差异，不同进程/平台/硬件会产生 ~1e-7 量级的合法抖动，
+        // 精确快照会导致随机红。此处只校验分数落在同一量级与容差内。
+        const TOL: f64 = 1e-4;
+        let expected: [f64; 3] = [0.4244, 0.2997, 0.2759];
+        assert_eq!(
+            scores.len(),
+            expected.len(),
+            "多源 PPR 命中数与预期不一致: {scores:?}"
+        );
+        for (got, want) in scores.iter().zip(expected) {
+            assert!(
+                (got - want).abs() < TOL,
+                "分数超出容差: got {got}, want {want}, tol {TOL}"
+            );
+        }
+        // 排序语义：分数须单调不增
+        assert!(
+            scores.windows(2).all(|w| w[0] >= w[1]),
+            "分数未按降序排列: {scores:?}"
+        );
     }
 
     #[test]

@@ -1,15 +1,40 @@
+//! 嵌入层：把领域对象变成向量。
+//!
+//! # 两个 trait 的分工
+//!
+//! - [`Embeddable`]：**领域侧**——谁有向量表示、怎么从自己算出向量。实现分布在
+//!   `note.rs` / `sem.rs` / `situation/`（记忆侧）与 `query/`（查询侧）。
+//! - [`EmbeddingModel`]：**模型侧**——怎么把一批字符串变成向量。
+//!   实现见 `embedding_model/{bge,qwen3}.rs`。
+//!
+//! # 查询侧与记忆侧是不对称的
+//!
+//! 检索类模型（如 BGE v1.5）训练时**查询带指令前缀、passage 不带**。
+//! [`EmbeddingModel`] 为此提供 `infer_query_batch` / `infer_query_and_fuse` /
+//! `infer_query_with_chunk` 三个方法，而它们的**默认实现等于非 query 版本**。
+//! 需要指令前缀的模型必须覆写；**忘了覆写不会报错**，只会让检索质量下降。
+//! 范例见 `embedding_model/bge.rs` 的 `QUERY_INSTRUCTION`。
+//!
+//! # 错误类型
+//!
+//! - [`EmbeddingGenError`]：生成向量阶段的失败（模型 / IO / 输入缺失）。
+//! - [`EmbeddingCalcError`]：已拿到向量后的计算失败（维度不匹配 / 数值无效）。
+//!
+//! 二者可互相转换，调用方通常只需 `?`。
+
 use async_trait::async_trait;
 
 use thiserror::Error;
 
 pub mod blend_weights;
 pub mod embedding_model;
+pub mod note;
 pub mod query;
 pub mod sem;
 pub mod situation;
 pub mod vec;
+
 pub use vec::{EmbeddingVec, mean_pooling, raw_linear_blend};
-pub mod note;
 
 pub trait Embeddable {
     type EmbeddingFused;
@@ -33,7 +58,7 @@ pub enum EmbeddingGenError {
     Anyhow(#[from] anyhow::Error),
 }
 
-//Only a placeholder for now
+// 计算阶段的错误。变体按已实现路径的需要而设，新增校验点时按需扩展。
 #[derive(Debug, Error)]
 pub enum EmbeddingCalcError {
     #[error("Invalid vec")] //缺失了某些必要字段

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 use serde::Serialize;
@@ -29,12 +29,103 @@ pub struct PerQueryMetrics {
     pub ranking_metrics: RankingMetrics,
 }
 
+/// prefetch_db 召回观测（DB 模式每个用例记录一次）。
+///
+/// 回答两个问题：
+/// 1. DB 召回子图有多大（候选 HNSW 命中 / 一跳邻居 / 实际写入工作记忆的节点数）；
+/// 2. 期望命中有多少进入了召回子图——没进的就是 DB 路径的结构性漏召
+///    （`expected_missed`），与"进了子图但精确重排没排进 top-k"的原因区分开。
+#[derive(Clone, Debug, Default, PartialEq, Serialize)]
+pub struct DbRecallDetail {
+    /// similarity_fetch 的 union 候选数（每槽位 KNN，去重）。
+    pub candidate_count: usize,
+    /// 一跳邻居扩展数。
+    pub neighbor_count: usize,
+    /// 实际写入用例工作记忆的子图节点数（候选 + 邻居去重后）。
+    pub subgraph_count: usize,
+    /// 参与召回的查询（子查询）数。
+    pub query_count: usize,
+    /// 每槽位 KNN 候选召回预算。
+    pub candidate_k: usize,
+    /// 期望节点总数（must + bonus 并集、去重）。
+    pub expected_count: usize,
+    /// 期望 ∩ 候选（仅靠嵌入相似召回即覆盖的部分）。
+    pub expected_in_candidates: usize,
+    /// 期望 ∩ 子图（候选 + 邻居后覆盖的部分）。
+    pub expected_in_subgraph: usize,
+    /// must 期望（判定通过的依据）中进入子图的数量。
+    pub must_in_subgraph: usize,
+    /// 期望中未被 DB 召回的子集（按期望顺序，为 DB 回退用例的根因候选）。
+    pub expected_missed: Vec<MemoryId>,
+}
+
+impl DbRecallDetail {
+    /// 由一次 prefetch_db 的观测（候选/邻居/实际子图成员）与用例期望真值构建详情。
+    ///
+    /// `expected_must` / `expected_bonus` 保持调用侧顺序；并集去重后与子图比对。
+    pub fn from_prefetch(
+        candidate_ids: &[MemoryId],
+        neighbor_ids: &[MemoryId],
+        subgraph_ids: &[MemoryId],
+        expected_must: &[MemoryId],
+        expected_bonus: &[MemoryId],
+        query_count: usize,
+        candidate_k: usize,
+    ) -> Self {
+        let candidate_set: HashSet<&MemoryId> = candidate_ids.iter().collect();
+        let subgraph_set: HashSet<&MemoryId> = subgraph_ids.iter().collect();
+
+        // must + bonus 并集，保持顺序去重
+        let mut seen: HashSet<MemoryId> = HashSet::new();
+        let expected_all: Vec<MemoryId> = expected_must
+            .iter()
+            .chain(expected_bonus.iter())
+            .copied()
+            .filter(|id| seen.insert(*id))
+            .collect();
+
+        let expected_in_candidates = expected_all
+            .iter()
+            .filter(|id| candidate_set.contains(id))
+            .count();
+        let expected_in_subgraph = expected_all
+            .iter()
+            .filter(|id| subgraph_set.contains(id))
+            .count();
+        let must_in_subgraph = expected_must
+            .iter()
+            .filter(|id| subgraph_set.contains(id))
+            .count();
+        let expected_missed: Vec<MemoryId> = expected_all
+            .iter()
+            .filter(|id| !subgraph_set.contains(id))
+            .copied()
+            .collect();
+
+        DbRecallDetail {
+            candidate_count: candidate_ids.len(),
+            neighbor_count: neighbor_ids.len(),
+            subgraph_count: subgraph_ids.len(),
+            query_count,
+            candidate_k,
+            expected_count: expected_all.len(),
+            expected_in_candidates,
+            expected_in_subgraph,
+            must_in_subgraph,
+            expected_missed,
+        }
+    }
+}
+
 #[derive(Clone, Serialize)]
 pub struct RetrieveCaseData {
     pub case_name: String,
     pub description: String,
     pub combined_retrieved_ids: Vec<MemoryId>,
     pub combined_ranking_metrics: RankingMetrics,
+    /// DB 模式：prefetch_db 召回观测（候选/邻居/子图规模与期望覆盖）；直接模式为 None。
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub db_recall: Option<DbRecallDetail>,
     pub per_query_metrics: Vec<PerQueryMetrics>,
     pub action_metrics: ActionMetrics,
     /// 该用例的期望结果中是否包含抽象情境节点（有真值才计入抽象指标）。
@@ -65,6 +156,8 @@ pub struct DrilldownSections {
     pub metrics_rows: Vec<String>,
     pub subquery_items: Vec<SubQueryItem>,
     pub comparison_rows: Vec<ComparisonRow>,
+    /// DB 模式：prefetch_db 召回观测的可读行（候选/邻居/子图/期望覆盖/漏召列表）。
+    pub db_recall_lines: Vec<String>,
 }
 
 pub struct SubQueryItem {
@@ -91,6 +184,7 @@ pub fn build_drilldown_sections(data: &RetrieveCaseData) -> DrilldownSections {
         metrics_rows: Vec::new(),
         subquery_items: Vec::new(),
         comparison_rows: Vec::new(),
+        db_recall_lines: Vec::new(),
     };
 
     sections
@@ -135,6 +229,42 @@ pub fn build_drilldown_sections(data: &RetrieveCaseData) -> DrilldownSections {
             mrr: m.ranking_metrics.mrr,
             hit_rate: m.ranking_metrics.hit_rate,
         });
+    }
+
+    // DB 模式：prefetch_db 召回观测详情（候选/邻居/子图/期望覆盖/漏召列表）
+    if let Some(r) = &data.db_recall {
+        sections.db_recall_lines.push(format!(
+            "  候选召回: {} 节点（{} 查询 × 每槽位预算 {}）",
+            r.candidate_count, r.query_count, r.candidate_k
+        ));
+        sections
+            .db_recall_lines
+            .push(format!("  一跳邻居: +{} 节点", r.neighbor_count));
+        sections
+            .db_recall_lines
+            .push(format!("  工作记忆子图: {} 节点", r.subgraph_count));
+        sections.db_recall_lines.push(format!(
+            "  期望覆盖: {}/{} 进入子图（候选内 {}，must {}）",
+            r.expected_in_subgraph, r.expected_count, r.expected_in_candidates, r.must_in_subgraph
+        ));
+        if r.expected_missed.is_empty() {
+            sections
+                .db_recall_lines
+                .push("  期望全部进入召回子图 ✓".to_string());
+        } else {
+            sections
+                .db_recall_lines
+                .push("  期望未召回（DB 结构性漏召候选）:".to_string());
+            for id in &r.expected_missed {
+                let name = data
+                    .graph_names
+                    .as_ref()
+                    .and_then(|m| m.get(id))
+                    .cloned()
+                    .unwrap_or_else(|| format!("{id:?}"));
+                sections.db_recall_lines.push(format!("    - {name}"));
+            }
+        }
     }
 
     let n_max = data
@@ -200,6 +330,7 @@ mod tests {
                 ndcg_at: vec![(1, 1.0), (3, 0.8)],
                 hit_rate: 1.0,
             },
+            db_recall: None,
             per_query_metrics: vec![PerQueryMetrics {
                 query_index: 0,
                 ranking_metrics: RankingMetrics {
@@ -270,5 +401,92 @@ mod tests {
         };
         let c = rm.clone();
         assert!((c.mrr - 0.5).abs() < 1e-6);
+    }
+
+    // ── DbRecallDetail::from_prefetch ──
+
+    fn ids(n: usize) -> Vec<MemoryId> {
+        (0..n).map(|_| MemoryId::new()).collect()
+    }
+
+    #[test]
+    fn test_db_recall_detail_full_coverage() {
+        let candidate = ids(3); // a0..a2 进入候选
+        let neighbors = ids(1); // b0 邻居
+        let subgraph: Vec<MemoryId> = candidate.iter().chain(neighbors.iter()).copied().collect();
+        let must: Vec<MemoryId> = vec![candidate[0], neighbors[0]];
+        let bonus: Vec<MemoryId> = vec![candidate[1]];
+        let detail =
+            DbRecallDetail::from_prefetch(&candidate, &neighbors, &subgraph, &must, &bonus, 2, 20);
+        assert_eq!(detail.candidate_count, 3);
+        assert_eq!(detail.neighbor_count, 1);
+        assert_eq!(detail.subgraph_count, 4);
+        assert_eq!(detail.query_count, 2);
+        assert_eq!(detail.candidate_k, 20);
+        assert_eq!(detail.expected_count, 3);
+        assert_eq!(detail.expected_in_candidates, 2); // a0, a1（邻居 b0 不在候选）
+        assert_eq!(detail.expected_in_subgraph, 3);
+        assert_eq!(detail.must_in_subgraph, 2);
+        assert!(detail.expected_missed.is_empty());
+    }
+
+    #[test]
+    fn test_db_recall_detail_missed_keeps_expected_order() {
+        let candidate = ids(1);
+        let subgraph = candidate.clone();
+        let b = MemoryId::new();
+        let a = MemoryId::new();
+        let must = vec![b, a]; // 期望顺序：b 在前
+        let detail = DbRecallDetail::from_prefetch(&candidate, &[], &subgraph, &must, &[], 1, 4);
+        assert_eq!(detail.expected_count, 2);
+        assert_eq!(detail.expected_in_subgraph, 0);
+        // 漏召按期望原序（b 在前），便于 UI 对照期望排名
+        assert_eq!(detail.expected_missed, vec![b, a]);
+        // a/b 与候选 id 均不同 → 候选内覆盖为 0
+        assert_eq!(detail.expected_in_candidates, 0);
+    }
+
+    #[test]
+    fn test_db_recall_detail_bonus_dedup() {
+        let (x, y) = (MemoryId::new(), MemoryId::new());
+        // must 与 bonus 重复的 y 只计一次
+        let detail = DbRecallDetail::from_prefetch(&[x], &[], &[x, y], &[x, y], &[y], 1, 4);
+        assert_eq!(detail.expected_count, 2);
+        assert_eq!(detail.expected_in_subgraph, 2);
+        assert_eq!(detail.must_in_subgraph, 2);
+        assert!(detail.expected_missed.is_empty());
+    }
+
+    #[test]
+    fn test_build_drilldown_db_recall_lines() {
+        let mut data = mock_case_data();
+        let (x, y) = (MemoryId::new(), MemoryId::new());
+        let detail =
+            DbRecallDetail::from_prefetch(&[x], &[y], &[x, y], &[x], &[MemoryId::new()], 1, 20);
+        data.db_recall = Some(detail);
+        // 期望含一个不在子图的节点 → 出现"期望未召回"段
+        let sections = build_drilldown_sections(&data);
+        assert!(!sections.db_recall_lines.is_empty());
+        let joined = sections.db_recall_lines.join("\n");
+        assert!(joined.contains("候选召回: 1"));
+        assert!(joined.contains("一跳邻居: +1"));
+        assert!(joined.contains("期望未召回"));
+        // 全被召回时给出 ✓ 行
+        data.db_recall = Some(DbRecallDetail::from_prefetch(
+            &[x],
+            &[y],
+            &[x, y],
+            &[x, y],
+            &[],
+            1,
+            20,
+        ));
+        let sections2 = build_drilldown_sections(&data);
+        assert!(
+            sections2
+                .db_recall_lines
+                .join("\n")
+                .contains("期望全部进入召回子图 ✓")
+        );
     }
 }
