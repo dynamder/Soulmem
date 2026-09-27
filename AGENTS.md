@@ -36,6 +36,7 @@ SoulMem 是**角色扮演用的记忆系统**，本质是一个"向量检索 + �
 | `scripts/check_encoding.py` | 编码门禁（CI 中执行） |
 | `scripts/check_layout.py` | 模块布局门禁（CI 中执行） |
 | `scripts/check_commit_messages.py` | 提交信息门禁（Conventional Commits，CI 中执行） |
+| `scripts/classify_changes.py` | 纯文档改动分类器（CI 据此跳过 `Test` 矩阵；不是门禁） |
 
 依赖方向：`core → query/runtime/llm → algo → soul-tune → soul-tune-api`。
 `runtime → algo` 仅存在于 **dev-dependencies**，生产依赖图中没有反向边。
