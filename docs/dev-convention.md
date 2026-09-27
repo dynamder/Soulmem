@@ -70,6 +70,8 @@ python3 scripts/check_commit_messages.py origin/dev..HEAD
 | `Test (ubuntu / windows / macos)` | `cargo build --all-targets` + `cargo test --workspace` |
 | `Security (cargo-deny)` | RustSec advisory + 许可证合规 |
 
+纯文档改动（全部改动落在 `docs/**` 或 `*.md`）跳过 `Test` 矩阵的重步骤：`test` job 本身照常运行并上报三个检查名，只跳过 toolchain、缓存、build 与 test。判定由 `scripts/classify_changes.py` 完成；无法判定时回退到跑全量。
+
 纯文本门禁不需要工具链，提交前本地执行：
 
 ```bash

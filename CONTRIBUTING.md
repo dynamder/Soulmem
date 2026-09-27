@@ -56,7 +56,7 @@ git worktree add ../SoulMem-book doc/book
 
 ## CI 说明
 
-- push 到 `main` / `dev`，以及所有 Pull Request，会在 Windows、Ubuntu、macOS 三平台执行编译与测试。
+- push 到 `main` / `dev`，以及所有 Pull Request，会在 Windows、Ubuntu、macOS 三平台执行编译与测试；**纯文档改动**（全部改动落在 `docs/**` 或 `*.md`）跳过测试矩阵，只跑 `Quality` 与 `Security`。
 - PR 还会按本次改动范围运行 cargo-mutants，杀灭率低于 90% 会直接失败。
 - 每周（每隔一周）自动执行一次全量 mutants，并上传报告 artifact。
 - 依赖安全由 Dependabot（自动更新 PR）和 cargo-deny（安全公告 + 许可证）把关。
