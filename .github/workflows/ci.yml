@@ -34,7 +34,7 @@ jobs:
 
       # bge-small-zh 模型在测试时由 hf-hub 下载，缓存避免三平台重复下载。
       - name: Cache embedding model
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/huggingface
           key: hf-${{ runner.os }}-bge-small-zh
