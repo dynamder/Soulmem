@@ -25,24 +25,51 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7
+        with:
+          # 文档分类要读区间内的改动文件，浅克隆拿不到区间历史（仓库约 37 MiB，代价可忽略）。
+          fetch-depth: 0
+
+      # 纯文档改动无法影响编译或测试，没必要付三平台全量测试的时间：先分类，再决定下面的
+      # 重步骤跑不跑。
+      #
+      # 为什么必须留在 **job 内、用步骤级 if**，而不能给 job 加 `if`，也不能给
+      # `on.pull_request` 加 `paths-ignore`：
+      #   - workflow 级路径过滤会让必需检查根本不被创建，PR 永久停在 "Expected — Waiting"；
+      #   - **job 级 `if` 在 matrix 展开之前求值**：被跳过时只上报未插值的模板名
+      #     `Test (${{ matrix.os }})`，而分支保护要的是 `Test (ubuntu-latest)` 等三个具体
+      #     名字——它们永远不会被创建，同样死锁。
+      # 步骤级跳过不影响 job 自身完成，三个名字照常上报。
+      #
+      # 输出只有三种可能：`false`（改动全是文档 → 跳过重步骤）、`true`（有代码改动 → 全跑）、
+      # 空（非 PR 事件，或本步骤被跳过 → 全跑）。条件写成 `!= 'false'` 是为了让最后一种
+      # 落到"全跑"，fail-safe。
+      - name: Classify changed paths
+        id: classify
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/classify_changes.py "${{ github.event.pull_request.base.sha }}..${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
       - uses: dtolnay/rust-toolchain@stable
+        if: steps.classify.outputs.code != 'false'
         with:
           components: rustfmt, clippy
 
       - uses: Swatinem/rust-cache@v2
+        if: steps.classify.outputs.code != 'false'
 
       # bge-small-zh 模型在测试时由 hf-hub 下载，缓存避免三平台重复下载。
       - name: Cache embedding model
+        if: steps.classify.outputs.code != 'false'
         uses: actions/cache@v6
         with:
           path: ~/.cache/huggingface
           key: hf-${{ runner.os }}-bge-small-zh
 
       - name: Build all targets
+        if: steps.classify.outputs.code != 'false'
         run: cargo build --workspace --all-targets
 
       - name: Run tests
+        if: steps.classify.outputs.code != 'false'
         run: cargo test --workspace
 
   quality:
