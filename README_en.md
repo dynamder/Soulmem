@@ -36,11 +36,47 @@ Unlike traditional role-playing systems that rely on static "character cards," S
 
 - ***Important Notice***: The project has undergone architectural refactoring. The `main` branch contains the latest version. The old alpha version code can be found on the [`alpha_deprecated`](https://github.com/dynamder/SoulMem/tree/alpha_deprecated) branch.
 
-- ***Detailed Architecture***: Please refer to [`docs/architecture/beta_ver.md`](docs/architecture/beta_ver.md) for the latest technical architecture documentation.
+- ***Current Architecture***: See [`docs/architecture/orchestration.md`](docs/architecture/orchestration.md) — it marks every element ✅/🔲 to separate **implemented** from **planned**, and is the description kept in sync with the code.
+
+- ***Design History***: [`docs/architecture/beta_ver.md`](docs/architecture/beta_ver.md) is a beta-stage **design proposal** (open questions and `- [ ]` TODOs included). Parts of it have been superseded by the implementation — do not read it as current state.
+
+- ***For AI agents and contributors***: start with [`AGENTS.md`](AGENTS.md). It carries the repository map, a "where to start reading" index, the invariants that must hold, and the known traps that fail silently.
+
+### Repository layout
+
+| Path | Description |
+|---|---|
+| `crates/soul-mem-core` | Pure data model (`MemoryNote` / `MemoryLink`), no internal dependencies |
+| `crates/soul-mem-query` | Text→vector embedding, query types, similarity and scoring |
+| `crates/soul-mem-llm` | The single LLM call layer (contract / transport / retry / streaming / trace) |
+| `crates/soul-mem-runtime` | Working memory (sliding window, cluster, activation records) and the SurrealDB repository |
+| `crates/soul-mem-algo` | Retrieval strategies, forgetting, consolidation |
+| `crates/soul-tune` | Test and benchmark framework (headless CLI + library), **not a runtime component** |
+| `crates/soul-tune-api` | Flutter Rust Bridge layer |
+| `soul-tune-ui/` | Flutter GUI |
+| `benches/` | criterion benchmarks (cosine / SIMD / PPR) |
+| `fixtures/` | Test datasets (character graphs and dialogues) |
+| `docs/` | Architecture and specification documents |
 
 ## 🚀 Quick Start
 
-The project is currently in its early development stages. Installation and basic usage tutorials will be provided here when an applicable version is available.
+No stable release yet, but the test framework is usable today:
+
+```bash
+# GUI (recommended; requires a Flutter toolchain)
+cd soul-tune-ui && flutter run -d windows
+
+# Or the headless CLI
+cargo run -p soul-tune -- inspect fixtures/graphs/rust_small_zh.json
+cargo run -p soul-tune -- run retrieve/full fixtures/example_data --batch
+cargo run -p soul-tune -- playtest <graph_dir> <dialogue_file>
+```
+
+Full command reference, the `algo` value table and the dataset format live in [`crates/soul-tune/docs/user-guide.md`](crates/soul-tune/docs/user-guide.md).
+
+> **Note**: some tests and all playtest runs need a downloaded embedding model (BGE)
+> or a local GGUF model. Failing offline is an environment problem, not a broken
+> build — see [`AGENTS.md`](AGENTS.md) §5.
 
 ## 🔧 Development & CI
 

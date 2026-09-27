@@ -2,8 +2,8 @@ use chrono::{DateTime, Utc};
 use jieba_rs::Jieba;
 use soul_mem_core::memory_links::MemoryLink;
 use soul_mem_core::memory_note::{MemoryNote, MemoryType, situation_mem::SituationType};
+use soul_mem_llm::LlmEngine;
 use soul_mem_runtime::cluster::memory_cluster::{GraphMemoryLink, MemoryCluster};
-use std::future::Future;
 
 use super::decay_calculator::{DEFAULT_MAX_ACTIVATION_CAP, update_missing_degree_incremental};
 use super::mask;
@@ -61,18 +61,15 @@ pub enum ForgetAction {
 /// - `current_time` — 当前时间
 /// - `jieba` — Jieba 分词器实例
 /// - `system_prompt` — 可选的自定义 LLM system prompt，`None` 使用默认值
-/// - `llm_call` — LLM 调用闭包 `FnOnce(&str, &str) -> Future<Result<String>>`
-pub async fn lazy_forget<F, Fut>(
+/// - `engine` — 统一的 LLM 引擎；`None` 表示本次运行没有可用 LLM，
+///   此时退化为仅遮罩（**全遮罩的确定性结果仍然保留**，见 `reconstruct_summary`）
+pub async fn lazy_forget(
     node: &mut MemoryNote,
     current_time: DateTime<Utc>,
     jieba: &Jieba,
     system_prompt: Option<&str>,
-    llm_call: F,
-) -> ForgetAction
-where
-    F: FnOnce(&str, &str) -> Fut,
-    Fut: Future<Output = Result<String, Box<dyn std::error::Error + Send + Sync>>>,
-{
+    engine: Option<&LlmEngine>,
+) -> ForgetAction {
     // 步骤〇：对所有节点刷新并存储当前缺失度
     let md = compute_and_update_missing_degree(node, current_time);
 
@@ -108,7 +105,7 @@ where
 
     // 步骤二：LLM 补全（独立模块 llm_completion）
     let masked_text = mask_result.masked_text;
-    match super::llm_completion::reconstruct_summary(&masked_text, system_prompt, llm_call).await {
+    match super::llm_completion::reconstruct_summary(&masked_text, system_prompt, engine).await {
         Ok(new_summary) => {
             set_summary(node, &new_summary);
             ForgetAction::Revised {
@@ -117,7 +114,15 @@ where
                 masked_text,
             }
         }
-        Err(_) => {
+        Err(error) => {
+            // 降级而不是把失败当成功：节点上留下遮罩文本，原始文本已不可逆。
+            // **必须留日志**——旧实现这里是 `Err(_)` 完全静默，出了问题无从查起。
+            log::warn!(
+                "记忆补全失败，降级为仅遮罩（kind={}, unavailable={}）: {}",
+                error.kind().as_str(),
+                error.is_unavailable(),
+                error.message()
+            );
             set_summary(node, &masked_text);
             ForgetAction::MaskOnly {
                 missing_degree: md,
@@ -567,8 +572,7 @@ mod real_llm_tests {
     use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
     use soul_mem_core::memory_note::situation_mem::{Context, Environment, SpecificSituation};
     use soul_mem_core::memory_note::{MemoryNoteBuilder, MemoryType};
-    use soul_mem_runtime::working_memory::llm::client::LlmClient;
-    use soul_mem_runtime::working_memory::llm::config::LLMConfig;
+    use soul_mem_llm::{LlmEngine, OaiCompatBackend, OaiCompatConfig};
     use std::sync::Arc;
     use std::time::Instant;
 
@@ -584,45 +588,23 @@ mod real_llm_tests {
         person, no explanation.",
     );
 
-    fn try_create_llm_client() -> Option<LlmClient> {
-        Some(LlmClient::new(LLMConfig::new(
-            &std::env::var("API_KEY").ok()?,
-            &std::env::var("API_BASE").ok()?,
-            &std::env::var("MODEL").ok()?,
-        )))
-    }
-
-    #[allow(clippy::type_complexity)]
-    fn make_llm_closure(
-        c: Arc<LlmClient>,
-    ) -> impl FnOnce(
-        &str,
-        &str,
-    ) -> std::pin::Pin<
-        Box<
-            dyn std::future::Future<
-                    Output = Result<String, Box<dyn std::error::Error + Send + Sync>>,
-                > + Send,
-        >,
-    > {
-        move |sys: &str, user: &str| {
-            let client = c.clone();
-            let s = sys.to_string();
-            let u = user.to_string();
-            Box::pin(async move {
-                use async_openai::types::chat::{
-                    ChatCompletionRequestSystemMessage, ChatCompletionRequestUserMessage,
-                };
-                let mut resp = client
-                    .call_llm(vec![
-                        ChatCompletionRequestSystemMessage::from(s).into(),
-                        ChatCompletionRequestUserMessage::from(u).into(),
-                    ])
-                    .await
-                    .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { e.into() })?;
-                Ok(resp.remove(0))
-            })
-        }
+    /// 由环境变量构造真实引擎（真机测试用）。
+    ///
+    /// 走统一的 `soul-mem-llm` 栈：base_url 指向任何 OpenAI-compatible 服务，
+    /// 本地 llama-server 同样适用。
+    fn try_create_engine() -> Option<Arc<LlmEngine>> {
+        let config = OaiCompatConfig::new(
+            "live-test",
+            std::env::var("API_BASE").ok()?,
+            std::env::var("MODEL").ok()?,
+        );
+        let config = match std::env::var("API_KEY") {
+            Ok(key) if !key.is_empty() => config.with_api_key(key),
+            // 本地服务通常不需要鉴权
+            _ => config.with_auth_header(None, None),
+        };
+        let backend = OaiCompatBackend::new(config).ok()?;
+        Some(Arc::new(LlmEngine::new(Arc::new(backend))))
     }
 
     /// 构建语义节点：创建于很久以前，last_forget_time 在 `forget_ago_hours` 前
@@ -691,7 +673,7 @@ mod real_llm_tests {
     // ------------------------------------------------------------------
     // 第二部分 · SemMemory：从衰减到遮罩到 LLM 推测的完整流程
     // ------------------------------------------------------------------
-    async fn run_part2_sem(client: Arc<LlmClient>, jieba: &Jieba) {
+    async fn run_part2_sem(engine: Arc<LlmEngine>, jieba: &Jieba) {
         let t0 = Instant::now();
         let content = "十六夜咲夜是红魔馆的女仆长拥有操纵时间的能力她可以停止时间在静止的世界中完成所有家务银质小刀是她惯用的武器大小姐为此深感满意";
         let mut node = build_sem_node(content, 20); // 20h 前衰减
@@ -703,7 +685,7 @@ mod real_llm_tests {
             Utc::now(),
             jieba,
             SAKUYA_RECONSTRUCT,
-            make_llm_closure(client),
+            Some(engine.as_ref()),
         )
         .await;
         let t2 = Instant::now();
@@ -726,7 +708,7 @@ mod real_llm_tests {
     // ------------------------------------------------------------------
     // 第二部分 · SpecificSituation：从衰减到遮罩到 LLM 推测的完整流程
     // ------------------------------------------------------------------
-    async fn run_part2_situation(client: Arc<LlmClient>, jieba: &Jieba) {
+    async fn run_part2_situation(engine: Arc<LlmEngine>, jieba: &Jieba) {
         let t0 = Instant::now();
         let narrative = "傍晚我在红魔馆的庭院为大小姐斟茶蕾米莉亚坐在阳台的红伞下望着雾之湖畔天色渐暗四周渐渐安静下来";
         let mut node = build_situation_node(narrative, 20); // 20h 前衰减
@@ -738,7 +720,7 @@ mod real_llm_tests {
             Utc::now(),
             jieba,
             SAKUYA_RECONSTRUCT,
-            make_llm_closure(client),
+            Some(engine.as_ref()),
         )
         .await;
         let t2 = Instant::now();
@@ -761,7 +743,7 @@ mod real_llm_tests {
     // ------------------------------------------------------------------
     // 第三部分：对一个原始文本做三组遮罩（遗忘度由低到高）
     // ------------------------------------------------------------------
-    async fn run_part3_mask_levels(client: Arc<LlmClient>, jieba: &Jieba) {
+    async fn run_part3_mask_levels(engine: Arc<LlmEngine>, jieba: &Jieba) {
         let content = "红魔馆的女仆长十六夜咲夜擅长投掷银质小刀她害怕烫的食物是众所周知的猫舌大小姐为此常常感到无可奈何却又乐在其中";
         println!("【第三部分】遮罩测试（遗忘度由低到高）");
         println!("  原始文本: {}", content);
@@ -783,7 +765,7 @@ mod real_llm_tests {
                 Utc::now(),
                 jieba,
                 SAKUYA_RECONSTRUCT,
-                make_llm_closure(client.clone()),
+                Some(engine.as_ref()),
             )
             .await;
             let t2 = Instant::now();
@@ -803,9 +785,9 @@ mod real_llm_tests {
     #[ignore]
     async fn test_part2_sem_forget_flow() {
         dotenvy::dotenv().ok();
-        let client = Arc::new(try_create_llm_client().expect("请设置 API_KEY, API_BASE, MODEL"));
+        let engine = try_create_engine().expect("请设置 API_BASE 与 MODEL");
         let jieba = Jieba::new();
-        run_part2_sem(client, &jieba).await;
+        run_part2_sem(engine, &jieba).await;
     }
 
     // ------------------------------------------------------------------
@@ -815,9 +797,9 @@ mod real_llm_tests {
     #[ignore]
     async fn test_part2_situation_forget_flow() {
         dotenvy::dotenv().ok();
-        let client = Arc::new(try_create_llm_client().expect("请设置 API_KEY, API_BASE, MODEL"));
+        let engine = try_create_engine().expect("请设置 API_BASE 与 MODEL");
         let jieba = Jieba::new();
-        run_part2_situation(client, &jieba).await;
+        run_part2_situation(engine, &jieba).await;
     }
 
     // ------------------------------------------------------------------
@@ -827,9 +809,9 @@ mod real_llm_tests {
     #[ignore]
     async fn test_part3_mask_levels() {
         dotenvy::dotenv().ok();
-        let client = Arc::new(try_create_llm_client().expect("请设置 API_KEY, API_BASE, MODEL"));
+        let engine = try_create_engine().expect("请设置 API_BASE 与 MODEL");
         let jieba = Jieba::new();
-        run_part3_mask_levels(client, &jieba).await;
+        run_part3_mask_levels(engine, &jieba).await;
     }
 
     // ------------------------------------------------------------------
@@ -839,7 +821,7 @@ mod real_llm_tests {
     #[ignore]
     async fn test_part5_overall() {
         dotenvy::dotenv().ok();
-        let client = Arc::new(try_create_llm_client().expect("请设置 API_KEY, API_BASE, MODEL"));
+        let engine = try_create_engine().expect("请设置 API_BASE 与 MODEL");
         let jieba = Jieba::new();
         let overall_start = Instant::now();
 
@@ -849,13 +831,13 @@ mod real_llm_tests {
         part1_intensity_report();
 
         println!("【开始第二部分 · SemMemory】");
-        run_part2_sem(client.clone(), &jieba).await;
+        run_part2_sem(engine.clone(), &jieba).await;
 
         println!("【开始第二部分 · SpecificSituation】");
-        run_part2_situation(client.clone(), &jieba).await;
+        run_part2_situation(engine.clone(), &jieba).await;
 
         println!("【开始第三部分】");
-        run_part3_mask_levels(client, &jieba).await;
+        run_part3_mask_levels(engine, &jieba).await;
 
         println!(
             "========== 第五部分结束，总用时 {:?} ==========",

@@ -31,8 +31,10 @@ use crate::engine::llm::LlmBackend;
 use crate::engine::loader::{cached_load_graph, get_bge_model};
 use crate::engine::retrieve::data::NodeSummary;
 
-use super::repair::{extract_balanced_array, extract_balanced_object, run_paw, strip_think_block};
+use super::repair::run_paw;
+// 宽容抽取只有一份实现（soul-mem-llm），不再从 repair 模块转发
 use super::trace::{HitStage, QueryTrace, RetrievalTrace, TracedNode};
+use soul_mem_llm::json::{extract_balanced_array, extract_balanced_object, strip_think_block};
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default)]

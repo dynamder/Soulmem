@@ -1,4 +1,10 @@
-use std::{cmp::Ordering, collections::HashMap, fmt::Debug, hash::Hash, ops::AddAssign};
+use std::{
+    cmp::Ordering,
+    collections::{BinaryHeap, HashMap},
+    fmt::Debug,
+    hash::Hash,
+    ops::AddAssign,
+};
 
 use petgraph::{
     algo::UnitMeasure,
@@ -10,6 +16,7 @@ use petgraph::{
 /// 必须保证source_bias的key是有效的NodeId, 否则会得到不正确的结果
 // 由于NodeId会由MemoryCluster提供，这不会造成额外的检查负担
 #[track_caller]
+#[hotpath::measure]
 pub fn naive_ppr<G, D>(
     graph: G,
     damping_factor: D,
@@ -314,6 +321,7 @@ type EdgeWeightCache<NodeId, EdgeId, D> = HashMap<NodeId, Vec<EdgeWeightUnit<Nod
 
 #[track_caller]
 //TODO: make damping factor specific to each node
+#[hotpath::measure]
 pub fn weighted_ppr_fp<G, D, Q>(
     graph: G,
     damping_factor: D,
@@ -372,14 +380,31 @@ where
     let mut ppr_edge_weight_cache: EdgeWeightCache<G::NodeId, G::EdgeId, D> =
         HashMap::with_capacity(graph.node_count());
 
+    // 惰性优先队列替代"每轮全量扫描取最大残差"（find_max 原为 O(N)/轮，
+    // profile 实测占 PPR 时间 89%~94%）：push 时入堆、陈旧条目弹出即弃、
+    // 堆顶 ≤ 阈值即整体收敛（等价于原逻辑的 max ≤ 阈值 break）。
+    let mut residue_heap: BinaryHeap<ResidueUnit<usize, D>> = residue_vec
+        .iter()
+        .copied()
+        .filter(|u| u.value > D::zero())
+        .collect();
+
     //每次取残差最大的节点进行push，加速收敛
     //迭代上限作为安全网：残差会随damping<1几何衰减，正常在有限次内收敛；
     //极小的residue_threshold或病态图可能使迭代次数过大，用上限兜底防止无限循环。
     let max_iterations = graph.node_bound().max(1) * 1024;
     let mut iteration_count = 0usize;
-    while let Some(residue_i) = residue_vec.iter().copied().max() {
+    // 每次取残差最大的节点进行push（热点测量：find_max 现为堆顶弹出 O(log N)）
+    loop {
+        let residue_i = hotpath::measure_block!("ppr::find_max", residue_heap.pop());
+        let Some(residue_i) = residue_i else { break };
         if residue_i.value <= residue_threshold {
+            // 堆顶 ≤ 阈值：所有剩余残差均 ≤ 阈值，整体收敛
             break;
+        }
+        // 陈旧条目：弹出值与当前残差不一致（该节点之后被再次更新过），弃之
+        if residue_i.value != residue_vec[residue_i.idx].value {
+            continue;
         }
         iteration_count += 1;
         if iteration_count > max_iterations {
@@ -387,70 +412,87 @@ where
         }
         //println!("Processing node {}", residue_i.idx);
         let out_edges = graph.edges(graph.from_index(residue_i.idx));
-        //动态归一化的边权计算
+        //动态归一化的边权计算（懒缓存：每节点首次访问时计算一次）
         ppr_edge_weight_cache
             .entry(graph.from_index(residue_i.idx))
             .or_insert_with(|| {
-                //println!("Calculating edge weights for node {}", residue_i.idx);
-                let weights = out_edges
-                    .map(|edge| {
-                        let weight = weight_calc(graph, &edge, dynamic_query);
-                        EdgeWeightUnit {
-                            target_node: edge.target(),
-                            idx: edge.id(),
-                            value: weight,
-                        }
-                    })
-                    .collect::<Vec<_>>();
-                let sum = weights.iter().map(|v| v.value).sum::<D>();
-
-                if sum != D::zero() {
-                    //防止NaN
-                    weights
-                        .into_iter()
-                        .map(|w| EdgeWeightUnit {
-                            target_node: w.target_node,
-                            idx: w.idx,
-                            value: w.value / sum,
+                hotpath::measure_block!("ppr::edge_weight_calc", {
+                    //println!("Calculating edge weights for node {}", residue_i.idx);
+                    let weights = out_edges
+                        .map(|edge| {
+                            let weight = weight_calc(graph, &edge, dynamic_query);
+                            EdgeWeightUnit {
+                                target_node: edge.target(),
+                                idx: edge.id(),
+                                value: weight,
+                            }
                         })
-                        .collect::<Vec<_>>()
-                } else {
-                    weights
-                }
+                        .collect::<Vec<_>>();
+                    let sum = weights.iter().map(|v| v.value).sum::<D>();
+
+                    if sum != D::zero() {
+                        //防止NaN
+                        weights
+                            .into_iter()
+                            .map(|w| EdgeWeightUnit {
+                                target_node: w.target_node,
+                                idx: w.idx,
+                                value: w.value / sum,
+                            })
+                            .collect::<Vec<_>>()
+                    } else {
+                        weights
+                    }
+                })
             });
 
         let edge_weights = &ppr_edge_weight_cache[&graph.from_index(residue_i.idx)];
         //println!("edge_weights: {:?}", edge_weights);
-        //清空当前节点残差
-        residue_vec[residue_i.idx].value = D::zero();
+        hotpath::measure_block!("ppr::push_spread", {
+            //清空当前节点残差
+            residue_vec[residue_i.idx].value = D::zero();
 
-        //将部分残差转为保留
-        reserve_vec[residue_i.idx] += (D::one() - damping_factor) * residue_i.value;
+            //将部分残差转为保留
+            reserve_vec[residue_i.idx] += (D::one() - damping_factor) * residue_i.value;
 
-        //残差push
-        if let Some(edge_weight_max) = edge_weights.iter().max() {
-            //节点出度不为0的情况
-            if residue_i.value * edge_weight_max.value > residue_threshold {
-                edge_weights.iter().for_each(|edge_w| {
-                    residue_vec[graph.to_index(edge_w.target_node)].value +=
-                        damping_factor * edge_w.value * residue_i.value;
-                });
+            //残差push（目标残差超阈值才入堆；堆顶≤阈值即收敛，故低于阈值者无需入堆）
+            if let Some(edge_weight_max) = edge_weights.iter().max() {
+                //节点出度不为0的情况
+                if residue_i.value * edge_weight_max.value > residue_threshold {
+                    edge_weights.iter().for_each(|edge_w| {
+                        let idx = graph.to_index(edge_w.target_node);
+                        let new_value = residue_vec[idx].value
+                            + damping_factor * edge_w.value * residue_i.value;
+                        residue_vec[idx].value = new_value;
+                        if new_value > residue_threshold {
+                            residue_heap.push(ResidueUnit {
+                                idx,
+                                value: new_value,
+                            });
+                        }
+                    });
+                }
+                // else：该节点最大边权过小，本次push的贡献低于阈值；
+                // 其残差已退役为保留值，不扩散（原 continue 语义）
             } else {
-                //该节点最大边权过小，本次push的贡献低于阈值，跳过该节点继续处理其它残差；
-                //不能break整个循环：其它节点的边权分布不同，可能仍能有效传播。
-                continue;
+                //节点出度为0的情况
+                if residue_i.value / source_node_count > residue_threshold {
+                    normalized_personalized_vec.keys().for_each(|node| {
+                        let idx = graph.to_index(*node);
+                        let new_value = residue_vec[idx].value
+                            + damping_factor * residue_i.value / source_node_count;
+                        residue_vec[idx].value = new_value;
+                        if new_value > residue_threshold {
+                            residue_heap.push(ResidueUnit {
+                                idx,
+                                value: new_value,
+                            });
+                        }
+                    });
+                }
+                // else：扩散量低于阈值，不扩散（原 continue 语义）
             }
-        } else {
-            //节点出度为0的情况
-            if residue_i.value / source_node_count > residue_threshold {
-                normalized_personalized_vec.keys().for_each(|node| {
-                    residue_vec[graph.to_index(*node)].value +=
-                        damping_factor * residue_i.value / source_node_count;
-                });
-            } else {
-                continue;
-            }
-        }
+        });
     }
     let sum = reserve_vec.iter().copied().sum::<D>();
     //sum为0时（如damping=1或全零边权）返回全零分布，避免0/0产生NaN
@@ -468,374 +510,4 @@ where
 }
 
 #[cfg(test)]
-mod test {
-
-    use crate::common::ord_float::OrdFloat;
-    use petgraph::{matrix_graph::NodeIndex, prelude::StableDiGraph};
-
-    use super::*;
-    fn diff(actual: f64, expected: f64) -> f64 {
-        if expected.abs() < f64::EPSILON && actual.abs() < f64::EPSILON {
-            0.0
-        } else {
-            (actual - expected).abs()
-        }
-    }
-    fn pressure_large_graph() -> (StableDiGraph<String, f64>, Vec<NodeIndex<u32>>) {
-        let mut graph = StableDiGraph::new();
-        let mut nodes = Vec::new();
-        for i in 0..500 {
-            let mut node = graph.add_node("".to_string());
-            if i % 2 == 0 || i % 7 == 0 {
-                graph.remove_node(node);
-                node = graph.add_node("".to_string());
-            }
-            nodes.push(node);
-            graph.add_edge(node, node, 1.0);
-            nodes.iter().for_each(|idx| {
-                graph.add_edge(node, *idx, 1.0);
-            });
-        }
-        (graph, nodes)
-    }
-
-    fn test_toy_graph() -> (StableDiGraph<String, f64>, Vec<NodeIndex<u32>>) {
-        let mut graph = StableDiGraph::new();
-        let a = graph.add_node("A".to_string());
-        let b = graph.add_node("B".to_string());
-        //制造索引空洞
-        graph.remove_node(b);
-        let b = graph.add_node("B".to_string());
-        let c = graph.add_node("C".to_string());
-        let d = graph.add_node("D".to_string());
-
-        graph.add_edge(a, b, 1.0);
-        graph.add_edge(a, c, 1.0);
-        graph.add_edge(b, c, 1.0);
-        graph.add_edge(c, d, 1.0);
-
-        (graph, vec![a, b, c, d])
-    }
-    type ToyGraph = StableDiGraph<String, f64>;
-    type BiasMap = HashMap<NodeIndex<u32>, f64>;
-    type IndexList = Vec<NodeIndex<u32>>;
-
-    fn toy_graph_with_init_a() -> (ToyGraph, BiasMap, IndexList) {
-        let (graph, indexes) = test_toy_graph();
-        let ans_vec: Vec<f64> = vec![0.851652742, 0.06387396045, 0.07345504972, 0.01101824785];
-        let ans = indexes.iter().copied().zip(ans_vec).collect();
-        (graph, ans, indexes)
-    }
-    fn toy_graph_with_init_b() -> (ToyGraph, BiasMap, IndexList) {
-        let (graph, indexes) = test_toy_graph();
-        let ans_vec: Vec<f64> = vec![0.0, 0.852878432, 0.1279320211, 0.01918954688];
-        let ans = indexes.iter().copied().zip(ans_vec).collect();
-        (graph, ans, indexes)
-    }
-    fn toy_graph_with_init_ab() -> (ToyGraph, BiasMap, IndexList) {
-        let (graph, indexes) = test_toy_graph();
-        let ans_vec: Vec<f64> = vec![0.4261326137, 0.4580925718, 0.1006738318, 0.00510098267];
-        let ans = indexes.iter().copied().zip(ans_vec).collect();
-        (graph, ans, indexes)
-    }
-    #[test]
-    fn ppr_toy_graph_init_a() {
-        let (graph, true_ans, indexes) = toy_graph_with_init_a();
-        let mut source_bias = HashMap::new();
-        source_bias.insert(indexes[0], 1.0);
-
-        let ppr_ans = naive_ppr(&graph, 0.15_f64, source_bias, 15);
-        let ans_sum = ppr_ans.values().copied().sum::<f64>();
-        assert!(
-            (ans_sum - 1.0).abs() < 1e-6,
-            "ppr sum should be ~1, got {ans_sum}"
-        );
-
-        let avg_diff = 0.25
-            * indexes
-                .iter()
-                .map(|idx| {
-                    let actual = ppr_ans[idx];
-                    let expected = true_ans[idx];
-                    diff(actual, expected)
-                })
-                .sum::<f64>();
-
-        assert!(
-            avg_diff < 0.005,
-            "failed with avg_diff {}, whole ppr_vec is : {:?}, but it should be : {:?}",
-            avg_diff,
-            ppr_ans,
-            true_ans
-        )
-    }
-    #[test]
-    fn ppr_toy_graph_init_b() {
-        let (graph, true_ans, indexes) = toy_graph_with_init_b();
-        let mut source_bias = HashMap::new();
-        source_bias.insert(indexes[1], 1.0);
-
-        let ppr_ans = naive_ppr(&graph, 0.15_f64, source_bias, 15);
-        let ans_sum = ppr_ans.values().copied().sum::<f64>();
-        assert!(
-            (ans_sum - 1.0).abs() < 1e-6,
-            "ppr sum should be ~1, got {ans_sum}"
-        );
-
-        let avg_diff = 0.25
-            * indexes
-                .iter()
-                .map(|idx| {
-                    let actual = ppr_ans[idx];
-                    let expected = true_ans[idx];
-                    diff(actual, expected)
-                })
-                .sum::<f64>();
-
-        assert!(
-            avg_diff < 0.005,
-            "failed with avg_diff {}, whole ppr_vec is : {:?}, but it should be : {:?}",
-            avg_diff,
-            ppr_ans,
-            true_ans
-        )
-    }
-    #[test]
-    fn ppr_toy_graph_init_ab() {
-        let (graph, true_ans, indexes) = toy_graph_with_init_ab();
-        let mut source_bias = HashMap::new();
-        source_bias.insert(indexes[0], 1.0);
-        source_bias.insert(indexes[1], 1.0);
-
-        let ppr_ans = naive_ppr(&graph, 0.15_f64, source_bias, 15);
-        let ans_sum = ppr_ans.values().copied().sum::<f64>();
-        assert!(
-            (ans_sum - 1.0).abs() < 1e-6,
-            "ppr sum should be ~1, got {ans_sum}"
-        );
-
-        let avg_diff = 0.25
-            * indexes
-                .iter()
-                .map(|idx| {
-                    let actual = ppr_ans[idx];
-                    let expected = true_ans[idx];
-                    diff(actual, expected)
-                })
-                .sum::<f64>();
-
-        assert!(
-            avg_diff < 0.005,
-            "failed with avg_diff {}, whole ppr_vec is : {:?}, but it should be : {:?}",
-            avg_diff,
-            ppr_ans,
-            true_ans
-        )
-    }
-    #[test]
-    fn ppr_forward_push_toy_graph_init_a() {
-        let (graph, true_ans, indexes) = toy_graph_with_init_a();
-        let mut source_bias = HashMap::new();
-        source_bias.insert(indexes[0], OrdFloat::from_f64(1.0));
-
-        let ppr_ans = weighted_ppr_fp(
-            &graph,
-            OrdFloat::from_f64(0.15),
-            source_bias,
-            OrdFloat::from_f64(0.002),
-            |_, _, _| OrdFloat::from_f64(1.0),
-            Some(&"1"),
-        );
-        let ans_sum: f64 = ppr_ans
-            .iter()
-            .map(|(_, score)| score)
-            .copied()
-            .sum::<OrdFloat<f64>>()
-            .into_inner();
-        assert!(
-            (ans_sum - 1.0).abs() < 1e-6,
-            "ppr sum should be ~1, got {ans_sum}"
-        );
-
-        let ppr_ans = ppr_ans
-            .into_iter()
-            .collect::<HashMap<NodeIndex<u32>, OrdFloat<f64>>>();
-
-        let avg_diff = 0.25
-            * indexes
-                .iter()
-                .map(|idx| {
-                    let actual: f64 = ppr_ans[idx].into_inner();
-                    let expected = true_ans[idx];
-                    diff(actual, expected)
-                })
-                .sum::<f64>();
-
-        assert!(
-            avg_diff < 0.005,
-            "failed with avg_diff {}, whole ppr_vec is : {:?}, but it should be : {:?}",
-            avg_diff,
-            ppr_ans,
-            true_ans
-        )
-    }
-    #[test]
-    fn ppr_forward_push_toy_graph_init_b() {
-        let (graph, true_ans, indexes) = toy_graph_with_init_b();
-        let mut source_bias = HashMap::new();
-        source_bias.insert(indexes[1], OrdFloat::from_f64(1.0));
-
-        let ppr_ans = weighted_ppr_fp(
-            &graph,
-            OrdFloat::from_f64(0.15),
-            source_bias,
-            OrdFloat::from_f64(0.002),
-            |_, _, _| OrdFloat::from_f64(1.0),
-            Some(&"1"),
-        );
-        let ans_sum: f64 = ppr_ans
-            .iter()
-            .map(|(_, score)| score)
-            .copied()
-            .sum::<OrdFloat<f64>>()
-            .into_inner();
-
-        let ppr_ans = ppr_ans
-            .into_iter()
-            .collect::<HashMap<NodeIndex<u32>, OrdFloat<f64>>>();
-        assert!(ans_sum - 1.0 < 1e-5, "the sum is: {ans_sum}");
-
-        let avg_diff = 0.25
-            * indexes
-                .iter()
-                .map(|idx| {
-                    let actual: f64 = ppr_ans[idx].into_inner();
-                    let expected = true_ans[idx];
-                    diff(actual, expected)
-                })
-                .sum::<f64>();
-
-        assert!(
-            avg_diff < 0.005,
-            "failed with avg_diff {}, whole ppr_vec is : {:?}, but it should be : {:?}",
-            avg_diff,
-            ppr_ans,
-            true_ans
-        )
-    }
-    #[test]
-    fn ppr_forward_push_weighted_hub_does_not_truncate() {
-        // 带权图传播验证：
-        //   枢纽节点S出度很大（边权归一化后max_weight≈0.005），其push贡献低于阈值；
-        //   低度节点T只有单条高权边（max_weight=1.0），仍应继续传播到远端U。
-        // 旧实现中 S 触发 `break` 会终止整个循环，导致 U 永远得不到残差（ppr(U)=0）；
-        // 修复后 S 被 `continue` 跳过，T 正常传播，U 应获得正的PPR分数。
-        let mut graph = StableDiGraph::new();
-        let t = graph.add_node("T".to_string()); // 低度节点，idx 0
-        let s = graph.add_node("S".to_string()); // 枢纽节点，idx 1（更高的idx，保证max()在等值时先处理S）
-        let mut leaves = Vec::new();
-        for i in 0..200 {
-            leaves.push(graph.add_node(format!("L{i}")));
-        }
-        let u = graph.add_node("U".to_string()); // 远端节点
-        for leaf in &leaves {
-            graph.add_edge(s, *leaf, 1.0);
-        }
-        graph.add_edge(t, u, 1.0);
-
-        let mut source_bias = HashMap::new();
-        source_bias.insert(s, OrdFloat::from_f64(1.0));
-        source_bias.insert(t, OrdFloat::from_f64(1.0));
-
-        let ppr_ans = weighted_ppr_fp(
-            &graph,
-            OrdFloat::from_f64(0.65),
-            source_bias,
-            OrdFloat::from_f64(0.02),
-            |_, _, _| OrdFloat::from_f64(1.0),
-            Some(&"1"),
-        );
-
-        let u_ppr: f64 = ppr_ans
-            .iter()
-            .find(|(node, _)| *node == u)
-            .map(|(_, score)| score.into_inner())
-            .unwrap_or(0.0);
-        assert!(
-            u_ppr > 0.0,
-            "far node U should receive PPR mass via low-degree node T, got {u_ppr}"
-        );
-
-        // 实际数量级验证：所有PPR分数有限且落在[0,1]，且总和≈1（概率分布）
-        let sum: f64 = ppr_ans.iter().map(|(_, score)| score.into_inner()).sum();
-        for (_, score) in &ppr_ans {
-            let v = score.into_inner();
-            assert!(v.is_finite(), "non-finite PPR score: {v}");
-            assert!((0.0..=1.0).contains(&v), "PPR score out of [0,1]: {v}");
-        }
-        assert!((sum - 1.0).abs() < 1e-5, "PPR distribution sum {sum} != 1");
-    }
-
-    #[test]
-    fn ppr_forward_push_toy_graph_init_ab() {
-        let (graph, true_ans, indexes) = toy_graph_with_init_ab();
-        let mut source_bias = HashMap::new();
-        source_bias.insert(indexes[0], OrdFloat::from_f64(1.0));
-        source_bias.insert(indexes[1], OrdFloat::from_f64(1.0));
-
-        let ppr_ans = weighted_ppr_fp(
-            &graph,
-            OrdFloat::from_f64(0.15),
-            source_bias,
-            OrdFloat::from_f64(0.002),
-            |_, _, _| OrdFloat::from_f64(1.0),
-            Some(&"1"),
-        );
-        let ans_sum: f64 = ppr_ans
-            .iter()
-            .map(|(_, score)| score)
-            .copied()
-            .sum::<OrdFloat<f64>>()
-            .into_inner();
-        assert!(
-            (ans_sum - 1.0).abs() < 1e-6,
-            "ppr sum should be ~1, got {ans_sum}"
-        );
-
-        let ppr_ans = ppr_ans
-            .into_iter()
-            .collect::<HashMap<NodeIndex<u32>, OrdFloat<f64>>>();
-        assert!(ans_sum - 1.0 < 1e-5, "the sum is: {ans_sum}");
-
-        let avg_diff = 0.25
-            * indexes
-                .iter()
-                .map(|idx| {
-                    let actual: f64 = ppr_ans[idx].into_inner();
-                    let expected = true_ans[idx];
-                    diff(actual, expected)
-                })
-                .sum::<f64>();
-
-        assert!(
-            avg_diff < 0.005,
-            "failed with avg_diff {}, whole ppr_vec is : {:?}, but it should be : {:?}",
-            avg_diff,
-            ppr_ans,
-            true_ans
-        )
-    }
-
-    #[test]
-    fn pressure_large_graph_test() {
-        let (graph, nodes) = pressure_large_graph();
-        let mut source_bias = HashMap::new();
-        nodes.iter().take(10).for_each(|idx| {
-            source_bias.insert(*idx, graph.to_index(*idx) as f64);
-        });
-
-        let ppr_ans = naive_ppr(&graph, 0.15_f64, source_bias, 15);
-        let ans_sum = ppr_ans.values().copied().sum::<f64>();
-        assert!(ans_sum - 1.0 < 1e-5, "the sum is: {ans_sum}");
-    }
-}
+mod test;

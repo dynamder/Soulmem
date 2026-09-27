@@ -3,9 +3,13 @@
 //! 职责边界：
 //! - 本模块只做**类型转换**（行 ↔ 核心类型），不做任何 SQL/仓储逻辑；
 //! - `NoteRow`/`LinkRow` 是直接与 surrealdb SDK 交互的行类型；
-//! - 向量部分采用**多列 HNSW 方案**（见 `.surreal-spike/SPIKE_RESULTS.md`）：
-//!   每个可索引子向量一个 `option<array<float>>` 槽位列 + `variant_emb` 完整备份列。
-//!   槽位枚举 `EmbeddingSlot` 是列名的单一事实来源。
+//! - 向量部分采用**多列 HNSW 方案**：每个可索引子向量一个
+//!   `option<array<float>>` 槽位列（供 ANN 召回），外加 `variant_emb` 完整备份列
+//!   （还原 `MemoryEmbedding` 的唯一真相源）。槽位枚举 `EmbeddingSlot`
+//!   是列名的单一事实来源——新增槽位必须同时改 `EmbeddingSlot::ALL` 与 `schema.surql`，
+//!   `mapper.rs` 的防漂移测试会校验两者一致。
+//!   召回方式见 `repository.rs`：查询嵌入 flatten 成槽位 → 每槽位 `<|k, EF|>` KNN
+//!   → union 候选 → `fetch_notes`；精确重排留在调用方，DB 只负责候选召回。
 
 pub mod link;
 pub mod note;

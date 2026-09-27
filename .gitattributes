@@ -1,0 +1,10 @@
+# 行尾统一：与 doc/book 分支保持一致，避免 Windows 编辑器保存导致 *.md 全文件抖动。
+*.md text eol=lf
+
+# 刻意不对 *.rs / *.toml 强制 eol=lf。
+# 现状：123 个 .rs 中 51 个是 CRLF、72 个是 LF。强制归一化会产生 51 个文件的
+# 纯行尾 diff，淹没真实改动。要统一请先单独提一个「只改行尾」的提交，再把
+# `*.rs text eol=lf` 加到这里。
+#
+# 注意：本文件无法防止编码损坏 —— git 对内容是字节透明的。中文注释被 GBK 保存
+# 的问题由 .editorconfig（charset=utf-8）与 scripts/check_encoding.py（CI 门禁）负责。

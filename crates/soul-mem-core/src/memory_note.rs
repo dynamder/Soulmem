@@ -1,3 +1,29 @@
+//! 记忆节点：公共外壳 + 类型特定载荷。
+//!
+//! [`MemoryNote`] 是所有记忆节点的统一形态：身份（[`MemoryId`]）、标签、访问统计、
+//! **出边**（`Vec<MemoryLink>`）、遗忘状态，以及一个 [`MemoryType`] 载荷。
+//!
+//! 载荷分布：
+//!
+//! | 变体 | 载荷位置 |
+//! |---|---|
+//! | `MemoryType::Situation` | [`situation_mem`]（含 [`situation_mem::Context`]：位置 / 参与者 / 情感 / 感官 / 背景） |
+//! | `MemoryType::Semantic` | [`sem_mem`]（概念内容、别名、描述、`ConceptType`） |
+//! | `MemoryType::Procedure` | [`proc_mem`]（**尚无实际字段，仅占位**） |
+//!
+//! # 不变量
+//!
+//! - `missing_degree` 是**私有**的，只能经 `set_missing_degree` 写入，且会被
+//!   `clamp(0.0, 1.0)` 钳制。不要为了省事把它改成 `pub`——同一不变量在
+//!   [`MemoryLink`](crate::memory_links::MemoryLink) 上已经因为字段公开而可被绕过。
+//! - `missing_degree` / `last_forget_time` 带 `#[serde(default = ...)]`，
+//!   保证缺这两个字段的**老数据仍可反序列化**。删除该属性会使已持久化的记忆读不出来。
+//!
+//! # 构造
+//!
+//! 用 `MemoryNoteBuilder`，其 `build()` 返回 `Result`（会校验时间顺序等约束）。
+//! 注意同层的 `MemoryLinkBuilder::build()` 返回的是裸值——两者契约不同，别照抄。
+
 use std::fmt::Display;
 
 use chrono::{DateTime, Utc};

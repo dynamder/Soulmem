@@ -1,0 +1,38 @@
+# 编辑器侧编码约束。
+#
+# charset = utf-8 是硬要求，不是风格偏好：本项目注释与文档以中文为主，
+# 一旦编辑器以 GBK/CP936 保存，整块中文注释会变成乱码，且部分字节永久丢失
+# （已发生过：crates/soul-mem-runtime/src/cluster/memory_cluster.rs 丢了 16 行注释）。
+# 兜底门禁见 scripts/check_encoding.py（CI 中执行）。
+root = true
+
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.rs]
+indent_style = space
+indent_size = 4
+
+[*.toml]
+indent_style = space
+indent_size = 4
+
+[*.{yml,yaml,json}]
+indent_style = space
+indent_size = 2
+
+[*.py]
+indent_style = space
+indent_size = 4
+
+[*.md]
+# markdown 用行尾双空格表示硬换行，不能裁剪
+trim_trailing_whitespace = false
+# 与 doc/book 分支的 .gitattributes 一致：文档统一 LF
+end_of_line = lf
+
+[*.surql]
+indent_style = space
+indent_size = 4

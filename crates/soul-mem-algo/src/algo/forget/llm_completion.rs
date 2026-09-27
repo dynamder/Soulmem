@@ -1,6 +1,16 @@
+//! 遗忘重建与字段对齐：提示词 + 结果解析。
+//!
+//! 本模块只做两件事：把遮罩文本/字段拼成提示词、把 LLM 的回复解析回结构。
+//! **LLM 调用本身经统一的 [`soul_mem_llm::LlmEngine`] 发出**——超时、重试、错误分类、
+//! trace 都在 `soul-mem-llm` 里，本模块看不到任何传输细节。
+//! 完整链路见 `docs/architecture/llm-layer.md`。
+//!
+//! `engine` 参数是 `Option<&LlmEngine>`：`None` 表示本次运行没有可用 LLM，
+//! 由调用方（[`super::decay_revise::lazy_forget`]）降级为仅遮罩。
+
 use soul_mem_core::memory_note::sem_mem::ConceptType;
 use soul_mem_core::memory_note::{MemoryNote, MemoryType};
-use std::future::Future;
+use soul_mem_llm::{LlmEngine, LlmError, Task};
 
 /// 遗忘度低于此值时 Vec 类字段（如 aliases）在对齐时不允许增加长度
 pub const ALIGN_LENGTH_CAP_THRESHOLD: f32 = 0.6;
@@ -60,22 +70,25 @@ pub fn build_reconstruct_prompt(
 /// 调用 LLM 重建遮罩的记忆文本。
 /// `system_prompt` 控制 LLM 的角色设定与行为，传入 `None` 使用默认值。
 ///
-/// 全遮罩（无剩余上下文）时不调用 LLM，直接返回 [`FULLY_MASKED_REPLY`]，
-/// 保证结果确定且符合"无法回忆"语义。
-pub async fn reconstruct_summary<F, Fut>(
+/// - **全遮罩（无剩余上下文）时不调用 LLM**，直接返回 [`FULLY_MASKED_REPLY`]，
+///   保证结果确定且符合"无法回忆"语义。
+/// - `engine` 为 `None` 表示本次运行没有可用的 LLM：返回
+///   [`LlmError::unavailable`]，由调用方决定降级（遗忘路径降级为仅遮罩）。
+///   这取代了旧实现里"手工构造一个永远失败的闭包"来触发降级的做法。
+pub async fn reconstruct_summary(
     masked_text: &str,
     system_prompt: Option<&str>,
-    llm_call: F,
-) -> Result<String, Box<dyn std::error::Error + Send + Sync>>
-where
-    F: FnOnce(&str, &str) -> Fut,
-    Fut: Future<Output = Result<String, Box<dyn std::error::Error + Send + Sync>>>,
-{
+    engine: Option<&LlmEngine>,
+) -> Result<String, LlmError> {
     if is_fully_masked(masked_text) {
         return Ok(FULLY_MASKED_REPLY.to_string());
     }
+    let Some(engine) = engine else {
+        return Err(LlmError::unavailable("未配置 LLM，遮罩文本无法补全"));
+    };
     let (system, user) = build_reconstruct_prompt(masked_text, system_prompt);
-    llm_call(&system, &user).await
+    let completion = engine.complete(Task::system_user(system, user)).await?;
+    Ok(completion.text)
 }
 
 /// 默认字段对齐 system prompt（中立通用）
@@ -158,15 +171,13 @@ pub fn parse_align_response(
 /// - `system_prompt` 控制 LLM 的角色设定与行为，传入 `None` 使用默认值
 /// - 当缺失度 < `ALIGN_LENGTH_CAP_THRESHOLD` 时，aliases 的长度不允许增长
 /// - 当缺失度 ≥ 阈值时，允许自由增长
-pub async fn align_sem_fields<F, Fut>(
+///
+/// 没有"无 LLM"的降级形态：调用方要么给出引擎，要么不调用本函数。
+pub async fn align_sem_fields(
     node: &mut MemoryNote,
     system_prompt: Option<&str>,
-    llm_call: F,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
-where
-    F: FnOnce(&str, &str) -> Fut,
-    Fut: Future<Output = Result<String, Box<dyn std::error::Error + Send + Sync>>>,
-{
+    engine: &LlmEngine,
+) -> Result<(), LlmError> {
     let (content, old_aliases, old_desc, old_ct) = match node.mem_type() {
         MemoryType::Semantic(s) => (
             s.content.clone(),
@@ -179,7 +190,8 @@ where
 
     let (system, user) =
         build_align_prompt(&content, &old_aliases, &old_desc, &old_ct, system_prompt);
-    let response = llm_call(&system, &user).await?;
+    let completion = engine.complete(Task::system_user(system, user)).await?;
+    let response = completion.text;
 
     let (new_aliases, new_desc, new_ct) = parse_align_response(response.trim());
 
