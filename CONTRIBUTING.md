@@ -57,6 +57,10 @@ git worktree add ../SoulMem-book doc/book
 - PR 还会按本次改动范围运行 cargo-mutants，杀灭率低于 90% 会直接失败。
 - 每周（每隔一周）自动执行一次全量 mutants，并上传报告 artifact。
 - 依赖安全由 Dependabot（自动更新 PR）和 cargo-deny（安全公告 + 许可证）把关。
+- `Deny drift` workflow 每周在 `dev` 上单独跑一次同一份 cargo-deny。上游 advisory 库
+  漂移（新增公告、crate 被 yank）时它会开 issue 并让 run 变红。**这类失败与具体 PR 无关**：
+  advisory 检查是全局的，基于 `dev` 的所有 PR 会一起红在同一个 `Security (cargo-deny)` 上，
+  所以先看 issue 正文的处理步骤，不要靠往 `deny.toml` 的 `ignore` 里塞条目让它变绿。
 
 ## 测试要求
 
