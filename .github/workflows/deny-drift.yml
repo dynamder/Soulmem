@@ -50,7 +50,7 @@ jobs:
           arguments: --workspace
 
       - name: 漂移开 issue，恢复后自动关闭
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           OUTCOME: ${{ steps.deny.outcome }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
