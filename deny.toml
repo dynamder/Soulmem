@@ -2,28 +2,25 @@
 [advisories]
 version = 2
 yanked = "deny"
-# unmaintained 只作提示，不阻塞：依赖树里多处传递依赖（backoff/instant/
-# number_prefix/paste/rand_os 等）被 embed_anything 0.6.7 钉死，无安全升级。
+# unmaintained 直接关闭：树上有一批无人维护的传递依赖（现存 number_prefix、
+# paste 等；backoff/instant/rand_os 已随依赖升级消失），逐条维护这份名单只会反复
+# 漂移。这不影响安全结论：真正可利用的漏洞仍由 [advisories] 拦截，只有显式 ignore
+# 才放行。
 unmaintained = "none"
-# 以下漏洞均来自 embed_anything 0.6.7 的传递依赖，无法在保持该版本的
-# 前提下升级修复；升级 embed_anything（如 feature/test_framework 分支的
-# 0.7.1）后应移除对应条目：
+# ignore 只写「上游确实没有修复版」的条目，并写清影响面与跟踪条件。
+# cargo-deny 每次运行都会对**没有命中任何 crate** 的条目报
+# `warning[advisory-not-detected]`——出现该警告说明对应的传递依赖已被升级掉，
+# 该条目应当删除（RUSTSEC-2026-0098/0099/0104 就是这样在 embed_anything 升到
+# 0.7.1、rustls-webpki 从 0.101 升到 0.103 之后失效并被移除的）。
 # - RUSTSEC-2026-0187: lopdf 解析深层 PDF 对象时栈溢出；pdf-extract 0.9.0 钉死
 #   lopdf 0.36，0.42+ 不可达。SoulMem 不解析不可信 PDF。
-# - RUSTSEC-2026-0098/0099: rustls-webpki 0.101 的 name-constraint 校验问题；
-#   仅在被错误签发的证书 + 自定义 name-constraint 场景下可被利用，且 rustls 0.21
-#   钉死 webpki 0.101，需随 aws-sdk/rustls 升级（embed_anything 依赖链）才能修复。
-# - RUSTSEC-2026-0104: rustls-webpki CRL 解析可达 panic；应用不使用 CRL，不受影响。
+# - RUSTSEC-2023-0071: rsa crate Marvin Attack（时序侧信道，CVSS 7.4）。
+#   经 jsonwebtoken 10.4.0 ← surrealdb 链传递引入；rsa 上游 patched=[] 自 2023
+#   年至今无修复版（最新 0.9.10 仍受影响，0.10 尚在 rc）。影响面：攻击者可观测
+#   时序时恢复私钥。SoulMem 仅在本地/可信环境使用 SurrealDB 嵌入式存储，
+#   不暴露给可观测时序的网络攻击者，故忽略并跟踪上游修复。
 ignore = [
     "RUSTSEC-2026-0187",
-    "RUSTSEC-2026-0098",
-    "RUSTSEC-2026-0099",
-    "RUSTSEC-2026-0104",
-    # RUSTSEC-2023-0071: rsa crate Marvin Attack（时序侧信道，CVSS 7.4）。
-    # 经 jsonwebtoken 10.4.0 ← surrealdb 链传递引入；rsa 上游 patched=[] 自 2023
-    # 年至今无修复版（最新 0.9.10 仍受影响，0.10 尚在 rc）。影响面：攻击者可观测
-    # 时序时恢复私钥。SoulMem 仅在本地/可信环境使用 SurrealDB 嵌入式存储，
-    # 不暴露给可观测时序的网络攻击者，故忽略并跟踪上游修复。
     "RUSTSEC-2023-0071",
 ]
 
