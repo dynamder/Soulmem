@@ -23,6 +23,16 @@ fn note(mem_type: MemoryType) -> MemoryNote {
         .expect("test fixture: default timestamps satisfy builder invariants")
 }
 
+/// 直接构造渲染结果（字段皆公开），用于覆盖与具体节点无关的展示方法。
+fn render_of(kind: MemoryKind) -> RenderedMemoryNote {
+    RenderedMemoryNote {
+        kind,
+        score: 0.0,
+        content: String::new(),
+        context: None,
+    }
+}
+
 /// 六个字段全非空的上下文，用于断言 `context` 原样透传。
 fn full_context() -> Context {
     Context::new(
@@ -412,24 +422,35 @@ fn rendered_note_serializes_kind_spelling() {
     }
 }
 
-/// 四种 `kind` 的中文名两两不同且非空（展示用，不参与协议）
+/// 四种 `kind` 的中文名两两不同且非空，且结构体上的同名方法与之等价
+/// （展示用，不参与协议）
 #[test]
 fn memory_kind_labels_are_distinct_and_non_empty() {
     let kinds = [
-        MemoryKind::Semantic,
-        MemoryKind::SpecificSituation,
-        MemoryKind::AbstractSituation,
-        MemoryKind::Procedure,
+        (MemoryKind::Semantic, render_of(MemoryKind::Semantic)),
+        (
+            MemoryKind::SpecificSituation,
+            render_of(MemoryKind::SpecificSituation),
+        ),
+        (
+            MemoryKind::AbstractSituation,
+            render_of(MemoryKind::AbstractSituation),
+        ),
+        (MemoryKind::Procedure, render_of(MemoryKind::Procedure)),
     ];
 
     let mut labels: Vec<&str> = Vec::new();
-    for kind in kinds {
+    for (kind, rendered) in kinds {
         let label = kind.label();
         assert!(!label.is_empty(), "{kind:?} 的中文名不能为空");
         assert!(!labels.contains(&label), "中文名重复: {label}");
         labels.push(label);
+
+        // `RenderedMemoryNote::label` 必须与 `kind.label()` 一致：
+        // 两个方法同名同义，分叉会让展示层与协议层对不上
+        assert_eq!(rendered.label(), label, "结构体方法应与 kind.label() 等价");
     }
-    assert_eq!(labels.len(), kinds.len());
+    assert_eq!(labels.len(), 4);
 }
 
 /// 渲染结果只依赖类型与内容，与 `MemoryId` 无关
