@@ -41,7 +41,6 @@ use soul_mem_llm::json::{extract_balanced_array, extract_balanced_object, strip_
 pub struct PlayConfig {
     pub similarity_threshold: f32,
     pub max_results: usize,
-    pub action_top_k: usize,
     pub ppr_top_k: usize,
     pub damping_factor: f64,
     pub residue_threshold: f64,
@@ -312,7 +311,6 @@ impl Default for PlayConfig {
         Self {
             similarity_threshold: QUERY_VALIDATION_FLOOR,
             max_results: 4,
-            action_top_k: 3,
             ppr_top_k: 8,
             damping_factor: 0.65,
             residue_threshold: 1e-5,
@@ -962,22 +960,11 @@ impl PlayTestRunner {
         let mut per_query = Vec::new();
         let mut merged_map: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
         // 动作节点按 ActionType 拆成三路独立通道（不参与记忆分数合并）：
-        // Speak 语气 / Think 思维习惯各至多 1 条，其余行为类按 action_top_k
+        // Speak 语气 / Think 思维习惯各至多 1 条，其余行为类（含 proc_none）单独成路。
+        // 每类型一席由算法层保证（`ActionTypeSlots`），这里不再需要反查节点类型。
         let mut merged_speech: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
         let mut merged_think: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
         let mut merged_behavior: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
-        let action_type_map: HashMap<MemoryId, ActionType> =
-            self.wm.memory_cluster().read_or_compute(|c| {
-                c.graph()
-                    .node_weights()
-                    .filter_map(|n| match n.note().mem_type() {
-                        MemoryType::Procedure(p) => {
-                            Some((n.note().id(), p.get_action().get_action_type().clone()))
-                        }
-                        _ => None,
-                    })
-                    .collect()
-            });
 
         // priority 只作小偏移：分数接近时保护重要查询，分数差距大时由分数主导
         let p_max = prepared
@@ -1047,7 +1034,6 @@ impl PlayTestRunner {
                     top_k: self.config.ppr_top_k,
                     ..Default::default()
                 },
-                action_top_k: self.config.action_top_k,
                 ..Default::default()
             };
             let aa_req = aa_config.into_request(
@@ -1087,28 +1073,39 @@ impl PlayTestRunner {
                     .unwrap_or(std::cmp::Ordering::Equal)
             });
 
-            let mut action_nodes: Vec<TracedNode> = aa_result
-                .action
+            // 每个已占用席位：类型由算法层标注，无需再反查图
+            let seated_actions: Vec<(ActionType, TracedNode)> = aa_result
+                .slots
+                .seated()
                 .into_iter()
-                .map(|(id, score)| {
+                .map(|(action_type, seat)| {
+                    let id = seat.id;
                     let name = self.graph_names.get(&id).cloned().unwrap_or_default();
                     let stage = if sim_set.contains(&id) {
                         HitStage::Both
                     } else {
                         HitStage::Action
                     };
-                    TracedNode {
-                        id,
-                        name,
-                        content: self
-                            .id_names
-                            .get(&id)
-                            .map(|s| s.primary.clone())
-                            .unwrap_or_default(),
-                        score,
-                        stage,
-                    }
+                    (
+                        action_type,
+                        TracedNode {
+                            id,
+                            name,
+                            content: self
+                                .id_names
+                                .get(&id)
+                                .map(|s| s.primary.clone())
+                                .unwrap_or_default(),
+                            score: seat.score,
+                            stage,
+                        },
+                    )
                 })
+                .collect();
+
+            let mut action_nodes: Vec<TracedNode> = seated_actions
+                .iter()
+                .map(|(_, node)| node.clone())
                 .collect();
             action_nodes.sort_by(|a, b| {
                 b.score
@@ -1129,19 +1126,22 @@ impl PlayTestRunner {
             };
             per_query.push(qt);
 
-            // 按 ActionType 分流：Speak→语气、Think（非 proc_none）→思维习惯、其余→行为
+            // 按 ActionType 分流：Speak→语气、Think（非 proc_none）→思维习惯、
+            // 其余（含 proc_none）→行为通道
             let mut speech = Vec::new();
             let mut think = Vec::new();
             let mut behavior = Vec::new();
-            for n in action_nodes {
-                match action_type_map.get(&n.id) {
-                    Some(ActionType::Speak) => speech.push(n),
-                    Some(ActionType::Think)
-                        if self.graph_names.get(&n.id).map(|s| s.as_str()) != Some("proc_none") =>
+            for (action_type, node) in seated_actions {
+                match action_type {
+                    ActionType::Speak => speech.push(node),
+                    ActionType::Think
+                        if self.graph_names.get(&node.id).map(|s| s.as_str())
+                            != Some("proc_none") =>
                     {
-                        think.push(n)
+                        think.push(node)
                     }
-                    _ => behavior.push(n),
+                    // proc_none（Think 类型但是"无动作"占位）与 Skill 都归行为通道
+                    _ => behavior.push(node),
                 }
             }
 
@@ -1172,9 +1172,9 @@ impl PlayTestRunner {
 
         let mut all_nodes = finish_merged(merged_map);
         all_nodes.truncate(self.config.merged_top_k);
-        // 行为类动作独立 top-k：即使分数低于记忆节点也保留进最终结果
+        // 行为类动作独立单席：算法层已按类型截断，这里再兜一层防止多 Query 折叠后重复
         let mut action_nodes = finish_merged(merged_behavior);
-        action_nodes.truncate(self.config.action_top_k);
+        action_nodes.truncate(1);
         // 语气 / 思维习惯单席：只取分数最高 1 条，避免多个 Speak 内容互相矛盾
         let mut speech_nodes = finish_merged(merged_speech);
         speech_nodes.truncate(1);
@@ -1531,10 +1531,11 @@ mod tests {
         // 常驻兜底：格蕾修图存在 Speak 与 Think proc，即使 Bayes 未命中也应各有 1 条
         assert_eq!(trace.speech_nodes.len(), 1, "Speak 常驻兜底应生效");
         assert_eq!(trace.think_nodes.len(), 1, "Think 常驻兜底应生效");
-        // 行为类通道受 action_top_k 限制
+        // 行为类通道单席（每类型一席由算法层保证，行为通道折叠后亦至多 1 条）
         assert!(
-            trace.action_nodes.len() <= runner.config.action_top_k,
-            "行为类动作数量应受 action_top_k 限制"
+            trace.action_nodes.len() <= 1,
+            "行为类动作至多 1 条，实际 {}",
+            trace.action_nodes.len()
         );
         // 至少一路检出动作（Think 通道应包含学习/睡觉习惯）
         assert!(

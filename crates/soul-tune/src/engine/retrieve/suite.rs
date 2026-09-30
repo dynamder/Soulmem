@@ -519,7 +519,6 @@ impl TestSuite for RetrieveSuite {
                     },
                     assoc_with_action: AssociateWithActionConfig {
                         association: Default::default(),
-                        action_top_k: 3,
                         ..Default::default()
                     },
                 };
@@ -532,11 +531,13 @@ impl TestSuite for RetrieveSuite {
                     priority,
                 );
                 let pipeline_res = RetrDefaultPipeline {}.retrieve(pipeline_request);
+                // 动作按类型分席（每类至多一个），展平为 (id, 分, priority) 供动作评测
                 all_full_action.extend(
                     pipeline_res
                         .action
+                        .seated()
                         .into_iter()
-                        .map(|(id, score)| (id, score, priority)),
+                        .map(|(_, seat)| (seat.id, seat.score, priority)),
                 );
                 let ids: Vec<MemoryId> =
                     pipeline_res.association.iter().map(|(id, _)| *id).collect();

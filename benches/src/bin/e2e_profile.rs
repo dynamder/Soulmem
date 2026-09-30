@@ -26,7 +26,7 @@ use soul_mem_algo::algo::retrieve::similarity::SimilarityConfig;
 use soul_mem_core::memory_links::proc_mem::{ProcMemLink, TrigToAction};
 use soul_mem_core::memory_links::sem_mem::SemMemLink;
 use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType};
-use soul_mem_core::memory_note::proc_mem::{Action, ActionType, ProcMemory};
+use soul_mem_core::memory_note::proc_mem::{Action, ActionType, ProcMemory, SkillRecord};
 use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
 use soul_mem_core::memory_note::{MemoryId, MemoryNoteBuilder, MemoryType};
 use soul_mem_query::embedding::EmbeddingVec;
@@ -221,8 +221,15 @@ fn build_working_memory(nodes: usize, topo: Topo) -> (Arc<WorkingMemory>, usize)
             c.add_single_node(sem_note(ids[i], format!("记忆内容 {}", i), links, i));
 
             if let Some(aid) = action_id {
+                // 动作类型轮换 Speak / Think / Skill：检索层按类型分席、每类只留一个，
+                // 单一类型会让合成图在动作腿上塌成 1 个节点，插桩数据失去意义。
+                let action_type = match (i / 64) % 3 {
+                    0 => ActionType::new_speak(),
+                    1 => ActionType::new_think(),
+                    _ => ActionType::new_skill(SkillRecord {}),
+                };
                 let action_note = MemoryNoteBuilder::new(MemoryType::Procedure(ProcMemory::new(
-                    Action::new(format!("Action_{i}"), ActionType::new_speak()),
+                    Action::new(format!("Action_{i}"), action_type),
                 )))
                 .id(aid)
                 .build()
@@ -253,7 +260,6 @@ fn pipeline_config() -> DefaultPipelineConfig {
         },
         assoc_with_action: AssociateWithActionConfig {
             association: Default::default(),
-            action_top_k: 3,
             ..Default::default()
         },
     }
