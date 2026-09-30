@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/soul-mem-algo","crates/soul-mem-core", "crates/soul-mem-llm", "crates/soul-mem-query", "crates/soul-mem-runtime", "benches", "crates/soul-tune", "crates/soul-tune-api"]
+members = ["crates/soul-mem", "crates/soul-mem-algo","crates/soul-mem-core", "crates/soul-mem-llm", "crates/soul-mem-query", "crates/soul-mem-runtime", "benches", "crates/soul-tune", "crates/soul-tune-api"]
 
 # esaxx-rs 硬编码 static_crt(true)(/MT)，与 llama-cpp-sys-2(/MD) 在 MSVC 链接冲突，
 # 本地补丁移除 static_crt 使整个依赖树统一使用 /MD 运行时。

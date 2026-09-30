@@ -1,0 +1,190 @@
+// SoulMem 记忆服务 wire 协议（zenoh pub/sub 与 gRPC 共用一份消息）。
+//
+// zenoh keyexpr（前缀含角色/库标识）：
+//   <prefix>/req    Request  客户端 publish 请求
+//   <prefix>/resp   Reply    服务端 publish 响应（按 request_id 配对）
+//   <prefix>/event  Event    服务端主动推送（周期心跳、巩固完成）
+//
+// 设计依据见 `docs/architecture/orchestration.md`：一次请求 = query 集合 +
+// 当前信息增量（均可选，可同时）+ 控制信号；输出为一段自然语言。
+// 三个可选项并列（非 oneof），因此可以"先压增量、再做检索"。
+syntax = "proto3";
+
+package soulmem.v1;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+// ============================================================================
+// gRPC 服务（与 zenoh keyexpr 一一对应）
+// ============================================================================
+//
+//   Exchange  <-> zenoh <prefix>/req + <prefix>/resp
+//   Subscribe <-> zenoh <prefix>/event
+service SoulMem {
+  // 统一入口：检索 / 信息增量 / 控制信号（三者可同时出现）。
+  rpc Exchange(Request) returns (Reply);
+  // 事件订阅：心跳与巩固完成。
+  rpc Subscribe(google.protobuf.Empty) returns (stream Event);
+}
+
+// ============================================================================
+// 信封
+// ============================================================================
+
+// 请求。query 集合、信息增量、控制信号均为可选；同时存在时先压增量再检索。
+message Request {
+  // 请求标识（UUID），响应按此回填。
+  string request_id = 1;
+  // 检索 query 集合，每条带优先级。
+  repeated Query queries = 2;
+  // 信息增量，按顺序压入滑动窗口。
+  repeated Delta deltas = 3;
+  // 控制信号，按顺序执行。
+  repeated ControlAction controls = 4;
+}
+
+// 响应。
+message Reply {
+  string request_id = 1;
+  bool ok = 2;
+  string error = 3;
+  // 检索结果：一段自然语言（有 query 时给出）。
+  optional string output = 4;
+  // 服务状态：正常处理（含业务失败）时给出；仅"服务循环不可用"这类传输层错误可能缺省。
+  optional ServiceState state = 5;
+  // 实际接受的信息增量条数。
+  uint32 accepted = 6;
+}
+
+// 服务端主动推送。
+message Event {
+  google.protobuf.Timestamp at = 1;
+
+  oneof body {
+    // 周期心跳。
+    ServiceState heartbeat = 2;
+    // 一次巩固完成。
+    ConsolidationDone consolidation_done = 3;
+  }
+}
+
+// ============================================================================
+// 检索 query 集合
+// ============================================================================
+
+// 一条检索 query：标签 + 语义/情境二选一 + 优先级。
+message Query {
+  // 优先级（越大越重要），用于多 query 合并时的权重。
+  uint32 priority = 1;
+  // 标签（参与 tag 通道的嵌入与比较）。
+  repeated string tag = 2;
+
+  oneof variant {
+    SemanticQuery semantic = 3;
+    SituationQuery situation = 4;
+  }
+}
+
+message SemanticQuery {
+  repeated SemanticUnit units = 1;
+}
+
+// 一个单元代表一个概念或实体。
+message SemanticUnit {
+  optional string concept_identifier = 1;
+  optional string description = 2;
+}
+
+message SituationQuery {
+  repeated SituationUnit units = 1;
+}
+
+// 一个单元代表一个情境或事件，单元内各字段为"与"关系。
+message SituationUnit {
+  optional string narrative = 1;
+  repeated LocationUnit location = 2;
+  repeated ParticipantUnit participants = 3;
+  repeated TimeSpanUnit time_span = 4;
+  optional EnvironmentUnit environment = 5;
+  repeated EventUnit event = 6;
+}
+
+message LocationUnit {
+  string name = 1;
+  optional string coordinates = 2;
+}
+
+message ParticipantUnit {
+  optional string name = 1;
+  optional string role = 2;
+}
+
+message EnvironmentUnit {
+  optional string atmosphere = 1;
+  optional string tone = 2;
+}
+
+message EventUnit {
+  string action = 1;
+  optional string initiator = 2;
+  optional string target = 3;
+}
+
+// 注意：当前评分逻辑不消费 time_span（字段保留供后续实现）。
+message TimeSpanUnit {
+  optional google.protobuf.Timestamp start = 1;
+  optional google.protobuf.Timestamp end = 2;
+}
+
+// ============================================================================
+// 信息增量
+// ============================================================================
+
+// 一条信息增量：语句 + 角色。
+message Delta {
+  string statement = 1;
+  // "user" | "assistant"；其他值按 user 处理。
+  string role = 2;
+}
+
+// ============================================================================
+// 控制信号与服务状态
+// ============================================================================
+
+enum ControlAction {
+  CONTROL_ACTION_UNSPECIFIED = 0;
+  // 强制触发巩固（摘要 -> 新记忆节点）。
+  CONTROL_ACTION_CONSOLIDATE = 1;
+  // 将工作记忆持久化到数据库。
+  CONTROL_ACTION_PERSIST = 2;
+  // 导出当前服务状态快照（在 Reply.state 中返回）。
+  CONTROL_ACTION_SNAPSHOT = 3;
+  // 强制触发遗忘流程（当前为占位，未实现）。
+  CONTROL_ACTION_FORGET = 4;
+  // 暂停接收信息增量。
+  CONTROL_ACTION_PAUSE = 5;
+  // 恢复接收信息增量。
+  CONTROL_ACTION_RESUME = 6;
+  // 内部维护：静默超过阈值后转入 Idle 并（摘要非空时）巩固。
+  // 通常由服务定时任务发出；外部主动调用亦可。
+  CONTROL_ACTION_MAINTENANCE = 7;
+}
+
+message ServiceState {
+  WorkingState working_state = 1;
+  uint64 node_count = 2;
+  bool llm_available = 3;
+  optional google.protobuf.Timestamp last_consolidation_at = 4;
+}
+
+enum WorkingState {
+  WORKING_STATE_UNSPECIFIED = 0;
+  WORKING_STATE_IDLE = 1;
+  WORKING_STATE_WORKING = 2;
+}
+
+message ConsolidationDone {
+  // 本次巩固新建的记忆节点数。
+  uint32 created_notes = 1;
+}
