@@ -23,6 +23,11 @@
 //!
 //! 用 `MemoryNoteBuilder`，其 `build()` 返回 `Result`（会校验时间顺序等约束）。
 //! 注意同层的 `MemoryLinkBuilder::build()` 返回的是裸值——两者契约不同，别照抄。
+//!
+//! # 对外暴露
+//!
+//! 把节点交给外部服务时**不要**直接序列化本类型。用 [`crate::render::Render`]，
+//! 它产出稳定的对外表示（类型 + 分数 + 内容 + 上下文），内部字段重构不会波及协议。
 
 use std::fmt::Display;
 
@@ -111,6 +116,7 @@ impl MemoryNote {
     pub fn last_accessed_time(&self) -> DateTime<Utc> {
         self.last_accessed_time
     }
+    /// 类型特定载荷。对外暴露请走 [`crate::render::Render::render`]。
     pub fn mem_type(&self) -> &MemoryType {
         &self.mem_type
     }
