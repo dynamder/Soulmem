@@ -480,6 +480,9 @@ mod tests {
         ));
 
         assert_eq!(result.len(), 2, "Speak 与 Think 各占一席");
+        // 非空这一侧必须被观测到：只断言 `len()` 时，`is_empty()` 恒返回 true 也能存活
+        // （`test_retr_bayes_action_empty_source` 只覆盖了空态那一侧）。
+        assert!(!result.is_empty(), "两席被占用时 is_empty() 必须为 false");
         assert_eq!(result.speak.as_ref().map(|s| s.id), Some(types[0].0));
         assert_eq!(result.think.as_ref().map(|s| s.id), Some(types[1].0));
         assert!(
@@ -635,6 +638,126 @@ mod tests {
         assert_eq!(result.len(), 1);
         let seat = result.think.expect("Think 席位应被占据");
         assert_eq!(seat.id, candidates[0], "同分时应取 MemoryId 较小者");
+    }
+
+    /// 「一个情境源 + 若干**同类型**（Think）动作候选」的最小夹具。
+    ///
+    /// 只有同类型才会争同一个席位；候选分数等于 `TrigToAction` 权重。
+    struct ThinkCandidates {
+        wm: WorkingMemory,
+        source_id: MemoryId,
+    }
+
+    /// 按 `(候选 id, 链接 `TrigToAction` 权重)` 造夹具；权重相同即同分。
+    fn think_candidates(scored: &[(MemoryId, f64)]) -> ThinkCandidates {
+        let wm = WorkingMemory::new(10);
+        let cluster = wm.memory_cluster();
+        let source_id = MemoryId::new();
+
+        cluster.write(|c| {
+            let links: Vec<MemoryLink> = scored
+                .iter()
+                .map(|(id, weight)| {
+                    MemoryLink::new(
+                        source_id,
+                        *id,
+                        MemoryLinkType::Proc(ProcMemLink::TrigToAction(TrigToAction::new(*weight))),
+                    )
+                })
+                .collect();
+            let source_note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+                content: "source".into(),
+                aliases: vec![],
+                concept_type: ConceptType::Entity,
+                description: String::new(),
+            }))
+            .id(source_id)
+            .mem_links(links)
+            .build()
+            .unwrap();
+            let source_emb = MemoryEmbedding::new(
+                EmbeddingVec::zero(128),
+                MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                    EmbeddingVec::zero(128),
+                )),
+            );
+            c.add_single_node(EmbeddedMemoryNote {
+                note: source_note,
+                embedding: source_emb,
+            });
+
+            for (id, _) in scored {
+                let note = MemoryNoteBuilder::new(MemoryType::Procedure(ProcMemory::new(
+                    Action::new("Candidate".into(), ActionType::new_think()),
+                )))
+                .id(*id)
+                .build()
+                .unwrap();
+                c.add_single_node(EmbeddedMemoryNote {
+                    note,
+                    embedding: MemoryEmbedding::new(
+                        EmbeddingVec::zero(128),
+                        MemoryEmbeddingVariant::Procedure(),
+                    ),
+                });
+            }
+        });
+
+        ThinkCandidates { wm, source_id }
+    }
+
+    /// 贪心比较与同分 tiebreak 的判定必须与 `scores` 的迭代顺序无关。
+    ///
+    /// `best_per_action_type` 遍历的是一张 `HashMap`，其迭代顺序每次运行都不同；单次断言
+    /// 只能靠运气命中「顺序敏感」的变异体——例如把 `*score > current.score` 改成 `==` 后，
+    /// 只有在最高分**恰好先被遍历到**时才不改变胜者，因此能否杀灭取决于当次哈希种子。
+    /// 这里反复重建工作记忆（每轮都是全新的 `HashMap` 与新的哈希种子），把「靠运气通过」
+    /// 的概率压到可忽略：两个场景各有 3 个候选，坏顺序恰好出现的概率约 1/3，64 轮后约
+    /// 3^-64。
+    #[test]
+    fn test_greedy_and_tiebreak_are_order_independent() {
+        const ROUNDS: usize = 64;
+
+        for _ in 0..ROUNDS {
+            // (1) 分数不同：分数最高者必须胜出，且与其 id 大小无关
+            let mut distinct = [MemoryId::new(), MemoryId::new(), MemoryId::new()];
+            distinct.sort();
+            let fixture =
+                think_candidates(&[(distinct[0], 0.3), (distinct[1], 0.5), (distinct[2], 0.7)]);
+            let source_id = fixture.source_id;
+            let winner = RetrBayesAction {}
+                .retrieve(BayesActionRequest::new(
+                    Arc::new(fixture.wm),
+                    vec![(source_id, 1.0)],
+                ))
+                .think
+                .expect("Think 席位应被占据")
+                .id;
+            assert_eq!(
+                winner, distinct[2],
+                "不同分时应取分数最高者，与遍历顺序无关"
+            );
+
+            // (2) 全同分：`MemoryId` 较小者必须胜出
+            let mut tied = [MemoryId::new(), MemoryId::new(), MemoryId::new()];
+            tied.sort();
+            let fixture = think_candidates(&[(tied[0], 0.5), (tied[1], 0.5), (tied[2], 0.5)]);
+            let source_id = fixture.source_id;
+            let winner = RetrBayesAction {}
+                .retrieve(BayesActionRequest::new(
+                    Arc::new(fixture.wm),
+                    vec![(source_id, 1.0)],
+                ))
+                .think
+                .expect("Think 席位应被占据")
+                .id;
+            assert_eq!(
+                winner, tied[0],
+                "同分时应取 MemoryId 较小者，与遍历顺序无关"
+            );
+        }
     }
 
     #[test]
