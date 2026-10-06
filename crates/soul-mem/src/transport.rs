@@ -13,3 +13,4 @@ pub mod grpc;
 pub mod zenoh;
 
 pub use grpc::GrpcService;
+pub use zenoh::ZenohService;

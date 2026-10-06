@@ -1,6 +1,9 @@
 //! 记忆文本渲染：把记忆节点投影为文本，并按模板组织成一段自然语言。
 //!
 //! 不使用 LLM：按类型取最核心的可读字段，再按固定顺序拼接。
+//!
+//! [`note_text`] **按值接收** `EmbeddedMemoryNote`，以便把节点里的字符串直接移出，
+//! 不再为每个字段做一次 clone。
 
 use soul_mem_core::memory_note::MemoryType;
 use soul_mem_core::memory_note::situation_mem::{AbstractSituation, SituationType};
@@ -9,11 +12,12 @@ use soul_mem_query::embedding::note::EmbeddedMemoryNote;
 use soul_mem_runtime::working_memory::sliding_window::Information;
 
 /// 把一条记忆节点渲染为文本；内容为空时返回 `None`。
-pub fn note_text(embedded: &EmbeddedMemoryNote) -> Option<String> {
-    let text = match embedded.note().mem_type() {
+pub fn note_text(embedded: EmbeddedMemoryNote) -> Option<String> {
+    let (note, _embedding) = embedded.into_tuple();
+    let text = match note.into_mem_type() {
         MemoryType::Semantic(sem) => {
             if sem.description.trim().is_empty() {
-                sem.content.clone()
+                sem.content
             } else {
                 format!("{}（{}）", sem.content, sem.description)
             }
@@ -35,28 +39,23 @@ pub fn note_text(embedded: &EmbeddedMemoryNote) -> Option<String> {
 }
 
 /// 抽象情境的记忆没有叙事，用其代表字段代替。
-fn abstract_text(situation: &AbstractSituation) -> String {
+fn abstract_text(situation: AbstractSituation) -> String {
     match situation {
-        AbstractSituation::Location(location) => location.name.clone(),
-        AbstractSituation::Participant(participant) => participant.name.clone(),
+        AbstractSituation::Location(location) => location.name,
+        AbstractSituation::Participant(participant) => participant.name,
         AbstractSituation::Environment(environment) => {
             format!("{} {}", environment.atmosphere, environment.tone)
                 .trim()
                 .to_string()
         }
-        AbstractSituation::Event(event) => event.action.clone(),
+        AbstractSituation::Event(event) => event.action,
     }
 }
 
 /// 把检索产物组织成一段自然语言。
 ///
-/// 顺序：摘要 → 相关记忆 → 动作建议 → 最近对话。空的部分整段省略。
-pub fn render_output(
-    short_mem: &str,
-    memories: &[String],
-    actions: &[String],
-    history: &[Information],
-) -> String {
+/// 顺序：摘要 → 相关记忆 → 最近对话。空的部分整段省略。
+pub fn render_output(short_mem: &str, memories: &[String], history: &[Information]) -> String {
     let mut sections: Vec<String> = Vec::new();
 
     let summary = short_mem.trim();
@@ -65,9 +64,6 @@ pub fn render_output(
     }
     if !memories.is_empty() {
         sections.push(format!("【相关记忆】{}", memories.join("；")));
-    }
-    if !actions.is_empty() {
-        sections.push(format!("【动作】{}", actions.join("；")));
     }
     if !history.is_empty() {
         let turns: Vec<String> = history
@@ -95,17 +91,15 @@ mod tests {
     #[test]
     fn renders_sections_in_order_and_omits_empty() {
         let memories = vec!["记忆A".to_string()];
-        let actions = vec!["动作B".to_string()];
-        let output = render_output("摘要", &memories, &actions, &[]);
+        let output = render_output("摘要", &memories, &[]);
         assert!(output.starts_with("【摘要】摘要"));
         assert!(output.contains("【相关记忆】记忆A"));
-        assert!(output.contains("【动作】动作B"));
         assert!(!output.contains("【最近对话】"));
     }
 
     #[test]
     fn empty_everything_is_empty_string() {
-        assert!(render_output("", &[], &[], &[]).is_empty());
+        assert!(render_output("", &[], &[]).is_empty());
     }
 
     #[test]

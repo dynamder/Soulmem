@@ -1,8 +1,7 @@
 //! 请求分派：一条 proto `Request` -> 核心 -> 一条 proto `Reply`。
 //!
-//! zenoh 与 gRPC 两个适配器共用，保证两条传输行为一致。
-
-use prost::Message;
+//! prost 的 `Message::{encode_to_vec, decode}` 完成。zenoh 与 gRPC 两个适配器共用本函数，
+//! 保证两条传输的业务行为一致。
 
 use super::convert;
 use crate::proto::v1;
@@ -23,19 +22,4 @@ pub async fn dispatch(handle: &ServiceHandle, request: v1::Request) -> v1::Reply
         Ok(response) => convert::reply(request_id, response),
         Err(error) => convert::reply_error(request_id, error.to_string()),
     }
-}
-
-/// protobuf 编码一条响应。
-pub fn encode_reply(reply: &v1::Reply) -> Vec<u8> {
-    reply.encode_to_vec()
-}
-
-/// protobuf 编码一条事件。
-pub fn encode_event(event: &v1::Event) -> Vec<u8> {
-    event.encode_to_vec()
-}
-
-/// protobuf 解码一条请求。
-pub fn decode_request(bytes: &[u8]) -> Result<v1::Request, prost::DecodeError> {
-    v1::Request::decode(bytes)
 }

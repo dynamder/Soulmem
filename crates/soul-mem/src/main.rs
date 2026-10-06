@@ -1,5 +1,6 @@
 //! SoulMem 记忆服务入口：引导依赖、启动 zenoh / gRPC 适配器、处理优雅退出。
 
+use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::sync::broadcast;
@@ -9,21 +10,21 @@ use soul_mem::bootstrap::bootstrap;
 use soul_mem::config::Config;
 use soul_mem::proto::v1;
 use soul_mem::service::{ControlAction, ServiceEvent, ServiceHandle, spawn};
-use soul_mem::transport::GrpcService;
+use soul_mem::transport::{GrpcService, ZenohService};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let _ = dotenvy::dotenv();
     init_tracing();
 
-    let config = Config::from_env()?;
+    let config = Arc::new(Config::load()?);
     tracing::info!(
         character = %config.character,
         db = %config.db_path.display(),
         "启动 SoulMem 服务"
     );
 
-    let boot = bootstrap(&config).await?;
+    let boot = bootstrap(Arc::clone(&config)).await?;
     let (handle, service_loop) = spawn(boot.service, 32);
 
     let heartbeat = spawn_heartbeat(
@@ -51,12 +52,13 @@ async fn main() -> anyhow::Result<()> {
     }
 
     if config.enable_zenoh {
-        let zenoh_handle = handle.clone();
-        let prefix = config.key_prefix.clone();
-        let events = boot.events.subscribe();
+        let service = ZenohService::new(
+            handle.clone(),
+            config.key_prefix.clone(),
+            boot.events.clone(),
+        );
         adapters.push(tokio::spawn(async move {
-            if let Err(error) = soul_mem::transport::zenoh::run(zenoh_handle, prefix, events).await
-            {
+            if let Err(error) = service.run().await {
                 tracing::error!(%error, "zenoh 适配器退出");
             }
         }));

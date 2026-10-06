@@ -5,7 +5,7 @@
 //!
 //! 1. 信息增量：逐条压入滑动窗口（可能触发摘要）；
 //! 2. 检索：query 集合逐条跑 `DefaultPipeline`，按 priority 加权合并，取 top-k
-//!    并渲染成一段自然语言；
+//!    并渲染成一段自然语言（命中节点渲染后从工作记忆移出，DB 中仍有权威副本）；
 //! 3. 控制信号：巩固 / 持久化 / 快照 / 暂停 / 恢复 / 维护。
 //!
 //! 三部分可同时出现在一条请求里；任一步失败都只记录首个错误，其余步骤继续执行，
@@ -59,7 +59,7 @@ use crate::error::{ServiceError, ServiceResult};
 
 /// 默认相似度兜底分。
 const SIMILARITY_THRESHOLD: f32 = 0.35;
-/// Bayes 动作推理保留的 top-k。
+/// 管线内 Bayes 动作推理保留的 top-k（动作结果当前不参与输出渲染）。
 const ACTION_TOP_K: usize = 3;
 /// 抽象情境源在 Bayes 动作提取中的权重倍率。
 const ABSTRACT_SOURCE_PRIORITY: f64 = 2.0;
@@ -83,7 +83,7 @@ pub enum Command {
 
 /// 服务核心状态。
 pub struct MemoryService {
-    config: Config,
+    config: Arc<Config>,
     wm: Arc<WorkingMemory>,
     repo: Arc<dyn MemoryRepository>,
     llm: Arc<LlmEngine>,
@@ -99,8 +99,10 @@ pub struct MemoryService {
 
 impl MemoryService {
     /// 组装服务核心。各依赖由引导层注入，便于替换与测试。
+    ///
+    /// `config` 以 `Arc` 注入：服务与引导层共享同一份设置，运行期不再重建。
     pub fn new(
-        config: Config,
+        config: Arc<Config>,
         wm: Arc<WorkingMemory>,
         repo: Arc<dyn MemoryRepository>,
         llm: Arc<LlmEngine>,
@@ -205,22 +207,19 @@ impl MemoryService {
         } else {
             "user"
         };
-        match self
+        // push 仅在超容量且队首被标记时才触发摘要 LLM；未超容量时直接 Ok。
+        // 因此 `Ok` 不蕴含"调用过 LLM"，不能据此点亮可用性标志——只在真正失败时置 false，
+        // 置 true 交给启动探活与巩固（它们确定会调用 LLM）。
+        if let Err(error) = self
             .wm
             .sliding_window()
             .push(&delta.statement, role, &self.llm)
             .await
         {
-            Ok(()) => {
-                self.llm_available = true;
-                Ok(())
-            }
-            Err(error) => {
-                // push 仅因摘要 LLM 调用失败而报错，据此更新可用性。
-                self.llm_available = false;
-                Err(error.into())
-            }
+            self.llm_available = false;
+            return Err(error.into());
         }
+        Ok(())
     }
 
     /// 检索用例：query 集合 -> 一段自然语言。
@@ -247,28 +246,26 @@ impl MemoryService {
         )
         .await?;
 
-        // 3) 逐 query 跑管线（仅在此处临时共享 Arc）。
+        // 3) 逐 query 跑管线（仅在此处临时共享 Arc）。，
+        // 放进阻塞线程池执行，避免占住 tokio worker（也避免 rayon 与异步运行时互等）。
         let mut results: Vec<DefaultPipelineResult> = Vec::with_capacity(embedded.len());
         for (priority, fused) in embedded {
             let request = self
                 .pipeline
                 .clone()
                 .into_request(Arc::clone(&self.wm), fused, priority);
-            results.push(RetrDefaultPipeline.retrieve(request));
+            let result = tokio::task::spawn_blocking(move || RetrDefaultPipeline.retrieve(request))
+                .await
+                .map_err(|error| ServiceError::Internal(format!("检索管线任务失败: {error}")))?;
+            results.push(result);
         }
 
-        // 4) 按 priority 加权合并记忆与动作。
+        // 4) 按 priority 加权合并记忆。
         let merged_memories = merge::merge_scored(
             results
                 .iter()
                 .map(|result| (result.priority, result.association.as_slice())),
             self.config.top_k,
-        );
-        let merged_actions = merge::merge_scored(
-            results
-                .iter()
-                .map(|result| (result.priority, result.action.as_slice())),
-            ACTION_TOP_K,
         );
 
         // 5) 记录命中（供巩固建链与后续频次统计）。
@@ -290,26 +287,24 @@ impl MemoryService {
             .map(|result| Arc::clone(&result.short_history))
             .unwrap_or_else(|| Arc::from(Vec::<Information>::new()));
 
-        // 7) 从簇取内容并渲染。
+        // 7) 从簇取内容并渲染：命中节点直接移出交给 `note_text` 消费（零 clone）。
+        //
+        // 移出是安全的：节点在 DB 里都有权威副本（预取来自 DB；巩固新建的节点先落库再入簇），
+        // 下次相似召回会重新加入，`incompletely_linked_note` 会恢复其入射边。
+        // 这里保留 `records`（不调用 `WorkingMemory::remove_node`），因此累计检索次数不丢：
+        // 节点若被再次召回，仍可参与巩固建链（`active_node_ids` 只在缺席期间把它过滤掉）。
         let cluster = self.wm.memory_cluster();
-        let (memory_texts, action_texts) = cluster.read_or_compute(|c| {
-            let memories = merged_memories
+        let memory_texts = cluster.write(|c| {
+            merged_memories
                 .iter()
-                .filter_map(|(id, _)| c.get_node(*id))
+                .filter_map(|(id, _)| c.remove_single_node(*id))
                 .filter_map(render::note_text)
-                .collect::<Vec<_>>();
-            let actions = merged_actions
-                .iter()
-                .filter_map(|(id, _)| c.get_node(*id))
-                .filter_map(render::note_text)
-                .collect::<Vec<_>>();
-            (memories, actions)
+                .collect::<Vec<_>>()
         });
 
         Ok(render::render_output(
             &short_mem,
             &memory_texts,
-            &action_texts,
             short_history.as_ref(),
         ))
     }
@@ -734,7 +729,7 @@ mod tests {
     fn build_service(repo: Arc<FakeRepo>) -> MemoryService {
         let events = broadcast::channel(8).0;
         MemoryService::new(
-            test_config(),
+            Arc::new(test_config()),
             Arc::new(WorkingMemory::new(20)),
             repo,
             Arc::new(LlmEngine::new(Arc::new(FakeLlm))),
@@ -763,6 +758,21 @@ mod tests {
         assert_eq!(response.accepted, 1);
         assert!(response.error.is_none());
         assert!(service.wm.is_working());
+    }
+
+    /// 回归：未超容量的 ingest 不触发摘要，`push` 的 `Ok` 不得点亮 llm_available。
+    #[tokio::test]
+    async fn ingest_below_capacity_does_not_mark_llm_available() {
+        let repo = Arc::new(FakeRepo::default());
+        let mut service = build_service(repo);
+        service.llm_available = false;
+        let request = ServiceRequest {
+            deltas: vec![delta("你好")],
+            ..ServiceRequest::default()
+        };
+        let response = service.handle_exchange(request).await;
+        assert!(response.error.is_none());
+        assert!(!service.llm_available, "未调用 LLM 不应把可用性置真");
     }
 
     #[tokio::test]

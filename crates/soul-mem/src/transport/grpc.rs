@@ -49,6 +49,8 @@ impl v1::soul_mem_server::SoulMem for GrpcService {
                     Ok(event) => yield Ok(convert::event(event)),
                     Err(broadcast::error::RecvError::Lagged(skipped)) => {
                         tracing::warn!(skipped, "事件订阅落后，已跳过部分事件");
+                        // Lagged 是立即返回的：让出一次调度，避免生产快于消费时紧循环空转。
+                        tokio::task::yield_now().await;
                     }
                     Err(broadcast::error::RecvError::Closed) => break,
                 }
