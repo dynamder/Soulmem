@@ -21,12 +21,12 @@ candle-core = { workspace = true, optional = true }
 candle-nn = { workspace = true, optional = true }
 candle-transformers = { workspace = true, optional = true }
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "json"] }
-paw-rs = { version = "0.2", default-features = false, features = ["llamacpp"] }
+paw-rs = { version = "0.3", default-features = false, features = ["llamacpp"] }
 tokio.workspace = true
 dotenvy = "0.15.7"
 chrono.workspace = true
 jieba-rs.workspace = true
-tokenizers = { version = "0.21", optional = true }
+tokenizers = { version = "0.23", optional = true }
 
 [features]
 default = ["llamacpp"]

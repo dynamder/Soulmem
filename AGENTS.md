@@ -35,6 +35,8 @@ SoulMem 是**角色扮演用的记忆系统**，本质是一个"向量检索 + �
 | `docs/` | 架构与规范文档（见 §6） |
 | `scripts/check_encoding.py` | 编码门禁（CI 中执行） |
 | `scripts/check_layout.py` | 模块布局门禁（CI 中执行） |
+| `scripts/check_commit_messages.py` | 提交信息门禁（Conventional Commits，CI 中执行） |
+| `scripts/classify_changes.py` | 纯文档改动分类器（CI 据此跳过 `Test` 矩阵；不是门禁） |
 
 依赖方向：`core → query/runtime/llm → algo → soul-tune → soul-tune-api`。
 `runtime → algo` 仅存在于 **dev-dependencies**，生产依赖图中没有反向边。
@@ -78,6 +80,7 @@ cargo fmt --all --check
 cargo clippy --workspace --all-targets -- -D warnings
 python3 scripts/check_encoding.py         # 编码门禁
 python3 scripts/check_layout.py           # 模块布局门禁
+python3 scripts/check_commit_messages.py  # 提交信息门禁（Conventional Commits）
 cargo mutants --workspace                 # 杀灭率 ≥90%，门禁见 scripts/mutants_gate.py
 ```
 
@@ -106,6 +109,10 @@ cargo mutants --workspace                 # 杀灭率 ≥90%，门禁见 scripts
 > **不要批量改写、重排或"优化"书正文**——那不是可以自动化的区域。需要文档改动时改 `docs/` 或 crate 内注释。
 > 书源码保留在 `doc/book` 分支，当前分支**不含**书源码（磁盘上的 `book/book/` 只是 HTML 构建产物）。
 
+**分支模型、提交信息、推进与发布流程、文档规范以
+[`docs/dev-convention.md`](docs/dev-convention.md) 为唯一权威**（[`CONTRIBUTING.md`](CONTRIBUTING.md)
+为简版入口）。改文档前另见该文件 §6。
+
 **取用文档时的三条规则**：
 
 - **测试数据集**以 [`docs/测试数据规范.md`](docs/测试数据规范.md) 为准。
@@ -127,6 +134,7 @@ cargo mutants --workspace                 # 杀灭率 ≥90%，门禁见 scripts
 - **`.cargo/mutants.toml` 的每个排除项都要写原因**。另注意两个坑：`exclude_re` **不作用于结构体字面量字段变异体**（cargo-mutants 27.1.0 实测）；"行为可观测但没有测试覆盖"应当补测试，而不是加排除项。
 - **编码由 `.editorconfig` 约束为 UTF-8**：中文注释被 GBK 保存会变成乱码且部分字节永久丢失（不可逆）。提交前跑 `python3 scripts/check_encoding.py`。
 - **行尾不一致是已知现状**：`core.autocrlf=true` 而索引里部分 blob 本身含 CRLF，工作区因此 CRLF/LF 混杂。`.gitattributes` 目前只统一 `*.md`。**要统一 `.rs` 请单独提一个只改行尾的提交**，不要混在功能改动里。
+- **提交信息**用 Conventional Commits：`<type>(<scope>): <description>`。type 取白名单，描述用祈使/陈述式、不加句号；正文用子弹列表列摘要（3~5 条），不写长段落。完整规则与参考见 [`docs/dev-convention.md`](docs/dev-convention.md) §2。
 
 ---
 
