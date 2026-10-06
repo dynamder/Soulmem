@@ -11,6 +11,7 @@ use crate::service::{
     ControlAction, Delta as ServiceDelta, ServiceEvent, ServiceRequest, ServiceResponse,
     ServiceState,
 };
+use soul_mem_core::render::{MemoryKind, RenderedMemoryNote};
 use soul_mem_query::query::retrieve::{
     EnvironmentQueryUnit, EventQueryUnit, LocationQueryUnit, MemoryRetrieveQuery,
     MemoryRetrieveQueryVariant, ParticipantQueryUnit, PrioritizedMemoryRetrieveQuery,
@@ -203,6 +204,7 @@ pub fn reply(request_id: String, response: ServiceResponse) -> v1::Reply {
         ok,
         error: response.error.unwrap_or_default(),
         output: response.output,
+        memories: response.memories.into_iter().map(rendered_note).collect(),
         state: Some(service_state(response.state)),
         accepted: response.accepted,
     }
@@ -215,8 +217,28 @@ pub fn reply_error(request_id: String, message: impl Into<String>) -> v1::Reply 
         ok: false,
         error: message.into(),
         output: None,
+        memories: Vec::new(),
         state: None,
         accepted: 0,
+    }
+}
+
+/// 领域结构化记忆 -> proto 结构化记忆。
+fn rendered_note(note: RenderedMemoryNote) -> v1::RenderedMemoryNote {
+    v1::RenderedMemoryNote {
+        kind: memory_kind(note.kind) as i32,
+        score: note.score,
+        content: note.content,
+    }
+}
+
+/// 领域 `MemoryKind` -> proto 枚举值。
+fn memory_kind(kind: MemoryKind) -> v1::MemoryKind {
+    match kind {
+        MemoryKind::Semantic => v1::MemoryKind::Semantic,
+        MemoryKind::SpecificSituation => v1::MemoryKind::SpecificSituation,
+        MemoryKind::AbstractSituation => v1::MemoryKind::AbstractSituation,
+        MemoryKind::Procedure => v1::MemoryKind::Procedure,
     }
 }
 
@@ -303,6 +325,7 @@ mod tests {
     fn reply_carries_state_on_business_error() {
         let response = ServiceResponse {
             output: None,
+            memories: Vec::new(),
             state: ServiceState {
                 working: false,
                 node_count: 0,
@@ -318,5 +341,19 @@ mod tests {
         assert_eq!(reply.error, "boom");
         assert_eq!(reply.accepted, 2);
         assert!(reply.state.is_some());
+    }
+
+    #[test]
+    fn rendered_note_maps_kind_score_content() {
+        let note = RenderedMemoryNote {
+            kind: MemoryKind::SpecificSituation,
+            score: 0.75,
+            content: "在咖啡馆聊天".to_string(),
+            context: None,
+        };
+        let proto = rendered_note(note);
+        assert_eq!(proto.kind, v1::MemoryKind::SpecificSituation as i32);
+        assert_eq!(proto.score, 0.75);
+        assert_eq!(proto.content, "在咖啡馆聊天");
     }
 }

@@ -55,6 +55,8 @@ message Reply {
   optional ServiceState state = 5;
   // 实际接受的信息增量条数。
   uint32 accepted = 6;
+  // 结构化检索结果：命中的记忆节点（kind + score + content），与 `output` 并列。
+  repeated RenderedMemoryNote memories = 7;
 }
 
 // 服务端主动推送。
@@ -135,6 +137,31 @@ message EventUnit {
 message TimeSpanUnit {
   optional google.protobuf.Timestamp start = 1;
   optional google.protobuf.Timestamp end = 2;
+}
+
+// ============================================================================
+// 检索输出（结构化）
+// ============================================================================
+
+// 记忆节点类型判别字段，与 soul-mem-core 的 `render::MemoryKind` 一一对应。
+enum MemoryKind {
+  MEMORY_KIND_UNSPECIFIED = 0;
+  // 语义记忆（概念、实体）
+  MEMORY_KIND_SEMANTIC = 1;
+  // 具体情景记忆（叙述 + 时间 + 上下文）
+  MEMORY_KIND_SPECIFIC_SITUATION = 2;
+  // 抽象情景记忆（地点 / 参与者 / 环境 / 事件）
+  MEMORY_KIND_ABSTRACT_SITUATION = 3;
+  // 程序性记忆（动作 / 行为倾向）
+  MEMORY_KIND_PROCEDURE = 4;
+}
+
+// 单条命中的记忆节点（结构化）。`content` 为正文，`score` 为检索分数。
+// 具体情景的结构化 `context` 暂不上协议（见 soul-mem-core 的 render 契约）。
+message RenderedMemoryNote {
+  MemoryKind kind = 1;
+  double score = 2;
+  string content = 3;
 }
 
 // ============================================================================

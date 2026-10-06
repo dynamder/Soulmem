@@ -40,8 +40,10 @@ use soul_mem_algo::algo::retrieve::similarity::SimilarityConfig;
 use soul_mem_core::memory_links::sem_mem::SemMemLink;
 use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType};
 use soul_mem_core::memory_note::{MemoryId, MemoryNote};
+use soul_mem_core::render::{Render, RenderedMemoryNote};
 use soul_mem_llm::LlmEngine;
 use soul_mem_query::embedding::Embeddable;
+use soul_mem_query::embedding::EmbeddingGenResult;
 use soul_mem_query::embedding::EmbeddingModel;
 use soul_mem_query::embedding::note::EmbeddedMemoryNote;
 use soul_mem_query::embedding::query::note::EmbeddedMemoryRetrieveQuery;
@@ -69,6 +71,14 @@ const CONSOLIDATION_LINK_TOP_K: usize = 3;
 const CONSOLIDATION_LINK_VERB: &str = "related";
 /// 巩固生成链接的默认置信度。
 const CONSOLIDATION_LINK_CONFIDENCE: f32 = 1.0;
+
+/// 检索用例的产物：自然语言段落 + 结构化记忆集合（二者并列）。
+struct RetrieveOutcome {
+    /// 一段自然语言（摘要 + 相关记忆 + 最近对话）。
+    text: String,
+    /// 命中的记忆节点（结构化，含 kind/score/content）。
+    memories: Vec<RenderedMemoryNote>,
+}
 
 /// 交给核心处理的命令。
 pub enum Command {
@@ -165,16 +175,16 @@ impl MemoryService {
         }
 
         // 2) 检索。
-        let output = if request.queries.is_empty() {
-            None
+        let (output, memories) = if request.queries.is_empty() {
+            (None, Vec::new())
         } else {
             match self.retrieve(&request.queries).await {
-                Ok(text) => Some(text),
+                Ok(outcome) => (Some(outcome.text), outcome.memories),
                 Err(error) => {
                     if first_error.is_none() {
                         first_error = Some(error);
                     }
-                    None
+                    (None, Vec::new())
                 }
             }
         };
@@ -190,6 +200,7 @@ impl MemoryService {
 
         ServiceResponse {
             output,
+            memories,
             state: self.snapshot(),
             accepted,
             error: first_error.map(|error| error.to_string()),
@@ -226,7 +237,7 @@ impl MemoryService {
     async fn retrieve(
         &mut self,
         queries: &[PrioritizedMemoryRetrieveQuery],
-    ) -> ServiceResult<String> {
+    ) -> ServiceResult<RetrieveOutcome> {
         // 1) 嵌入全部 query（阻塞线程池）。
         let mut embedded: Vec<(u32, EmbeddedMemoryRetrieveQuery)> =
             Vec::with_capacity(queries.len());
@@ -287,26 +298,35 @@ impl MemoryService {
             .map(|result| Arc::clone(&result.short_history))
             .unwrap_or_else(|| Arc::from(Vec::<Information>::new()));
 
-        // 7) 从簇取内容并渲染：命中节点直接移出交给 `note_text` 消费（零 clone）。
+        // 7) 从簇取内容并渲染：命中节点直接移出，投影交给 `soul_mem_core::render`。
         //
         // 移出是安全的：节点在 DB 里都有权威副本（预取来自 DB；巩固新建的节点先落库再入簇），
         // 下次相似召回会重新加入，`incompletely_linked_note` 会恢复其入射边。
         // 这里保留 `records`（不调用 `WorkingMemory::remove_node`），因此累计检索次数不丢：
         // 节点若被再次召回，仍可参与巩固建链（`active_node_ids` 只在缺席期间把它过滤掉）。
         let cluster = self.wm.memory_cluster();
-        let memory_texts = cluster.write(|c| {
+        let memories: Vec<RenderedMemoryNote> = cluster.write(|c| {
             merged_memories
                 .iter()
-                .filter_map(|(id, _)| c.remove_single_node(*id))
-                .filter_map(render::note_text)
-                .collect::<Vec<_>>()
+                .filter_map(|(id, score)| {
+                    c.remove_single_node(*id).map(|n| n.note().render(*score))
+                })
+                .collect()
         });
+        let memory_texts: Vec<String> = memories
+            .iter()
+            .filter_map(|memory| {
+                let trimmed = memory.content.trim().to_string();
+                if trimmed.is_empty() {
+                    None
+                } else {
+                    Some(trimmed)
+                }
+            })
+            .collect();
 
-        Ok(render::render_output(
-            &short_mem,
-            &memory_texts,
-            short_history.as_ref(),
-        ))
+        let text = render::render_output(&short_mem, &memory_texts, short_history.as_ref());
+        Ok(RetrieveOutcome { text, memories })
     }
 
     /// 在阻塞线程池里生成查询嵌入。
@@ -314,26 +334,40 @@ impl MemoryService {
         &self,
         query: &PrioritizedMemoryRetrieveQuery,
     ) -> ServiceResult<EmbeddedMemoryRetrieveQuery> {
-        let model = Arc::clone(&self.model);
         let owned = query.query().clone();
-        tokio::task::spawn_blocking(move || owned.embed_and_fuse(model.as_ref()))
-            .await
-            .map_err(|error| ServiceError::Internal(format!("查询嵌入任务失败: {error}")))?
-            .map_err(|error| ServiceError::Embedding(error.to_string()))
+        self.spawn_embed("查询嵌入", move |model| {
+            owned.embed_and_fuse(model.as_ref())
+        })
+        .await
     }
 
     /// 在阻塞线程池里生成记忆节点嵌入。
     async fn embed_notes(&self, notes: Vec<MemoryNote>) -> ServiceResult<Vec<EmbeddedMemoryNote>> {
-        let model = Arc::clone(&self.model);
-        tokio::task::spawn_blocking(move || {
+        self.spawn_embed("记忆嵌入", move |model| {
             notes
                 .into_iter()
                 .map(|note| note.embed_and_fuse(model.as_ref()))
                 .collect::<Result<Vec<_>, _>>()
         })
         .await
-        .map_err(|error| ServiceError::Internal(format!("记忆嵌入任务失败: {error}")))?
-        .map_err(|error| ServiceError::Embedding(error.to_string()))
+    }
+
+    /// 在阻塞线程池里执行一次嵌入，统一「任务失败 / 嵌入失败」两层错误映射。
+    ///
+    /// 放到阻塞线程池执行，避免占住 tokio worker（也避免 rayon 与异步运行时互等）。
+    async fn spawn_embed<T>(
+        &self,
+        label: &str,
+        f: impl FnOnce(Arc<dyn EmbeddingModel + Send + Sync>) -> EmbeddingGenResult<T> + Send + 'static,
+    ) -> ServiceResult<T>
+    where
+        T: Send + 'static,
+    {
+        let model = Arc::clone(&self.model);
+        tokio::task::spawn_blocking(move || f(model))
+            .await
+            .map_err(|error| ServiceError::Internal(format!("{label}任务失败: {error}")))?
+            .map_err(|error| ServiceError::Embedding(error.to_string()))
     }
 
     /// 执行单个控制信号。

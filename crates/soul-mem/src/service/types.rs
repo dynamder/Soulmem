@@ -3,6 +3,7 @@
 //! 适配器把 proto 消息转换成这里的类型再投递给核心，核心实现不依赖 `proto`。
 
 use chrono::{DateTime, Utc};
+use soul_mem_core::render::RenderedMemoryNote;
 use soul_mem_query::query::retrieve::PrioritizedMemoryRetrieveQuery;
 
 /// 一次请求：query 集合 + 信息增量 + 控制信号（均可空，可同时）。
@@ -33,6 +34,8 @@ pub struct Delta {
 pub struct ServiceResponse {
     /// 检索结果（一段自然语言）；无 query 时为 `None`。
     pub output: Option<String>,
+    /// 结构化检索结果（命中的记忆节点），与 `output` 并列；无 query 时为空。
+    pub memories: Vec<RenderedMemoryNote>,
     /// 服务状态快照。
     pub state: ServiceState,
     /// 实际接受的信息增量条数。

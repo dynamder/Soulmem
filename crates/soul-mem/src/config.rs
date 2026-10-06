@@ -232,13 +232,19 @@ fn validate_keyexpr(raw: &str) -> ServiceResult<String> {
         return Err(ServiceError::Config("keyexpr 前缀不能为空".into()));
     }
     if raw.starts_with('/') || raw.ends_with('/') || raw.contains("//") {
-        return Err(ServiceError::Config(format!("keyexpr 前缀含非法斜杠: {raw}")));
+        return Err(ServiceError::Config(format!(
+            "keyexpr 前缀含非法斜杠: {raw}"
+        )));
     }
     if raw.chars().any(char::is_whitespace) {
-        return Err(ServiceError::Config(format!("keyexpr 前缀不能含空白: {raw}")));
+        return Err(ServiceError::Config(format!(
+            "keyexpr 前缀不能含空白: {raw}"
+        )));
     }
     if raw.chars().any(|c| matches!(c, '*' | '?' | '$' | '#')) {
-        return Err(ServiceError::Config(format!("keyexpr 前缀不能含通配符: {raw}")));
+        return Err(ServiceError::Config(format!(
+            "keyexpr 前缀不能含通配符: {raw}"
+        )));
     }
     Ok(raw.to_string())
 }
@@ -309,8 +315,7 @@ mod tests {
     #[test]
     fn default_key_prefix_includes_character() {
         let file: FileConfig = toml::from_str("character = \"yuki\"").expect("应可解析");
-        let config =
-            Config::assemble(file, PathBuf::from("a.db"), None).expect("应通过校验");
+        let config = Config::assemble(file, PathBuf::from("a.db"), None).expect("应通过校验");
         assert_eq!(config.key_prefix, "soulmem/yuki");
     }
 
