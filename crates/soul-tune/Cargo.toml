@@ -16,7 +16,7 @@ soul-mem-runtime = { path = "../soul-mem-runtime" }
 # LLM 调用统一走这条栈；本 crate 不再自己拼 OpenAI-compatible 请求
 soul-mem-llm = { path = "../soul-mem-llm" }
 serde.workspace = true
-rand = "0.9"
+rand = "0.10"
 candle-core = { workspace = true, optional = true }
 candle-nn = { workspace = true, optional = true }
 candle-transformers = { workspace = true, optional = true }
