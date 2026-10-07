@@ -2,7 +2,8 @@
 //!
 //! - 连接：嵌入式 SurrealKv（`connect`，生产）或 Mem（`connect_mem`，测试）。
 //! - Schema：`include_str!("schema.surql")` 幂等初始化。
-//! - 写：`split_embedded` → 事务内全量 CONTENT 替换 note 行 + 重建出边（先删后写）。
+//! - 写：`split_embedded` → 事务内全量 CONTENT 替换 note 行 + 差分同步出边
+//!   （只删 payload 里没有的旧边，其余就地覆盖；不能全删后按同 record id 写回，见 `write_one`）。
 //!   不用 MERGE——深合并会残留外部标签 enum 的旧变体键（详见 `MemoryRepository::upsert_notes`）。
 //! - 读：`memory_id` 过滤取回 NoteRow，`variant_emb` 还原嵌入，`memory_link` 边合并链接。
 //! - 召回：查询嵌入 flatten 成槽位 → 每槽位 `<|k, EF|>` KNN → union 候选 → fetch_notes
@@ -84,7 +85,10 @@ impl SurrealRepository {
         }
     }
 
-    /// 事务内写一条：note 行（SDK content 全量替换）+ 重建出边（先删旧再写新）。
+    /// 事务内写一条：note 行（SDK content 全量替换）+ 差分同步出边。
+    ///
+    /// 出边的语义仍是「payload 的 `note.links` 是该节点出边的完整真相源」；
+    /// 变化只在实现：只删 payload 里没有的旧边，payload 内的边就地覆盖（原因见函数内注释）。
     async fn write_one(
         txn: &surrealdb::method::Transaction<Db>,
         embedded: EmbeddedMemoryNote,
@@ -104,11 +108,24 @@ impl SurrealRepository {
         txn.upsert::<Option<Value>>(("memory_note", note_key.as_str()))
             .content(note_sur_value)
             .await?;
-        // 重建出边：先删旧（in = 本 note），再写新（按端点删边无 SDK 等价，手写 query）。
-        // 语义：边表始终以 payload 的 note.links 为完整真相源做全量同步；
-        // payload 的 links 即该 note 的完整边集（links 为空即表达「无出边」，同步后清空，非数据丢失）。
-        txn.query("DELETE memory_link WHERE `in` = $rid")
+        // 差分同步出边（按端点删边无 SDK 等价，手写 query）：
+        // 只删「本次 payload 里没有的」旧边，payload 内的边走下面的 upsert 就地覆盖。
+        // 语义不变：payload 的 links 仍是该 note 的完整边集（links 为空即表达「无出边」，
+        // 差分删除后自然清空，非数据丢失）。
+        //
+        // 为什么不是「先按 `in` 全删、再把 payload 逐条 upsert 回来」：SurrealDB 3.2.4
+        // 在同一事务内删除某记录、随后以**同一 record id** 重建时，提交后该记录不存在
+        // 且不报错——实测 UPSERT 与 CREATE 同样丢，加不加 `link_id` 唯一索引同样丢，
+        // 按记录 id 删也一样；只有「不删」「删后写不同 id」「删与写分属两个事务」三种
+        // 对照形态正常。全删再写回于是让「同一条边被再次声明」直接消失：
+        // fetch → 改 → upsert 这条文档明确支持的 read-modify-write 路径每写一次就
+        // 丢一批边（回归测试见本文件 `upsert_rewrite_keeps_declared_links` 等）。
+        // 差分删除避开该行为，同时保持单事务原子性，并保住 LinkId 身份与边自身
+        // 累积的遗忘状态（重建 LinkId 会把 intensity/missing_degree 清零）。
+        let keep: Vec<String> = link_sdks.iter().map(|(key, _)| key.clone()).collect();
+        txn.query("DELETE memory_link WHERE `in` = $rid AND link_id NOT IN $keep")
             .bind(("rid", note_rid))
+            .bind(("keep", keep))
             .await?;
         for (lr_key, lr_sdk) in &link_sdks {
             txn.upsert::<Option<Value>>(("memory_link", lr_key.as_str()))
@@ -504,6 +521,19 @@ mod tests {
         r
     }
 
+    /// `memory_link` 里 `in = <note>` 的行数——直接看边表真相，绕开 `fetch_notes` 的边合并，
+    /// 免得「边确实没了」和「合并逻辑没捞到」混为一谈。
+    async fn raw_out_link_count(repo: &SurrealRepository, id: MemoryId) -> usize {
+        let mut res = repo
+            .db
+            .query("SELECT VALUE id FROM memory_link WHERE `in` = $rid")
+            .bind(("rid", id.to_record_id()))
+            .await
+            .unwrap();
+        let rows: Vec<Value> = res.take(0).unwrap();
+        rows.len()
+    }
+
     #[tokio::test]
     async fn upsert_fetch_roundtrip_semantic() {
         let repo = repo().await;
@@ -537,6 +567,132 @@ mod tests {
         assert_eq!(links.len(), 1);
         assert_eq!(links[0].from(), a_id);
         assert_eq!(links[0].to(), b_id);
+    }
+
+    /// 回归：整簇写回时，同一个 LinkId 的边被再次声明必须仍在。
+    ///
+    /// `write_one` 曾「先按 `in` 全删、再按同一 record id upsert 回来」，撞上 SurrealDB
+    /// 「同一事务内删后重建同一 record id 会静默丢行」，于是 fetch → 原样写回就整批丢边。
+    #[tokio::test]
+    async fn upsert_rewrite_keeps_declared_links() {
+        let repo = repo().await;
+        let a = sem_note(0.3, 1.0);
+        let b = sem_note(0.2, 0.5);
+        let a_id = a.note().id();
+        let b_id = b.note().id();
+        let (a, _link_id) = with_link(a, b_id);
+
+        repo.upsert_notes(vec![a, b]).await.unwrap();
+        assert_eq!(raw_out_link_count(&repo, a_id).await, 1, "前置：边已写入");
+
+        // fetch → 原样写回：存储层文档承诺的 read-modify-write 最低要求
+        let fetched = repo.fetch_notes(&[a_id]).await.unwrap();
+        assert_eq!(fetched[0].note().links().len(), 1, "前置：读回带边");
+        repo.upsert_notes(fetched).await.unwrap();
+
+        assert_eq!(
+            raw_out_link_count(&repo, a_id).await,
+            1,
+            "同 id 的边被再次声明后必须仍在"
+        );
+        assert_eq!(
+            repo.fetch_notes(&[a_id]).await.unwrap()[0]
+                .note()
+                .links()
+                .len(),
+            1
+        );
+    }
+
+    /// 回归：只改 note 的非边字段再写回，出边不能被连坐清掉。
+    #[tokio::test]
+    async fn upsert_partial_update_keeps_links() {
+        let repo = repo().await;
+        let a = sem_note(0.3, 1.0);
+        let b = sem_note(0.2, 0.5);
+        let a_id = a.note().id();
+        let b_id = b.note().id();
+        let (a, _link_id) = with_link(a, b_id);
+        repo.upsert_notes(vec![a, b]).await.unwrap();
+
+        let mut fetched = repo.fetch_notes(&[a_id]).await.unwrap().remove(0);
+        fetched.note.retrieval_increment();
+        fetched.note.set_missing_degree(0.42);
+        repo.upsert_notes(vec![fetched]).await.unwrap();
+
+        let again = repo.fetch_notes(&[a_id]).await.unwrap();
+        assert_eq!(again[0].note().missing_degree(), 0.42, "覆盖字段生效");
+        assert_eq!(again[0].note().links().len(), 1, "部分字段更新不得丢边");
+        assert_eq!(raw_out_link_count(&repo, a_id).await, 1);
+    }
+
+    /// 差分删除：payload 里没有的出边要被清掉，payload 里的必须留下（且身份不变）。
+    #[tokio::test]
+    async fn upsert_removes_only_links_absent_from_payload() {
+        let repo = repo().await;
+        let a = sem_note(0.3, 1.0);
+        let b = sem_note(0.2, 0.5);
+        let c = sem_note(0.1, 0.9);
+        let a_id = a.note().id();
+        let b_id = b.note().id();
+        let c_id = c.note().id();
+        let (a, link_ab) = with_link(a, b_id);
+        let (a, link_ac) = with_link(a, c_id);
+        repo.upsert_notes(vec![a, b, c]).await.unwrap();
+        assert_eq!(raw_out_link_count(&repo, a_id).await, 2, "前置：两条出边");
+
+        // fetch → 只摘掉 a→c → 写回
+        let mut fetched = repo.fetch_notes(&[a_id]).await.unwrap().remove(0);
+        fetched.note.links_mut().retain(|l| l.id() != link_ac);
+        repo.upsert_notes(vec![fetched]).await.unwrap();
+
+        let links = repo.fetch_notes(&[a_id]).await.unwrap()[0]
+            .note()
+            .links()
+            .clone();
+        assert_eq!(links.len(), 1, "被摘掉的边应被差分删除");
+        assert_eq!(links[0].id(), link_ab, "留下的边必须保持原 LinkId");
+        assert_eq!(raw_out_link_count(&repo, a_id).await, 1);
+    }
+
+    /// 空出边即表达「无出边」：清空自己的出边，但不得连坐别的节点的边。
+    #[tokio::test]
+    async fn upsert_empty_links_clears_own_edges_only() {
+        let repo = repo().await;
+        let a = sem_note(0.3, 1.0);
+        let b = sem_note(0.2, 0.5);
+        let c = sem_note(0.1, 0.9);
+        let a_id = a.note().id();
+        let b_id = b.note().id();
+        let c_id = c.note().id();
+        let (a, _link_ab) = with_link(a, b_id);
+        let (b, _link_bc) = with_link(b, c_id);
+        repo.upsert_notes(vec![a, b, c]).await.unwrap();
+        assert_eq!(raw_out_link_count(&repo, a_id).await, 1);
+        assert_eq!(raw_out_link_count(&repo, b_id).await, 1);
+
+        // 同 id 重建一个无出边的 a（其余字段照抄），写回
+        repo.upsert_notes(vec![rebuild_with_id(sem_note(0.3, 1.0), a_id)])
+            .await
+            .unwrap();
+
+        assert_eq!(
+            raw_out_link_count(&repo, a_id).await,
+            0,
+            "payload 无出边即同步为空"
+        );
+        assert_eq!(
+            raw_out_link_count(&repo, b_id).await,
+            1,
+            "不得连坐其它节点的出边"
+        );
+        assert_eq!(
+            repo.fetch_notes(&[a_id]).await.unwrap()[0]
+                .note()
+                .links()
+                .len(),
+            0
+        );
     }
 
     #[tokio::test]

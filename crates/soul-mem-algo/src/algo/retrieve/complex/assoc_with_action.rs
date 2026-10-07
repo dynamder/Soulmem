@@ -6,7 +6,7 @@ use serde::Deserialize;
 use crate::algo::retrieve::{
     RetrRequest, RetrStrategy,
     association::{AssociationConfig, AssociationRequest, RetrAssociation},
-    bayes_action::{BayesActionRequest, RetrBayesAction},
+    bayes_action::{ActionTypeSlots, BayesActionRequest, RetrBayesAction},
 };
 use soul_mem_core::memory_note::situation_mem::SituationType;
 use soul_mem_core::memory_note::{MemoryId, MemoryType};
@@ -16,15 +16,9 @@ use soul_mem_runtime::working_memory::WorkingMemory;
 pub struct AssociateWithActionConfig {
     #[serde(default)]
     pub association: AssociationConfig,
-    #[serde(default = "default_action_top_k")]
-    pub action_top_k: usize,
     /// 抽象情境源在 Bayes 动作提取中的权重倍率（抽象优先；具体源权重为 1.0）。
     #[serde(default = "default_abstract_source_priority")]
     pub abstract_source_priority: f64,
-}
-
-fn default_action_top_k() -> usize {
-    3
 }
 
 fn default_abstract_source_priority() -> f64 {
@@ -35,7 +29,6 @@ impl Default for AssociateWithActionConfig {
     fn default() -> Self {
         Self {
             association: AssociationConfig::default(),
-            action_top_k: default_action_top_k(),
             abstract_source_priority: default_abstract_source_priority(),
         }
     }
@@ -51,7 +44,6 @@ impl AssociateWithActionConfig {
             association: self
                 .association
                 .into_request(Arc::clone(&working_mem), source),
-            action_top_k: self.action_top_k,
             abstract_source_priority: self.abstract_source_priority,
         }
     }
@@ -61,7 +53,6 @@ pub struct RetrAssociateWithAction;
 
 pub struct AssociateWithActionRequest {
     association: AssociationRequest,
-    action_top_k: usize,
     abstract_source_priority: f64,
 }
 
@@ -69,13 +60,8 @@ impl AssociateWithActionRequest {
     pub fn new(association: AssociationRequest) -> Self {
         Self {
             association,
-            action_top_k: 3,
             abstract_source_priority: default_abstract_source_priority(),
         }
-    }
-    pub fn with_action_top_k(mut self, action_top_k: usize) -> Self {
-        self.action_top_k = action_top_k;
-        self
     }
     pub fn with_abstract_source_priority(mut self, priority: f64) -> Self {
         self.abstract_source_priority = priority;
@@ -87,7 +73,8 @@ impl RetrRequest for AssociateWithActionRequest {}
 
 pub struct AssociateWithActionResult {
     pub memory: Vec<(MemoryId, f64)>,
-    pub action: Vec<(MemoryId, f64)>,
+    /// 动作推理结果：按 `ActionType` 每类至多一个（见 [`ActionTypeSlots`]）。
+    pub slots: ActionTypeSlots,
 }
 
 impl RetrStrategy for RetrAssociateWithAction {
@@ -104,7 +91,7 @@ impl RetrStrategy for RetrAssociateWithAction {
         if association_res.is_empty() {
             return AssociateWithActionResult {
                 memory: Vec::new(),
-                action: Vec::new(),
+                slots: ActionTypeSlots::default(),
             };
         }
 
@@ -125,20 +112,18 @@ impl RetrStrategy for RetrAssociateWithAction {
         if bayes_sources.is_empty() {
             return AssociateWithActionResult {
                 memory: association_res,
-                action: Vec::new(),
+                slots: ActionTypeSlots::default(),
             };
         }
 
         let normalized_bayes_sources = softmax(&bayes_sources);
 
-        let action_request = BayesActionRequest::new(working_mem, normalized_bayes_sources)
-            .with_top_k(request.action_top_k);
-
-        let action_res = RetrBayesAction {}.retrieve(action_request);
+        let action_request = BayesActionRequest::new(working_mem, normalized_bayes_sources);
+        let slots = RetrBayesAction {}.retrieve(action_request);
 
         AssociateWithActionResult {
             memory: association_res,
-            action: action_res,
+            slots,
         }
     }
 }
@@ -224,19 +209,18 @@ mod tests {
     use soul_mem_query::embedding::note::MemoryEmbedding;
     use soul_mem_query::embedding::note::MemoryEmbeddingVariant;
 
-    #[test]
-    fn test_default_action_top_k() {
-        assert_eq!(default_action_top_k(), 3);
+    /// 从席位结果里按 `MemoryId` 反查得分（跨三个席位，与类型无关）。
+    fn seat_score(slots: &ActionTypeSlots, id: MemoryId) -> Option<f64> {
+        slots
+            .seated()
+            .into_iter()
+            .find(|(_, seat)| seat.id == id)
+            .map(|(_, seat)| seat.score)
     }
 
     #[test]
     fn test_associate_with_action_config_defaults() {
-        let config = AssociateWithActionConfig {
-            association: AssociationConfig::default(),
-            action_top_k: default_action_top_k(),
-            ..Default::default()
-        };
-        assert_eq!(config.action_top_k, 3);
+        let config = AssociateWithActionConfig::default();
         assert_eq!(
             config.abstract_source_priority,
             default_abstract_source_priority()
@@ -330,44 +314,114 @@ mod tests {
     #[test]
     fn test_retr_associate_with_action_basic() {
         let (wm, source_id, _, _) = create_mock_working_memory_with_assoc_and_action();
-        let config = AssociateWithActionConfig {
-            association: AssociationConfig::default(),
-            action_top_k: 3,
-            ..Default::default()
-        };
+        let config = AssociateWithActionConfig::default();
         let request = config.into_request(Arc::new(wm), vec![(source_id, 1.0)]);
         let result = RetrAssociateWithAction {}.retrieve(request);
 
-        assert!(!result.memory.is_empty() || !result.action.is_empty());
+        assert!(!result.memory.is_empty() || !result.slots.is_empty());
     }
 
     #[test]
     fn test_retr_associate_with_action_empty_source() {
         let (wm, _, _, _) = create_mock_working_memory_with_assoc_and_action();
-        let config = AssociateWithActionConfig {
-            association: AssociationConfig::default(),
-            action_top_k: 3,
-            ..Default::default()
-        };
+        let config = AssociateWithActionConfig::default();
         let request = config.into_request(Arc::new(wm), vec![]);
         let result = RetrAssociateWithAction {}.retrieve(request);
 
         assert!(result.memory.is_empty());
-        assert!(result.action.is_empty());
+        assert!(result.slots.is_empty());
     }
 
     #[test]
-    fn test_retr_associate_with_action_action_top_k() {
-        let (wm, source_id, _, _) = create_mock_working_memory_with_assoc_and_action();
-        let config = AssociateWithActionConfig {
-            association: AssociationConfig::default(),
-            action_top_k: 1,
-            ..Default::default()
-        };
+    fn test_retr_associate_with_action_slots_are_one_per_type() {
+        // 一个具体情境源挂两条不同 ActionType 的 Proc 边：
+        // 每个类型各占一席（Speak + Think），Skill 不产出，总席位 2。
+        use chrono::{TimeZone, Utc};
+        use soul_mem_core::memory_note::situation_mem::{Context, Environment, SpecificSituation};
+        use soul_mem_query::embedding::Embeddable;
+        use soul_mem_query::embedding::embedding_model::bge::BgeSmallZh;
+
+        let model = BgeSmallZh::default_cpu().unwrap();
+        let wm = WorkingMemory::new(10);
+        let cluster = wm.memory_cluster();
+        let source_id = MemoryId::new();
+        let speak_id = MemoryId::new();
+        let think_id = MemoryId::new();
+
+        let spec_mem = SpecificSituation::new(
+            "和对方在深夜聊了一整晚，分享了很多心里话".to_string(),
+            Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap(),
+            Context::new(
+                None,
+                vec![],
+                vec![],
+                vec![],
+                Environment {
+                    atmosphere: "安静".to_string(),
+                    tone: "温暖".to_string(),
+                },
+                vec![],
+            ),
+        );
+        let source_note = MemoryNoteBuilder::new(MemoryType::Situation(
+            SituationType::SpecificSituation(spec_mem),
+        ))
+        .id(source_id)
+        .mem_links(vec![
+            MemoryLink::new(
+                source_id,
+                speak_id,
+                MemoryLinkType::Proc(ProcMemLink::TrigToAction(TrigToAction::new(0.9))),
+            ),
+            MemoryLink::new(
+                source_id,
+                think_id,
+                MemoryLinkType::Proc(ProcMemLink::TrigToAction(TrigToAction::new(0.9))),
+            ),
+        ])
+        .build()
+        .unwrap();
+        let source_emb = source_note.embed(&model).unwrap();
+
+        cluster.write(|c| {
+            c.add_single_node(EmbeddedMemoryNote {
+                note: source_note,
+                embedding: source_emb,
+            });
+
+            for (aid, action_type, name) in [
+                (speak_id, ActionType::new_speak(), "SpeakProc"),
+                (think_id, ActionType::new_think(), "ThinkProc"),
+            ] {
+                let note = MemoryNoteBuilder::new(MemoryType::Procedure(ProcMemory::new(
+                    Action::new(name.into(), action_type),
+                )))
+                .id(aid)
+                .build()
+                .unwrap();
+                let emb = MemoryEmbedding::new(
+                    EmbeddingVec::zero(128),
+                    MemoryEmbeddingVariant::Procedure(),
+                );
+                c.add_single_node(EmbeddedMemoryNote {
+                    note,
+                    embedding: emb,
+                });
+            }
+        });
+
+        let config = AssociateWithActionConfig::default();
         let request = config.into_request(Arc::new(wm), vec![(source_id, 1.0)]);
         let result = RetrAssociateWithAction {}.retrieve(request);
 
-        assert!(result.action.len() <= 1);
+        assert_eq!(
+            result.slots.len(),
+            2,
+            "Speak 与 Think 各占一席，Skill 不产出"
+        );
+        assert_eq!(result.slots.speak.as_ref().map(|s| s.id), Some(speak_id));
+        assert_eq!(result.slots.think.as_ref().map(|s| s.id), Some(think_id));
+        assert!(result.slots.skill.is_none());
     }
 
     /// 构造含"具体情境→proc_specific"与"抽象情境→proc_abstract"两条 Proc 边的图。
@@ -444,9 +498,14 @@ mod tests {
                 note: abs_note,
                 embedding: abs_emb,
             });
-            for (pid, name) in [(proc_spec, "proc_spec"), (proc_abs, "proc_abs")] {
+            // 两个 proc 刻意取不同类型（具体→Speak，抽象→Think）：
+            // 每类型一席的贪心截断下，两者各自占席，分数才可直接比较。
+            for (pid, name, action_type) in [
+                (proc_spec, "proc_spec", ActionType::new_speak()),
+                (proc_abs, "proc_abs", ActionType::new_think()),
+            ] {
                 let pnote = MemoryNoteBuilder::new(MemoryType::Procedure(ProcMemory::new(
-                    Action::new(name.to_string(), ActionType::new_think()),
+                    Action::new(name.to_string(), action_type),
                 )))
                 .id(pid)
                 .build()
@@ -473,15 +532,9 @@ mod tests {
         let request = config.into_request(Arc::new(wm), vec![(abs_id, 1.0), (spec_id, 1.0)]);
         let result = RetrAssociateWithAction {}.retrieve(request);
 
-        let get = |id: MemoryId| {
-            result
-                .action
-                .iter()
-                .find(|(i, _)| *i == id)
-                .map(|(_, s)| *s)
-        };
-        let abs_score = get(proc_abs).expect("抽象情境触发的动作应被检出");
-        let spec_score = get(proc_spec).expect("具体情境触发的动作应参与（兜底源）");
+        let abs_score = seat_score(&result.slots, proc_abs).expect("抽象情境触发的动作应被检出");
+        let spec_score =
+            seat_score(&result.slots, proc_spec).expect("具体情境触发的动作应参与（兜底源）");
         assert!(
             abs_score > spec_score,
             "抽象优先：抽象源加权后动作分应更高, abs={abs_score} spec={spec_score}"
@@ -497,13 +550,13 @@ mod tests {
         let result = RetrAssociateWithAction {}.retrieve(request);
 
         assert!(
-            result.action.iter().any(|(id, _)| *id == proc_spec),
+            result.slots.seated().iter().any(|(_, s)| s.id == proc_spec),
             "具体兜底应检出具体情境触发的动作"
         );
         assert!(
-            !result.action.iter().any(|(id, _)| *id == proc_abs),
-            "无抽象源时不应检出抽象触发的动作, action={:?}",
-            result.action
+            !result.slots.seated().iter().any(|(_, s)| s.id == proc_abs),
+            "无抽象源时不应检出抽象触发的动作, slots={:?}",
+            result.slots
         );
     }
 
@@ -517,15 +570,8 @@ mod tests {
             .with_abstract_source_priority(1.0);
         let result = RetrAssociateWithAction {}.retrieve(request);
 
-        let get = |id: MemoryId| {
-            result
-                .action
-                .iter()
-                .find(|(i, _)| *i == id)
-                .map(|(_, s)| *s)
-        };
-        let abs_score = get(proc_abs).unwrap_or(0.0);
-        let spec_score = get(proc_spec).unwrap_or(0.0);
+        let abs_score = seat_score(&result.slots, proc_abs).unwrap_or(0.0);
+        let spec_score = seat_score(&result.slots, proc_spec).unwrap_or(0.0);
         assert!(
             (abs_score - spec_score).abs() < 1e-6,
             "同权时抽象与具体动作分应相等, abs={abs_score} spec={spec_score}"

@@ -1,4 +1,4 @@
-use crate::engine::llm::LlmBackend;
+use soul_tune::engine::llm::LlmBackend;
 
 struct MockLlm {
     query_response: String,

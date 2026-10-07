@@ -45,7 +45,7 @@ graph TD
         direction TB
         S1["① ShortOnly<br/>提取窗口信息 + 摘要"]
         S2["② Similarity<br/>query 向量与 Cluster 节点余弦相似度，阈值过滤"]
-        S3["③ AssociateWithAction<br/>PPR 联想扩散 + softmax 归一化 + 贝叶斯动作推理 topK"]
+        S3["③ AssociateWithAction<br/>PPR 联想扩散 + softmax 归一化 + 贝叶斯动作推理（按 ActionType 每类取 1）"]
         S1 --> S2 --> S3
         Res["DefaultPipelineResult<br/>{ association, action, short_history, short_mem, priority }"]
         S3 --> Res
@@ -190,7 +190,7 @@ sequenceDiagram
     CL-->>P: top-N (MemoryId, score)
     P->>P: ③a Association：PPR 联想扩散（以 top-N 为源节点）
     P->>P: ③b softmax 归一化
-    P->>P: ③c BayesAction：动作概率推理 topK
+    P->>P: ③c BayesAction：动作概率推理（每个 ActionType 贪心取 1）
     P-->>Svc: DefaultPipelineResult { association, action, short_history, short_mem, priority }
     Svc->>WM: record_retrieval / add_feedback 更新活跃记录
 
