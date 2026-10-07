@@ -43,6 +43,15 @@ exclude_re = [
     # 对 f32/f64 与 F::zero() 同为 0.0。
     # 现有断言 zero().into_inner() == 0.0 对两者都成立。
     'UnitMeasure for OrdFloat<F>>::zero',
+    # best_per_action_type 的 tiebreak `*id < current.id` 改成 `<=` 是等价的：
+    # `*id` 与 `current.id` 都是 `scores: &HashMap<MemoryId, f64>` 的键，而 `current`
+    # 由同一次遍历里更早的一个键插入，二者必不相等（HashMap 的键唯一，且 `MemoryId`
+    # 的 Eq/Ord/Hash 全部派生自内部的 `Uuid`）；`<` 与 `<=` 只在两侧相等时才有区别。
+    # 结论：没有测试能区分该变异体。
+    # 同一位点的其余算子（`>` → `==` / `>=`、`<` → `==`）**不排除**：它们只在
+    # 「遍历顺序」上与原实现不同，由 test_greedy_and_tiebreak_are_order_independent
+    # 反复重建 HashMap 来杀灭。
+    'replace < with <= in best_per_action_type',
 
     # ---------------------------------------------------------------- 调优参数
     # similarity_fetch 的 ef = k * 2：HNSW 搜索广度调优参数（ef 越大召回越准越慢），
@@ -112,4 +121,12 @@ exclude_re = [
 #       把 `exclude_re` 设为 `["e"]`（匹配所有名字）仍会剩下恰好这些 24 行。
 #       若那几个变异体确实杀不掉，应改用源码内的 `#[mutants::skip]` 标注，
 #       并把 `exclude_re` 的覆盖缺口反馈上游。
+#
+#       本仓库当前唯一命中该缺口的**存活**变异体是 `crates/soul-tune/src/engine/retrieve/suite.rs`
+#       里 `<impl TestSuite for RetrieveSuite>::run_case` 的
+#       `delete field association from struct AssociateWithActionConfig expression`：
+#       它删掉 `association: Default::default()`，而 `..Default::default()` 恰好给出
+#       同一个 `AssociationConfig::default()`（见 `AssociateWithActionConfig::default`），
+#       属**等价变异体**，任何测试都无法区分。它被接受为一次固定 MISSED——
+#       90% 门槛留有余量，不值得为此给 test harness 引入 `mutants` crate 依赖。
 # ---------------------------------------------------------------------------

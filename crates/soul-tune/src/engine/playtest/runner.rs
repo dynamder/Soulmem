@@ -41,7 +41,6 @@ use soul_mem_llm::json::{extract_balanced_array, extract_balanced_object, strip_
 pub struct PlayConfig {
     pub similarity_threshold: f32,
     pub max_results: usize,
-    pub action_top_k: usize,
     pub ppr_top_k: usize,
     pub damping_factor: f64,
     pub residue_threshold: f64,
@@ -154,6 +153,61 @@ fn finish_merged(merged: HashMap<MemoryId, (f64, TracedNode)>) -> Vec<TracedNode
     let mut nodes: Vec<(f64, TracedNode)> = merged.into_values().collect();
     nodes.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
     nodes.into_iter().map(|(_, node)| node).collect()
+}
+
+/// 由 playtest 配置构造「关联 + 动作」请求配置。
+///
+/// 抽成纯函数是为了能被直接断言：PPR 三个参数（阻尼、残差阈值、top_k）在完整管线里
+/// 只表现为召回集合的细微差别，留在闭环里无法观测——把整段 `association` 删掉换成
+/// 默认值也不会让任何断言失败。
+fn associate_with_action_config(config: &PlayConfig) -> AssociateWithActionConfig {
+    AssociateWithActionConfig {
+        association: AssociationConfig {
+            damping_factor: config.damping_factor,
+            residue_threshold: config.residue_threshold,
+            top_k: config.ppr_top_k,
+            ..Default::default()
+        },
+        ..Default::default()
+    }
+}
+
+/// `ActionType` 三通道分流结果。
+struct ActionChannels {
+    /// `ActionType::Speak` 席位（至多 1 条）：语气 / 说话方式。
+    speech: Vec<TracedNode>,
+    /// `ActionType::Think` 席位且节点名不是 `proc_none`（至多 1 条）：思维习惯。
+    think: Vec<TracedNode>,
+    /// 其余：`proc_none`（Think 类型但语义为"无动作"占位）与 Skill。
+    behavior: Vec<TracedNode>,
+}
+
+/// 把算法层「每类型一席」的动作按 `ActionType` 拆成三条通道。
+///
+/// `proc_none` 在图里同样是 `Think` 类型，语义上却等同"没有采取特定行动"，
+/// 因此必须靠节点名把它挑出来；只按类型分流会把它混进思维习惯通道。
+fn split_action_channels(
+    graph_names: &HashMap<MemoryId, String>,
+    seated_actions: Vec<(ActionType, TracedNode)>,
+) -> ActionChannels {
+    let mut channels = ActionChannels {
+        speech: Vec::new(),
+        think: Vec::new(),
+        behavior: Vec::new(),
+    };
+    for (action_type, node) in seated_actions {
+        match action_type {
+            ActionType::Speak => channels.speech.push(node),
+            ActionType::Think
+                if graph_names.get(&node.id).map(|s| s.as_str()) != Some("proc_none") =>
+            {
+                channels.think.push(node)
+            }
+            // proc_none（Think 类型但是"无动作"占位）与 Skill 都归行为通道
+            _ => channels.behavior.push(node),
+        }
+    }
+    channels
 }
 
 /// 一条已完成生成后校验的查询：嵌入结果随查询缓存，检索阶段直接复用，避免二次嵌入。
@@ -312,7 +366,6 @@ impl Default for PlayConfig {
         Self {
             similarity_threshold: QUERY_VALIDATION_FLOOR,
             max_results: 4,
-            action_top_k: 3,
             ppr_top_k: 8,
             damping_factor: 0.65,
             residue_threshold: 1e-5,
@@ -962,22 +1015,11 @@ impl PlayTestRunner {
         let mut per_query = Vec::new();
         let mut merged_map: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
         // 动作节点按 ActionType 拆成三路独立通道（不参与记忆分数合并）：
-        // Speak 语气 / Think 思维习惯各至多 1 条，其余行为类按 action_top_k
+        // Speak 语气 / Think 思维习惯各至多 1 条，其余行为类（含 proc_none）单独成路。
+        // 每类型一席由算法层保证（`ActionTypeSlots`），这里不再需要反查节点类型。
         let mut merged_speech: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
         let mut merged_think: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
         let mut merged_behavior: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
-        let action_type_map: HashMap<MemoryId, ActionType> =
-            self.wm.memory_cluster().read_or_compute(|c| {
-                c.graph()
-                    .node_weights()
-                    .filter_map(|n| match n.note().mem_type() {
-                        MemoryType::Procedure(p) => {
-                            Some((n.note().id(), p.get_action().get_action_type().clone()))
-                        }
-                        _ => None,
-                    })
-                    .collect()
-            });
 
         // priority 只作小偏移：分数接近时保护重要查询，分数差距大时由分数主导
         let p_max = prepared
@@ -1040,16 +1082,7 @@ impl PlayTestRunner {
                 .collect();
 
             let ppr_start = Instant::now();
-            let aa_config = AssociateWithActionConfig {
-                association: AssociationConfig {
-                    damping_factor: self.config.damping_factor,
-                    residue_threshold: self.config.residue_threshold,
-                    top_k: self.config.ppr_top_k,
-                    ..Default::default()
-                },
-                action_top_k: self.config.action_top_k,
-                ..Default::default()
-            };
+            let aa_config = associate_with_action_config(&self.config);
             let aa_req = aa_config.into_request(
                 self.wm.clone(),
                 sim_nodes.iter().map(|n| (n.id, n.score as f32)).collect(),
@@ -1087,28 +1120,39 @@ impl PlayTestRunner {
                     .unwrap_or(std::cmp::Ordering::Equal)
             });
 
-            let mut action_nodes: Vec<TracedNode> = aa_result
-                .action
+            // 每个已占用席位：类型由算法层标注，无需再反查图
+            let seated_actions: Vec<(ActionType, TracedNode)> = aa_result
+                .slots
+                .seated()
                 .into_iter()
-                .map(|(id, score)| {
+                .map(|(action_type, seat)| {
+                    let id = seat.id;
                     let name = self.graph_names.get(&id).cloned().unwrap_or_default();
                     let stage = if sim_set.contains(&id) {
                         HitStage::Both
                     } else {
                         HitStage::Action
                     };
-                    TracedNode {
-                        id,
-                        name,
-                        content: self
-                            .id_names
-                            .get(&id)
-                            .map(|s| s.primary.clone())
-                            .unwrap_or_default(),
-                        score,
-                        stage,
-                    }
+                    (
+                        action_type,
+                        TracedNode {
+                            id,
+                            name,
+                            content: self
+                                .id_names
+                                .get(&id)
+                                .map(|s| s.primary.clone())
+                                .unwrap_or_default(),
+                            score: seat.score,
+                            stage,
+                        },
+                    )
                 })
+                .collect();
+
+            let mut action_nodes: Vec<TracedNode> = seated_actions
+                .iter()
+                .map(|(_, node)| node.clone())
                 .collect();
             action_nodes.sort_by(|a, b| {
                 b.score
@@ -1129,21 +1173,13 @@ impl PlayTestRunner {
             };
             per_query.push(qt);
 
-            // 按 ActionType 分流：Speak→语气、Think（非 proc_none）→思维习惯、其余→行为
-            let mut speech = Vec::new();
-            let mut think = Vec::new();
-            let mut behavior = Vec::new();
-            for n in action_nodes {
-                match action_type_map.get(&n.id) {
-                    Some(ActionType::Speak) => speech.push(n),
-                    Some(ActionType::Think)
-                        if self.graph_names.get(&n.id).map(|s| s.as_str()) != Some("proc_none") =>
-                    {
-                        think.push(n)
-                    }
-                    _ => behavior.push(n),
-                }
-            }
+            // 按 ActionType 分流：Speak→语气、Think（非 proc_none）→思维习惯、
+            // 其余（含 proc_none）→行为通道
+            let ActionChannels {
+                speech,
+                think,
+                behavior,
+            } = split_action_channels(&self.graph_names, seated_actions);
 
             let mut merged: Vec<TracedNode> = Vec::new();
             for n in sim_nodes.into_iter().chain(ppr_nodes) {
@@ -1172,9 +1208,9 @@ impl PlayTestRunner {
 
         let mut all_nodes = finish_merged(merged_map);
         all_nodes.truncate(self.config.merged_top_k);
-        // 行为类动作独立 top-k：即使分数低于记忆节点也保留进最终结果
+        // 行为类动作独立单席：算法层已按类型截断，这里再兜一层防止多 Query 折叠后重复
         let mut action_nodes = finish_merged(merged_behavior);
-        action_nodes.truncate(self.config.action_top_k);
+        action_nodes.truncate(1);
         // 语气 / 思维习惯单席：只取分数最高 1 条，避免多个 Speak 内容互相矛盾
         let mut speech_nodes = finish_merged(merged_speech);
         speech_nodes.truncate(1);
@@ -1531,10 +1567,11 @@ mod tests {
         // 常驻兜底：格蕾修图存在 Speak 与 Think proc，即使 Bayes 未命中也应各有 1 条
         assert_eq!(trace.speech_nodes.len(), 1, "Speak 常驻兜底应生效");
         assert_eq!(trace.think_nodes.len(), 1, "Think 常驻兜底应生效");
-        // 行为类通道受 action_top_k 限制
+        // 行为类通道单席（每类型一席由算法层保证，行为通道折叠后亦至多 1 条）
         assert!(
-            trace.action_nodes.len() <= runner.config.action_top_k,
-            "行为类动作数量应受 action_top_k 限制"
+            trace.action_nodes.len() <= 1,
+            "行为类动作至多 1 条，实际 {}",
+            trace.action_nodes.len()
         );
         // 至少一路检出动作（Think 通道应包含学习/睡觉习惯）
         assert!(
@@ -1553,6 +1590,73 @@ mod tests {
                 .chain(trace.action_nodes.iter())
                 .all(|n| !n.content.is_empty()),
             "动作内容应来自 proc 节点"
+        );
+    }
+
+    #[test]
+    fn test_associate_with_action_config_carries_ppr_params() {
+        let config = PlayConfig {
+            ppr_top_k: 3,
+            damping_factor: 0.2,
+            residue_threshold: 0.5,
+            ..PlayConfig::default()
+        };
+        let aa = associate_with_action_config(&config);
+
+        assert_eq!(
+            aa.association.damping_factor, 0.2,
+            "阻尼必须来自 PlayConfig"
+        );
+        assert_eq!(
+            aa.association.residue_threshold, 0.5,
+            "残差阈值必须来自 PlayConfig"
+        );
+        assert_eq!(aa.association.top_k, 3, "PPR top_k 必须来自 PlayConfig");
+    }
+
+    #[test]
+    fn test_split_action_channels_routes_by_type_and_proc_none() {
+        use soul_mem_core::memory_note::proc_mem::SkillRecord;
+
+        let speak = MemoryId::new();
+        let habit = MemoryId::new();
+        let none = MemoryId::new();
+        let skill = MemoryId::new();
+        let names: HashMap<MemoryId, String> = HashMap::from([
+            (speak, "proc_greet".to_string()),
+            (habit, "proc_learn_from_movies".to_string()),
+            (none, "proc_none".to_string()),
+            (skill, "proc_skill".to_string()),
+        ]);
+        let node = |id: MemoryId| TracedNode {
+            id,
+            name: names.get(&id).cloned().unwrap_or_default(),
+            content: "content".to_string(),
+            score: 1.0,
+            stage: HitStage::Action,
+        };
+
+        let channels = split_action_channels(
+            &names,
+            vec![
+                (ActionType::new_speak(), node(speak)),
+                (ActionType::new_think(), node(habit)),
+                (ActionType::new_think(), node(none)),
+                (ActionType::new_skill(SkillRecord {}), node(skill)),
+            ],
+        );
+        let ids = |nodes: &[TracedNode]| nodes.iter().map(|n| n.id).collect::<Vec<_>>();
+
+        assert_eq!(ids(&channels.speech), vec![speak], "Speak 应进语气通道");
+        assert_eq!(
+            ids(&channels.think),
+            vec![habit],
+            "只有非 proc_none 的 Think 应进思维习惯通道"
+        );
+        assert_eq!(
+            ids(&channels.behavior),
+            vec![none, skill],
+            "proc_none 与 Skill 应进行为通道"
         );
     }
 }

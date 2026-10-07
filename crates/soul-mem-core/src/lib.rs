@@ -29,6 +29,22 @@
 //! - **访问器风格不统一**：一部分是 `get_xxx()`（且返回 `&Option<T>` / `&Vec<T>`），
 //!   另一部分是裸名词方法（`id()` / `tags()`，返回 `&[T]`）。**新代码请用后者。**
 //! - `default_missing_degree` / `default_last_forget_time` 在两个模块里各有一份。
+//!
+//! # 对外渲染契约
+//!
+//! 内部类型是给存储与算法用的，不能直接当作对外协议。对外的稳定形态由
+//! [`render`] 定义：
+//!
+//! | 类型 | 含义 |
+//! |---|---|
+//! | [`Render`](render::Render) | 内部类型 → 对外表示的 trait，当前由 `MemoryNote` 实现 |
+//! | [`RenderedMemoryNote`](render::RenderedMemoryNote) | 单个节点的对外表示：类型 + 分数 + 内容 + 上下文（仅具体情景带上下文） |
+//! | [`MemoryKind`](render::MemoryKind) | 对外类型判别字段，与 orchestration 的 proto 枚举对应 |
+//!
+//! 分数**不在** [`MemoryNote`](memory_note::MemoryNote) 上，而是由检索层在调用
+//! [`Render::render`](render::Render::render) 时传入；取值规则与「本层不校验分数」
+//! 的理由见 [`render`] 的模块文档。
 
 pub mod memory_links;
 pub mod memory_note;
+pub mod render;
