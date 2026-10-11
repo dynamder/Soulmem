@@ -6,7 +6,8 @@
 //! 1. 信息增量：逐条压入滑动窗口（可能触发摘要）；
 //! 2. 检索：query 集合逐条跑 `DefaultPipeline`，按 priority 加权合并，取 top-k
 //!    并渲染成一段自然语言（命中节点渲染后从工作记忆移出，DB 中仍有权威副本）；
-//! 3. 控制信号：巩固 / 持久化 / 快照 / 暂停 / 恢复 / 维护。
+//!    命中节点在取出时执行**惰性遗忘**（刷新缺失度，必要时遮罩 + LLM 补全）；
+//! 3. 控制信号：巩固 / 持久化 / 快照 / 暂停 / 恢复 / 维护 / 遗忘衰减。
 //!
 //! 三部分可同时出现在一条请求里；任一步失败都只记录首个错误，其余步骤继续执行，
 //! 响应里带回已经发生的变化（`accepted` / `state`）。
@@ -25,9 +26,13 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use chrono::{DateTime, Utc};
+use jieba_rs::Jieba;
 use tokio::sync::{broadcast, mpsc, oneshot};
 
 use soul_mem_algo::algo::consolidate::generate::generate_memories_from_summary;
+use soul_mem_algo::algo::forget::decay_revise::{
+    ForgetAction, compute_and_update_missing_degree, lazy_forget,
+};
 use soul_mem_algo::algo::retrieve::RetrStrategy;
 use soul_mem_algo::algo::retrieve::association::AssociationConfig;
 use soul_mem_algo::algo::retrieve::complex::default_pipeline::DefaultPipelineResult;
@@ -98,6 +103,8 @@ pub struct MemoryService {
     repo: Arc<dyn MemoryRepository>,
     llm: Arc<LlmEngine>,
     model: Arc<dyn EmbeddingModel + Send + Sync>,
+    /// 分词器：惰性遗忘的遮罩（`mask_text`）需要。
+    jieba: Jieba,
     pipeline: DefaultPipelineConfig,
     paused: bool,
     /// 最近一次有增量/检索输入的时刻，用于 Idle 判定。
@@ -111,12 +118,16 @@ impl MemoryService {
     /// 组装服务核心。各依赖由引导层注入，便于替换与测试。
     ///
     /// `config` 以 `Arc` 注入：服务与引导层共享同一份设置，运行期不再重建。
+    // 这是进程唯一的组装点（composition root）：依赖全靠注入，参数多属预期；
+    // 拆成中间结构只会把同一批参数搬个位置，不增加清晰度。
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         config: Arc<Config>,
         wm: Arc<WorkingMemory>,
         repo: Arc<dyn MemoryRepository>,
         llm: Arc<LlmEngine>,
         model: Arc<dyn EmbeddingModel + Send + Sync>,
+        jieba: Jieba,
         events: broadcast::Sender<ServiceEvent>,
         llm_available: bool,
     ) -> Self {
@@ -141,6 +152,7 @@ impl MemoryService {
             repo,
             llm,
             model,
+            jieba,
             pipeline,
             paused: false,
             last_activity: Instant::now(),
@@ -305,14 +317,32 @@ impl MemoryService {
         // 这里保留 `records`（不调用 `WorkingMemory::remove_node`），因此累计检索次数不丢：
         // 节点若被再次召回，仍可参与巩固建链（`active_node_ids` 只在缺席期间把它过滤掉）。
         let cluster = self.wm.memory_cluster();
-        let memories: Vec<RenderedMemoryNote> = cluster.write(|c| {
+        let removed: Vec<(f64, EmbeddedMemoryNote)> = cluster.write(|c| {
             merged_memories
                 .iter()
-                .filter_map(|(id, score)| {
-                    c.remove_single_node(*id).map(|n| n.note().render(*score))
-                })
+                .filter_map(|(id, score)| c.remove_single_node(*id).map(|node| (*score, node)))
                 .collect()
         });
+
+        // 惰性遗忘（`orchestration.md:238`）：命中的记忆作为最终结果时刷新缺失度，
+        // 必要时遮罩并用 LLM 补全；仅在 LLM 可用时传入引擎（否则退化为仅遮罩）。
+        let now = Utc::now();
+        let engine = self.llm_available.then_some(self.llm.as_ref());
+        let mut memories: Vec<RenderedMemoryNote> = Vec::with_capacity(removed.len());
+        let mut forgotten: Vec<EmbeddedMemoryNote> = Vec::new();
+        for (score, mut embedded) in removed {
+            let action = lazy_forget(&mut embedded.note, now, &self.jieba, None, engine).await;
+            let changed = !matches!(action, ForgetAction::NoAction);
+            memories.push(embedded.note().render(score));
+            if changed {
+                forgotten.push(embedded);
+            }
+        }
+        if !forgotten.is_empty()
+            && let Err(error) = self.repo.upsert_notes(forgotten).await
+        {
+            tracing::warn!(%error, "惰性遗忘结果持久化失败");
+        }
         let memory_texts: Vec<String> = memories
             .iter()
             .filter_map(|memory| {
@@ -383,13 +413,44 @@ impl MemoryService {
             }
             ControlAction::Snapshot => {}
             ControlAction::Forget => {
-                tracing::warn!("遗忘流程尚未实现（占位）");
+                self.forget_pass().await?;
             }
             ControlAction::Pause => self.paused = true,
             ControlAction::Resume => self.paused = false,
             ControlAction::Maintenance => {
                 self.maintenance().await?;
             }
+        }
+        Ok(())
+    }
+
+    /// 遗忘衰减：刷新工作记忆全部节点的缺失度并落库。
+    ///
+    /// 这里只做缺失度衰减（无 LLM、无遮罩）；遮罩与补全是**惰性**的，发生在节点
+    /// 作为检索结果被取出时（见 [`Self::retrieve`]）。受限于仓储无"全量读取"接口，
+    /// 本操作只覆盖工作记忆中的节点，DB 中未加载的节点不会被触碰。
+    async fn forget_pass(&mut self) -> ServiceResult<()> {
+        let now = Utc::now();
+        let updated: Vec<EmbeddedMemoryNote> = {
+            let cluster = self.wm.memory_cluster();
+            cluster.write(|c| {
+                let ids: Vec<MemoryId> = c
+                    .graph()
+                    .node_weights()
+                    .map(|node| node.note().id())
+                    .collect();
+                for id in &ids {
+                    if let Some(node) = c.get_node_mut(*id) {
+                        compute_and_update_missing_degree(&mut node.note, now);
+                    }
+                }
+                ids.iter()
+                    .filter_map(|id| c.get_node(*id).cloned())
+                    .collect()
+            })
+        };
+        if !updated.is_empty() {
+            self.repo.upsert_notes(updated).await?;
         }
         Ok(())
     }
@@ -816,6 +877,7 @@ mod tests {
             repo,
             Arc::new(LlmEngine::new(Arc::new(FakeLlm))),
             Arc::new(FakeModel),
+            jieba_rs::Jieba::new(),
             events,
             true,
         )

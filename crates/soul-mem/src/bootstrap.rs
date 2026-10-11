@@ -14,6 +14,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use jieba_rs::Jieba;
 use soul_mem_llm::{
     BackendInfo, ChatBackend, Completion, EventStream, LlmEngine, LlmError, OaiCompatBackend,
     OaiCompatConfig, Sampling, Task,
@@ -55,6 +56,7 @@ pub async fn bootstrap(config: Arc<Config>) -> ServiceResult<Bootstrap> {
     let llm = build_llm_engine();
     let llm_available = probe_llm(&llm).await;
     let model: Arc<dyn EmbeddingModel + Send + Sync> = Arc::new(build_embedding_model().await?);
+    let jieba = Jieba::new();
     let working_memory = Arc::new(WorkingMemory::new(config.window_capacity));
 
     let (events, _receiver) = broadcast::channel(EVENT_CHANNEL_CAPACITY);
@@ -64,6 +66,7 @@ pub async fn bootstrap(config: Arc<Config>) -> ServiceResult<Bootstrap> {
         repo,
         Arc::new(llm),
         model,
+        jieba,
         events.clone(),
         llm_available,
     );

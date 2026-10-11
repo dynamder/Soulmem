@@ -53,7 +53,7 @@ pub enum ControlAction {
     Persist,
     /// 导出状态快照。状态本就随每个 `Reply.state` 返回，因此这是显式的空操作。
     Snapshot,
-    /// 强制遗忘（占位，未实现）。
+    /// 触发遗忘衰减（刷新工作记忆缺失度）；遮罩与补全在检索时惰性发生。
     Forget,
     /// 暂停接收信息增量。
     Pause,
