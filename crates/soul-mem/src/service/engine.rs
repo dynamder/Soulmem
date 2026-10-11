@@ -444,12 +444,42 @@ impl MemoryService {
             return Ok(0);
         }
 
-        let notes = self.attach_active_links(notes);
+        let (notes, active_ids) = self.attach_active_links(notes);
         let embedded_notes = self.embed_notes(notes).await?;
+        let new_ids: Vec<MemoryId> = embedded_notes.iter().map(|node| node.note().id()).collect();
         let count = embedded_notes.len() as u32;
 
-        // 先落库；失败则摘要与工作记忆都不动，可安全重试。
-        self.repo.upsert_notes(embedded_notes.clone()).await?;
+        // 既有活跃节点补 `活跃 -> 新` 出边。PPR 只沿出边传播，只建有 `新 -> 活跃`
+        // 会让新记忆永远无法被既有记忆联想到。LinkId 只生成一次，落库与入簇共用，
+        // 避免内存与数据库对同一条边持有不同身份。
+        let mut updated_active: Vec<EmbeddedMemoryNote> = Vec::new();
+        let mut active_links: Vec<(MemoryId, MemoryLink)> = Vec::new();
+        {
+            let cluster = self.wm.memory_cluster();
+            cluster.read_or_compute(|c| {
+                for id in &active_ids {
+                    let Some(active_node) = c.get_node(*id) else {
+                        continue;
+                    };
+                    let from = active_node.note().id();
+                    let mut clone = active_node.clone();
+                    for &new_id in &new_ids {
+                        if new_id == from {
+                            continue;
+                        }
+                        let link = Self::consolidation_link(from, new_id);
+                        clone.note.links_mut().push(link.clone());
+                        active_links.push((from, link));
+                    }
+                    updated_active.push(clone);
+                }
+            });
+        }
+
+        // 先落库（新节点 + 被更新的活跃节点）；失败则摘要与工作记忆都不动，可安全重试。
+        let mut batch = embedded_notes.clone();
+        batch.extend(updated_active);
+        self.repo.upsert_notes(batch).await?;
 
         // 落库成功：消费摘要。
         self.clear_summary();
@@ -458,6 +488,19 @@ impl MemoryService {
         self.with_wm(|wm| {
             for node in embedded_notes {
                 wm.add_node(node);
+            }
+        });
+
+        // 让簇内的活跃节点也带上 `活跃 -> 新` 出边（复用同一批 LinkId）。
+        let cluster = self.wm.memory_cluster();
+        cluster.write(|c| {
+            for (from, link) in active_links {
+                if let Some(node) = c.get_node_mut(from) {
+                    node.note.links_mut().push(link);
+                }
+            }
+            for &active in &active_ids {
+                c.refresh_node(&active);
             }
         });
 
@@ -480,33 +523,38 @@ impl MemoryService {
             .update(String::new());
     }
 
-    /// 给新生成的记忆节点附加到"活跃节点"（检索次数最高者）的出边。
+    /// 给新生成的记忆节点附加指向活跃节点的出边（新 -> 活跃），并返回活跃节点集合。
     ///
     /// 这是对 `记忆算法概述` 中"由 LLM 建立新节点与提取频率 top-k 节点联系"的
-    /// 无 LLM 最小实现：谓词与强度固定，只保证新节点不孤立、可被 PPR 触达。
+    /// 无 LLM 最小实现：谓词与强度固定。反向的 `活跃 -> 新` 出边由
+    /// [`Self::consolidate`] 补齐——PPR 只沿出边传播，只建单向会让新记忆孤立。
     /// 后续接入 LLM 建链时替换本函数即可。
-    fn attach_active_links(&self, mut notes: Vec<MemoryNote>) -> Vec<MemoryNote> {
+    fn attach_active_links(&self, mut notes: Vec<MemoryNote>) -> (Vec<MemoryNote>, Vec<MemoryId>) {
         let active = self.active_node_ids();
         if active.is_empty() {
-            return notes;
+            return (notes, active);
         }
         for note in &mut notes {
             let from = note.id();
             for &to in &active {
-                if to == from {
-                    continue;
+                if to != from {
+                    note.links_mut().push(Self::consolidation_link(from, to));
                 }
-                note.links_mut().push(MemoryLink::new(
-                    from,
-                    to,
-                    MemoryLinkType::Sem(SemMemLink::new(
-                        CONSOLIDATION_LINK_VERB.to_string(),
-                        CONSOLIDATION_LINK_CONFIDENCE,
-                    )),
-                ));
             }
         }
-        notes
+        (notes, active)
+    }
+
+    /// 构造一条巩固联系边（Sem 关联）。
+    fn consolidation_link(from: MemoryId, to: MemoryId) -> MemoryLink {
+        MemoryLink::new(
+            from,
+            to,
+            MemoryLinkType::Sem(SemMemLink::new(
+                CONSOLIDATION_LINK_VERB.to_string(),
+                CONSOLIDATION_LINK_CONFIDENCE,
+            )),
+        )
     }
 
     /// 活跃节点：检索次数 > 0 且仍存在于工作记忆簇中的 top-k。
