@@ -1,5 +1,5 @@
 use super::*;
-use rand::Rng;
+use rand::RngExt;
 
 impl ForgetPipelineSuite {
     /// 激活测试：固定种子随机选节点激活多次（`retrieval_increment`），
