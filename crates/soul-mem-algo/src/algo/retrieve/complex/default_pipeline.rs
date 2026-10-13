@@ -154,7 +154,7 @@ mod tests {
     use soul_mem_runtime::working_memory::sliding_window::{AssistantInformation, UserInformation};
 
     fn create_mock_working_memory_full() -> WorkingMemory {
-        let mut wm = WorkingMemory::new(10);
+        let wm = WorkingMemory::new(10);
         let cluster = wm.memory_cluster();
         let id1 = MemoryId::new();
         let id2 = MemoryId::new();
@@ -233,7 +233,7 @@ mod tests {
             });
         });
 
-        let sw = wm.sliding_window_mut();
+        let sw = wm.sliding_window();
         let window = sw.window();
         let mut guard = window.write();
         guard.push_back(Information::User(UserInformation::new("Hello")));
