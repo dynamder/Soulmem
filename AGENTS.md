@@ -12,6 +12,11 @@ When working on the crates in the workspace, open `AGENTS.md` directly contained
 
 - Reference a name, not a position: This text outlives the code it describes, so cite a selector, function, class, pref or flag name; name a file without a line, and avoid positional phrasing ("the rule above X").
 
+## Documentation
+
+- Design decisions and "why" live in the book (`book/src/architecture/choices.md`); implementation details live in code and comments.
+- The book is manually maintained — agents must not modify it.
+
 ## Workflow
 
 See the [dev-convention](docs/dev-convention.md)
