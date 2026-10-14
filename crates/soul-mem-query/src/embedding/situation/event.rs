@@ -86,20 +86,23 @@ impl Embeddable for Event {
         &self,
         model: &dyn crate::embedding::EmbeddingModel,
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
-        let [action_vec] = model
-            .infer_batch(&[self.action.as_str()])?
-            .try_into()
-            .unwrap(); // SAFEUNWRAP: 此处长度必为1
+        let action_vec = if self.action.trim().is_empty() {
+            EmbeddingVec::zero(model.dim())
+        } else {
+            model.infer_with_chunk(self.action.as_str())?
+        };
 
-        let [initiator_vec] = model
-            .infer_batch(&[self.initiator.as_str()])?
-            .try_into()
-            .unwrap(); // SAFEUNWRAP: 此处长度必为1
+        let initiator_vec = if self.initiator.trim().is_empty() {
+            EmbeddingVec::zero(model.dim())
+        } else {
+            model.infer_with_chunk(self.initiator.as_str())?
+        };
 
-        let [target_vec] = model
-            .infer_batch(&[self.target.as_str()])?
-            .try_into()
-            .unwrap(); // SAFEUNWRAP: 此处长度必为1
+        let target_vec = if self.target.trim().is_empty() {
+            EmbeddingVec::zero(model.dim())
+        } else {
+            model.infer_with_chunk(self.target.as_str())?
+        };
 
         Ok(EventEmbedding {
             action: action_vec,
