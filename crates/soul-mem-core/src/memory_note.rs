@@ -238,7 +238,7 @@ impl MemoryNoteBuilder {
             id: self.id.unwrap_or_default(),
             tags: self.tags.unwrap_or_default(),
             retrieval_count: self.retrieval_count.unwrap_or_default(),
-            create_time: create_time,
+            create_time,
             last_accessed_time: self.last_accessed_time.unwrap_or(time_now),
             mem_type: self.mem_type,
             mem_links: self.mem_links.unwrap_or_default(),
@@ -429,7 +429,7 @@ mod tests {
             .create_time(create_time)
             .build();
 
-        assert!(matches!(result, Ok(_)));
+        assert!(result.is_ok());
     }
 
     #[test]
