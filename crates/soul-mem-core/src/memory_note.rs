@@ -221,16 +221,24 @@ impl MemoryNoteBuilder {
         self
     }
     pub fn build(self) -> Result<MemoryNote, MemoryNoteBuildError> {
-        //允许对字段的自由控制，以便于调试和修正
-        if self.last_accessed_time < self.create_time {
+        if self.last_accessed_time.is_some() && self.create_time.is_none() {
+            return Err(MemoryNoteBuildError::TimeConflict); // This situation is meaningless and should not be built.
+        }
+
+        let time_now = Utc::now();
+        let create_time = self.create_time.unwrap_or(time_now);
+
+        if let Some(last_accessed_time) = self.last_accessed_time
+            && last_accessed_time < create_time
+        {
             return Err(MemoryNoteBuildError::TimeConflict);
         }
-        let time_now = Utc::now(); //提前计算时间，由于unwrap_or是eagerly evaluated的，所以防止可能的重复计算
+
         Ok(MemoryNote {
             id: self.id.unwrap_or_default(),
             tags: self.tags.unwrap_or_default(),
             retrieval_count: self.retrieval_count.unwrap_or_default(),
-            create_time: self.create_time.unwrap_or(time_now),
+            create_time: create_time,
             last_accessed_time: self.last_accessed_time.unwrap_or(time_now),
             mem_type: self.mem_type,
             mem_links: self.mem_links.unwrap_or_default(),
@@ -402,6 +410,38 @@ mod tests {
 
         let result = MemoryNoteBuilder::new(mem_type)
             .create_time(create_time)
+            .last_accessed_time(last_accessed)
+            .build();
+
+        assert!(matches!(result, Err(MemoryNoteBuildError::TimeConflict)));
+    }
+
+    #[test]
+    fn test_memory_note_builder_none_last_accessed() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let create_time = Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap();
+
+        let result = MemoryNoteBuilder::new(mem_type)
+            .create_time(create_time)
+            .build();
+
+        assert!(matches!(result, Ok(_)));
+    }
+
+    #[test]
+    fn test_memory_note_builder_none_create_time() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let last_accessed = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+
+        let result = MemoryNoteBuilder::new(mem_type)
             .last_accessed_time(last_accessed)
             .build();
 
