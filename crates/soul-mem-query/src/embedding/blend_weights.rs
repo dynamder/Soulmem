@@ -197,6 +197,22 @@ mod tests {
     }
 
     #[test]
+    fn negative_weight_with_positive_sum_falls_back_to_default() {
+        // 组内和为 1、但含一个负权重：整组必须退回默认，不能归一化成 [-1, 2]。
+        let d = BlendWeights::default();
+        let n = BlendWeights {
+            sem_concept: -1.0,
+            sem_description: 2.0,
+            ..BlendWeights::default()
+        }
+        .normalized();
+        assert_eq!(
+            (n.sem_concept, n.sem_description),
+            (d.sem_concept, d.sem_description)
+        );
+    }
+
+    #[test]
     fn zero_sum_group_falls_back_to_default() {
         let d = BlendWeights::default();
         let n = BlendWeights {
