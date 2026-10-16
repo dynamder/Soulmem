@@ -1,5 +1,5 @@
 use crate::embedding::{
-    EmbeddingCalcResult,
+    EmbeddingCalcError, EmbeddingCalcResult,
     note::{EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant},
     query::{
         note::{
@@ -44,6 +44,37 @@ impl QueryComputeResult {
         QueryComputeResult { id, score }
     }
 }
+
+/// 在多通道分数间取最大值，并把负相关显式折到 0。
+///
+/// 用显式循环而非 `fold(0.0, f32::max)`：`f32::max` 在一侧为 NaN 时返回另一侧，
+/// 会把被 NaN 污染的通道静默吞掉，聚合结果看起来正常，调用方的 `is_finite()` 守卫永不命中。
+fn fold_max(scores: impl IntoIterator<Item = f32>) -> EmbeddingCalcResult<f32> {
+    let mut best = 0.0f32;
+    for score in scores {
+        if !score.is_finite() {
+            return Err(EmbeddingCalcError::InvalidNumValue);
+        }
+        best = best.max(score);
+    }
+    Ok(best)
+}
+
+/// 按单元数求均值；空集合为 `0.0`，任一单元分非有限即报错。
+fn mean_or_err(scores: Vec<f32>) -> EmbeddingCalcResult<f32> {
+    if scores.is_empty() {
+        return Ok(0.0);
+    }
+    let mut sum = 0.0f32;
+    for score in &scores {
+        if !score.is_finite() {
+            return Err(EmbeddingCalcError::InvalidNumValue);
+        }
+        sum += score;
+    }
+    Ok(sum / scores.len() as f32)
+}
+
 ////////////////////////////////////////////////////////////
 impl AnonymousQueryCompute for LocationEmbedding {
     type Query = LocationQueryUnitEmbedding;
@@ -195,15 +226,14 @@ impl AnonymousQueryCompute for SpecificSituationEmbedding {
 
         //fuse score：多个信号取 max（任一信号强命中即算命中），
         //避免均值把最强信号稀释（narrative 与结构化字段尺度不同）。
-        let score_vec = narrative_score
-            .into_iter()
-            .chain(location_score)
-            .chain(participants_score)
-            .chain(environment_score)
-            .chain(event_score)
-            .collect::<Vec<_>>();
-
-        Ok(score_vec.into_iter().fold(0.0f32, f32::max))
+        fold_max(
+            narrative_score
+                .into_iter()
+                .chain(location_score)
+                .chain(participants_score)
+                .chain(environment_score)
+                .chain(event_score),
+        )
     }
 }
 
@@ -236,13 +266,8 @@ impl AnonymousQueryCompute for AbstractSituationEmbedding {
             .map(|narrative| narrative.cosine_similarity(&self.fused_self()?))
             .transpose()?;
 
-        let score_vec = structured_score
-            .into_iter()
-            .chain(narrative_score)
-            .collect::<Vec<_>>();
-
         // 结构化匹配与叙事匹配取 max：任一通道强命中即算命中。
-        Ok(score_vec.into_iter().fold(0.0f32, f32::max))
+        fold_max(structured_score.into_iter().chain(narrative_score))
     }
 }
 
@@ -303,11 +328,7 @@ impl AnonymousQueryCompute for MemoryEmbeddingVariant {
                     .map(|q_sem_unit| sem.anonymous_compute(q_sem_unit))
                     .collect::<Result<Vec<_>, _>>()?;
                 //按单元数归一化，避免长查询因sum而系统性占优，与Situation分支保持一致
-                if score_vec.is_empty() {
-                    return Ok(0.0);
-                }
-                let len = score_vec.len();
-                Ok(score_vec.into_iter().sum::<f32>() / len as f32)
+                mean_or_err(score_vec)
             }
             (Self::Situation(sit), MemoryRetrieveQueryVariantEmbedding::Situation(q_sit)) => {
                 let score_vec = q_sit
@@ -317,11 +338,7 @@ impl AnonymousQueryCompute for MemoryEmbeddingVariant {
                 //按单元数归一化，与上面的 Semantic 分支保持一致。
                 //此前该分支直接 sum，多单元情境查询得分可达 N×1.0，突破 [0,1] 量纲，
                 //破坏 default_pipeline 依赖的"相似度与联想两路分数同量纲、可直接比较"契约。
-                if score_vec.is_empty() {
-                    return Ok(0.0);
-                }
-                let len = score_vec.len();
-                Ok(score_vec.into_iter().sum::<f32>() / len as f32)
+                mean_or_err(score_vec)
             }
             (_, _) => Ok(0.0),
         }

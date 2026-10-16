@@ -1,5 +1,6 @@
 use super::*;
 use crate::embedding::Embeddable;
+use crate::embedding::EmbeddingCalcError;
 use crate::embedding::EmbeddingVec;
 use crate::embedding::blend_weights::BlendWeights;
 use crate::embedding::embedding_model::bge::BgeSmallZh;
@@ -504,6 +505,127 @@ fn unit() -> EmbeddingVec {
 /// 单位向量 [c, sqrt(1-c²)]：与 `unit()` 的余弦相似度为 c。
 fn at(c: f32) -> EmbeddingVec {
     EmbeddingVec::new(vec![c, (1.0 - c * c).sqrt()])
+}
+
+#[test]
+fn fold_max_rejects_non_finite_channels() {
+    assert!(matches!(
+        fold_max([0.4, f32::NAN]),
+        Err(EmbeddingCalcError::InvalidNumValue)
+    ));
+    assert!(matches!(
+        fold_max([f32::INFINITY]),
+        Err(EmbeddingCalcError::InvalidNumValue)
+    ));
+}
+
+#[test]
+fn fold_max_folds_negatives_to_zero() {
+    assert_close(fold_max([-0.5, 0.4]).unwrap(), 0.4);
+    assert_close(fold_max([-0.5, -0.2]).unwrap(), 0.0);
+    assert_close(fold_max([0.25]).unwrap(), 0.25);
+}
+
+#[test]
+fn mean_or_err_averages_and_rejects_non_finite() {
+    assert_close(mean_or_err(vec![0.5, 0.9]).unwrap(), 0.7);
+    assert_close(mean_or_err(vec![]).unwrap(), 0.0);
+    assert!(matches!(
+        mean_or_err(vec![0.5, f32::NAN]),
+        Err(EmbeddingCalcError::InvalidNumValue)
+    ));
+}
+
+/// NaN 通道分不得被 `f32::max` 吞掉后当成有限分进入排序（issue #71）。
+#[test]
+fn specific_situation_rejects_non_finite_channel() {
+    let nan = EmbeddingVec::new(vec![f32::NAN, 0.0]);
+    let specific = SpecificSituationEmbedding::test_new(
+        nan.clone(),
+        ContextEmbedding::test_new(
+            None,
+            None,
+            None,
+            None,
+            EnvironmentEmbedding::test_new(unit(), unit()),
+            None,
+        ),
+    );
+    let query = SituationQueryUnitEmbedding::test_new(
+        Some(nan),
+        None,
+        None,
+        None,
+        None,
+        BlendWeights::default(),
+    );
+    assert!(matches!(
+        specific.anonymous_compute(&query),
+        Err(EmbeddingCalcError::InvalidNumValue)
+    ));
+}
+
+#[test]
+fn abstract_situation_rejects_non_finite_channel() {
+    let nan = EmbeddingVec::new(vec![f32::NAN, 0.0]);
+    let abstract_emb =
+        AbstractSituationEmbedding::Location(LocationEmbedding::test_new(nan, unit()));
+    let query = SituationQueryUnitEmbedding::test_new(
+        None,
+        Some(LocationQueryUnitEmbedding::test_new(
+            EmbeddingVec::new(vec![f32::NAN, 0.0]),
+            None,
+            BlendWeights::default(),
+        )),
+        None,
+        None,
+        None,
+        BlendWeights::default(),
+    );
+    assert!(matches!(
+        abstract_emb.anonymous_compute(&query),
+        Err(EmbeddingCalcError::InvalidNumValue)
+    ));
+}
+
+#[test]
+fn variant_mean_rejects_non_finite_unit_score() {
+    let sem = SemanticEmbedding::new(unit(), unit(), unit());
+    let q_sem = SemanticQueryUnitEmbedding::test_new(
+        Some(EmbeddingVec::new(vec![f32::NAN, 0.0])),
+        None,
+        BlendWeights::default(),
+    );
+    let variant = MemoryEmbeddingVariant::Semantic(sem);
+    let query_variant = MemoryRetrieveQueryVariantEmbedding::Semantic(vec![q_sem]);
+    assert!(matches!(
+        variant.anonymous_compute(&query_variant),
+        Err(EmbeddingCalcError::InvalidNumValue)
+    ));
+}
+
+/// 回归（issue #73）：两条通道都完美匹配、配对权重都取 0.9 时未归一化的加权和是 1.8。
+#[test]
+fn with_weights_normalizes_pairs_so_score_stays_in_unit_range() {
+    let note_emb = MemoryEmbedding::new(
+        unit(),
+        MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(unit(), unit(), unit())),
+    );
+    let q_sem =
+        SemanticQueryUnitEmbedding::test_new(Some(unit()), Some(unit()), BlendWeights::default());
+    let q_variant = MemoryRetrieveQueryVariantEmbedding::Semantic(vec![q_sem]);
+    let bw = BlendWeights {
+        tag: 0.9,
+        variant: 0.9,
+        ..BlendWeights::default()
+    };
+    let query = MemoryRetrieveQueryEmbedding::new(unit())
+        .with_variant(q_variant)
+        .with_weights(bw);
+
+    let score = note_emb.anonymous_compute(&query).unwrap();
+    assert!((0.0..=1.0).contains(&score), "score out of range: {score}");
+    assert_close(score, 1.0);
 }
 
 /// 回归：情境变体必须按**单元数归一化**，与 Semantic 分支保持一致。
