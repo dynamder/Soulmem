@@ -449,6 +449,25 @@ mod tests {
     }
 
     #[test]
+    fn test_memory_note_builder_equal_times_are_allowed() {
+        let mem_type = MemoryType::Semantic(SemMemory::new(
+            "Test".to_string(),
+            ConceptType::Entity,
+            "Test description".to_string(),
+        ));
+        let time = Utc.with_ymd_and_hms(2024, 1, 2, 0, 0, 0).unwrap();
+
+        let note = MemoryNoteBuilder::new(mem_type)
+            .create_time(time)
+            .last_accessed_time(time)
+            .build()
+            .expect("相等的时间戳必须被接受：不变量是 last_accessed_time >= create_time");
+
+        assert_eq!(note.creation_time(), time);
+        assert_eq!(note.last_accessed_time(), time);
+    }
+
+    #[test]
     fn test_memory_note_retrieval_increment() {
         let mem_type = MemoryType::Semantic(SemMemory::new(
             "Test".to_string(),
