@@ -97,6 +97,19 @@ impl Qwen3Embedding600M {
         Ok(EmbeddingVec::new(fused_embedding))
     }
 }
+
+/// Qwen3-Embedding 的查询侧指令。模型卡要求查询带任务指令、段落不带；
+/// 指令内容可按场景定制，这里用模型卡的检索默认值。
+pub const QUERY_INSTRUCTION: &str =
+    "Given a web search query, retrieve relevant passages that answer the query";
+
+fn prepend_query_instruction(input: &[&str]) -> Vec<String> {
+    input
+        .iter()
+        .map(|s| format!("Instruct: {QUERY_INSTRUCTION}\nQuery: {s}"))
+        .collect()
+}
+
 impl EmbeddingModel for Qwen3Embedding600M {
     fn infer_batch(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>> {
         self.embed_gen_simple_batch(input)
@@ -106,6 +119,26 @@ impl EmbeddingModel for Qwen3Embedding600M {
     }
     fn infer_with_chunk(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec> {
         self.embed_gen_with_chunk_pooling(input)
+    }
+    fn infer_query_batch(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>> {
+        let prefixed = prepend_query_instruction(input);
+        let refs: Vec<&str> = prefixed.iter().map(|s| s.as_str()).collect();
+        self.embed_gen_simple_batch(&refs)
+    }
+    fn infer_query_and_fuse(&self, input: &[&str]) -> EmbeddingGenResult<EmbeddingVec> {
+        let prefixed = prepend_query_instruction(input);
+        let refs: Vec<&str> = prefixed.iter().map(|s| s.as_str()).collect();
+        self.embed_gen_with_mean_pooling(&refs)
+    }
+    fn infer_query_with_chunk(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec> {
+        let chunked_input = self.splitter.chunks(input).collect::<Vec<_>>();
+        if chunked_input.is_empty() {
+            return Err(EmbeddingGenError::InvalidInput);
+        }
+        // 指令加在每个分块上，保证所有分块都落在 query 空间。
+        let prefixed = prepend_query_instruction(&chunked_input);
+        let refs: Vec<&str> = prefixed.iter().map(|s| s.as_str()).collect();
+        self.embed_gen_with_mean_pooling(&refs)
     }
     fn max_input_token(&self) -> usize {
         32768
@@ -158,6 +191,17 @@ impl EmbeddingModel for Qwen3Embedding600M {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn test_query_instruction_format() {
+        assert_eq!(
+            prepend_query_instruction(&["a", "b"]),
+            vec![
+                "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: a".to_string(),
+                "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: b".to_string(),
+            ]
+        );
+    }
 
     #[tokio::test]
     #[ignore = "downloads ~1.2GB Qwen3-Embedding-0.6B model; run manually or in a dedicated job"]
