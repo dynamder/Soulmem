@@ -51,6 +51,18 @@ impl Default for SlidingWindow {
     }
 }
 
+/// `SlidingWindow::push` 的结果。
+///
+/// `push` **总是**先把消息写入窗口；`evicted` 只表示「淘汰队首时的摘要」是否成功。
+/// 把两者分开，调用方就不会把 `Err` 误读成「这次写入没成功」而重试 `push`
+/// （那会把同一条消息写入两次）。摘要失败时应重试摘要或降级，而不是重放 `push`。
+#[derive(Debug)]
+#[must_use = "摘要失败必须被处理；消息已经入队，不要重试 push"]
+pub struct PushOutcome {
+    /// 摘要成功为 `Ok(())`；失败时窗口保持超出容量、消息不丢。
+    pub evicted: Result<(), LlmError>,
+}
+
 impl SlidingWindow {
     /// 新建。
     ///
@@ -68,10 +80,14 @@ impl SlidingWindow {
     }
 
     /// 信息滑入。超出容量时淘汰队首（被标记的队首必须先摘要成功）。
-    pub async fn push(&self, value: &str, role: &str, engine: &LlmEngine) -> Result<(), LlmError> {
+    ///
+    /// 消息**总会**入队；返回值只携带淘汰时的摘要结果，详见 [`PushOutcome`]。
+    pub async fn push(&self, value: &str, role: &str, engine: &LlmEngine) -> PushOutcome {
         let text = self.auto_tag(Information::new(value, role));
         self.window.write().push_back(text);
-        self.enforce_capacity(engine).await
+        PushOutcome {
+            evicted: self.enforce_capacity(engine).await,
+        }
     }
 
     /// 信息滑出。被标记的队首在摘要成功后才移除。

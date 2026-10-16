@@ -13,10 +13,12 @@ async fn push_and_get_keep_order_and_role() {
     window
         .push("user_info", "user", scripted.engine())
         .await
+        .evicted
         .expect("push");
     window
         .push("assistant_info", "assistant", scripted.engine())
         .await
+        .evicted
         .expect("push");
 
     assert_eq!(window.get(0).expect("第 0 条").get_str(), "user_info");
@@ -34,10 +36,12 @@ async fn pop_removes_untagged_front_without_calling_llm() {
     window
         .push("user_info", "user", scripted.engine())
         .await
+        .evicted
         .expect("push");
     window
         .push("assistant_info", "assistant", scripted.engine())
         .await
+        .evicted
         .expect("push");
     window.untag_information(0);
 
@@ -70,12 +74,14 @@ async fn successful_summary_updates_summary_and_removes_the_message() {
     window
         .push("a", "user", scripted.engine())
         .await
+        .evicted
         .expect("push a");
     assert_eq!(window.len(), 1, "未超容量");
 
     window
         .push("b", "user", scripted.engine())
         .await
+        .evicted
         .expect("push b");
 
     assert_eq!(scripted.calls(), 1, "应摘要一次");
@@ -92,10 +98,12 @@ async fn summary_prompt_contains_window_in_order() {
     window
         .push("第一句", "user", scripted.engine())
         .await
+        .evicted
         .expect("push");
     window
         .push("第二句", "assistant", scripted.engine())
         .await
+        .evicted
         .expect("push");
 
     let prompt = scripted.last_prompt().expect("应有调用");
@@ -118,16 +126,19 @@ async fn summary_prompt_carries_the_previous_summary_forward() {
     window
         .push("a", "user", scripted.engine())
         .await
+        .evicted
         .expect("push a");
     window
         .push("b", "user", scripted.engine())
         .await
+        .evicted
         .expect("push b");
     assert_eq!(window.get_summary().as_ref(), "第一次摘要");
 
     window
         .push("c", "user", scripted.engine())
         .await
+        .evicted
         .expect("push c");
     assert_eq!(window.get_summary().as_ref(), "第二次摘要");
 
@@ -148,10 +159,12 @@ async fn summary_failure_keeps_the_evicted_message() {
     window
         .push("a", "user", scripted.engine())
         .await
+        .evicted
         .expect("push a");
     let error = window
         .push("b", "user", scripted.engine())
         .await
+        .evicted
         .expect_err("摘要失败必须上报");
 
     assert_eq!(error.kind(), LlmErrorKind::Transport);
@@ -173,6 +186,7 @@ async fn summary_failure_keeps_the_popped_message() {
     window
         .push("a", "user", scripted.engine())
         .await
+        .evicted
         .expect("push a");
     let error = window
         .pop(scripted.engine())
@@ -196,16 +210,19 @@ async fn a_failed_summary_can_be_retried_on_the_next_push() {
     window
         .push("a", "user", scripted.engine())
         .await
+        .evicted
         .expect("push a");
     window
         .push("b", "user", scripted.engine())
         .await
+        .evicted
         .expect_err("第一次失败");
     assert_eq!(window.len(), 2);
 
     window
         .push("c", "user", scripted.engine())
         .await
+        .evicted
         .expect("第二次成功");
 
     assert_eq!(scripted.calls(), 2);
@@ -232,10 +249,12 @@ async fn a_transient_failure_is_retried_by_the_engine_before_push_reports_anythi
     window
         .push("a", "user", scripted.engine())
         .await
+        .evicted
         .expect("push a");
     window
         .push("b", "user", scripted.engine())
         .await
+        .evicted
         .expect("引擎重试后应当成功，窗口不该看到错误");
 
     assert_eq!(scripted.calls(), 2, "第一次失败 + 一次重试");
@@ -251,10 +270,12 @@ async fn empty_summary_is_rejected_and_keeps_everything() {
     window
         .push("a", "user", scripted.engine())
         .await
+        .evicted
         .expect("push a");
     let error = window
         .push("b", "user", scripted.engine())
         .await
+        .evicted
         .expect_err("空摘要必须被拒绝");
 
     assert_eq!(error.kind(), LlmErrorKind::EmptyCompletion);
@@ -276,6 +297,7 @@ async fn concurrent_push_fills_the_window() {
             window1
                 .push(&format!("user_{i}"), "user", &engine1)
                 .await
+                .evicted
                 .expect("push");
         }
     });
@@ -284,6 +306,7 @@ async fn concurrent_push_fills_the_window() {
         window
             .push(&format!("user_{i}"), "user", scripted.engine())
             .await
+            .evicted
             .expect("push");
     }
 
@@ -305,6 +328,7 @@ async fn concurrent_read_write_does_not_deadlock_or_lose_data() {
             window_write
                 .push(&format!("msg_{i}"), "user", &engine)
                 .await
+                .evicted
                 .expect("push");
         }
     });
@@ -329,6 +353,7 @@ async fn concurrent_pop_terminates_and_shrinks_the_window() {
         window
             .push(&format!("initial_{i}"), "user", scripted.engine())
             .await
+            .evicted
             .expect("push");
     }
 
@@ -354,7 +379,10 @@ async fn window_is_shareable_across_tasks() {
     let engine1 = scripted.engine().clone();
     let handle1 = tokio::spawn(async move {
         for i in 0..5 {
-            window1.push(&format!("t1_{i}"), "user", &engine1).await?;
+            window1
+                .push(&format!("t1_{i}"), "user", &engine1)
+                .await
+                .evicted?;
         }
         Ok::<(), LlmError>(())
     });
@@ -363,7 +391,10 @@ async fn window_is_shareable_across_tasks() {
     let engine2 = scripted.engine().clone();
     let handle2 = tokio::spawn(async move {
         for i in 0..5 {
-            window2.push(&format!("t2_{i}"), "user", &engine2).await?;
+            window2
+                .push(&format!("t2_{i}"), "user", &engine2)
+                .await
+                .evicted?;
         }
         Ok::<(), LlmError>(())
     });
