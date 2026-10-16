@@ -1,5 +1,3 @@
-use std::arch::x86_64::_CMP_FALSE_OQ;
-
 use serde::{Deserialize, Serialize};
 
 use crate::embedding::{
@@ -74,7 +72,7 @@ impl Embeddable for Participant {
             (true, true) => EmbeddingVec::zero(model.dim()),
             (false, true) => role_vec.clone(),
             (true, false) => name_vec.clone(),
-            (false, false) => raw_linear_blend(&name_vec, &role_vec, 0.7).unwrap(), //SAFEUNWRAP: 此处两向量的维度必然相同        }
+            (false, false) => raw_linear_blend(&name_vec, &role_vec, 0.7).unwrap(), //SAFEUNWRAP: 此处两向量的维度必然相同
         };
 
         Ok(ParticipantEmbedding {
