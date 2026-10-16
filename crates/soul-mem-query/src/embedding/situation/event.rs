@@ -33,7 +33,9 @@ impl EventEmbedding {
             return Err(EmbeddingCalcError::InvalidNumValue);
         }
         let len = events[0].action.shape();
-        if !events.iter().all(|vec| vec.action.shape() == len) {
+        if !events.iter().all(|e| {
+            e.action.shape() == len && e.initiator.shape() == len && e.target.shape() == len
+        }) {
             return Err(EmbeddingCalcError::ShapeMismatch);
         }
         let fused_action = events.iter().fold(vec![0.0; len], |acc, vec| {
@@ -260,6 +262,33 @@ mod tests {
         let e2 = embed_event(vec![1.0, 2.0], vec![1.0], vec![1.0], 1.0);
         assert!(matches!(
             EventEmbedding::weight_pooling(&[e1, e2]),
+            Err(EmbeddingCalcError::ShapeMismatch)
+        ));
+    }
+
+    #[test]
+    fn test_event_weight_pooling_initiator_longer_is_rejected() {
+        let e = embed_event(vec![1.0], vec![1.0, 2.0, 3.0], vec![1.0], 1.0);
+        assert!(matches!(
+            EventEmbedding::weight_pooling(&[e]),
+            Err(EmbeddingCalcError::ShapeMismatch)
+        ));
+    }
+
+    #[test]
+    fn test_event_weight_pooling_initiator_shorter_is_rejected() {
+        let e = embed_event(vec![1.0, 2.0], vec![1.0], vec![1.0, 2.0], 1.0);
+        assert!(matches!(
+            EventEmbedding::weight_pooling(&[e]),
+            Err(EmbeddingCalcError::ShapeMismatch)
+        ));
+    }
+
+    #[test]
+    fn test_event_weight_pooling_target_shape_mismatch_is_rejected() {
+        let e = embed_event(vec![1.0, 2.0], vec![1.0, 2.0], vec![1.0], 1.0);
+        assert!(matches!(
+            EventEmbedding::weight_pooling(&[e]),
             Err(EmbeddingCalcError::ShapeMismatch)
         ));
     }
