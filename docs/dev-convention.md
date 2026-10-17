@@ -60,6 +60,10 @@ python3 scripts/check_commit_messages.py origin/dev..HEAD
 6. 合并方式为 merge commit；禁止 squash。
 7. 删除主题分支。
 
+> agent 自动提交的问题不走上面的模板：走 [`agent-issues.md`](agent-issues.md) 里的
+> `File agent issue` workflow，issue 作者是 `github-actions[bot]`，默认标签 `agent-report`
+> 表示**未经核实**。
+
 ---
 
 ## 4. 门禁
