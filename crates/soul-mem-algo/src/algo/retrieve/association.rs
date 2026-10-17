@@ -152,9 +152,13 @@ impl RetrStrategy for RetrAssociation {
                     .source
                     .into_iter()
                     .filter_map(|(id, weight)| {
-                        cluster
-                            .get_mem_index(id)
-                            .map(|index| (index, OrdFloat::from_f32(weight)))
+                        if weight <= 0.0 {
+                            None // 确保source的权重为正，避免ppr内部panic
+                        } else {
+                            cluster
+                                .get_mem_index(id)
+                                .map(|index| (index, OrdFloat::from_f32(weight)))
+                        }
                     })
                     .collect()
             });
