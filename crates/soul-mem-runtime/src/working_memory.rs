@@ -67,8 +67,8 @@ pub struct WorkingMemory {
 impl WorkingMemory {
     /// 新建工作记忆。
     ///
-    /// `window_capacity` 是滑动窗口的**软上限**：摘要失败时窗口会短暂超出它，
-    /// 下一轮摘要成功后再回落（见 [`sliding_window`] 的模块注释）。
+    /// `window_capacity` 是滑动窗口的容量：`push` 报告超容后，由调用方 `pop` 队首并
+    /// 决定是否摘要（见 [`sliding_window`] 的模块注释）。
     pub fn new(window_capacity: usize) -> Self {
         Self {
             state: RwLock::new(WorkingState::Idle),
