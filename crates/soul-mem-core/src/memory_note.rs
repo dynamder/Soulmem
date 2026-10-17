@@ -127,6 +127,8 @@ impl MemoryNote {
     pub fn mem_type_mut(&mut self) -> &mut MemoryType {
         &mut self.mem_type
     }
+    /// 该节点的**完整**出边集，不是增量补丁：`runtime` 的 `upsert_notes` 以它为出边真相源，
+    /// 不在其中的旧边会在同一事务内被删除。
     pub fn links(&self) -> &Vec<MemoryLink> {
         &self.mem_links
     }

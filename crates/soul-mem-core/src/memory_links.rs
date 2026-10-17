@@ -64,6 +64,8 @@ pub struct MemoryLink {
     id: LinkId,
     from: MemoryId,
     to: MemoryId,
+    /// 连接强度，默认 `1.0`。遗忘路径的检索权重取 `intensity × (1 - missing_degree)`；
+    /// PPR 边权里乘上 `AssociationConfig::intensity_factor`。
     pub intensity: f64,
     /// 遗忘缺失度（0.0 新鲜 ~ 1.0 完全遗忘）
     #[serde(default = "default_missing_degree")]
