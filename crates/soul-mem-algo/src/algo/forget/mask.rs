@@ -1,4 +1,4 @@
-use jieba_rs::Jieba;
+use jieba_rs::{Jieba, Token};
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
@@ -24,7 +24,7 @@ pub struct MaskResult {
 /// 遮罩是确定性的：同一文本 + 同一缺失度 → 同一遮罩结果。
 /// 使用 jieba 分词后，随机选取 `n` 个词替换为 `[masked]`。
 pub fn mask_text(text: &str, missing_degree: f32, jieba: &Jieba) -> MaskResult {
-    let words: Vec<&str> = jieba.cut(text, true);
+    let words: Vec<Token<'_>> = jieba.cut(text, true);
     let total = words.len();
 
     if total == 0 || missing_degree <= 0.0 {
@@ -61,7 +61,7 @@ pub fn mask_text(text: &str, missing_degree: f32, jieba: &Jieba) -> MaskResult {
             if masked_set.contains(&i) {
                 MASK_WORD.to_string()
             } else {
-                w.to_string()
+                w.word.to_string()
             }
         })
         .collect();

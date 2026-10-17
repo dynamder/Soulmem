@@ -53,11 +53,28 @@ impl Embeddable for Participant {
         &self,
         model: &dyn crate::embedding::EmbeddingModel,
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
-        let [name_vec, role_vec] = model
-            .infer_batch(&[self.name.as_str(), self.role.as_str()])?
-            .try_into()
-            .unwrap(); //SAFEUNWRAP: 可以确定此处的Vec长度为2
-        let fused_vec = raw_linear_blend(&name_vec, &role_vec, 0.7).unwrap(); //SAFEUNWRAP: 此处两向量的维度必然相同
+        let is_name_empty = self.name.trim().is_empty();
+        let is_role_empty = self.role.trim().is_empty();
+
+        let name_vec = if is_name_empty {
+            EmbeddingVec::zero(model.dim())
+        } else {
+            model.infer_with_chunk(self.name.as_str())?
+        };
+
+        let role_vec = if is_role_empty {
+            EmbeddingVec::zero(model.dim())
+        } else {
+            model.infer_with_chunk(self.role.as_str())?
+        };
+
+        let fused_vec = match (is_name_empty, is_role_empty) {
+            (true, true) => EmbeddingVec::zero(model.dim()),
+            (false, true) => role_vec.clone(),
+            (true, false) => name_vec.clone(),
+            (false, false) => raw_linear_blend(&name_vec, &role_vec, 0.7).unwrap(), //SAFEUNWRAP: 此处两向量的维度必然相同
+        };
+
         Ok(ParticipantEmbedding {
             name: name_vec,
             role: role_vec,

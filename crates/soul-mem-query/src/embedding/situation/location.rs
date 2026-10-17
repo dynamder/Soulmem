@@ -28,10 +28,29 @@ impl Embeddable for Location {
     type EmbeddingGen = LocationEmbedding;
     type EmbeddingFused = EmbeddedLocation;
     fn embed(&self, model: &dyn EmbeddingModel) -> EmbeddingGenResult<Self::EmbeddingGen> {
-        let [name_vec, coordinates_vec] = model
-            .infer_batch(&[self.name.as_str(), self.coordinates.as_str()])?
-            .try_into()
-            .unwrap(); //SAFEUNWRAP: 此处可以确定Vec的长度为2
+        let is_name_empty = self.name.trim().is_empty();
+        let is_coordinates_empty = self.coordinates.trim().is_empty();
+        let (name_vec, coordinates_vec) = match (is_name_empty, is_coordinates_empty) {
+            (true, true) => (
+                EmbeddingVec::zero(model.dim()),
+                EmbeddingVec::zero(model.dim()),
+            ),
+            (false, false) => {
+                let [name_vec, coordinates_vec] = model
+                    .infer_batch(&[self.name.as_str(), self.coordinates.as_str()])?
+                    .try_into()
+                    .unwrap(); //SAFEUNWRAP: 此处可以确定Vec的长度为2
+                (name_vec, coordinates_vec)
+            }
+            (false, true) => {
+                let name_vec = model.infer_with_chunk(self.name.as_str())?;
+                (name_vec, EmbeddingVec::zero(model.dim()))
+            }
+            (true, false) => {
+                let coordinates_vec = model.infer_with_chunk(self.coordinates.as_str())?;
+                (EmbeddingVec::zero(model.dim()), coordinates_vec)
+            }
+        };
 
         Ok(LocationEmbedding {
             name: name_vec,

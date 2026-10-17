@@ -19,9 +19,20 @@ unmaintained = "none"
 #   年至今无修复版（最新 0.9.10 仍受影响，0.10 尚在 rc）。影响面：攻击者可观测
 #   时序时恢复私钥。SoulMem 仅在本地/可信环境使用 SurrealDB 嵌入式存储，
 #   不暴露给可观测时序的网络攻击者，故忽略并跟踪上游修复。
+# - RUSTSEC-2026-0367/0368/0369: zip 的 `extract()` 家族（`ZipArchive::extract`、
+#   `ZipStreamReader::extract`）解压时保留 SUID/SGID、创建指向目标目录外的符号链接、
+#   并沿符号链接套用权限；修复版是 zip >= 9.0.0。树上三个 zip 都被父依赖钉在 9 以下，
+#   且父依赖本身没有可升到 zip 9 的版本：zip 1.1.4 ← docx-rust（最新 0.1.11 仍是 ^4）、
+#   zip 2.4.2 ← paw-core 0.3.0（最新，^2）、zip 8.6.0 ← candle-core 0.11.0（最新，^8.6.0）。
+#   影响面：三条公告都只在 `extract()` 写盘路径上成立，这些依赖只按条目名读归档
+#   （`ZipArchive::new` + `by_index`/`by_name`），SoulMem 也不把不可信归档解压到磁盘。
+#   跟踪条件：任一父依赖放开到 zip ^9 后删除本条。
 ignore = [
     "RUSTSEC-2026-0187",
     "RUSTSEC-2023-0071",
+    "RUSTSEC-2026-0367",
+    "RUSTSEC-2026-0368",
+    "RUSTSEC-2026-0369",
 ]
 
 [bans]

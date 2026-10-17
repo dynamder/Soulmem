@@ -16,6 +16,7 @@
 | [`测试数据规范.md`](测试数据规范.md) | **测试数据集的唯一权威规范**：Graph JSON、Query JSON、BlendSweep 配置、完整示例。与 `fixtures/` 实际内容一致 |
 | [`architecture/激发测试设计.md`](architecture/激发测试设计.md) | 激发测试（excitation）的接口契约、断言清单 E1~E6、延缓指标定义与质量门槛 |
 | [`architecture/算法测试.md`](architecture/算法测试.md) | 记忆算法测试的流程定义与图谱变换操作 |
+| [`agent-issues.md`](agent-issues.md) | **agent 自动提交 issue 的通道规范**：为什么作者是 `github-actions[bot]`、`gh workflow run` 的两条调用路径（内联 / 归档分支）、标签语义与已知约束 |
 
 ## 2. 架构类 —— 描述系统设计
 
