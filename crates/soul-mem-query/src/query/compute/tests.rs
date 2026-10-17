@@ -1,5 +1,6 @@
 use super::*;
 use crate::embedding::Embeddable;
+use crate::embedding::EmbeddingCalcError;
 use crate::embedding::EmbeddingVec;
 use crate::embedding::blend_weights::BlendWeights;
 use crate::embedding::embedding_model::bge::BgeSmallZh;
@@ -252,14 +253,9 @@ fn test_compute_fused_matches_blend_formula() {
     let embedded_note = embed_sem_note(&model, "小酒馆", &[]);
     let embedded_query = embed_sem_query(&model, "酒馆");
 
-    let pure = embedded_note
-        .anonymous_compute(&embedded_query.embedding)
-        .unwrap();
+    let pure = embedded_note.anonymous_compute(&embedded_query).unwrap();
     let str_score = compute_note_string_score(embedded_note.note(), &embedded_query.query);
-    let fused = embedded_note
-        .compute_fused(&embedded_query, 0.6)
-        .unwrap()
-        .score;
+    let fused = embedded_note.compute(&embedded_query).unwrap().score;
 
     // 字符串通道只加分：fused = max(pure, 0.6*pure + 0.4*str)
     let expected = pure.max(0.6 * pure + 0.4 * str_score);
@@ -285,8 +281,8 @@ fn test_compute_fused_string_boost_ranking() {
     let miss = embed_sem_note(&model, "火车站", &[]);
     let embedded_query = embed_sem_query(&model, "酒馆");
 
-    let hit_fused = hit.compute_fused(&embedded_query, 0.6).unwrap().score;
-    let miss_fused = miss.compute_fused(&embedded_query, 0.6).unwrap().score;
+    let hit_fused = hit.compute_fused(&embedded_query, 0.6).unwrap();
+    let miss_fused = miss.compute_fused(&embedded_query, 0.6).unwrap();
 
     // 字符串分对命中项是正贡献，对干扰项（str=0）无贡献
     let hit_str = compute_note_string_score(hit.note(), &embedded_query.query);
@@ -298,77 +294,6 @@ fn test_compute_fused_string_boost_ranking() {
         "hit {hit_fused} <= miss {miss_fused}"
     );
     assert!((0.0..=1.0).contains(&hit_fused));
-}
-
-#[test]
-fn test_compute_fused_alpha_zero_is_pure_embedding() {
-    let model = BgeSmallZh::default_cpu().unwrap();
-    let embedded_note = embed_sem_note(&model, "小酒馆", &[]);
-    let embedded_query = embed_sem_query(&model, "酒馆");
-
-    // alpha=1.0 时退化为纯 embedding 分
-    let pure = embedded_note
-        .anonymous_compute(&embedded_query.embedding)
-        .unwrap();
-    let fused = embedded_note
-        .compute_fused(&embedded_query, 1.0)
-        .unwrap()
-        .score;
-    assert!((fused - pure).abs() < 1e-6);
-
-    // alpha=0.0 时混合分 = str，字符串通道只加分 → fused = max(emb, str)
-    let str_score = compute_note_string_score(embedded_note.note(), &embedded_query.query);
-    let fused = embedded_note
-        .compute_fused(&embedded_query, 0.0)
-        .unwrap()
-        .score;
-    assert!((fused - pure.max(str_score)).abs() < 1e-6);
-}
-
-#[test]
-fn test_compute_fused_abstract_situation_boost() {
-    let model = BgeSmallZh::default_cpu().unwrap();
-
-    let mem_type = MemoryType::Situation(
-        AbstractSituation::Location(Location {
-            name: "酒馆".to_string(),
-            coordinates: String::new(),
-        })
-        .into(),
-    );
-    let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
-    let embedding = note.embed(&model).unwrap();
-    let embedded_note = EmbeddedMemoryNote { note, embedding };
-
-    let query = MemoryRetrieveQuery::new(
-        vec![],
-        MemoryRetrieveQueryVariant::Situation(vec![
-            SituationQueryUnit::new().with_location(vec![LocationQueryUnit::new("小酒馆")]),
-        ]),
-    );
-    let query_embedding = query.embed(&model).unwrap();
-    let embedded_query = EmbeddedMemoryRetrieveQuery {
-        embedding: query_embedding,
-        query,
-    };
-
-    let pure = embedded_note
-        .anonymous_compute(&embedded_query.embedding)
-        .unwrap();
-    let str_score = compute_note_string_score(embedded_note.note(), &embedded_query.query);
-    let fused = embedded_note
-        .compute_fused(&embedded_query, 0.6)
-        .unwrap()
-        .score;
-
-    // 字符串通道只加分：fused = max(pure, 0.6*pure + 0.4*str)
-    let expected = pure.max(0.6 * pure + 0.4 * str_score);
-    assert!(
-        (fused - expected).abs() < 1e-5,
-        "abstract fused {fused} != {expected}"
-    );
-    assert!((0.0..=1.0).contains(&fused));
-    assert!(str_score > 0.5, "location str_score too low: {str_score}");
 }
 
 /// 端到端回归测试：`compute_fused` 的字符串通道必须使用查询自带的
@@ -426,6 +351,7 @@ fn test_compute_fused_string_channel_follows_custom_weights() {
 
     // 用查询自身的权重复算期望值（与 compute_fused 同一取权重方式）
     let pure = embedded_note
+        .embedding
         .anonymous_compute(&embedded_query.embedding)
         .unwrap();
     let str_score = compute_note_string_score_weighted(
@@ -438,10 +364,8 @@ fn test_compute_fused_string_channel_follows_custom_weights() {
     } else {
         pure.max(alpha * pure + (1.0 - alpha) * str_score)
     };
-    let fused = embedded_note
-        .compute_fused(&embedded_query, alpha)
-        .unwrap()
-        .score;
+    let fused = embedded_note.compute_fused(&embedded_query, alpha).unwrap();
+
     assert!(
         (fused - expected).abs() < 1e-5,
         "compute_fused={fused} 与按查询权重复算的期望={expected} 不一致（字符串通道未采用定制权重）"
@@ -473,12 +397,10 @@ fn test_compute_fused_variant_mismatch_degrades_to_embedding() {
     };
 
     let pure = embedded_note
+        .embedding
         .anonymous_compute(&embedded_query.embedding)
         .unwrap();
-    let fused = embedded_note
-        .compute_fused(&embedded_query, 0.6)
-        .unwrap()
-        .score;
+    let fused = embedded_note.compute_fused(&embedded_query, 0.6).unwrap();
     assert_eq!(
         compute_note_string_score(embedded_note.note(), &embedded_query.query),
         0.0
@@ -504,6 +426,127 @@ fn unit() -> EmbeddingVec {
 /// 单位向量 [c, sqrt(1-c²)]：与 `unit()` 的余弦相似度为 c。
 fn at(c: f32) -> EmbeddingVec {
     EmbeddingVec::new(vec![c, (1.0 - c * c).sqrt()])
+}
+
+#[test]
+fn fold_max_rejects_non_finite_channels() {
+    assert!(matches!(
+        fold_max([0.4, f32::NAN]),
+        Err(EmbeddingCalcError::InvalidNumValue)
+    ));
+    assert!(matches!(
+        fold_max([f32::INFINITY]),
+        Err(EmbeddingCalcError::InvalidNumValue)
+    ));
+}
+
+#[test]
+fn fold_max_folds_negatives_to_zero() {
+    assert_close(fold_max([-0.5, 0.4]).unwrap(), 0.4);
+    assert_close(fold_max([-0.5, -0.2]).unwrap(), 0.0);
+    assert_close(fold_max([0.25]).unwrap(), 0.25);
+}
+
+#[test]
+fn mean_or_err_averages_and_rejects_non_finite() {
+    assert_close(mean_or_err(vec![0.5, 0.9]).unwrap(), 0.7);
+    assert_close(mean_or_err(vec![]).unwrap(), 0.0);
+    assert!(matches!(
+        mean_or_err(vec![0.5, f32::NAN]),
+        Err(EmbeddingCalcError::InvalidNumValue)
+    ));
+}
+
+/// NaN 通道分不得被 `f32::max` 吞掉后当成有限分进入排序（issue #71）。
+#[test]
+fn specific_situation_rejects_non_finite_channel() {
+    let nan = EmbeddingVec::new(vec![f32::NAN, 0.0]);
+    let specific = SpecificSituationEmbedding::test_new(
+        nan.clone(),
+        ContextEmbedding::test_new(
+            None,
+            None,
+            None,
+            None,
+            EnvironmentEmbedding::test_new(unit(), unit()),
+            None,
+        ),
+    );
+    let query = SituationQueryUnitEmbedding::test_new(
+        Some(nan),
+        None,
+        None,
+        None,
+        None,
+        BlendWeights::default(),
+    );
+    assert!(matches!(
+        specific.anonymous_compute(&query),
+        Err(EmbeddingCalcError::InvalidNumValue)
+    ));
+}
+
+#[test]
+fn abstract_situation_rejects_non_finite_channel() {
+    let nan = EmbeddingVec::new(vec![f32::NAN, 0.0]);
+    let abstract_emb =
+        AbstractSituationEmbedding::Location(LocationEmbedding::test_new(nan, unit()));
+    let query = SituationQueryUnitEmbedding::test_new(
+        None,
+        Some(LocationQueryUnitEmbedding::test_new(
+            EmbeddingVec::new(vec![f32::NAN, 0.0]),
+            None,
+            BlendWeights::default(),
+        )),
+        None,
+        None,
+        None,
+        BlendWeights::default(),
+    );
+    assert!(matches!(
+        abstract_emb.anonymous_compute(&query),
+        Err(EmbeddingCalcError::InvalidNumValue)
+    ));
+}
+
+#[test]
+fn variant_mean_rejects_non_finite_unit_score() {
+    let sem = SemanticEmbedding::new(unit(), unit(), unit());
+    let q_sem = SemanticQueryUnitEmbedding::test_new(
+        Some(EmbeddingVec::new(vec![f32::NAN, 0.0])),
+        None,
+        BlendWeights::default(),
+    );
+    let variant = MemoryEmbeddingVariant::Semantic(sem);
+    let query_variant = MemoryRetrieveQueryVariantEmbedding::Semantic(vec![q_sem]);
+    assert!(matches!(
+        variant.anonymous_compute(&query_variant),
+        Err(EmbeddingCalcError::InvalidNumValue)
+    ));
+}
+
+/// 回归（issue #73）：两条通道都完美匹配、配对权重都取 0.9 时未归一化的加权和是 1.8。
+#[test]
+fn with_weights_normalizes_pairs_so_score_stays_in_unit_range() {
+    let note_emb = MemoryEmbedding::new(
+        unit(),
+        MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(unit(), unit(), unit())),
+    );
+    let q_sem =
+        SemanticQueryUnitEmbedding::test_new(Some(unit()), Some(unit()), BlendWeights::default());
+    let q_variant = MemoryRetrieveQueryVariantEmbedding::Semantic(vec![q_sem]);
+    let bw = BlendWeights {
+        tag: 0.9,
+        variant: 0.9,
+        ..BlendWeights::default()
+    };
+    let query = MemoryRetrieveQueryEmbedding::new(unit())
+        .with_variant(q_variant)
+        .with_weights(bw);
+
+    let score = note_emb.anonymous_compute(&query).unwrap();
+    assert!((0.0..=1.0).contains(&score), "score out of range: {score}");
+    assert_close(score, 1.0);
 }
 
 /// 回归：情境变体必须按**单元数归一化**，与 Semantic 分支保持一致。

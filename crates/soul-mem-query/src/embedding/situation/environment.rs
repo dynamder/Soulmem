@@ -51,10 +51,18 @@ impl Embeddable for Environment {
         &self,
         model: &dyn crate::embedding::EmbeddingModel,
     ) -> crate::embedding::EmbeddingGenResult<Self::EmbeddingGen> {
-        let [atmosphere_vec, tone_vec] = model
-            .infer_batch(&[self.atmosphere.as_str(), self.tone.as_str()])?
-            .try_into()
-            .unwrap(); //SAFEUNWRAP: 此处返回的Vec长度必为2
+        let atmosphere_vec = if self.atmosphere.trim().is_empty() {
+            EmbeddingVec::zero(model.dim())
+        } else {
+            model.infer_with_chunk(self.atmosphere.as_str())?
+        };
+
+        let tone_vec = if self.tone.trim().is_empty() {
+            EmbeddingVec::zero(model.dim())
+        } else {
+            model.infer_with_chunk(self.tone.as_str())?
+        };
+
         Ok(EnvironmentEmbedding {
             atmosphere: atmosphere_vec,
             tone: tone_vec,

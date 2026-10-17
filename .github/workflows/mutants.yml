@@ -44,7 +44,7 @@ jobs:
     if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && needs.decide-weekly.outputs.run == 'true'
     timeout-minutes: 360
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -55,15 +55,27 @@ jobs:
       - name: Install cargo-mutants
         run: cargo install cargo-mutants --version 27.1.0
 
+      # 归一化规则见下方注释与 scripts/mutants_gate.py 的 --cargo-mutants-exit-code：
+      # 这一步只如实带出 cargo-mutants 的退出码，是否合格全部由门禁裁决。
       - name: Run cargo mutants (full)
-        run: cargo mutants --workspace
+        id: mutants
+        run: |
+          set +e
+          cargo mutants --workspace
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          if [ "$code" -ne 0 ]; then
+            echo "::warning::cargo mutants 退出码 $code（0=全部杀灭 2=有 MISSED 3=有 TIMEOUT；其余为工具故障）"
+          fi
 
       - name: Check kill rate
-        run: python3 scripts/mutants_gate.py --out-dir mutants.out --threshold 90
+        run: >-
+          python3 scripts/mutants_gate.py --out-dir mutants.out --threshold 90
+          --cargo-mutants-exit-code "${{ steps.mutants.outputs.exit_code }}"
 
       - name: Upload mutants report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mutants-out-weekly
           path: mutants.out
@@ -75,7 +87,7 @@ jobs:
     if: github.event_name == 'pull_request'
     timeout-minutes: 360
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -95,20 +107,34 @@ jobs:
         run: |
           git -c core.quotepath=false diff "${{ github.event.pull_request.base.sha }}...${{ github.sha }}" > "$RUNNER_TEMP/pr.diff"
 
+      # 退出码语义（cargo-mutants 27.1.0）里只有三个是「结果」：0=全部杀灭、2=有 MISSED、
+      # 3=有 TIMEOUT；其余（1 用法错误 / 4 基线失败 / 5 --in-diff 不匹配 / 6 diff 非法 /
+      # 70 内部错误）是工具故障。裸跑 `cargo mutants` 会让 exit 2 在门禁之前就把 job 判红，
+      # 于是 `--threshold 90` 永远无法生效——哪怕杀灭率 98% 也红；而 `continue-on-error: true`
+      # 又会连工具故障一起吞掉。所以这里只如实带出退出码，把裁决权完全交给门禁：
+      # 工具故障由门禁按「结果不可读」硬失败（exit 2），结果类退出码则按杀灭率判定。
       - name: Run cargo mutants (PR diff)
-        run: cargo mutants --workspace --in-diff "$RUNNER_TEMP/pr.diff"
+        id: mutants
+        run: |
+          set +e
+          cargo mutants --workspace --in-diff "$RUNNER_TEMP/pr.diff"
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          if [ "$code" -ne 0 ]; then
+            echo "::warning::cargo mutants 退出码 $code（0=全部杀灭 2=有 MISSED 3=有 TIMEOUT；其余为工具故障）"
+          fi
 
-      # cargo-mutants 在「没有变异体可测」时（例如 PR 只往 .rs 里加文档注释）**不会创建**
-      # mutants.out/，而 mutants_gate.py 把「输出缺失」判为硬错误（exit 2）—— 那个判定要保留，
-      # 它用来抓 cargo-mutants 崩溃。所以这里只在确实有产物时才跑门禁；上一步失败时 job 已经
-      # 红了，不存在漏判。
+      # 不加 `if: hashFiles(...)` 守卫：`if` 里不含状态检查函数时会被隐式加上 `success()`，
+      # 而「没有变异体可测」（例如 PR 只往 .rs 里加文档注释）这一情形由脚本按
+      # 「退出码 0 且报告缺失/为空」自行判 PASS，见 mutants_gate.py。
       - name: Check kill rate
-        if: hashFiles('mutants.out/**') != ''
-        run: python3 scripts/mutants_gate.py --out-dir mutants.out --threshold 90
+        run: >-
+          python3 scripts/mutants_gate.py --out-dir mutants.out --threshold 90
+          --cargo-mutants-exit-code "${{ steps.mutants.outputs.exit_code }}"
 
       - name: Upload mutants report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mutants-out-pr
           path: mutants.out

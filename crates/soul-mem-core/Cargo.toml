@@ -9,3 +9,7 @@ serde = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
 thiserror = { workspace = true }
+
+[dev-dependencies]
+# 仅用于 render 契约测试：断言序列化后的键集合与 kind 拼写，防止对外协议被无意改动
+serde_json = { workspace = true }

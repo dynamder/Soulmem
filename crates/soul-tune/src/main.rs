@@ -1,8 +1,10 @@
-// bin 是独立 headless CLI（与 lib 各自声明 mod 树）：engine 树多数项仅供
-// lib 目标（soul-tune-api/UI）消费，bin 视角视为 dead，此处统一放行。
-#![allow(dead_code)]
-mod base;
-mod engine;
+// bin 是 headless CLI，直接复用 lib 目标的 mod 树。
+//
+// 这里刻意**不再**自己 `mod base; mod engine;`：同一批源文件若被 lib.rs 与 main.rs
+// 两个 crate root 各声明一次，cargo-mutants 就会按 crate root 各扫一遍，
+// engine/** 下的每个变异体都被生成并测试两遍（27.1.0 实测：249 个变异体报成 498 个），
+// 既把杀灭率灌水，又白烧掉一半机时。
+use soul_tune::{base, engine};
 
 #[cfg(test)]
 mod tests_cli;
@@ -649,7 +651,7 @@ fn run_headless_playtest(args: &[String]) -> color_eyre::Result<()> {
     }
 
     // 统一模型来源解析：复用运行中的 llama-server → 自动拉起本地缓存模型 → 报错
-    let resolution = crate::engine::llm::resolve_llm();
+    let resolution = engine::llm::resolve_llm();
     let (mut llm, model_desc) = match resolution.server {
         Some(s) => {
             let desc = resolution

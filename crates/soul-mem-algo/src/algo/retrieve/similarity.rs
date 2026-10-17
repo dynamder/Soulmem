@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use soul_mem_query::query::compute::QueryCompute;
 
 use super::RetrStrategy;
 use crate::algo::retrieve::RetrRequest;
@@ -57,8 +58,6 @@ impl RetrStrategy for RetrSimilarity {
 
     #[hotpath::measure]
     fn retrieve(&self, request: Self::Request) -> Self::Return<'_> {
-        //TODO: 添加从数据库的向量相似结果并混合
-        let string_blend_alpha = request.query.embedding.string_blend_alpha;
         // similarity_threshold 语义为"最低兜底分"：低于该分的节点直接过滤，
         // 达到该分的节点按分数取 top-k（max_results），绝对阈值不再饿死查询。
         let floor = request.similarity_threshold;
@@ -69,9 +68,7 @@ impl RetrStrategy for RetrSimilarity {
             let mut query_calc = node_weights
                 .into_par_iter()
                 .filter_map(|mem_note| {
-                    let compute_res = mem_note
-                        .compute_fused(&request.query, string_blend_alpha)
-                        .ok();
+                    let compute_res = mem_note.compute(&request.query).ok();
                     match compute_res {
                         Some(res) => {
                             if !res.score.is_finite() {
@@ -111,11 +108,9 @@ mod tests {
     };
     use soul_mem_query::embedding::query::note::MemoryRetrieveQueryEmbedding;
     use soul_mem_query::embedding::sem::SemanticEmbedding;
-    use soul_mem_query::query::compute::QueryCompute;
     use soul_mem_query::query::retrieve::{
         MemoryRetrieveQuery, MemoryRetrieveQueryVariant, SemanticQueryUnit,
     };
-    use soul_mem_query::query::string_distance::compute_note_string_score;
     use soul_mem_runtime::working_memory::WorkingMemory;
 
     #[test]
@@ -441,71 +436,5 @@ mod tests {
 
         assert!(!result.is_empty());
         assert!(result.iter().any(|(id, _)| *id == note_id));
-    }
-
-    #[test]
-    fn test_retr_similarity_string_boost_lifts_score() {
-        let model = BgeSmallZh::default_cpu().unwrap();
-
-        let mem_type = MemoryType::Semantic(SemMemory {
-            content: "小酒馆".to_string(),
-            aliases: vec![],
-            concept_type: ConceptType::Entity,
-            description: "与酒馆相关的描述".to_string(),
-        });
-        let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
-        let note_id = note.id();
-        let embedding = note.embed(&model).unwrap();
-        let embedded_note = EmbeddedMemoryNote { note, embedding };
-        let note_for_string = embedded_note.note().clone();
-
-        let retrieve_query = MemoryRetrieveQuery::new(
-            vec![],
-            MemoryRetrieveQueryVariant::Semantic(vec![
-                SemanticQueryUnit::new().with_concept_identifier("酒馆".to_string()),
-            ]),
-        );
-        let retrieve_query_for_string = retrieve_query.clone();
-        let query_embedding = retrieve_query.embed(&model).unwrap();
-
-        // 纯 embedding 得分（字符串分=0 时的基线）
-        let pure = embedded_note.compute(&query_embedding).unwrap().score;
-
-        let wm = WorkingMemory::new(10);
-        let cluster = wm.memory_cluster();
-        cluster.write(|c| {
-            c.add_single_node(embedded_note);
-        });
-
-        let config = SimilarityConfig {
-            similarity_threshold: 0.0,
-            max_results: 10,
-        };
-        let request = config.into_request(
-            Arc::new(wm),
-            EmbeddedMemoryRetrieveQuery {
-                embedding: query_embedding,
-                query: retrieve_query,
-            },
-        );
-        let result = RetrSimilarity {}.retrieve(request);
-
-        assert_eq!(result.len(), 1);
-        let (id, fused) = result[0];
-        assert_eq!(id, note_id);
-        assert!(fused.is_finite());
-        assert!((0.0..=1.0).contains(&fused), "fused out of range: {fused}");
-        // "酒馆" vs "小酒馆" 的字形接近，字符串分参与混合（str > 0）。
-        // 字符串通道只加分：fused = max(emb, 0.6*emb + 0.4*str)，不会低于纯 embedding 分。
-        let str_score = compute_note_string_score(&note_for_string, &retrieve_query_for_string);
-        assert!(
-            str_score > 0.0,
-            "string score should be positive: {str_score}"
-        );
-        let expected = pure.max(0.6 * pure + 0.4 * str_score);
-        assert!(
-            (fused - expected).abs() < 1e-5,
-            "fused {fused} != expected {expected}"
-        );
     }
 }

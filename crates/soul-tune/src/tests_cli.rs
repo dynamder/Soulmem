@@ -1,4 +1,4 @@
-use crate::base::{AlgoType, ForgetMode, RetrieveFlavor, RetrieveMode};
+use soul_tune::base::{AlgoType, ForgetMode, RetrieveFlavor, RetrieveMode};
 
 #[test]
 fn test_algo_parsing_retrieve_embedding() {
