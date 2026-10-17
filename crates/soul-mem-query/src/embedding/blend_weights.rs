@@ -1,5 +1,4 @@
-/// 嵌入计算链中所有可调权重参数。
-/// 默认值与当前代码中的硬编码值完全一致。
+/// 嵌入计算链中所有可调权重参数。默认值集中定义在 `Default` 实现里。
 #[derive(Debug, Clone, PartialEq)]
 pub struct BlendWeights {
     // — tag/variant 顶层融合 —

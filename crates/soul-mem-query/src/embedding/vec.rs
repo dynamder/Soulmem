@@ -46,7 +46,6 @@ where
         Self(iter.into_iter().map(|x| x.into()).collect())
     }
 }
-///////////////////////////////////////////////////////////////
 impl Add for EmbeddingVec {
     type Output = EmbeddingCalcResult<Self>;
     fn add(self, rhs: Self) -> Self::Output {
@@ -93,7 +92,6 @@ impl Div<f32> for EmbeddingVec {
     }
 }
 
-////////////////////////////////////////////////////////////////////
 impl EmbeddingVec {
     pub fn dot(&self, other: &Self) -> EmbeddingCalcResult<f32> {
         if self.shape() != other.shape() {
@@ -120,16 +118,8 @@ impl EmbeddingVec {
             .sum::<f32>()
             .sqrt())
     }
-    /// 单遍融合余弦：一次循环同时累计 dot、双方平方和并隐式完成零向量检测，
-    /// 替代原先"零检查×2 + dot + norm×2（各带 sqrt）"共 5 遍扫描。
-    /// 数值等价（零向量 ⇔ 平方和为 0；分母 sqrt(na·nb) 与 sqrt(na)·sqrt(nb) 仅 ~1ulp 舍入差）。
-    ///
-    /// SIMD 策略（库不可假设宿主指令集）：核心用 `wide::f32x8` 做 **lane 累加**——
-    /// Rust 无 fast-math，普通 `dot += x*y` 归约不能被重结合，LLVM 因而不会向量化
-    /// （实测：加 `#[target_feature(avx2,fma)]` 也只是标量，仅快 ~2%）；改为每 lane
-    /// 独立累加、最后按固定 lane 顺序归约，既合法向量化又保持确定性。
-    /// criterion 实测（512 维）：275ns → 68ns（**约 4.0×**），1024 维 536ns → 126ns；
-    /// wide 为 stable、无 unsafe API、零传递依赖，在缺 256-bit 的 CPU/架构上自动降级。
+    /// 单遍融合余弦：一次循环累计 dot、平方和并检测零向量。
+    // lane 顺序归约是确定性要求（`reduce_add` 的求和顺序未定义）；`wide` 在缺 256-bit 的 CPU 上自动降级。
     #[hotpath::measure]
     pub fn cosine_similarity(&self, other: &Self) -> EmbeddingCalcResult<f32> {
         match fused_cosine_core(&self.0, &other.0) {
@@ -138,21 +128,18 @@ impl EmbeddingVec {
         }
     }
 
-    /// 余弦相似度 + 零向量标记，单遍完成：调用方（如融合打分）常需区分
-    /// "相似度恰为 0" 与 "tag 通道缺失（任一侧为零向量）"，此前需额外
-    /// `is_zero()` 再各扫一遍全向量；本方法一次循环同时给出两者。
+    /// 余弦相似度 + 零向量标记，单遍完成。
     #[hotpath::measure]
     pub fn cosine_similarity_and_zero(&self, other: &Self) -> EmbeddingCalcResult<(f32, bool)> {
         fused_cosine_core(&self.0, &other.0).ok_or(super::EmbeddingCalcError::ShapeMismatch)
     }
 }
-///////////////////////////////////////////////////////////////
 /// 融合余弦核心：`None` 表示形状不匹配；返回 `(cosine, either_zero)`，
 /// 其中 either_zero=true 表示任一侧平方和为 0（零向量占位），此时 cosine 为 0.0。
 ///
 /// 实现：`wide::f32x8` 主循环（8 路 lane 同时累加 dot / |a|² / |b|²）+ 标量尾段；
-/// lane 顺序归约（不用 `reduce_add`，其求和顺序在 wide 文档中明确为非确定，
-/// 会影响快照/复现性）。数值与标量实现同量纲，差异仅来自求和顺序（~1e-7）。
+/// 数值与标量实现同量纲，差异仅来自求和顺序（~1e-7）。
+// 不用 `reduce_add`：其求和顺序在 wide 文档中明确为非确定，会影响快照/复现性。
 #[inline(always)]
 fn fused_cosine_core(a: &[f32], b: &[f32]) -> Option<(f32, bool)> {
     use wide::f32x8;

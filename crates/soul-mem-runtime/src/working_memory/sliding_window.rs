@@ -1,14 +1,5 @@
 //! 滑动窗口与累加摘要。
 //!
-//! # LLM 调用去哪了
-//!
-//! 本模块只负责"什么时候该摘要、失败怎么办"，**不接触任何传输细节**：摘要通过
-//! `soul_mem_llm::LlmEngine::complete` 发出（见 [`SlidingWindow::summarize`]），
-//! 请求编码、超时、重试、错误分类、trace 都在 `soul-mem-llm` 里。
-//! 完整链路见 `docs/architecture/llm-layer.md`。
-//!
-//! # 一个函数只做一件事
-//!
 //! | 操作 | 职责 | 会失败吗 |
 //! |---|---|---|
 //! | [`SlidingWindow::push`] | 入队，并告知是否该淘汰 | 否 |
@@ -19,20 +10,17 @@
 //! `summarize`。窗口自身不调用 LLM，因此不存在"返回 Err 但消息其实已入队"或
 //! "摘要失败导致该弹出的消息没弹出"这类歧义。
 //!
-//! # 摘要失败不丢消息
-//!
 //! `pop` **总是**移除并返回队首，摘要失败也不例外：被弹出的 [`Information`] 交到调用方
 //! 手里，重试只需再调一次 [`SlidingWindow::summarize`]。摘要只在 LLM 返回非空结果后才覆写，
-//! 所以失败也不会污染已有摘要。
+//! 所以失败也不会污染已有摘要。容量因此是**硬上限**（落在调用方完成淘汰之后）；从 `push`
+//! 返回 [`PushOutcome::NeedsEviction`] 到调用方真正 `pop` 之间，窗口会短暂超出容量。
 //!
-//! 容量因此是**硬上限**（落在调用方完成淘汰之后）：没有"摘要失败就把消息留在窗口里"的路径。
-//! 从 `push` 返回 [`PushOutcome::NeedsEviction`] 到调用方真正 `pop` 之间，窗口会短暂超出容量。
-//!
-//! # 摘要的串行化
-//!
-//! 摘要更新是"读旧摘要 → 调 LLM → 覆写摘要"的复合操作，且摘要是**累加**的。
-//! 若不串行化，两个并发淘汰各自读到同一份旧摘要、后写覆盖前写，被淘汰的历史同样永久丢失。
-//! 这里用异步互斥锁把整个复合操作串行化（`parking_lot` 锁依旧一律不跨 await 持有）。
+//! 摘要更新是"读旧摘要 → 调 LLM → 覆写摘要"的复合操作，且摘要是**累加**的。若不串行化，
+//! 两个并发淘汰各自读到同一份旧摘要、后写覆盖前写，被淘汰的历史同样永久丢失；这里用异步互斥锁
+//! 把整个复合操作串行化（`parking_lot` 锁依旧一律不跨 await 持有）。
+
+// 摘要经 `soul_mem_llm::LlmEngine::complete` 发出，编码/超时/重试/错误分类/trace 都在
+// `soul-mem-llm`；完整链路见 `docs/architecture/llm-layer.md`。
 
 use parking_lot::RwLock as ParkRwLock;
 use soul_mem_llm::{Hints, LlmEngine, LlmError, LlmErrorKind, Role, Task};
@@ -265,7 +253,7 @@ impl From<AssistantInformation> for Information {
 
 impl Information {
     pub fn new(value: &str, role: &str) -> Self {
-        // TODO: careful with this string compare
+        // 未知 role 一律按 user 处理：system/tool 会被静默误分类。
         match role {
             "user" => Information::User(UserInformation::new(value)),
             "assistant" => Information::Assistant(AssistantInformation::new(value)),

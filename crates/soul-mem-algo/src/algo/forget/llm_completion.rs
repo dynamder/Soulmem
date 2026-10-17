@@ -1,12 +1,8 @@
 //! 遗忘重建与字段对齐：提示词 + 结果解析。
 //!
-//! 本模块只做两件事：把遮罩文本/字段拼成提示词、把 LLM 的回复解析回结构。
-//! **LLM 调用本身经统一的 [`soul_mem_llm::LlmEngine`] 发出**——超时、重试、错误分类、
-//! trace 都在 `soul-mem-llm` 里，本模块看不到任何传输细节。
-//! 完整链路见 `docs/architecture/llm-layer.md`。
-//!
-//! `engine` 参数是 `Option<&LlmEngine>`：`None` 表示本次运行没有可用 LLM，
-//! 由调用方（[`super::decay_revise::lazy_forget`]）降级为仅遮罩。
+//! 本模块只做两件事：把遮罩文本/字段拼成提示词、把 LLM 的回复解析回结构；LLM 调用统一经
+//! [`soul_mem_llm::LlmEngine`] 发出。`engine` 参数是 `Option<&LlmEngine>`：`None` 表示本次运行
+//! 没有可用 LLM，由调用方（[`super::decay_revise::lazy_forget`]）降级为仅遮罩。
 
 use soul_mem_core::memory_note::sem_mem::ConceptType;
 use soul_mem_core::memory_note::{MemoryNote, MemoryType};
@@ -33,10 +29,6 @@ pub const DEFAULT_RECONSTRUCT_SYSTEM_PROMPT: &str = "You are a memory reconstruc
 
 /// 全遮罩时 LLM 应输出的固定句（无上下文可推断 → 明确表示遗忘）。
 pub const FULLY_MASKED_REPLY: &str = "I totally forget it and cannot recall anything.";
-
-// ========================================================================
-// 记忆重建（遮罩文本 → LLM → 完整文本）
-// ========================================================================
 
 /// 统计遮罩文本中的 `[masked]` 占位符数量。
 pub fn count_mask_placeholders(masked_text: &str) -> usize {
@@ -74,7 +66,6 @@ pub fn build_reconstruct_prompt(
 ///   保证结果确定且符合"无法回忆"语义。
 /// - `engine` 为 `None` 表示本次运行没有可用的 LLM：返回
 ///   [`LlmError::unavailable`]，由调用方决定降级（遗忘路径降级为仅遮罩）。
-///   这取代了旧实现里"手工构造一个永远失败的闭包"来触发降级的做法。
 pub async fn reconstruct_summary(
     masked_text: &str,
     system_prompt: Option<&str>,
@@ -101,10 +92,6 @@ pub const DEFAULT_ALIGN_SYSTEM_PROMPT: &str = "You are a memory consistency chec
     ConceptType: Entity|Abstract\n\
     If the current values are already consistent with the content, keep them unchanged.\n\
     Do not add any explanation.";
-
-// ========================================================================
-// 字段对齐（SemMemory 的 aliases / description / concept_type 修正）
-// ========================================================================
 
 /// 构建字段对齐的 prompt。
 /// `system_prompt` 控制 LLM 的角色设定与行为，传入 `None` 使用默认值。
