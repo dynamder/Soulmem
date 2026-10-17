@@ -68,7 +68,7 @@ python3 scripts/check_commit_messages.py origin/dev..HEAD
 |---|---|
 | `Quality (fmt + clippy)` | 编码、模块布局、提交信息 → `cargo fmt --check` → `clippy -D warnings` |
 | `Test (ubuntu / windows / macos)` | `cargo build --all-targets` + `cargo test --workspace` |
-| `Security (cargo-deny)` | RustSec advisory + 许可证合规 |
+| `Security (cargo-deny)` | 许可证、bans、sources；PR 改动 `Cargo.toml` / `Cargo.lock` / `deny.toml` 时追加 RustSec advisory |
 
 纯文档改动（全部改动落在 `docs/**` 或 `*.md`）跳过 `Test` 矩阵的重步骤：`test` job 本身照常运行并上报三个检查名，只跳过 toolchain、缓存、build 与 test。判定由 `scripts/classify_changes.py` 完成；无法判定时回退到跑全量。
 
@@ -82,7 +82,9 @@ python3 scripts/check_commit_messages.py <范围>
 
 `Mutants (PR diff)` 为非必需检查：按改动范围运行 cargo-mutants，杀灭率 <90% 失败。
 
-`Security (cargo-deny)` 失败而本次改动未触及依赖时，属上游 advisory 漂移；处理步骤见 `Deny drift` workflow 所开 issue。不得向 `deny.toml` 的 `ignore` 添加条目消红。
+`Security (cargo-deny)` 的 advisory 检查只在 PR 改动 `Cargo.toml` / `Cargo.lock` / `deny.toml` 时运行，其余 PR 只跑与上游无关的 bans / licenses / sources。RustSec advisory 库与 crates.io 的 yank 状态每天都在变，advisory 的结论不由某个 PR 决定：`dev` 的锁文件落后于上游公告时，所有基于 `dev` 的 PR 会一起变红，而修复属于 `dev`。漂移由 `Deny drift` 定时任务（每周）与 `dev` / `main` 的 push CI 暴露。
+
+修复漂移的首选是升级到 advisory 给出的 `Solution:` 版本。只有修复版在依赖图里**不可达**（某个父依赖钉死了上限）时，才在 `deny.toml` 的 `ignore` 里加条目，并写清影响面与跟踪条件；既有先例是 `RUSTSEC-2026-0187`。
 
 ---
 
