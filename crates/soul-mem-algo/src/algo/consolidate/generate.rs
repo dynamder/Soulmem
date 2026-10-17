@@ -79,11 +79,6 @@ impl From<MemorySpec> for MemoryNote {
     }
 }
 
-/// 解析 LLM 返回的 JSON 数组并构建为 `Vec<MemoryNote>`。
-///
-/// 宽容抽取（剥 think 块、剥围栏、平衡括号扫描）统一由
-/// [`soul_mem_llm::json::parse_json_array`] 负责：这里以前用 `rfind('}')` 截取，
-/// 尾部解释里出现 `}` 就会解析失败。
 pub fn parse_memories_response(response: &str) -> Result<Vec<MemoryNote>, LlmError> {
     let specs: Vec<MemorySpec> = soul_mem_llm::json::parse_json_array(response)?;
     Ok(specs.into_iter().map(MemoryNote::from).collect())

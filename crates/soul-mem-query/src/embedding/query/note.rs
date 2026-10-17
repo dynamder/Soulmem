@@ -65,7 +65,6 @@ impl Embeddable for MemoryRetrieveQueryVariant {
         })
     }
 }
-///////////////////////////////////////////////////////////////////////////////////
 #[derive(Debug, Clone, PartialEq)]
 pub struct MemoryRetrieveQueryEmbedding {
     tag: EmbeddingVec,

@@ -104,8 +104,7 @@ impl WorkingMemory {
 
     /// 滑动窗口引用。
     ///
-    /// 返回共享引用即可：`SlidingWindow` 自身内部可变。曾经的 `sliding_window_mut()`
-    /// 除了强制要求 `&mut WorkingMemory` 之外没有提供任何额外能力，已删除。
+    /// 返回共享引用即可：`SlidingWindow` 自身内部可变。
     pub fn sliding_window(&self) -> &SlidingWindow {
         &self.sliding_window
     }
@@ -339,11 +338,7 @@ mod tests {
         assert!(wm.memory_cluster().read_or_compute(|c| c.contains_node(id)));
     }
 
-    /// 回归（issue #60 的 P1 前置）：存在多份 `Arc` 时状态变更不得被静默跳过。
-    ///
-    /// 旧实现要求 `&mut WorkingMemory`，调用方只能用 `Arc::get_mut` 取可变引用；
-    /// 共享计数 > 1 时它返回 `None`，变更被丢弃且只留一条日志。现在全靠内部可变性，
-    /// 第二个 `Arc` 上的变更必须对第一个可见。
+    /// 回归：存在多份 `Arc` 时状态变更不得被静默跳过。
     #[test]
     fn test_second_arc_clone_can_mutate() {
         let wm = Arc::new(WorkingMemory::new(10));
@@ -362,10 +357,7 @@ mod tests {
         assert_eq!(wm.read_records(|records| records[&id].feedback_score()), 1);
     }
 
-    /// 回归：`records` 的"查-改-插"必须整体持锁，否则并发命中会互相覆盖计数。
-    ///
-    /// 这是把 `record_retrieval` 从"两次取锁"改成"一次取锁"的动机所在：
-    /// 旧写法在并发下会让后插入者重置先前的计数，断言会偏小。
+    /// 回归：`records` 的查-改-插必须整体持锁，否则并发命中会互相覆盖。
     #[test]
     fn test_concurrent_record_retrieval_accumulates() {
         const THREADS: usize = 4;

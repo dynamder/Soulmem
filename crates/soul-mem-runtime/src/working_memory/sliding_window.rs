@@ -265,7 +265,7 @@ impl From<AssistantInformation> for Information {
 
 impl Information {
     pub fn new(value: &str, role: &str) -> Self {
-        // TODO: careful with this string compare
+        // 未知 role 一律按 user 处理：system/tool 会被静默误分类。
         match role {
             "user" => Information::User(UserInformation::new(value)),
             "assistant" => Information::Assistant(AssistantInformation::new(value)),

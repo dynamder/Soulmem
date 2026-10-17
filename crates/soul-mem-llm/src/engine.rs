@@ -1,33 +1,13 @@
-//! 语义调用的门面：**调用方唯一需要认识的入口**。
+//! 语义调用门面：调用方唯一需要认识的入口。
 //!
-//! 职责只有两件：编排观测生命周期、重发整次调用。编码/解码/传输都不在这里。
+//! 职责只有两件：观测生命周期、整调用重试。编码/解码/传输在 [`crate::oai_comp`]。
 //!
-//! # 数据流
+//! - `complete`：建上下文 → `on_start` → 可重试地调 `backend.complete` → `on_end`。
+//! - `stream`：只重试“开流”；流内错误不重试，已产出文本重放会造成重复。
+//!   `ObservedStream` 在正常结束、出错、提前丢弃时都保证恰好一次 `on_end`。
 //!
-//! ```text
-//! LlmEngine::complete(&Task)
-//!   ├─ ctx::CallCtx::new + 进入 task-local     → ctx.rs
-//!   ├─ observer.on_start(CallStart)            → observer.rs
-//!   ├─ with_whole_call_retry{ backend.complete(task) }   ← 可能重发整次
-//!   └─ observer.on_end(CallEnd)                → observer.rs
-//! ```
-//!
-//! `stream` 的区别只在最后一步：它返回私有的 `ObservedStream` 包装，把"结束上报"推迟到
-//! 流终止（正常结束 / 出错 / 被消费方提前丢弃），保证**恰好一次**。
-//!
-//! # 为什么外层还需要一次重试
-//!
-//! 传输层（tower）只看得到"发出请求 → 拿到响应头"这一段。async-openai 把**响应体读取**
-//! 放在那之上（`Client::execute_response` 拿到 `Response` 后由 `read_response` 读 body），
-//! 因此下面这些失败传输层根本看不到：
-//!
-//! - 后端的整体超时与首字节超时（后端用 `tokio::time::timeout` 包在响应体读取之外）；
-//! - 读到一半连接被重置；
-//! - 流在产出任何内容之前就断了。
-//!
-//! 这些必须由本层重发整次调用。两层预算独立且有界：
-//! 单次语义调用的最大请求数 = `(1 + 传输层重试) × (1 + 整调用重试)`。
-//! 完整链路见 `docs/architecture/llm-layer.md`。
+//! 外层重试覆盖传输层看不到的失败：整体/首字节超时、body 读取中断、流未产出即断。
+//! 最大请求数 = `(1 + 内层重试) × (1 + 外层重试)`；完整链路见 `docs/architecture/llm-layer.md`。
 
 use crate::backend::{BackendInfo, ChatBackend, Completion, EventStream, StreamEvent, Task, Usage};
 use crate::ctx::{self, CallCtx};

@@ -75,7 +75,6 @@ fn mean_or_err(scores: Vec<f32>) -> EmbeddingCalcResult<f32> {
     Ok(sum / scores.len() as f32)
 }
 
-////////////////////////////////////////////////////////////
 impl AnonymousQueryCompute for LocationEmbedding {
     type Query = LocationQueryUnitEmbedding;
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
@@ -335,9 +334,7 @@ impl AnonymousQueryCompute for MemoryEmbeddingVariant {
                     .iter()
                     .map(|q_sit_unit| sit.anonymous_compute(q_sit_unit))
                     .collect::<Result<Vec<_>, _>>()?;
-                //按单元数归一化，与上面的 Semantic 分支保持一致。
-                //此前该分支直接 sum，多单元情境查询得分可达 N×1.0，突破 [0,1] 量纲，
-                //破坏 default_pipeline 依赖的"相似度与联想两路分数同量纲、可直接比较"契约。
+                // 按单元数归一化，保持 [0,1] 量纲，与 Semantic 分支一致。
                 mean_or_err(score_vec)
             }
             (_, _) => Ok(0.0),
@@ -349,9 +346,7 @@ impl AnonymousQueryCompute for MemoryEmbedding {
     type Query = MemoryRetrieveQueryEmbedding;
     #[hotpath::measure]
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
-        // tag 通道缺失（任一侧无 tag，零向量占位）时，不把缺失通道当 0 分参与加权，
-        // 否则 Situation 等无 tag 场景的分数会被压缩到 0.4×0+0.6×variant，理论最高仅 0.6。
-        // 零向量标记由单遍融合 cosine 顺带给出，避免对 tag 再做两遍 is_zero 全扫。
+        // tag 通道缺失（零向量）时直接返回 variant 分，避免缺失通道被当成 0 分压缩上限。
         let (tag_score, tag_zero) = self.tag().cosine_similarity_and_zero(query.tag())?;
         let variant_score = self.variant().anonymous_compute(query.variant())?;
         if tag_zero {
@@ -370,11 +365,9 @@ impl AnonymousQueryCompute for EmbeddedMemoryNote {
 }
 
 impl EmbeddedMemoryNote {
-    /// 融合评分：`embedding 余弦相似度` 与 `Jaro-Winkler 字符串距离` 按 `string_blend_alpha` 混合。
+    /// 融合评分：embedding 余弦与字符串距离按 `string_blend_alpha` 混合。
     ///
-    /// 两个分量均为 [0, 1] 量纲，`string_blend_alpha` 为 embedding 所占权重。
-    /// 字符串分量仅对精确标识符（concept_identifier / AbstractSituation 结构化字段）生效，
-    /// 变体不匹配时字符串分量返回 0.0，此时混合分退化为纯 embedding 分，保持与旧行为一致。
+    /// 字符串分量为 0（变体不匹配等）时直接返回纯 embedding 分。
     #[hotpath::measure]
     pub fn compute_fused(
         &self,
@@ -390,13 +383,7 @@ impl EmbeddedMemoryNote {
             &query.query,
             &query.embedding.blend_weights,
         );
-        // 字符串分量仅对精确标识符（Semantic content/aliases、AbstractSituation 结构化字段）生效；
-        // 对 SpecificSituation 等类型恒为 0。此时若仍按 (1-alpha)×0 混合，
-        // 会把 embedding 分系统性压缩到 alpha×上限以下（Situation 理论最高仅 0.36），
-        // 与"字符串分量缺失时退化为纯 embedding 分"的设计注释不符。
-        // 因此无字符串信号时直接返回纯 embedding 分。
-        // 有字符串信号时取 max：字符串通道只加分、不拉低
-        // （当 string < embedding 时混合分会低于纯 embedding 分，取 max 保持"兜底加分"语义）。
+        // 无字符串信号时直接返回纯 embedding；有信号时取 max，保证字符串通道只加分、不拉低。
         let score = if string_score <= 0.0 {
             embedding_score
         } else {

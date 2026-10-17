@@ -33,13 +33,11 @@ where
         return HashMap::new();
     }
 
-    //检查阻尼系数
     assert!(
         D::zero() <= damping_factor && damping_factor <= D::one(),
         "Damping factor should be between 0 et 1."
     );
 
-    //检查个性化分布是不是一个概率分布
     let personalized_sum: D = personalized_vec.values().copied().sum();
     assert!(
         personalized_sum > D::zero(),
@@ -67,20 +65,17 @@ where
     let mut ppr_ranks = vec![D::zero(); graph.node_bound()];
     let mut out_degrees = vec![D::zero(); graph.node_bound()];
 
-    //使用个性化向量，初始化PPR值向量，由于源节点有向量相似性取top-k提供（k通常不大），这样初始化通常可以加快收敛速度
     normalized_personalized_vec
         .iter()
         .for_each(|(&node_id, &bias)| {
             ppr_ranks[graph.to_index(node_id)] = bias; //SAFEUNWRAP: 已经预先分配了索引上限大小的内存，不会越界访问。
         });
     let normalized_bias_len = normalized_personalized_vec.len();
-    //println!("normalized_bias: {:?}", normalized_bias);
 
     //预计算每个节点的出度
     graph.node_identifiers().for_each(|node_id| {
         out_degrees[graph.to_index(node_id)] = graph.edges(node_id).map(|_| D::one()).sum();
     });
-    //println!("out_degrees: {:?}", out_degrees);
 
     for _ in 0..nb_iter {
         let ppr_vec_i = valid_index
@@ -131,7 +126,6 @@ where
                 ppr_ranks[idx] = ppr / sum;
             });
         }
-        //println!("iteration {i}: PPR values: {:?}", ppr_ranks);
     }
 
     //最终归一化
@@ -141,7 +135,6 @@ where
         return HashMap::new();
     }
 
-    //返回PPR向量，HashMap形式
     graph
         .node_identifiers()
         .map(|node_id| (node_id, ppr_ranks[graph.to_index(node_id)] / sum))
@@ -360,9 +353,7 @@ where
     };
 
     let source_node_count = D::from_usize(normalized_personalized_vec.len());
-    //println!("source_node_count: {:?}", source_node_count);
 
-    //初始化残差和保留
     let mut reserve_vec = vec![D::zero(); graph.node_bound()];
     let mut residue_vec = (0..graph.node_bound())
         .map(|i| {
@@ -410,14 +401,12 @@ where
         if iteration_count > max_iterations {
             break;
         }
-        //println!("Processing node {}", residue_i.idx);
         let out_edges = graph.edges(graph.from_index(residue_i.idx));
         //动态归一化的边权计算（懒缓存：每节点首次访问时计算一次）
         ppr_edge_weight_cache
             .entry(graph.from_index(residue_i.idx))
             .or_insert_with(|| {
                 hotpath::measure_block!("ppr::edge_weight_calc", {
-                    //println!("Calculating edge weights for node {}", residue_i.idx);
                     let weights = out_edges
                         .map(|edge| {
                             let weight = weight_calc(graph, &edge, dynamic_query);
@@ -447,7 +436,6 @@ where
             });
 
         let edge_weights = &ppr_edge_weight_cache[&graph.from_index(residue_i.idx)];
-        //println!("edge_weights: {:?}", edge_weights);
         hotpath::measure_block!("ppr::push_spread", {
             //清空当前节点残差
             residue_vec[residue_i.idx].value = D::zero();

@@ -54,14 +54,13 @@ impl BgeSmallZh {
             .model
             .embed(input, None, None)?
             .into_iter()
-            .map(|e| EmbeddingVec::new(e.to_dense().unwrap())) //SAFEUNWRAP: qwen3 embedder在embed_anything的
+            .map(|e| EmbeddingVec::new(e.to_dense().unwrap())) //SAFEUNWRAP: embed_anything 的 BGE embedder 永远返回 dense
             .collect())
     }
     //对于长文本，分块向量化后平均池化
     pub fn embed_gen_with_chunk_pooling(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec> {
         //分块文本
         let chunked_input = self.splitter.chunks(input).collect::<Vec<_>>();
-        //println!("chunked_input: {:?}", chunked_input);
         if chunked_input.is_empty() {
             return Err(EmbeddingGenError::InvalidInput);
         }
@@ -74,12 +73,11 @@ impl BgeSmallZh {
             return Err(EmbeddingGenError::InvalidInput);
         }
 
-        //生成embedding
         let embeddings = self
             .model
             .embed(input, None, None)?
             .into_iter()
-            .map(|e| e.to_dense().unwrap()) //SAFEUNWRAP: qwen3 embedder在embed_anything的源码中永远返回dense
+            .map(|e| e.to_dense().unwrap()) //SAFEUNWRAP: embed_anything 的 BGE embedder 永远返回 dense
             .collect::<Vec<_>>();
 
         //融合embedding，平均池化

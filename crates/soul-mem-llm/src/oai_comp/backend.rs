@@ -1,29 +1,10 @@
-//! OpenAI-compatible 后端实现。
+//! OpenAI-compatible 后端：编码 / 解码 / 错误映射的唯一归属地。
 //!
-//! 这里是"编码 / 解码 / 错误映射"三件事的唯一归属地：
-//! `encode` 把语义 [`Task`] 变成 wire 请求，`decode` 把 wire 响应变成语义 [`Completion`]，
-//! [`classify_error`] 把传输层错误变成语义 [`LlmError`]。
-//! 顶层契约不认识其中任何一步的细节。
+//! `encode` 把 `Task` 变成 wire 请求，`decode` 把响应变成 `Completion`，`classify_error`
+//! 把传输错误变成 `LlmError`。请求实际由 `async_openai::middleware::ReqwestService::call` 发出。
+//! 流式路径用 `create_stream_byot` + `ChunkState`，传输层只跑到“拿到响应头”。
 //!
-//! # 本文件在链路中的位置
-//!
-//! ```text
-//! crate::engine ──► ChatBackend::complete(task)            ← 本文件的入口
-//!                     │
-//!                     ├─ encode(&task, false) ──► wire::OaiChatRequest（唯一出现 provider 字段名处）
-//!                     ├─ tokio::time::timeout(总时限, pending)   ← 包住整次调用（含 body 读取）
-//!                     ├─ client.chat().create_byot::<OaiChatRequest, OaiResponse>(..)
-//!                     │      └──► async-openai：Client::post → tower 栈（transport.rs）→ 发出
-//!                     │            ★ 请求发出点在 async_openai::middleware::ReqwestService::call
-//!                     ├─ .map_err(classify_error)          ← HTTP/传输错误 → LlmError
-//!                     └─ decode(OaiResponse) ──► Completion（text / reasoning / stop / usage）
-//! ```
-//!
-//! 流式把后三步换成 `create_stream_byot` + [`ChunkState`] + [`map_chunks`]；
-//! 此时传输层只跑到"拿到响应头"（首字节时限的边界）。
-//!
-//! 子树的整体布局见 `oai_comp.rs` 的模块注释；跨 crate 的完整链路见
-//! `docs/architecture/llm-layer.md`。
+//! 完整链路见 `docs/architecture/llm-layer.md`。
 
 use super::config::{OaiCompatConfig, TokenFieldPolicy};
 use super::provider::OaiCompatProvider;

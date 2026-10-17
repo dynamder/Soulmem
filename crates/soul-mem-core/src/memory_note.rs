@@ -1,33 +1,12 @@
-//! 记忆节点：公共外壳 + 类型特定载荷。
-//!
-//! [`MemoryNote`] 是所有记忆节点的统一形态：身份（[`MemoryId`]）、标签、访问统计、
-//! **出边**（`Vec<MemoryLink>`）、遗忘状态，以及一个 [`MemoryType`] 载荷。
-//!
-//! 载荷分布：
-//!
-//! | 变体 | 载荷位置 |
-//! |---|---|
-//! | `MemoryType::Situation` | [`situation_mem`]（含 [`situation_mem::Context`]：位置 / 参与者 / 情感 / 感官 / 背景） |
-//! | `MemoryType::Semantic` | [`sem_mem`]（概念内容、别名、描述、`ConceptType`） |
-//! | `MemoryType::Procedure` | [`proc_mem`]（**尚无实际字段，仅占位**） |
+//! 记忆节点：公共外壳 + 类型特定载荷（`situation_mem` / `sem_mem` / `proc_mem`）。
 //!
 //! # 不变量
 //!
-//! - `missing_degree` 是**私有**的，只能经 `set_missing_degree` 写入，且会被
-//!   `clamp(0.0, 1.0)` 钳制。不要为了省事把它改成 `pub`——同一不变量在
-//!   [`MemoryLink`](crate::memory_links::MemoryLink) 上已经因为字段公开而可被绕过。
-//! - `missing_degree` / `last_forget_time` 带 `#[serde(default = ...)]`，
-//!   保证缺这两个字段的**老数据仍可反序列化**。删除该属性会使已持久化的记忆读不出来。
+//! - `missing_degree` 私有，只能经 `set_missing_degree` 写入并 `clamp(0.0, 1.0)`；不要改成 `pub`。
+//! - `missing_degree` / `last_forget_time` 的 `#[serde(default)]` 保证老数据可反序列化，不要删。
+//! - `MemoryNoteBuilder::build()` 返回 `Result`；`MemoryLinkBuilder::build()` 返回裸值，别照抄。
 //!
-//! # 构造
-//!
-//! 用 `MemoryNoteBuilder`，其 `build()` 返回 `Result`（会校验时间顺序等约束）。
-//! 注意同层的 `MemoryLinkBuilder::build()` 返回的是裸值——两者契约不同，别照抄。
-//!
-//! # 对外暴露
-//!
-//! 把节点交给外部服务时**不要**直接序列化本类型。用 [`crate::render::Render`]，
-//! 它产出稳定的对外表示（类型 + 分数 + 内容 + 上下文），内部字段重构不会波及协议。
+//! 对外输出用 [`crate::render::Render`]，不要直接序列化本类型。
 
 use std::fmt::Display;
 
