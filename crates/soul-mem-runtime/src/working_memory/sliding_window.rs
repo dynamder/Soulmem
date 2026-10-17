@@ -7,6 +7,12 @@
 //! 请求编码、超时、重试、错误分类、trace 都在 `soul-mem-llm` 里。
 //! 完整链路见 `docs/architecture/llm-layer.md`。
 //!
+//! # 推送与淘汰分离
+//!
+//! `push` 只入队并返回 [`PushOutcome`]，**不调用 LLM、也不会失败**；超过容量时由调用方
+//! 用 [`SlidingWindow::pop`] 淘汰队首。这样就不存在"返回 Err 但消息其实已入队"的歧义，
+//! 也不需要把 `push` 做成幂等。
+//!
 //! # 摘要失败的语义（本次重构修正）
 //!
 //! 旧实现是"先把消息出队，再调用 LLM 摘要"：一旦摘要失败，那条消息就永久消失，
@@ -19,7 +25,7 @@
 //! # 其它
 //!
 //! - 摘要更新是"读旧摘要 → 调 LLM → 覆写摘要"的复合操作，且摘要是**累加**的。
-//!   若不串行化，两个并发 push 各自读到同一份旧摘要、后写覆盖前写，被淘汰的历史同样永久丢失。
+//!   若不串行化，两个并发淘汰各自读到同一份旧摘要、后写覆盖前写，被淘汰的历史同样永久丢失。
 //!   这里用异步互斥锁把整个复合操作串行化（`parking_lot` 锁依旧一律不跨 await 持有）。
 //! - 移除前会确认队首仍是那条消息，避免并发下删错对象。
 
@@ -51,16 +57,17 @@ impl Default for SlidingWindow {
     }
 }
 
-/// `SlidingWindow::push` 的结果。
+/// `push` 的结果。
 ///
-/// `push` **总是**先把消息写入窗口；`evicted` 只表示「淘汰队首时的摘要」是否成功。
-/// 把两者分开，调用方就不会把 `Err` 误读成「这次写入没成功」而重试 `push`
-/// （那会把同一条消息写入两次）。摘要失败时应重试摘要或降级，而不是重放 `push`。
-#[derive(Debug)]
-#[must_use = "摘要失败必须被处理；消息已经入队，不要重试 push"]
-pub struct PushOutcome {
-    /// 摘要成功为 `Ok(())`；失败时窗口保持超出容量、消息不丢。
-    pub evicted: Result<(), LlmError>,
+/// `push` 只负责入队；淘汰（必要时先摘要）由调用方在收到 [`PushOutcome::NeedsEviction`]
+/// 后调用 [`SlidingWindow::pop`] 完成。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[must_use = "超过容量后必须淘汰队首，否则窗口会持续增长"]
+pub enum PushOutcome {
+    /// 未超过容量，无需动作。
+    Enqueued,
+    /// 已入队且超过容量；调用方应调用 [`SlidingWindow::pop`]。
+    NeedsEviction,
 }
 
 impl SlidingWindow {
@@ -79,18 +86,21 @@ impl SlidingWindow {
         }
     }
 
-    /// 信息滑入。超出容量时淘汰队首（被标记的队首必须先摘要成功）。
-    ///
-    /// 消息**总会**入队；返回值只携带淘汰时的摘要结果，详见 [`PushOutcome`]。
-    pub async fn push(&self, value: &str, role: &str, engine: &LlmEngine) -> PushOutcome {
+    /// 信息滑入。只入队，不调用 LLM。
+    pub fn push(&self, value: &str, role: &str) -> PushOutcome {
         let text = self.auto_tag(Information::new(value, role));
-        self.window.write().push_back(text);
-        PushOutcome {
-            evicted: self.enforce_capacity(engine).await,
+        let mut window = self.window.write();
+        window.push_back(text);
+        if window.len() > self.capacity.load(Ordering::Acquire) {
+            PushOutcome::NeedsEviction
+        } else {
+            PushOutcome::Enqueued
         }
     }
 
     /// 信息滑出。被标记的队首在摘要成功后才移除。
+    ///
+    /// [`PushOutcome::NeedsEviction`] 之后由调用方调用。
     pub async fn pop(&self, engine: &LlmEngine) -> Result<(), LlmError> {
         let Some(front) = self.window.read().front().cloned() else {
             return Ok(());
@@ -99,29 +109,6 @@ impl SlidingWindow {
             self.summarize(engine, Some(&front)).await?;
         }
         self.remove_front(&front);
-        Ok(())
-    }
-
-    /// 超出容量时淘汰队首，每次调用最多淘汰一条（与旧行为一致）。
-    async fn enforce_capacity(&self, engine: &LlmEngine) -> Result<(), LlmError> {
-        let capacity = self.capacity.load(Ordering::Acquire);
-        let candidate = {
-            let window = self.window.read();
-            if window.len() <= capacity {
-                return Ok(());
-            }
-            window.front().cloned()
-        };
-        let Some(candidate) = candidate else {
-            return Ok(());
-        };
-
-        if candidate.is_tagged() {
-            // 摘要是累加的，失败就必须保留消息：这里直接向上报错，
-            // 由调用方决定是重试还是降级；窗口暂时处于超出容量的状态。
-            self.summarize(engine, Some(&candidate)).await?;
-        }
-        self.remove_front(&candidate);
         Ok(())
     }
 
