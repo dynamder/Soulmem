@@ -363,9 +363,9 @@ impl AnonymousQueryCompute for MemoryEmbedding {
 
 //TODO: take common fields in MemoryNote into computation
 impl AnonymousQueryCompute for EmbeddedMemoryNote {
-    type Query = MemoryRetrieveQueryEmbedding;
+    type Query = EmbeddedMemoryRetrieveQuery;
     fn anonymous_compute(&self, query: &Self::Query) -> EmbeddingCalcResult<f32> {
-        self.embedding().anonymous_compute(query)
+        self.compute_fused(query, query.embedding.string_blend_alpha)
     }
 }
 
@@ -380,7 +380,7 @@ impl EmbeddedMemoryNote {
         &self,
         query: &EmbeddedMemoryRetrieveQuery,
         string_blend_alpha: f32,
-    ) -> EmbeddingCalcResult<QueryComputeResult> {
+    ) -> EmbeddingCalcResult<f32> {
         let embedding_score = self.embedding().anonymous_compute(&query.embedding)?;
         // 字符串通道与 embedding 通道共用查询自带的同一份 BlendWeights：
         // 事件子字段（initiator/target/action）的加权必须两侧同源，
@@ -404,7 +404,7 @@ impl EmbeddedMemoryNote {
                 string_blend_alpha * embedding_score + (1.0 - string_blend_alpha) * string_score;
             embedding_score.max(blended)
         };
-        Ok(QueryComputeResult::new(self.note().id(), score))
+        Ok(score)
     }
 }
 

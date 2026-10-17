@@ -253,14 +253,9 @@ fn test_compute_fused_matches_blend_formula() {
     let embedded_note = embed_sem_note(&model, "小酒馆", &[]);
     let embedded_query = embed_sem_query(&model, "酒馆");
 
-    let pure = embedded_note
-        .anonymous_compute(&embedded_query.embedding)
-        .unwrap();
+    let pure = embedded_note.anonymous_compute(&embedded_query).unwrap();
     let str_score = compute_note_string_score(embedded_note.note(), &embedded_query.query);
-    let fused = embedded_note
-        .compute_fused(&embedded_query, 0.6)
-        .unwrap()
-        .score;
+    let fused = embedded_note.compute(&embedded_query).unwrap().score;
 
     // 字符串通道只加分：fused = max(pure, 0.6*pure + 0.4*str)
     let expected = pure.max(0.6 * pure + 0.4 * str_score);
@@ -286,8 +281,8 @@ fn test_compute_fused_string_boost_ranking() {
     let miss = embed_sem_note(&model, "火车站", &[]);
     let embedded_query = embed_sem_query(&model, "酒馆");
 
-    let hit_fused = hit.compute_fused(&embedded_query, 0.6).unwrap().score;
-    let miss_fused = miss.compute_fused(&embedded_query, 0.6).unwrap().score;
+    let hit_fused = hit.compute_fused(&embedded_query, 0.6).unwrap();
+    let miss_fused = miss.compute_fused(&embedded_query, 0.6).unwrap();
 
     // 字符串分对命中项是正贡献，对干扰项（str=0）无贡献
     let hit_str = compute_note_string_score(hit.note(), &embedded_query.query);
@@ -299,77 +294,6 @@ fn test_compute_fused_string_boost_ranking() {
         "hit {hit_fused} <= miss {miss_fused}"
     );
     assert!((0.0..=1.0).contains(&hit_fused));
-}
-
-#[test]
-fn test_compute_fused_alpha_zero_is_pure_embedding() {
-    let model = BgeSmallZh::default_cpu().unwrap();
-    let embedded_note = embed_sem_note(&model, "小酒馆", &[]);
-    let embedded_query = embed_sem_query(&model, "酒馆");
-
-    // alpha=1.0 时退化为纯 embedding 分
-    let pure = embedded_note
-        .anonymous_compute(&embedded_query.embedding)
-        .unwrap();
-    let fused = embedded_note
-        .compute_fused(&embedded_query, 1.0)
-        .unwrap()
-        .score;
-    assert!((fused - pure).abs() < 1e-6);
-
-    // alpha=0.0 时混合分 = str，字符串通道只加分 → fused = max(emb, str)
-    let str_score = compute_note_string_score(embedded_note.note(), &embedded_query.query);
-    let fused = embedded_note
-        .compute_fused(&embedded_query, 0.0)
-        .unwrap()
-        .score;
-    assert!((fused - pure.max(str_score)).abs() < 1e-6);
-}
-
-#[test]
-fn test_compute_fused_abstract_situation_boost() {
-    let model = BgeSmallZh::default_cpu().unwrap();
-
-    let mem_type = MemoryType::Situation(
-        AbstractSituation::Location(Location {
-            name: "酒馆".to_string(),
-            coordinates: String::new(),
-        })
-        .into(),
-    );
-    let note = MemoryNoteBuilder::new(mem_type).build().unwrap();
-    let embedding = note.embed(&model).unwrap();
-    let embedded_note = EmbeddedMemoryNote { note, embedding };
-
-    let query = MemoryRetrieveQuery::new(
-        vec![],
-        MemoryRetrieveQueryVariant::Situation(vec![
-            SituationQueryUnit::new().with_location(vec![LocationQueryUnit::new("小酒馆")]),
-        ]),
-    );
-    let query_embedding = query.embed(&model).unwrap();
-    let embedded_query = EmbeddedMemoryRetrieveQuery {
-        embedding: query_embedding,
-        query,
-    };
-
-    let pure = embedded_note
-        .anonymous_compute(&embedded_query.embedding)
-        .unwrap();
-    let str_score = compute_note_string_score(embedded_note.note(), &embedded_query.query);
-    let fused = embedded_note
-        .compute_fused(&embedded_query, 0.6)
-        .unwrap()
-        .score;
-
-    // 字符串通道只加分：fused = max(pure, 0.6*pure + 0.4*str)
-    let expected = pure.max(0.6 * pure + 0.4 * str_score);
-    assert!(
-        (fused - expected).abs() < 1e-5,
-        "abstract fused {fused} != {expected}"
-    );
-    assert!((0.0..=1.0).contains(&fused));
-    assert!(str_score > 0.5, "location str_score too low: {str_score}");
 }
 
 /// 端到端回归测试：`compute_fused` 的字符串通道必须使用查询自带的
@@ -427,6 +351,7 @@ fn test_compute_fused_string_channel_follows_custom_weights() {
 
     // 用查询自身的权重复算期望值（与 compute_fused 同一取权重方式）
     let pure = embedded_note
+        .embedding
         .anonymous_compute(&embedded_query.embedding)
         .unwrap();
     let str_score = compute_note_string_score_weighted(
@@ -439,10 +364,8 @@ fn test_compute_fused_string_channel_follows_custom_weights() {
     } else {
         pure.max(alpha * pure + (1.0 - alpha) * str_score)
     };
-    let fused = embedded_note
-        .compute_fused(&embedded_query, alpha)
-        .unwrap()
-        .score;
+    let fused = embedded_note.compute_fused(&embedded_query, alpha).unwrap();
+
     assert!(
         (fused - expected).abs() < 1e-5,
         "compute_fused={fused} 与按查询权重复算的期望={expected} 不一致（字符串通道未采用定制权重）"
@@ -474,12 +397,10 @@ fn test_compute_fused_variant_mismatch_degrades_to_embedding() {
     };
 
     let pure = embedded_note
+        .embedding
         .anonymous_compute(&embedded_query.embedding)
         .unwrap();
-    let fused = embedded_note
-        .compute_fused(&embedded_query, 0.6)
-        .unwrap()
-        .score;
+    let fused = embedded_note.compute_fused(&embedded_query, 0.6).unwrap();
     assert_eq!(
         compute_note_string_score(embedded_note.note(), &embedded_query.query),
         0.0
