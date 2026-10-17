@@ -119,8 +119,7 @@ impl EmbeddingVec {
             .sqrt())
     }
     /// 单遍融合余弦：一次循环累计 dot、平方和并检测零向量。
-    ///
-    /// lane 顺序归约是确定性要求（`reduce_add` 的求和顺序未定义）；`wide` 在缺 256-bit 的 CPU 上自动降级。
+    // lane 顺序归约是确定性要求（`reduce_add` 的求和顺序未定义）；`wide` 在缺 256-bit 的 CPU 上自动降级。
     #[hotpath::measure]
     pub fn cosine_similarity(&self, other: &Self) -> EmbeddingCalcResult<f32> {
         match fused_cosine_core(&self.0, &other.0) {
@@ -129,9 +128,7 @@ impl EmbeddingVec {
         }
     }
 
-    /// 余弦相似度 + 零向量标记，单遍完成：调用方（如融合打分）常需区分
-    /// "相似度恰为 0" 与 "tag 通道缺失（任一侧为零向量）"，此前需额外
-    /// `is_zero()` 再各扫一遍全向量；本方法一次循环同时给出两者。
+    /// 余弦相似度 + 零向量标记，单遍完成。
     #[hotpath::measure]
     pub fn cosine_similarity_and_zero(&self, other: &Self) -> EmbeddingCalcResult<(f32, bool)> {
         fused_cosine_core(&self.0, &other.0).ok_or(super::EmbeddingCalcError::ShapeMismatch)
@@ -141,8 +138,8 @@ impl EmbeddingVec {
 /// 其中 either_zero=true 表示任一侧平方和为 0（零向量占位），此时 cosine 为 0.0。
 ///
 /// 实现：`wide::f32x8` 主循环（8 路 lane 同时累加 dot / |a|² / |b|²）+ 标量尾段；
-/// lane 顺序归约（不用 `reduce_add`，其求和顺序在 wide 文档中明确为非确定，
-/// 会影响快照/复现性）。数值与标量实现同量纲，差异仅来自求和顺序（~1e-7）。
+/// 数值与标量实现同量纲，差异仅来自求和顺序（~1e-7）。
+// 不用 `reduce_add`：其求和顺序在 wide 文档中明确为非确定，会影响快照/复现性。
 #[inline(always)]
 fn fused_cosine_core(a: &[f32], b: &[f32]) -> Option<(f32, bool)> {
     use wide::f32x8;

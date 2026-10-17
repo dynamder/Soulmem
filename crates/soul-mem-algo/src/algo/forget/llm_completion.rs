@@ -1,12 +1,8 @@
 //! 遗忘重建与字段对齐：提示词 + 结果解析。
 //!
-//! 本模块只做两件事：把遮罩文本/字段拼成提示词、把 LLM 的回复解析回结构。
-//! **LLM 调用本身经统一的 [`soul_mem_llm::LlmEngine`] 发出**——超时、重试、错误分类、
-//! trace 都在 `soul-mem-llm` 里，本模块看不到任何传输细节。
-//! 完整链路见 `docs/architecture/llm-layer.md`。
-//!
-//! `engine` 参数是 `Option<&LlmEngine>`：`None` 表示本次运行没有可用 LLM，
-//! 由调用方（[`super::decay_revise::lazy_forget`]）降级为仅遮罩。
+//! 本模块只做两件事：把遮罩文本/字段拼成提示词、把 LLM 的回复解析回结构；LLM 调用统一经
+//! [`soul_mem_llm::LlmEngine`] 发出。`engine` 参数是 `Option<&LlmEngine>`：`None` 表示本次运行
+//! 没有可用 LLM，由调用方（[`super::decay_revise::lazy_forget`]）降级为仅遮罩。
 
 use soul_mem_core::memory_note::sem_mem::ConceptType;
 use soul_mem_core::memory_note::{MemoryNote, MemoryType};

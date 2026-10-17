@@ -2,12 +2,8 @@
 //!
 //! 职责只有两件：观测生命周期、整调用重试。编码/解码/传输在 [`crate::oai_comp`]。
 //!
-//! - `complete`：建上下文 → `on_start` → 可重试地调 `backend.complete` → `on_end`。
-//! - `stream`：只重试“开流”；流内错误不重试，已产出文本重放会造成重复。
-//!   `ObservedStream` 在正常结束、出错、提前丢弃时都保证恰好一次 `on_end`。
-//!
 //! 外层重试覆盖传输层看不到的失败：整体/首字节超时、body 读取中断、流未产出即断。
-//! 最大请求数 = `(1 + 内层重试) × (1 + 外层重试)`；完整链路见 `docs/architecture/llm-layer.md`。
+//! 最大请求数 = `(1 + 内层重试) × (1 + 外层重试)`。
 
 use crate::backend::{BackendInfo, ChatBackend, Completion, EventStream, StreamEvent, Task, Usage};
 use crate::ctx::{self, CallCtx};
@@ -21,8 +17,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::task::{Context, Poll};
 use std::time::Duration;
 
-/// 外层重试的退避基值与上限。外层重发代价高于内层（要重新生成），
-/// 因此预算默认只有 1 次，退避也不必可配。抖动在此不必要：重试次数少、退避起点已足够分散。
+/// 外层重试的退避基值与上限。
+// 外层重发代价高于内层（要重新生成），因此预算默认只有 1 次，退避也不必可配；
+// 重试次数少，抖动同样不必要。
 const WHOLE_CALL_BASE_DELAY: Duration = Duration::from_millis(500);
 const WHOLE_CALL_MAX_DELAY: Duration = Duration::from_secs(8);
 
@@ -97,8 +94,6 @@ impl LlmEngine {
     /// 只有"开流"这一步会走整调用重试（此时还没有任何内容产出，重发是安全的）；
     /// 一旦拿到流，**流内错误不再重试**——已产出的文本重放会造成重复内容。
     /// 消费方需要自己检查 [`LlmError::partial`] 决定丢弃还是保留半截结果。
-    ///
-    /// 结束事件由 `ObservedStream`（本文件私有）在流终止时上报（含被提前丢弃的情形）。
     pub async fn stream(&self, task: Task) -> Result<EventStream, LlmError> {
         let call = self.begin(&task, true);
         let backend = self.backend.clone();
@@ -138,13 +133,11 @@ impl LlmEngine {
         call
     }
 
-    /// 整调用重试循环。只有 [`LlmError::is_retryable`] 为真才重发。
-    ///
-    /// 为什么需要它：传输层（tower）只看得到"发请求 → 拿到响应头"，而超时、读到一半断连、
-    /// 流未产出即中断都发生在**响应体读取阶段**（在 tower 之上），传输层看不到。
-    ///
-    /// 重试次数与等待时长都会上报（`ctx::CallCtx::note_whole_retry`），因此 trace 里
-    /// 能区分"内层重试"与"整调用重发"。
+    // 整调用重试循环。为什么需要它：传输层（tower）只看得到"发请求 → 拿到响应头"，而超时、
+    // 读到一半断连、流未产出即中断都发生在响应体读取阶段（在 tower 之上）。
+    //
+    // 重试次数与等待时长都会上报（`ctx::CallCtx::note_whole_retry`），trace 里因此能区分
+    // "内层重试"与"整调用重发"。
     async fn with_whole_call_retry<T, F, Fut>(
         &self,
         call: &Arc<CallCtx>,
@@ -240,12 +233,11 @@ impl EndParts {
 }
 
 /// 包装事件流，并保证**恰好一次**结束上报。
-///
-/// 被消费方提前丢弃时也要上报（[`LlmErrorKind::Cancelled`]）——否则 trace 里会留下
-/// 一堆"开始了但没有结束"的记录，无法区分"还在跑"与"被扔了"。
-///
-/// "恰好一次"由三处共同保证：`Done` 事件（语义终点）、流结束/出错、以及 `Drop`；
-/// `reported` 标志让后到者变成空操作。
+// 被消费方提前丢弃时也要上报（[`LlmErrorKind::Cancelled`]）——否则 trace 里会留下一堆
+// "开始了但没有结束"的记录，无法区分"还在跑"与"被扔了"。
+//
+// "恰好一次"由三处共同保证：`Done` 事件（语义终点）、流结束/出错、以及 `Drop`；
+// `reported` 标志让后到者变成空操作。
 struct ObservedStream {
     inner: EventStream,
     call: Arc<CallCtx>,

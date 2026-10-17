@@ -46,9 +46,8 @@ impl QueryComputeResult {
 }
 
 /// 在多通道分数间取最大值，并把负相关显式折到 0。
-///
-/// 用显式循环而非 `fold(0.0, f32::max)`：`f32::max` 在一侧为 NaN 时返回另一侧，
-/// 会把被 NaN 污染的通道静默吞掉，聚合结果看起来正常，调用方的 `is_finite()` 守卫永不命中。
+// 用显式循环而非 `fold(0.0, f32::max)`：`f32::max` 在一侧为 NaN 时返回另一侧，会把被 NaN
+// 污染的通道静默吞掉，聚合结果看起来正常，调用方的 `is_finite()` 守卫永不命中。
 fn fold_max(scores: impl IntoIterator<Item = f32>) -> EmbeddingCalcResult<f32> {
     let mut best = 0.0f32;
     for score in scores {
@@ -365,9 +364,8 @@ impl AnonymousQueryCompute for EmbeddedMemoryNote {
 }
 
 impl EmbeddedMemoryNote {
-    /// 融合评分：embedding 余弦与字符串距离按 `string_blend_alpha` 混合。
-    ///
-    /// 字符串分量为 0（变体不匹配等）时直接返回纯 embedding 分。
+    /// 融合评分：embedding 余弦与字符串距离按 `string_blend_alpha` 混合；
+    /// 字符串分量为 0（变体不匹配等）时返回纯 embedding 分。
     #[hotpath::measure]
     pub fn compute_fused(
         &self,

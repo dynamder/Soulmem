@@ -26,8 +26,9 @@ impl Clone for BgeSmallZh {
     }
 }
 impl BgeSmallZh {
-    /// 全局共享的BGE模型实例。embed_anything依赖的candle在Windows上对同一safetensors
-    /// 文件进行并发mmap会产生文件锁冲突，因此整个进程只构造一次底层模型。
+    /// 用全局共享的 BGE 模型实例构造（CPU）。
+    // 进程内只构造一次底层模型：embed_anything 依赖的 candle 在 Windows 上对同一
+    // safetensors 文件并发 mmap 会产生文件锁冲突。
     pub fn default_cpu() -> Result<Self> {
         static MODEL: OnceLock<Arc<BertEmbedder>> = OnceLock::new();
         let model = MODEL.get_or_init(|| {

@@ -503,7 +503,7 @@ mod tests {
         assert_eq!(compute_note_string_score(&note, &q_full), 1.0);
     }
 
-    /// 回归：事件三路加权必须来自传入的 `BlendWeights`，不能写死。
+    // 回归：事件三路加权必须来自传入的 `BlendWeights`，不能写死。
     #[test]
     fn test_abstract_event_weights_follow_blend_weights() {
         let note = situation_note(AbstractSituation::Event(Event {
@@ -579,7 +579,7 @@ mod tests {
         );
     }
 
-    /// 回归：`with_weights()` 的定制权重必须到达字符串通道。
+    // 回归：`with_weights()` 的定制权重必须到达字符串通道。
     #[test]
     fn test_query_embedding_carries_weights_into_string_channel() {
         let custom = BlendWeights {

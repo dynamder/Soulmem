@@ -25,17 +25,6 @@
 //!
 //! **一次调用只经过两个类型**：[`Task`] 进去，[`Completion`] 出来；二者只有语义，没有 provider 字段名。
 //!
-//! # 阅读索引
-//!
-//! | 你想知道 | 去看 |
-//! |---|---|
-//! | 语义类型 | [`backend`] |
-//! | 编排、整调用重试、观测 | [`engine`] |
-//! | wire 编解码与错误映射 | [`oai_comp`] |
-//! | trace | [`observer`] |
-//! | 宽容 JSON 抽取 | [`json`] |
-//! | 请求实际发出点 | 不在本 crate：`async_openai::middleware::ReqwestService::call` |
-//!
 //! # 两层重试
 //!
 //! | 层 | 覆盖范围 | 位置 |
@@ -44,7 +33,6 @@
 //! | 整调用（外层） | 超时、body 读取失败、流未产出即中断 | [`LlmEngine`] |
 //!
 //! 最大请求数 = `(1 + 内层) × (1 + 外层)`。内层是唯一能读到 `Retry-After` 的位置。
-//! 完整链路见 `docs/architecture/llm-layer.md`。
 
 pub mod backend;
 pub mod engine;

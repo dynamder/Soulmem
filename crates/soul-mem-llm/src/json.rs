@@ -1,8 +1,7 @@
 //! 宽容地从 LLM 输出里取出 JSON —— 与 provider、具体任务无关。
 //!
-//! 顺序：剥 `<think>` 块 → 剥 markdown 围栏 → 平衡括号扫描取出完整的数组/对象。这是唯一实现。
-//!
-//! 4. 反序列化。解析失败**一律返回显式错误并带上原文片段**，不静默降级为空结果。
+//! 顺序：剥 `<think>` 块 → 剥 markdown 围栏 → 平衡括号扫描取出完整的数组/对象 → 反序列化。
+//! 解析失败一律返回显式错误并带上原文片段，不静默降级为空结果。
 
 use crate::error::{LlmError, LlmErrorKind};
 use serde::de::DeserializeOwned;

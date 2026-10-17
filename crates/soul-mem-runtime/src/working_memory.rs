@@ -1,31 +1,22 @@
 //! 工作记忆：滑动窗口 + 记忆簇 + 活跃记录。
 //!
-//! # 为什么所有变更方法都只取 `&self`
-//!
-//! 检索管线按契约接收 `Arc<WorkingMemory>`（见 `DefaultPipelineConfig::into_request`），
-//! 编排层并行处理一批 query 时会同时存在多份 `Arc`。若状态变更要求 `&mut self`，
-//! 调用方就只能退化成 `Arc::get_mut`；而共享计数 > 1 时它返回 `None`——状态变更被
-//! **静默跳过**，既无法察觉也无法恢复。因此本类型不提供任何 `&mut self` 接口，
-//! 四块状态各自内部可变：
-//!
-//! | 状态 | 可变性载体 |
-//! |---|---|
-//! | [`WorkingState`] | `parking_lot::RwLock` |
-//! | [`SlidingWindow`] | 自身即内部可变（`Arc<RwLock<..>>` + 原子计数） |
-//! | 记忆簇 | [`MemoryClusterHandle`]（`Arc<RwLock<MemoryCluster>>`） |
-//! | `records` | `parking_lot::RwLock<HashMap<..>>` |
-//!
-//! 于是 `Arc<WorkingMemory>` 可安全跨线程共享，调用方不需要（也无法）拿到独占引用。
-//!
-//! # 锁的纪律
-//!
-//! `records` 只经 [`WorkingMemory::read_records`] / [`WorkingMemory::write_records`]
-//! 的闭包访问，**锁守卫一律不外泄**：`parking_lot` 的守卫默认 `!Send`，闭包形式从结构上
-//! 排除了"守卫跨越 await 存活"，与 `lib.rs` 的"锁不得跨 await 持有"约定一致。
-//!
-//! 这些锁只保护各自字段。跨字段的复合不变量——例如"簇里新增节点的同时登记活跃记录"——
-//! **不由它们保证**：`add_node` 先写簇、再写 `records`，两把锁不同时持有；需要更强原子性的
-//! 调用方必须自己定义顺序契约。
+//! 四块状态各自内部可变，因此公开方法一律只取 `&self`；`Arc<WorkingMemory>` 可跨线程共享，
+//! 调用方不需要（也无法）拿到独占引用。
+
+// 为什么所有变更方法都只取 `&self`：检索管线按契约接收 `Arc<WorkingMemory>`
+// （见 `DefaultPipelineConfig::into_request`），编排层并行处理一批 query 时同时存在多份 `Arc`。
+// 若变更要求 `&mut self`，调用方只能退化成 `Arc::get_mut`，而共享计数 > 1 时它返回 `None`
+// ——变更被静默跳过，既无法察觉也无法恢复。
+//
+// 四块状态的可变性载体：`WorkingState` 是 `parking_lot::RwLock`；`SlidingWindow` 自身即内部可变
+// （`Arc<RwLock<..>>` + 原子计数）；记忆簇是 `MemoryClusterHandle`；`records` 是
+// `parking_lot::RwLock<HashMap<..>>`。
+//
+// 锁的纪律：`records` 只经 `read_records` / `write_records` 的闭包访问，锁守卫一律不外泄
+// （`parking_lot` 守卫默认 `!Send`，闭包形式从结构上排除"守卫跨越 await 存活"）。
+//
+// 这些锁只保护各自字段，跨字段的复合不变量（例如"簇里新增节点的同时登记活跃记录"）不由它们
+// 保证：`add_node` 先写簇、再写 `records`，两把锁不同时持有；更强的原子性要由调用方定义顺序契约。
 
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
@@ -43,8 +34,7 @@ use soul_mem_query::embedding::note::EmbeddedMemoryNote;
 
 /// 工作记忆状态。
 ///
-/// 实现 `Copy`：它只经 [`WorkingMemory::state`] 按值读出，取值不越过任何锁边界，
-/// 因此不必把守卫交给调用方。
+/// 实现 `Copy`：它只经 [`WorkingMemory::state`] 按值读出，取值不越过任何锁边界。
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum WorkingState {
     /// 空闲：当前没有进行中的交互。
@@ -166,12 +156,12 @@ impl WorkingMemory {
         }
     }
 
-    /// 只读访问活跃记录。守卫不外泄（见模块注释的"锁的纪律"）。
+    /// 只读访问活跃记录。守卫不外泄（见文件头的锁纪律）。
     pub fn read_records<R>(&self, read: impl FnOnce(&HashMap<MemoryId, Record>) -> R) -> R {
         read(&self.records.read())
     }
 
-    /// 可变访问活跃记录。守卫不外泄（见模块注释的"锁的纪律"）。
+    /// 可变访问活跃记录。守卫不外泄（见文件头的锁纪律）。
     pub fn write_records<R>(&self, write: impl FnOnce(&mut HashMap<MemoryId, Record>) -> R) -> R {
         write(&mut self.records.write())
     }
@@ -338,7 +328,7 @@ mod tests {
         assert!(wm.memory_cluster().read_or_compute(|c| c.contains_node(id)));
     }
 
-    /// 回归：存在多份 `Arc` 时状态变更不得被静默跳过。
+    // 回归：存在多份 `Arc` 时状态变更不得被静默跳过。
     #[test]
     fn test_second_arc_clone_can_mutate() {
         let wm = Arc::new(WorkingMemory::new(10));
@@ -357,7 +347,7 @@ mod tests {
         assert_eq!(wm.read_records(|records| records[&id].feedback_score()), 1);
     }
 
-    /// 回归：`records` 的查-改-插必须整体持锁，否则并发命中会互相覆盖。
+    // 回归：`records` 的查-改-插必须整体持锁，否则并发命中会互相覆盖。
     #[test]
     fn test_concurrent_record_retrieval_accumulates() {
         const THREADS: usize = 4;

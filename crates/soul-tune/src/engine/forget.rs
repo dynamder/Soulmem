@@ -1,9 +1,6 @@
-//! 遗忘算法三阶段测试套件：`Mask`（确定性遮罩）、`Revise`（LLM 补全）、`Pipeline`（全管线）。
-//!
-//! Pipeline 内嵌激发测试：对照/实验双图配对，验证“激发延缓遗忘”；不读算法内部常量。
-//! LLM 来源统一走 `engine::llm::resolver`，不可用则降级遮罩。
-//!
-//! 文件：`mask.rs` / `revise.rs` / `pipeline.rs`（+ `pipeline/{multistep,activation,excitation}.rs`）/ `tests.rs`。
+// 遗忘算法三阶段测试套件：`Mask`（确定性遮罩）、`Revise`（LLM 补全）、`Pipeline`（全管线）。
+// Pipeline 内嵌激发测试：对照/实验双图配对，验证"激发延缓遗忘"；不读算法内部常量。
+// LLM 来源统一走 `engine::llm::resolver`，不可用则降级遮罩。文件布局见 crate 的 AGENTS.md。
 
 mod mask;
 mod pipeline;

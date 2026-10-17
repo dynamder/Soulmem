@@ -286,7 +286,7 @@ fn test_compute_fused_string_boost_ranking() {
     assert!((0.0..=1.0).contains(&hit_fused));
 }
 
-/// 回归：字符串通道必须使用查询自带的 `embedding.blend_weights`。
+// 回归：字符串通道必须使用查询自带的 `embedding.blend_weights`。
 #[test]
 fn test_compute_fused_string_channel_follows_custom_weights() {
     let model = BgeSmallZh::default_cpu().unwrap();
@@ -498,7 +498,7 @@ fn variant_mean_rejects_non_finite_unit_score() {
     ));
 }
 
-/// 回归（issue #73）：两条通道都完美匹配、配对权重都取 0.9 时未归一化的加权和是 1.8。
+// 回归（issue #73）：两条通道都完美匹配、配对权重都取 0.9 时未归一化的加权和是 1.8。
 #[test]
 fn with_weights_normalizes_pairs_so_score_stays_in_unit_range() {
     let note_emb = MemoryEmbedding::new(
@@ -522,7 +522,7 @@ fn with_weights_normalizes_pairs_so_score_stays_in_unit_range() {
     assert_close(score, 1.0);
 }
 
-/// 回归：情境变体按单元数归一化，保持 [0,1] 量纲。
+// 回归：情境变体按单元数归一化，保持 [0,1] 量纲。
 #[test]
 fn test_situation_variant_normalizes_by_unit_count() {
     let note_variant = MemoryEmbeddingVariant::Situation(SituationEmbedding::Abstract(
@@ -554,7 +554,7 @@ fn test_situation_variant_normalizes_by_unit_count() {
     assert_close(score, 1.0);
 }
 
-/// 回归：所有子通道加权必须取自 `BlendWeights`，不能写死。
+// 回归：所有子通道加权必须取自 `BlendWeights`，不能写死。
 #[test]
 fn test_channel_weights_are_read_from_config() {
     let loc = LocationEmbedding::test_new(unit(), unit());

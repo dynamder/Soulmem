@@ -1,10 +1,7 @@
 //! OpenAI-compatible 后端：编码 / 解码 / 错误映射的唯一归属地。
 //!
 //! `encode` 把 `Task` 变成 wire 请求，`decode` 把响应变成 `Completion`，`classify_error`
-//! 把传输错误变成 `LlmError`。请求实际由 `async_openai::middleware::ReqwestService::call` 发出。
-//! 流式路径用 `create_stream_byot` + `ChunkState`，传输层只跑到“拿到响应头”。
-//!
-//! 完整链路见 `docs/architecture/llm-layer.md`。
+//! 把传输错误变成 `LlmError`。流式路径用 `create_stream_byot` + `ChunkState`，传输层只跑到“拿到响应头”。
 
 use super::config::{OaiCompatConfig, TokenFieldPolicy};
 use super::provider::OaiCompatProvider;
@@ -27,9 +24,7 @@ use std::sync::Arc;
 
 /// OpenAI-compatible 后端（远程 API 与本地 llama-server 共用同一实现）。
 ///
-/// 构造时做三件事：校验配置 → 建 `Config` 实现（`provider.rs`）→ 建带 tower 栈的
-/// `async_openai::Client`（`transport.rs`）。此后本结构体只负责编码/解码/错误映射，
-/// 不直接接触任何 HTTP 细节。
+/// 只负责编码/解码/错误映射，不直接接触任何 HTTP 细节。
 pub struct OaiCompatBackend {
     cfg: OaiCompatConfig,
     client: Client<Arc<dyn Config>>,
@@ -157,19 +152,15 @@ impl OaiCompatBackend {
 }
 
 /// 传输层错误 → 语义错误。
-///
-/// 映射必须在这里：只有本后端知道自己的 HTTP status 语义、错误体形状、
-/// `insufficient_quota` 这类 provider 专有标记。
-///
-/// 几个刻意的判定：
-/// - `401/403 → Auth`、`429 + insufficient_quota → Quota`、其余 `429 → RateLimited`；
-/// - `400/404/405/409/422 → BadRequest`（重发无用，提示调用方改配置）；
-/// - 5xx 与**无法从前缀判断**的状态码分开处理：前者是 `ServerError`（可重试），
-///   后者归 `Decode`（不猜语义）；
-/// - 非 OpenAI 形状的错误体（如反代返回 HTML）会落到 `JSONDeserialize`，
-///   **HTTP status 在这一路径上已丢失**，因此只能归 `Decode`——错误信息里带上原始 body 片段。
-///
-/// 调用方：`ChatBackend::complete`/`stream` 的 `map_err`，以及 [`ChunkState::next_event`]。
+// 映射必须在这里：只有本后端知道自己的 HTTP status 语义、错误体形状、`insufficient_quota`
+// 这类 provider 专有标记。
+//
+// 几个刻意的判定：
+// - `401/403 → Auth`、`429 + insufficient_quota → Quota`、其余 `429 → RateLimited`；
+// - `400/404/405/409/422 → BadRequest`（重发无用，提示调用方改配置）；
+// - 5xx 与**无法从前缀判断**的状态码分开处理：前者是 `ServerError`（可重试），后者归 `Decode`；
+// - 非 OpenAI 形状的错误体（如反代返回 HTML）会落到 `JSONDeserialize`，**HTTP status 在这一路径上
+//   已丢失**，因此只能归 `Decode`——错误信息里带上原始 body 片段。
 pub(super) fn classify_error(backend: &str, error: OpenAIError) -> LlmError {
     match error {
         OpenAIError::Reqwest(error) => {
@@ -299,18 +290,16 @@ impl ChatBackend for OaiCompatBackend {
     }
 }
 
-/// 流式 chunk 的解析状态机。
-///
-/// 输入是 async-openai 已经反序列化好的 `OaiChunk` 流，输出是语义 [`StreamEvent`]。
-///
-/// 两个刻意的判定（都直接关系到"内容会不会被静默损坏"）：
-/// - **已产出内容后再出错** → 统一改写成 [`LlmError::stream_interrupted`] 并带上已产出文本，
-///   从而 [`LlmError::is_retryable`] 为假，**不可能被静默重放**；
-/// - **没有任何内容、也没有 `finish_reason` 就结束** → 判定为中断（可重试），
-///   而不是伪造一个空结果。
-///
-/// `[DONE]` 与"连接正常关闭"在 async-openai 层不可区分（都表现为流结束）；
-/// 有内容但缺 `finish_reason` 时保留内容并把 `stop` 标为 `Unknown`，同时记 warn。
+// 流式 chunk 的解析状态机：输入是 async-openai 已经反序列化好的 `OaiChunk` 流，输出是
+// 语义 `StreamEvent`。
+//
+// 两个刻意的判定（都直接关系到"内容会不会被静默损坏"）：
+// - 已产出内容后再出错 → 统一改写成 `LlmError::stream_interrupted` 并带上已产出文本，
+//   从而 `LlmError::is_retryable` 为假，不可能被静默重放；
+// - 没有任何内容、也没有 `finish_reason` 就结束 → 判定为中断（可重试），而不是伪造空结果。
+//
+// `[DONE]` 与"连接正常关闭"在 async-openai 层不可区分（都表现为流结束）；有内容但缺
+// `finish_reason` 时保留内容并把 `stop` 标为 `Unknown`，同时记 warn。
 struct ChunkState {
     inner: Pin<Box<dyn futures::Stream<Item = Result<OaiChunk, OpenAIError>> + Send>>,
     backend: String,

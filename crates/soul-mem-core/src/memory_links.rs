@@ -1,12 +1,8 @@
 //! 记忆之间的有向边。
 //!
-//! `MemoryNote::links()` 是该节点的完整出边集：`runtime::upsert_notes` 会在同一事务内重建全部出边，
-//! 只填部分边会静默丢弃其余边。
-//!
-//! # 字段可见性
-//!
-//! `intensity` / `missing_degree` 是 `pub` 字段，可直接写入越界值；节点侧对应字段是私有 + `clamp`。
-//! `#[serde(default)]` 保证老数据可反序列化，不要删。
+//! [`MemoryLink`] 描述 `from → to` 的一条记忆关联：身份（[`LinkId`]）、两端节点 id、
+//! 连接强度 `intensity`、遗忘状态，以及一个 [`MemoryLinkType`] 载荷。载荷分布与
+//! [`memory_note`](crate::memory_note) 的类型一一对应：[`situation_mem`] / [`sem_mem`] / [`proc_mem`]。
 
 use std::fmt::Display;
 

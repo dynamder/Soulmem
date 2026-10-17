@@ -1,10 +1,6 @@
-//! 本地 llama-server 的进程生命周期与调用入口。
-//!
-//! 进程管理（探活、拉起、关闭、启动超时）在本文件；HTTP 调用全部走 `soul-mem-llm`。
-//! `LlmBackend::chat` 是同步外壳，调用方必须在阻塞上下文中调用。
-//!
-//! 改 wire 形状看 `soul-mem-llm/src/oai_comp/wire.rs`；重试/超时看 `transport.rs` + `engine.rs`；
-//! trace 设 `SOULMEM_LLM_TRACE=<path>`；完整链路见 `docs/architecture/llm-layer.md`。
+// 本地 llama-server 的进程生命周期与调用入口。
+// 进程管理（探活、拉起、关闭、启动超时）在本文件；HTTP 调用全部走 `soul-mem-llm`，
+// `LlmBackend::chat` 是同步外壳，调用方必须在阻塞上下文中调用。
 
 use std::process::{Child, Command};
 use std::sync::{Arc, OnceLock};
@@ -19,7 +15,7 @@ use crate::engine::llm::backend::LlmBackend;
 /// 整次调用的总时限（120s）；本地推理超时后重发只会再等一遍。
 const TOTAL_TIMEOUT: Duration = Duration::from_secs(120);
 
-/// 固定温度；不要随手改，playtest 的既有观测结果依赖它。
+// 固定温度：playtest 的既有观测结果依赖它，不要随手改。
 const DEFAULT_TEMPERATURE: f32 = 0.7;
 
 /// 同步桥接用的全局运行时。

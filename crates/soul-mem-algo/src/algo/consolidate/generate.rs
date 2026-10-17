@@ -1,11 +1,10 @@
 //! 巩固生成：把滑动窗口摘要拆解成多条记忆节点。
 //!
-//! 流程：提示词（`generate_prompt.in`）→ **统一的 [`soul_mem_llm::LlmEngine`]** → JSON 解析
+//! 流程：提示词（`generate_prompt.in`）→ [`soul_mem_llm::LlmEngine`] → JSON 解析
 //! （[`soul_mem_llm::json::parse_json_array`]）→ `Vec<MemoryNote>`。
-//!
-//! 这里**没有**自己的重试：传输层的 429/5xx/连接与引擎层的超时/流中断已经覆盖了
-//! 重试场景，再套一层会让两层互相放大且不进 trace。完整链路见
-//! `docs/architecture/llm-layer.md`。
+
+// 这里刻意不加重试：传输层（429/5xx/连接）与引擎层（超时/流中断）已经覆盖，再套一层会让两层
+// 互相放大且不进 trace。完整链路见 `docs/architecture/llm-layer.md`。
 
 use chrono::Utc;
 use serde::Deserialize;

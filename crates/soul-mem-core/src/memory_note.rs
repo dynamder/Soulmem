@@ -1,12 +1,16 @@
-//! 记忆节点：公共外壳 + 类型特定载荷（`situation_mem` / `sem_mem` / `proc_mem`）。
+//! 记忆节点：公共外壳 + 类型特定载荷。
 //!
-//! # 不变量
+//! [`MemoryNote`] 是所有记忆节点的统一形态：身份（[`MemoryId`]）、标签、访问统计、出边
+//! `Vec<MemoryLink>`、遗忘状态，以及一个 [`MemoryType`] 载荷。载荷位置：
 //!
-//! - `missing_degree` 私有，只能经 `set_missing_degree` 写入并 `clamp(0.0, 1.0)`；不要改成 `pub`。
-//! - `missing_degree` / `last_forget_time` 的 `#[serde(default)]` 保证老数据可反序列化，不要删。
-//! - `MemoryNoteBuilder::build()` 返回 `Result`；`MemoryLinkBuilder::build()` 返回裸值，别照抄。
+//! | 变体 | 载荷 |
+//! |---|---|
+//! | `MemoryType::Situation` | [`situation_mem`]（含 [`situation_mem::Context`]：位置 / 参与者 / 情感 / 感官 / 背景） |
+//! | `MemoryType::Semantic` | [`sem_mem`]（概念内容、别名、描述、`ConceptType`） |
+//! | `MemoryType::Procedure` | [`proc_mem`]（**尚无实际字段，仅占位**） |
 //!
-//! 对外输出用 [`crate::render::Render`]，不要直接序列化本类型。
+//! 构造用 `MemoryNoteBuilder`（`build()` 返回 `Result`）。对外输出用 [`crate::render::Render`]，
+//! 不要直接序列化本类型。
 
 use std::fmt::Display;
 

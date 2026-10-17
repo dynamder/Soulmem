@@ -2,11 +2,6 @@
 //!
 //! 我们提供栈，async-openai 把请求推进最内层 `ReqwestService::call`；HTTP 请求实际在那里发出。
 //! 本模块只决定“是否重试、等多久”，不解析响应体。
-//!
-//! - 用 `SimpleRetryPolicy` 而非 `OpenAIRetryLayer`：需要把重试次数上报 trace；代价是无法区分
-//!   429 限流与配额耗尽，后者也会被重试到预算耗尽。
-//! - **不装 tower timeout**：整体/首字节时限由后端用 `tokio::time::timeout` 包住 body 读取。
-//! - 内层是唯一能读 `Retry-After` 的位置。
 
 use super::config::OaiCompatConfig;
 use crate::ctx;
@@ -175,9 +170,8 @@ fn response_retry_after(result: &Result<reqwest::Response, OpenAIError>) -> Opti
 }
 
 /// 只解析 `Retry-After` 的"秒数"形式。
-///
-/// RFC 7231 也允许 HTTP-date 形式，本项目不处理：遇到时回退到指数退避（安全的一侧），
-/// 而不是猜一个时间戳。
+// RFC 7231 也允许 HTTP-date 形式，本项目不处理：遇到时回退到指数退避（安全的一侧），
+// 而不是猜一个时间戳。
 fn parse_retry_after(raw: &str) -> Option<Duration> {
     raw.trim().parse::<u64>().ok().map(Duration::from_secs)
 }
@@ -200,11 +194,7 @@ pub(super) fn build_http_client(cfg: &OaiCompatConfig) -> Result<reqwest::Client
 
 /// 装配 `Client` + tower 栈（重试 → 实际发送）。
 ///
-/// 返回的 `Client` 交给 [`super::backend::OaiCompatBackend`] 持有；async-openai 之后会把
-/// 每个请求推进这个栈的最内层（`ReqwestService`），**HTTP 请求在那里才真正发出**。
-///
-/// 注意**没有**在这里放超时层：整调用总时限与流式首字节时限由后端用
-/// `tokio::time::timeout` 包在响应体读取之外，因为传输层看不到 body 阶段。
+/// async-openai 之后会把每个请求推进这个栈的最内层（`ReqwestService`），HTTP 请求在那里才真正发出。
 pub(super) fn build_client(
     cfg: &OaiCompatConfig,
     provider: Arc<dyn Config>,
