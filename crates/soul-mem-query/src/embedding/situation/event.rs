@@ -24,44 +24,44 @@ impl EventEmbedding {
         &self.target
     }
     pub fn weight_pooling(events: &[EventEmbedding]) -> EmbeddingCalcResult<Option<Self>> {
-        if events.is_empty() {
+        let Some(first) = events.first() else {
             return Ok(None);
-        }
+        };
         let intensity_sum = events.iter().map(|e| e.intensity).sum::<f32>();
         //intensity_sum为0时0/0会产生NaN，直接报错，防止NaN污染后续检索
         if intensity_sum == 0.0 {
             return Err(EmbeddingCalcError::InvalidNumValue);
         }
-        let len = events[0].action.shape();
-        if !events.iter().all(|vec| vec.action.shape() == len) {
-            return Err(EmbeddingCalcError::ShapeMismatch);
-        }
-        let fused_action = events.iter().fold(vec![0.0; len], |acc, vec| {
-            acc.iter()
-                .zip(vec.action.iter())
-                .map(|(&a, &b)| a + b * vec.intensity / intensity_sum)
-                .collect()
-        });
-        let fused_initiator = events.iter().fold(vec![0.0; len], |acc, vec| {
-            acc.iter()
-                .zip(vec.initiator.iter())
-                .map(|(&a, &b)| a + b * vec.intensity / intensity_sum)
-                .collect()
-        });
-        let fused_target = events.iter().fold(vec![0.0; len], |acc, vec| {
-            acc.iter()
-                .zip(vec.target.iter())
-                .map(|(&a, &b)| a + b * vec.intensity / intensity_sum)
-                .collect()
-        });
 
         Ok(Some(EventEmbedding {
-            action: EmbeddingVec::new(fused_action),
+            action: weighted_pool(events, first.action.shape(), intensity_sum, |e| &e.action)?,
+            initiator: weighted_pool(events, first.initiator.shape(), intensity_sum, |e| {
+                &e.initiator
+            })?,
+            target: weighted_pool(events, first.target.shape(), intensity_sum, |e| &e.target)?,
             intensity: intensity_sum,
-            initiator: EmbeddingVec::new(fused_initiator),
-            target: EmbeddingVec::new(fused_target),
         }))
     }
+}
+
+/// 同一字段在所有事件里的维度必须一致；不同字段之间不要求一致。
+fn weighted_pool(
+    events: &[EventEmbedding],
+    len: usize,
+    intensity_sum: f32,
+    field: impl Fn(&EventEmbedding) -> &EmbeddingVec,
+) -> EmbeddingCalcResult<EmbeddingVec> {
+    if events.iter().any(|event| field(event).shape() != len) {
+        return Err(EmbeddingCalcError::ShapeMismatch);
+    }
+    let mut pooled = vec![0.0f32; len];
+    for event in events {
+        let weight = event.intensity / intensity_sum;
+        for (acc, value) in pooled.iter_mut().zip(field(event).iter()) {
+            *acc += value * weight;
+        }
+    }
+    Ok(EmbeddingVec::new(pooled))
 }
 #[cfg(test)]
 impl EventEmbedding {
@@ -258,6 +258,38 @@ mod tests {
     fn test_event_weight_pooling_shape_mismatch() {
         let e1 = embed_event(vec![1.0], vec![1.0], vec![1.0], 1.0);
         let e2 = embed_event(vec![1.0, 2.0], vec![1.0], vec![1.0], 1.0);
+        assert!(matches!(
+            EventEmbedding::weight_pooling(&[e1, e2]),
+            Err(EmbeddingCalcError::ShapeMismatch)
+        ));
+    }
+
+    #[test]
+    fn test_event_weight_pooling_allows_different_field_lengths() {
+        // 字段之间的维度互不相等是合法的：各自按自己的长度池化
+        let e1 = embed_event(vec![1.0, 2.0], vec![3.0, 4.0, 5.0], vec![6.0], 1.0);
+        let e2 = embed_event(vec![7.0, 8.0], vec![9.0, 10.0, 11.0], vec![12.0], 1.0);
+        let pooled = EventEmbedding::weight_pooling(&[e1, e2]).unwrap().unwrap();
+        assert_eq!(pooled.action.shape(), 2);
+        assert_eq!(pooled.initiator.shape(), 3);
+        assert_eq!(pooled.target.shape(), 1);
+        assert_close(pooled.initiator.iter().copied().collect::<Vec<_>>()[2], 8.0);
+    }
+
+    #[test]
+    fn test_event_weight_pooling_rejects_initiator_length_mismatch() {
+        let e1 = embed_event(vec![1.0], vec![1.0, 2.0], vec![1.0], 1.0);
+        let e2 = embed_event(vec![1.0], vec![1.0], vec![1.0], 1.0);
+        assert!(matches!(
+            EventEmbedding::weight_pooling(&[e1, e2]),
+            Err(EmbeddingCalcError::ShapeMismatch)
+        ));
+    }
+
+    #[test]
+    fn test_event_weight_pooling_rejects_target_length_mismatch() {
+        let e1 = embed_event(vec![1.0], vec![1.0], vec![1.0, 2.0], 1.0);
+        let e2 = embed_event(vec![1.0], vec![1.0], vec![1.0], 1.0);
         assert!(matches!(
             EventEmbedding::weight_pooling(&[e1, e2]),
             Err(EmbeddingCalcError::ShapeMismatch)
