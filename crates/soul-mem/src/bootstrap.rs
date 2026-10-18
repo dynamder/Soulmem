@@ -58,6 +58,7 @@ pub async fn bootstrap(config: Arc<Config>) -> ServiceResult<Bootstrap> {
     let model: Arc<dyn EmbeddingModel + Send + Sync> = Arc::new(build_embedding_model().await?);
     let jieba = Jieba::new();
     let working_memory = Arc::new(WorkingMemory::new(config.window_capacity));
+    let retrieval_pool = Arc::new(build_retrieval_pool()?);
 
     let (events, _receiver) = broadcast::channel(EVENT_CHANNEL_CAPACITY);
     let service = MemoryService::new(
@@ -69,9 +70,26 @@ pub async fn bootstrap(config: Arc<Config>) -> ServiceResult<Bootstrap> {
         jieba,
         events.clone(),
         llm_available,
+        retrieval_pool,
     );
 
     Ok(Bootstrap { service, events })
+}
+
+/// 检索并行池：`num_threads = 核数 - 1`（至少 1），线程名固定以便观测。
+///
+/// 池在引导时构建一次并注入服务核心；一次检索批次内的并行只读都落在这个池上。
+fn build_retrieval_pool() -> ServiceResult<rayon::ThreadPool> {
+    let workers = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(2)
+        .saturating_sub(1)
+        .max(1);
+    rayon::ThreadPoolBuilder::new()
+        .num_threads(workers)
+        .thread_name(|index| format!("soulmem-retrieve-{index}"))
+        .build()
+        .map_err(|error| ServiceError::Internal(format!("构造检索线程池失败: {error}")))
 }
 
 /// 从环境变量构造远程 LLM 引擎；缺失配置时返回恒错后端。

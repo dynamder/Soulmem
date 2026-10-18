@@ -1,10 +1,11 @@
 //! 服务核心：串行命令循环与各用例实现。
 //!
-//! 服务持有唯一的 `WorkingMemory`，所有请求经命令通道**串行**处理，因此工作记忆
-//! 永不被并发改写。一次请求按 `docs/architecture/orchestration.md` 处理：
+//! 服务持有唯一的 `WorkingMemory`，所有请求经命令通道**串行**处理；检索批次内部
+//! 并行只读，写回仍串行，因此工作记忆永不被并发改写。一次请求按
+//! `docs/architecture/orchestration.md` 处理：
 //!
 //! 1. 信息增量：逐条压入滑动窗口（可能触发摘要）；
-//! 2. 检索：query 集合逐条跑 `DefaultPipeline`，按 priority 加权合并，取 top-k
+//! 2. 检索：query 集合并行跑 `DefaultPipeline`，按 priority 加权合并，取 top-k
 //!    并渲染成一段自然语言（命中节点渲染后从工作记忆移出，DB 中仍有权威副本）；
 //!    命中节点在取出时执行**惰性遗忘**（刷新缺失度，必要时遮罩 + LLM 补全）；
 //! 3. 控制信号：巩固 / 持久化 / 快照 / 暂停 / 恢复 / 维护 / 遗忘衰减。
@@ -12,14 +13,11 @@
 //! 三部分可同时出现在一条请求里；任一步失败都只记录首个错误，其余步骤继续执行，
 //! 响应里带回已经发生的变化（`accepted` / `state`）。
 //!
-//! ## 所有权：`WorkingMemory` 归服务独占
+//! ## 并发与所有权
 //!
-//! 检索管线要求 `Arc<WorkingMemory>`（见 `DefaultPipelineConfig::into_request`），所以
-//! 服务以 `Arc` 持有它，但**全进程只有服务持有这份 Arc**：每次检索只在调用点临时
-//! `Arc::clone`，管线同步返回后引用即释放。因此需要可变访问时（状态迁移、活跃记录
-//! 更新、入簇），可在这些边界上用 [`Arc::get_mut`] 取到唯一可变引用。`get_mut` 返回
-//! `None` 属不可达情形，此时只记一条 `tracing::error!` 并跳过该次状态变更，不 panic
-//! （见 `AGENTS.md` §4）。
+//! `WorkingMemory` 内部可变（见 `soul-mem-runtime`），因此检索批次的多个 query 可以
+//! 同时持有 `Arc<WorkingMemory>` 并行**只读**。并行批次 join 之后，才在命令循环线程上
+//! 串行完成写回（活跃记录、出簇、惰性遗忘）；跨请求的串行保证不变。
 
 use std::collections::HashSet;
 use std::sync::Arc;
@@ -27,6 +25,8 @@ use std::time::{Duration, Instant};
 
 use chrono::{DateTime, Utc};
 use jieba_rs::Jieba;
+use rayon::ThreadPool;
+use rayon::prelude::*;
 use tokio::sync::{broadcast, mpsc, oneshot};
 
 use soul_mem_algo::algo::consolidate::generate::generate_memories_from_summary;
@@ -101,6 +101,8 @@ pub struct MemoryService {
     repo: Arc<dyn MemoryRepository>,
     llm: Arc<LlmEngine>,
     model: Arc<dyn EmbeddingModel + Send + Sync>,
+    /// 检索批次的并行只读池（引导时构建一次）。
+    pool: Arc<ThreadPool>,
     /// 分词器：惰性遗忘的遮罩（`mask_text`）需要。
     jieba: Jieba,
     pipeline: DefaultPipelineConfig,
@@ -128,6 +130,7 @@ impl MemoryService {
         jieba: Jieba,
         events: broadcast::Sender<ServiceEvent>,
         llm_available: bool,
+        pool: Arc<ThreadPool>,
     ) -> Self {
         let pipeline = DefaultPipelineConfig {
             short_mem_with_history: ShortOnlyConfig {
@@ -149,6 +152,7 @@ impl MemoryService {
             repo,
             llm,
             model,
+            pool,
             jieba,
             pipeline,
             paused: false,
@@ -166,7 +170,7 @@ impl MemoryService {
         let has_activity = !request.deltas.is_empty() || !request.queries.is_empty();
         if has_activity {
             self.last_activity = Instant::now();
-            self.with_wm(|wm| wm.transition_to_working());
+            self.wm.transition_to_working();
         }
 
         let mut first_error: Option<ServiceError> = None;
@@ -254,13 +258,8 @@ impl MemoryService {
         &mut self,
         queries: &[PrioritizedMemoryRetrieveQuery],
     ) -> ServiceResult<RetrieveOutcome> {
-        // 1) 嵌入全部 query（阻塞线程池）。
-        let mut embedded: Vec<(u32, EmbeddedMemoryRetrieveQuery)> =
-            Vec::with_capacity(queries.len());
-        for query in queries {
-            let fused = self.embed_query(query).await?;
-            embedded.push((query.priority(), fused));
-        }
+        // 1) 整批嵌入 query：一次派发到阻塞线程池，在专用 rayon 池上并行。
+        let embedded = self.embed_queries(queries).await?;
 
         // 2) 一次数据库预取（覆盖所有 query 的 embedding）。
         let prefetch: Vec<EmbeddedMemoryRetrieveQuery> =
@@ -273,19 +272,8 @@ impl MemoryService {
         )
         .await?;
 
-        // 3) 逐 query 跑管线（仅在此处临时共享 Arc）。，
-        // 放进阻塞线程池执行，避免占住 tokio worker（也避免 rayon 与异步运行时互等）。
-        let mut results: Vec<DefaultPipelineResult> = Vec::with_capacity(embedded.len());
-        for (priority, fused) in embedded {
-            let request = self
-                .pipeline
-                .clone()
-                .into_request(Arc::clone(&self.wm), fused, priority);
-            let result = tokio::task::spawn_blocking(move || RetrDefaultPipeline.retrieve(request))
-                .await
-                .map_err(|error| ServiceError::Internal(format!("检索管线任务失败: {error}")))?;
-            results.push(result);
-        }
+        // 3) 整批跑管线：并行只读工作记忆；join 后再串行落写。
+        let results = self.run_pipelines(embedded).await?;
 
         // 4) 按 priority 加权合并记忆。
         let merged_memories = merge::merge_scored(
@@ -296,11 +284,9 @@ impl MemoryService {
         );
 
         // 5) 记录命中（供巩固建链与后续频次统计）。
-        self.with_wm(|wm| {
-            for (id, _) in &merged_memories {
-                wm.record_retrieval(*id);
-            }
-        });
+        for (id, _) in &merged_memories {
+            self.wm.record_retrieval(*id);
+        }
 
         // 6) 取短记忆（同一工作记忆，任取非空）。
         let short_mem = results
@@ -363,16 +349,71 @@ impl MemoryService {
         Ok(RetrieveOutcome { text, memories })
     }
 
-    /// 在阻塞线程池里生成查询嵌入。
-    async fn embed_query(
+    /// 整批生成查询嵌入：一次 `spawn_blocking`，在专用 rayon 池上并行。
+    ///
+    /// 任一条查询嵌入失败即整批失败——与逐条串行版的行为一致。失败时按下标 +
+    /// priority 记录日志，并用 `Debug` 保留 `EmbeddingGenError` 的 variant 与 cause。
+    async fn embed_queries(
         &self,
-        query: &PrioritizedMemoryRetrieveQuery,
-    ) -> ServiceResult<EmbeddedMemoryRetrieveQuery> {
-        let owned = query.query().clone();
-        self.spawn_embed("查询嵌入", move |model| {
-            owned.embed_and_fuse(model.as_ref())
+        queries: &[PrioritizedMemoryRetrieveQuery],
+    ) -> ServiceResult<Vec<(u32, EmbeddedMemoryRetrieveQuery)>> {
+        let model = Arc::clone(&self.model);
+        let pool = Arc::clone(&self.pool);
+        let queries = queries.to_vec();
+        let embedded = tokio::task::spawn_blocking(move || {
+            pool.install(|| {
+                queries
+                    .into_par_iter()
+                    .map(|query| {
+                        let priority = query.priority();
+                        query
+                            .downgrade()
+                            .embed_and_fuse(model.as_ref())
+                            .map(|fused| (priority, fused))
+                            .map_err(|error| (priority, error))
+                    })
+                    .collect::<Vec<_>>()
+            })
         })
         .await
+        .map_err(|error| ServiceError::Internal(format!("查询嵌入任务失败: {error}")))?;
+        embedded
+            .into_iter()
+            .enumerate()
+            .map(|(index, result)| result.map_err(|(priority, error)| (index, priority, error)))
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|(index, priority, error)| {
+                tracing::warn!(index, priority, error = ?error, "查询嵌入失败");
+                ServiceError::Embedding(error.to_string())
+            })
+    }
+
+    /// 整批执行检索管线：一次 `spawn_blocking`，在专用 rayon 池上并行。
+    ///
+    /// 管线只读工作记忆；命中记录、出簇与惰性遗忘由调用方在 join 后串行完成。
+    async fn run_pipelines(
+        &self,
+        embedded: Vec<(u32, EmbeddedMemoryRetrieveQuery)>,
+    ) -> ServiceResult<Vec<DefaultPipelineResult>> {
+        let pipeline = self.pipeline.clone();
+        let wm = Arc::clone(&self.wm);
+        let pool = Arc::clone(&self.pool);
+        tokio::task::spawn_blocking(move || {
+            pool.install(|| {
+                embedded
+                    .into_par_iter()
+                    .map(|(priority, fused)| {
+                        let request =
+                            pipeline
+                                .clone()
+                                .into_request(Arc::clone(&wm), fused, priority);
+                        RetrDefaultPipeline.retrieve(request)
+                    })
+                    .collect::<Vec<_>>()
+            })
+        })
+        .await
+        .map_err(|error| ServiceError::Internal(format!("检索管线任务失败: {error}")))
     }
 
     /// 在阻塞线程池里生成记忆节点嵌入。
@@ -464,7 +505,7 @@ impl MemoryService {
         if self.last_activity.elapsed() < Duration::from_secs(self.config.idle_quiet_secs) {
             return Ok(());
         }
-        self.with_wm(|wm| wm.transition_to_idle());
+        self.wm.transition_to_idle();
         if !self.wm.sliding_window().get_summary().trim().is_empty() {
             let created = self.consolidate().await?;
             tracing::info!(created, "定时巩固完成");
@@ -550,11 +591,9 @@ impl MemoryService {
         self.clear_summary();
 
         // 入簇（同时注册活跃记录）。
-        self.with_wm(|wm| {
-            for node in embedded_notes {
-                wm.add_node(node);
-            }
-        });
+        for node in embedded_notes {
+            self.wm.add_node(node);
+        }
 
         // 让簇内的活跃节点也带上 `活跃 -> 新` 出边（复用同一批 LinkId）。
         let cluster = self.wm.memory_cluster();
@@ -675,19 +714,6 @@ impl MemoryService {
             last_consolidation_at: self.last_consolidation_at,
         }
     }
-
-    /// 取 `WorkingMemory` 的唯一可变引用并执行闭包。
-    ///
-    /// 只有在存在未释放的共享引用时才会失败——按本文档开头的分析，那属不可达情形。
-    fn with_wm<R>(&mut self, f: impl FnOnce(&mut WorkingMemory) -> R) -> Option<R> {
-        match Arc::get_mut(&mut self.wm) {
-            Some(wm) => Some(f(wm)),
-            None => {
-                tracing::error!("工作记忆存在未释放的共享引用，跳过本次状态变更");
-                None
-            }
-        }
-    }
 }
 
 /// 面向适配器的服务句柄：投递命令并等待结果。
@@ -751,9 +777,20 @@ mod tests {
 
     use async_trait::async_trait;
     use soul_mem_core::memory_links::LinkId;
+    use soul_mem_core::memory_note::sem_mem::{ConceptType, SemMemory};
+    use soul_mem_core::memory_note::{MemoryNoteBuilder, MemoryType};
     use soul_mem_llm::{BackendInfo, ChatBackend, Completion, EventStream, LlmError, Task};
+    use soul_mem_query::embedding::note::{
+        EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
+    };
     use soul_mem_query::embedding::query::note::MemoryRetrieveQueryEmbedding;
-    use soul_mem_query::embedding::{EmbeddingGenResult, EmbeddingModel, EmbeddingVec};
+    use soul_mem_query::embedding::sem::SemanticEmbedding;
+    use soul_mem_query::embedding::{
+        EmbeddingGenError, EmbeddingGenResult, EmbeddingModel, EmbeddingVec,
+    };
+    use soul_mem_query::query::retrieve::{
+        MemoryRetrieveQuery, MemoryRetrieveQueryVariant, SemanticQueryUnit,
+    };
     use soul_mem_runtime::storage::{MemoryRepository, StorageError, StorageResult};
 
     use super::*;
@@ -835,6 +872,64 @@ mod tests {
         }
     }
 
+    /// 按文本产出确定性单位向量的模型：查询侧 tag / variant 两条路径都覆写，
+    /// passage 侧返回哨兵向量，用来证明查询走的是 query 接口而非 passage 接口。
+    struct ScriptedModel {
+        /// 命中该文本时返回错误，用于验证批量中单条失败会让整批失败。
+        fail_on: Option<&'static str>,
+    }
+
+    impl ScriptedModel {
+        fn new() -> Self {
+            Self { fail_on: None }
+        }
+
+        fn failing_on(text: &'static str) -> Self {
+            Self {
+                fail_on: Some(text),
+            }
+        }
+
+        fn encode(&self, text: &str) -> EmbeddingGenResult<EmbeddingVec> {
+            if self.fail_on == Some(text) {
+                return Err(EmbeddingGenError::InvalidInput);
+            }
+            let index = match text {
+                "b" => 1,
+                "c" => 2,
+                _ => 0,
+            };
+            Ok(unit(index))
+        }
+    }
+
+    impl EmbeddingModel for ScriptedModel {
+        fn infer_batch(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>> {
+            input.iter().map(|text| self.encode(text)).collect()
+        }
+
+        fn infer_with_chunk(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec> {
+            self.encode(input)
+        }
+
+        fn infer_and_fuse(&self, _input: &[&str]) -> EmbeddingGenResult<EmbeddingVec> {
+            // passage 侧哨兵：查询路径若误用本接口，断言会立即失败。
+            Ok(unit(3))
+        }
+
+        fn infer_query_and_fuse(&self, input: &[&str]) -> EmbeddingGenResult<EmbeddingVec> {
+            self.encode(input.first().copied().unwrap_or(""))
+        }
+
+        fn max_input_token(&self) -> usize {
+            512
+        }
+
+        fn dim(&self) -> usize {
+            4
+        }
+    }
+
     /// 恒返回一条语义记忆的假 LLM。
     struct FakeLlm;
 
@@ -874,17 +969,83 @@ mod tests {
     }
 
     fn build_service(repo: Arc<FakeRepo>) -> MemoryService {
+        build_service_with_model(repo, Arc::new(FakeModel))
+    }
+
+    fn build_service_with_model(
+        repo: Arc<FakeRepo>,
+        model: Arc<dyn EmbeddingModel + Send + Sync>,
+    ) -> MemoryService {
         let events = broadcast::channel(8).0;
+        let pool = Arc::new(
+            rayon::ThreadPoolBuilder::new()
+                .num_threads(2)
+                .build()
+                .expect("测试线程池"),
+        );
         MemoryService::new(
             Arc::new(test_config()),
             Arc::new(WorkingMemory::new(20)),
             repo,
             Arc::new(LlmEngine::new(Arc::new(FakeLlm))),
-            Arc::new(FakeModel),
+            model,
             jieba_rs::Jieba::new(),
             events,
             true,
+            pool,
         )
+    }
+
+    /// 4 维单位向量：第 `index` 个分量为 1，其余为 0。
+    fn unit(index: usize) -> EmbeddingVec {
+        let mut values = vec![0.0f32; 4];
+        values[index] = 1.0;
+        EmbeddingVec::new(values)
+    }
+
+    /// 往工作记忆簇里放一条语义记忆，tag 与 concept 向量分开给出。
+    fn seed_note(
+        service: &MemoryService,
+        id: MemoryId,
+        content: &str,
+        tag: EmbeddingVec,
+        concept: EmbeddingVec,
+    ) {
+        let note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+            content: content.to_string(),
+            aliases: vec![],
+            concept_type: ConceptType::Entity,
+            description: String::new(),
+        }))
+        .id(id)
+        .build()
+        .expect("构造记忆节点");
+        let embedding = MemoryEmbedding::new(
+            tag,
+            MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                concept,
+                EmbeddingVec::zero(4),
+                EmbeddingVec::zero(4),
+            )),
+        );
+        service.wm.memory_cluster().write(|cluster| {
+            cluster.add_single_node(EmbeddedMemoryNote { note, embedding });
+        });
+    }
+
+    /// 构造一条带 tag 与 concept 的语义 query。
+    fn prioritized_query(
+        priority: u32,
+        tag: &str,
+        concept: &str,
+    ) -> PrioritizedMemoryRetrieveQuery {
+        MemoryRetrieveQuery::new(
+            vec![tag.to_string()],
+            MemoryRetrieveQueryVariant::Semantic(vec![
+                SemanticQueryUnit::new().with_concept_identifier(concept.to_string()),
+            ]),
+        )
+        .with_priority(priority)
     }
 
     fn delta(text: &str) -> Delta {
@@ -981,7 +1142,7 @@ mod tests {
     async fn maintenance_goes_idle_after_quiet_period() {
         let repo = Arc::new(FakeRepo::default());
         let mut service = build_service(repo);
-        service.with_wm(|wm| wm.transition_to_working());
+        service.wm.transition_to_working();
         service.last_activity = Instant::now() - Duration::from_secs(10);
         service.maintenance().await.expect("维护应成功");
         assert!(!service.wm.is_working());
@@ -991,9 +1152,129 @@ mod tests {
     async fn maintenance_skips_when_recent_activity() {
         let repo = Arc::new(FakeRepo::default());
         let mut service = build_service(repo);
-        service.with_wm(|wm| wm.transition_to_working());
+        service.wm.transition_to_working();
         service.last_activity = Instant::now();
         service.maintenance().await.expect("维护应成功");
         assert!(service.wm.is_working());
+    }
+
+    /// 并行批次必须保序，且 tag 走 `infer_query_and_fuse`（而非 passage 的 `infer_and_fuse`）。
+    #[tokio::test]
+    async fn embed_queries_uses_query_side_and_preserves_order() {
+        let repo = Arc::new(FakeRepo::default());
+        let service = build_service_with_model(repo, Arc::new(ScriptedModel::new()));
+        let queries = vec![
+            prioritized_query(7, "c", "c"),
+            prioritized_query(1, "a", "a"),
+            prioritized_query(3, "b", "b"),
+        ];
+
+        let embedded = service.embed_queries(&queries).await.expect("嵌入应成功");
+        let priorities: Vec<u32> = embedded.iter().map(|(priority, _)| *priority).collect();
+        assert_eq!(priorities, vec![7, 1, 3], "并行嵌入必须保持输入顺序");
+        let tags: Vec<EmbeddingVec> = embedded
+            .iter()
+            .map(|(_, fused)| fused.embedding.tag().clone())
+            .collect();
+        assert_eq!(tags, vec![unit(2), unit(0), unit(1)]);
+
+        let results = service.run_pipelines(embedded).await.expect("管线应成功");
+        let priorities: Vec<u32> = results.iter().map(|result| result.priority).collect();
+        assert_eq!(priorities, vec![7, 1, 3], "并行管线必须保持输入顺序");
+    }
+
+    #[tokio::test]
+    async fn retrieve_matches_seeded_note_end_to_end() {
+        let repo = Arc::new(FakeRepo::default());
+        let mut service = build_service_with_model(repo, Arc::new(ScriptedModel::new()));
+        let id = MemoryId::new();
+        seed_note(&service, id, "a", unit(0), unit(0));
+
+        let response = service
+            .handle_exchange(ServiceRequest {
+                queries: vec![prioritized_query(1, "a", "a")],
+                ..ServiceRequest::default()
+            })
+            .await;
+
+        assert!(
+            response.error.is_none(),
+            "检索不应报错: {:?}",
+            response.error
+        );
+        assert_eq!(response.memories.len(), 1, "应命中预置节点");
+        assert_eq!(response.memories[0].content, "a");
+        assert!(
+            response
+                .output
+                .as_deref()
+                .is_some_and(|text| !text.trim().is_empty()),
+            "应渲染出非空输出"
+        );
+        // 命中节点已从工作记忆移出（DB 中仍有权威副本）。
+        assert_eq!(
+            service
+                .wm
+                .memory_cluster()
+                .read_or_compute(|cluster| cluster.graph().node_count()),
+            0
+        );
+    }
+
+    #[tokio::test]
+    async fn retrieve_batch_fails_when_any_query_embedding_fails() {
+        let repo = Arc::new(FakeRepo::default());
+        let mut service =
+            build_service_with_model(repo, Arc::new(ScriptedModel::failing_on("boom")));
+
+        let response = service
+            .handle_exchange(ServiceRequest {
+                queries: vec![
+                    prioritized_query(1, "a", "a"),
+                    prioritized_query(1, "boom", "boom"),
+                ],
+                ..ServiceRequest::default()
+            })
+            .await;
+
+        assert!(response.error.is_some(), "任一条嵌入失败应使整批失败");
+        assert!(response.memories.is_empty());
+        assert!(response.output.is_none());
+    }
+
+    #[tokio::test]
+    async fn retrieve_equal_scores_break_ties_by_memory_id() {
+        let repo = Arc::new(FakeRepo::default());
+        let mut service = build_service_with_model(repo, Arc::new(ScriptedModel::new()));
+
+        let first = MemoryId::new();
+        let second = MemoryId::new();
+        // 两个节点 embedding 完全相同 → 同分；按 id 升序兜底。
+        let (low, high, low_content, high_content) = if first < second {
+            (first, second, "first", "second")
+        } else {
+            (second, first, "second", "first")
+        };
+        seed_note(&service, low, low_content, unit(0), unit(0));
+        seed_note(&service, high, high_content, unit(0), unit(0));
+
+        let response = service
+            .handle_exchange(ServiceRequest {
+                queries: vec![prioritized_query(1, "a", "a")],
+                ..ServiceRequest::default()
+            })
+            .await;
+
+        assert!(response.error.is_none());
+        let contents: Vec<&str> = response
+            .memories
+            .iter()
+            .map(|memory| memory.content.as_str())
+            .collect();
+        assert_eq!(
+            contents,
+            vec![low_content, high_content],
+            "同分应按 MemoryId 升序"
+        );
     }
 }

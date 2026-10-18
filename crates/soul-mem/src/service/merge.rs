@@ -43,7 +43,9 @@ pub fn merge_scored<'a>(
             (id, value)
         })
         .collect();
-    merged.sort_by(|a, b| b.1.total_cmp(&a.1));
+    // 同分时按 `MemoryId` 升序兜底：否则并列项的先后随 `HashMap` 迭代顺序变化，
+    // 同一输入在不同运行间会得到不同 top-k。
+    merged.sort_by(|a, b| b.1.total_cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
     merged.truncate(top_k);
     merged
 }
@@ -93,5 +95,19 @@ mod tests {
     fn empty_input_yields_empty() {
         let merged = merge_scored(std::iter::empty(), 5);
         assert!(merged.is_empty());
+    }
+
+    #[test]
+    fn equal_scores_break_ties_by_memory_id() {
+        let a = id();
+        let b = id();
+        let (low, high) = if a < b { (a, b) } else { (b, a) };
+        // 输入刻意按 id 降序，验证同分时按 id 升序兜底。
+        let scored = vec![(high, 0.5), (low, 0.5)];
+        let ids: Vec<MemoryId> = merge_scored([(1, scored.as_slice())].into_iter(), 10)
+            .into_iter()
+            .map(|(id, _)| id)
+            .collect();
+        assert_eq!(ids, vec![low, high]);
     }
 }
