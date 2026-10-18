@@ -129,8 +129,50 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
+        with:
+          # advisory 的取舍要读 PR 改动文件，base.sha 不在默认浅克隆里。
+          fetch-depth: 0
 
-      - uses: EmbarkStudios/cargo-deny-action@v2
+      # RustSec advisory 库与 crates.io 的 yank 状态每天都会变，advisory 的结论不由某个
+      # PR 决定：dev 的锁文件落后于上游公告时，所有基于 dev 的 PR 会一起变红，而修复属于
+      # dev。所以 advisory 只在两种情况下跑：
+      #   - 非 PR（push 到 dev/main）：漂移必须在这里暴露；
+      #   - PR 改动了 Cargo.toml / Cargo.lock / deny.toml：锁文件确实由本 PR 引入。
+      # 其余 PR 只跑与上游无关的 bans / licenses / sources。日常漂移交由 `Deny drift`
+      # 的每周定时任务暴露。
+      - name: Decide whether advisories gate this run
+        id: advisories
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # 读不到改动范围时回退到跑 advisory：宁可多跑，也不要静默放行。
+          if ! changed=$(git diff --name-only "$BASE_SHA...$HEAD_SHA"); then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if printf '%s\n' "$changed" | grep -Eq '(^|/)(Cargo\.(toml|lock)|deny\.toml)$'; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: cargo-deny (bans / licenses / sources)
+        uses: EmbarkStudios/cargo-deny-action@v2
         with:
           command: check
           arguments: --workspace
+          command-arguments: bans licenses sources
+
+      - name: cargo-deny (advisories)
+        if: steps.advisories.outputs.enabled == 'true'
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check
+          arguments: --workspace
+          command-arguments: advisories

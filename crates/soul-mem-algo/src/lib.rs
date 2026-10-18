@@ -27,6 +27,12 @@
 //!   `assoc_with_action::merge_situation_sources`、`association` 里的排序截断），
 //!   且 NaN 策略不同（`total_cmp` vs `partial_cmp().unwrap_or(Equal)`）。
 //!   改"分数怎么合并"必须同时看这三处。
+//! - **动作结果不是 top-k 列表而是按类型分席**：`bayes_action::RetrBayesAction` 返回
+//!   [`algo::retrieve::bayes_action::ActionTypeSlots`]（Speak / Think / Skill 各至多一个，
+//!   贪心取组内最高分，同分按 `MemoryId` tiebreak）。动作得分只由
+//!   `TrigToAction.prob × 源权重` 决定、**与动作内容无关**，所以同类型内多个候选共享
+//!   同一批源边时分数可能完全相同，此时胜出者仅是 tiebreak 的产物。Skill 席位当前
+//!   恒空（`SkillRecord` 是空占位，组内无判别依据）。
 //! - `AssociationConfig` 的调参常数目前**只有值没有文档**（单位/含义/取值范围），
 //!   而本层质量几乎完全由这些数决定。新增或调整请照
 //!   [`algo::forget::decay_calculator`] 的风格补上说明。

@@ -5,6 +5,7 @@ use serde::Deserialize;
 
 use crate::algo::retrieve::{
     RetrRequest, RetrStrategy,
+    bayes_action::ActionTypeSlots,
     complex::{AssociateWithActionConfig, RetrAssociateWithAction},
     short_only::{RetrShortOnly, ShortOnlyConfig},
     similarity::{RetrSimilarity, SimilarityConfig},
@@ -78,7 +79,9 @@ pub struct DefaultPipelineRequest {
 
 pub struct DefaultPipelineResult {
     pub association: Vec<(MemoryId, f64)>,
-    pub action: Vec<(MemoryId, f64)>,
+    /// 动作推理结果：按 `ActionType` 每类至多一个（Speak / Think 席位；
+    /// Skill 为占位席位，当前不产出）。
+    pub action: ActionTypeSlots,
     pub short_history: Arc<[Information]>,
     pub short_mem: Arc<str>,
     pub priority: u32,
@@ -118,7 +121,7 @@ impl RetrStrategy for RetrDefaultPipeline {
 
         DefaultPipelineResult {
             association: merged_memory,
-            action: association_with_action_res.action,
+            action: association_with_action_res.slots,
             short_history: short_mem_res.0,
             short_mem: short_mem_res.1,
             priority: request.priority,
@@ -151,7 +154,7 @@ mod tests {
     use soul_mem_runtime::working_memory::sliding_window::{AssistantInformation, UserInformation};
 
     fn create_mock_working_memory_full() -> WorkingMemory {
-        let mut wm = WorkingMemory::new(10);
+        let wm = WorkingMemory::new(10);
         let cluster = wm.memory_cluster();
         let id1 = MemoryId::new();
         let id2 = MemoryId::new();
@@ -230,7 +233,7 @@ mod tests {
             });
         });
 
-        let sw = wm.sliding_window_mut();
+        let sw = wm.sliding_window();
         let window = sw.window();
         let mut guard = window.write();
         guard.push_back(Information::User(UserInformation::new("Hello")));
@@ -254,7 +257,6 @@ mod tests {
             },
             assoc_with_action: AssociateWithActionConfig {
                 association: Default::default(),
-                action_top_k: 3,
                 ..Default::default()
             },
         }
@@ -336,6 +338,15 @@ mod tests {
         assert_eq!(result.priority, 1);
         assert!(!result.short_history.is_empty());
         assert!(!result.association.is_empty());
+        // 动作按类型分席：每类至多一席，且 Skill 为占位席位（当前不产出）
+        assert!(result.action.len() <= 3);
+        assert!(
+            result
+                .action
+                .seated()
+                .iter()
+                .all(|(action_type, _)| !matches!(action_type, ActionType::Skill(_)))
+        );
 
         let assoc_scores: Vec<f64> = result.association.iter().map(|(_, s)| *s).collect();
         insta::assert_debug_snapshot!("full_pipeline_association_scores", assoc_scores);
@@ -473,7 +484,6 @@ mod tests {
             },
             assoc_with_action: AssociateWithActionConfig {
                 association: Default::default(),
-                action_top_k: 3,
                 ..Default::default()
             },
         };

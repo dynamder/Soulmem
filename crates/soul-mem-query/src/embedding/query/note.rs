@@ -108,6 +108,7 @@ impl MemoryRetrieveQueryEmbedding {
 
     /// 设置自定义 blend weights 并传播到所有子单元
     pub fn with_weights(mut self, bw: BlendWeights) -> Self {
+        let bw = bw.normalized();
         self.tag_weight = bw.tag;
         self.variant_weight = bw.variant;
         self.string_blend_alpha = bw.string_blend_alpha;

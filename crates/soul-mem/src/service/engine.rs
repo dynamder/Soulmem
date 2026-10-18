@@ -55,7 +55,7 @@ use soul_mem_query::embedding::query::note::EmbeddedMemoryRetrieveQuery;
 use soul_mem_query::query::retrieve::PrioritizedMemoryRetrieveQuery;
 use soul_mem_runtime::storage::MemoryRepository;
 use soul_mem_runtime::working_memory::WorkingMemory;
-use soul_mem_runtime::working_memory::sliding_window::{Information, Summary};
+use soul_mem_runtime::working_memory::sliding_window::{Information, PushOutcome, Summary};
 
 use super::types::{
     ControlAction, Delta, ServiceEvent, ServiceRequest, ServiceResponse, ServiceState,
@@ -66,8 +66,6 @@ use crate::error::{ServiceError, ServiceResult};
 
 /// 默认相似度兜底分。
 const SIMILARITY_THRESHOLD: f32 = 0.35;
-/// 管线内 Bayes 动作推理保留的 top-k（动作结果当前不参与输出渲染）。
-const ACTION_TOP_K: usize = 3;
 /// 抽象情境源在 Bayes 动作提取中的权重倍率。
 const ABSTRACT_SOURCE_PRIORITY: f64 = 2.0;
 /// 巩固时新节点链接到活跃节点的数量上限。
@@ -142,7 +140,6 @@ impl MemoryService {
             },
             assoc_with_action: AssociateWithActionConfig {
                 association: AssociationConfig::default(),
-                action_top_k: ACTION_TOP_K,
                 abstract_source_priority: ABSTRACT_SOURCE_PRIORITY,
             },
         };
@@ -230,17 +227,24 @@ impl MemoryService {
         } else {
             "user"
         };
-        // push 仅在超容量且队首被标记时才触发摘要 LLM；未超容量时直接 Ok。
+        // push 只入队；超过容量后由调用方 pop 队首，仅在队首带标记时触发摘要 LLM。
         // 因此 `Ok` 不蕴含"调用过 LLM"，不能据此点亮可用性标志——只在真正失败时置 false，
         // 置 true 交给启动探活与巩固（它们确定会调用 LLM）。
-        if let Err(error) = self
-            .wm
-            .sliding_window()
-            .push(&delta.statement, role, &self.llm)
-            .await
-        {
-            self.llm_available = false;
-            return Err(error.into());
+        match self.wm.sliding_window().push(&delta.statement, role) {
+            PushOutcome::Enqueued => {}
+            PushOutcome::NeedsEviction => {
+                if let Some(evicted) = self.wm.sliding_window().pop()
+                    && evicted.is_tagged()
+                    && let Err(error) = self
+                        .wm
+                        .sliding_window()
+                        .summarize(&self.llm, &evicted)
+                        .await
+                {
+                    self.llm_available = false;
+                    return Err(error.into());
+                }
+            }
         }
         Ok(())
     }
@@ -629,13 +633,13 @@ impl MemoryService {
                 .map(|node| node.note().id())
                 .collect()
         });
-        let mut entries: Vec<(MemoryId, usize)> = self
-            .wm
-            .records()
-            .iter()
-            .filter(|(id, record)| record.retrieval_count() > 0 && present.contains(id))
-            .map(|(id, record)| (*id, record.retrieval_count()))
-            .collect();
+        let mut entries: Vec<(MemoryId, usize)> = self.wm.read_records(|records| {
+            records
+                .iter()
+                .filter(|(id, record)| record.retrieval_count() > 0 && present.contains(id))
+                .map(|(id, record)| (*id, record.retrieval_count()))
+                .collect()
+        });
         entries.sort_by_key(|entry| std::cmp::Reverse(entry.1));
         entries
             .into_iter()
