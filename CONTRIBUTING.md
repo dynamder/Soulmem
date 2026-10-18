@@ -2,6 +2,9 @@
 
 感谢你愿意为 SoulMem 贡献代码、文档或想法！
 
+**协作规范以 [`docs/dev-convention.md`](docs/dev-convention.md) 为唯一权威**（分支模型、提交信息、
+推进流程、发布节奏、文档规范）；冲突以它为准。以下各节为摘要。
+
 ## 分支模型
 
 本仓库有两条长期分支。下面的规则是硬性的，它们来自一次真实的教训——`main` 曾经在无人察觉的
@@ -53,14 +56,10 @@ git worktree add ../SoulMem-book doc/book
 
 ## CI 说明
 
-- push 到 `main` / `dev`，以及所有 Pull Request，会在 Windows、Ubuntu、macOS 三平台执行编译与测试。
+- push 到 `main` / `dev`，以及所有 Pull Request，会在 Windows、Ubuntu、macOS 三平台执行编译与测试；**纯文档改动**（全部改动落在 `docs/**` 或 `*.md`）跳过测试矩阵，只跑 `Quality` 与 `Security`。
 - PR 还会按本次改动范围运行 cargo-mutants，杀灭率低于 90% 会直接失败。
 - 每周（每隔一周）自动执行一次全量 mutants，并上传报告 artifact。
 - 依赖安全由 Dependabot（自动更新 PR）和 cargo-deny（安全公告 + 许可证）把关。
-- `Deny drift` workflow 每周在 `dev` 上单独跑一次同一份 cargo-deny。上游 advisory 库
-  漂移（新增公告、crate 被 yank）时它会开 issue 并让 run 变红。**这类失败与具体 PR 无关**：
-  advisory 检查是全局的，基于 `dev` 的所有 PR 会一起红在同一个 `Security (cargo-deny)` 上，
-  所以先看 issue 正文的处理步骤，不要靠往 `deny.toml` 的 `ignore` 里塞条目让它变绿。
 
 ## 测试要求
 
@@ -72,5 +71,8 @@ git worktree add ../SoulMem-book doc/book
 
 ## 提交规范
 
-- 提交信息建议遵循 `type(scope): 描述` 的格式，例如 `fix(retrieve): 修复PPR传播截断`。
+- 提交信息**必须**遵循 Conventional Commits：`<type>(<scope>): <描述>`，其中 `type` 只能取
+  `feat` `fix` `refactor` `perf` `docs` `test` `chore` `ci` `build` `style` `revert`。
+  例：`fix(retrieve): 修复PPR传播截断`。CI 会检查本次 PR 新增提交的**首行**——完整规则见
+  [`docs/dev-convention.md`](docs/dev-convention.md) §2。
 - 保持小步提交，一个提交只做一件事。

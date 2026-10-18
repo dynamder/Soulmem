@@ -3,6 +3,15 @@ use super::*;
 use std::time::Duration;
 use tokio::time::sleep;
 
+/// 调用方的成功路径：弹出队首，带标记时再摘要。返回被弹出的消息。
+async fn evict_and_summarize(window: &SlidingWindow, engine: &LlmEngine) -> Information {
+    let evicted = window.pop().expect("队首");
+    if evicted.is_tagged() {
+        window.summarize(engine, &evicted).await.expect("摘要");
+    }
+    evicted
+}
+
 // ---------- 窗口基本行为 ----------
 
 #[tokio::test]
@@ -10,14 +19,11 @@ async fn push_and_get_keep_order_and_role() {
     let window = SlidingWindow::new(10);
     let scripted = Scripted::new(vec![]);
 
-    window
-        .push("user_info", "user", scripted.engine())
-        .await
-        .expect("push");
-    window
-        .push("assistant_info", "assistant", scripted.engine())
-        .await
-        .expect("push");
+    assert_eq!(window.push("user_info", "user"), PushOutcome::Enqueued);
+    assert_eq!(
+        window.push("assistant_info", "assistant"),
+        PushOutcome::Enqueued
+    );
 
     assert_eq!(window.get(0).expect("第 0 条").get_str(), "user_info");
     assert_eq!(window.get(1).expect("第 1 条").get_str(), "assistant_info");
@@ -27,81 +33,81 @@ async fn push_and_get_keep_order_and_role() {
 }
 
 #[tokio::test]
-async fn pop_removes_untagged_front_without_calling_llm() {
-    let window = SlidingWindow::new(10);
+async fn push_never_calls_llm_even_when_over_capacity() {
+    let window = SlidingWindow::new(1);
     let scripted = Scripted::new(vec![]);
 
-    window
-        .push("user_info", "user", scripted.engine())
-        .await
-        .expect("push");
-    window
-        .push("assistant_info", "assistant", scripted.engine())
-        .await
-        .expect("push");
-    window.untag_information(0);
-
-    window.pop(scripted.engine()).await.expect("pop");
-
-    assert_eq!(window.len(), 1);
-    assert_eq!(window.get(0).expect("第 0 条").get_str(), "assistant_info");
-    assert_eq!(scripted.calls(), 0);
+    assert_eq!(window.push("a", "user"), PushOutcome::Enqueued);
+    assert_eq!(window.push("b", "user"), PushOutcome::NeedsEviction);
+    assert_eq!(window.len(), 2, "push 只入队，容量由 pop 负责");
+    assert_eq!(scripted.calls(), 0, "淘汰之前不应调用 LLM");
 }
 
-#[tokio::test]
-async fn pop_on_empty_window_is_a_noop() {
+#[test]
+fn pop_returns_the_front_and_removes_it() {
     let window = SlidingWindow::new(10);
-    let scripted = Scripted::new(vec![]);
-    window
-        .pop(scripted.engine())
-        .await
-        .expect("空窗口 pop 不应报错");
+    assert_eq!(window.push("user_info", "user"), PushOutcome::Enqueued);
+    assert_eq!(
+        window.push("assistant_info", "assistant"),
+        PushOutcome::Enqueued
+    );
+
+    let first = window.pop().expect("队首");
+    assert_eq!(first.get_str(), "user_info");
+    assert_eq!(window.len(), 1);
+    assert_eq!(window.get(0).expect("第 0 条").get_str(), "assistant_info");
+
+    assert_eq!(window.pop().expect("第二条").get_str(), "assistant_info");
+    assert!(window.pop().is_none(), "空窗口返回 None");
     assert!(window.is_empty());
 }
 
-// ---------- 摘要成功路径 ----------
+#[test]
+fn pop_never_calls_the_llm_even_for_a_tagged_front() {
+    let window = SlidingWindow::new(1);
+    let scripted = Scripted::new(vec![]);
 
-/// 容量为 1 时每次 push 都会被标记，因此第二次 push 必然触发摘要。
+    assert_eq!(window.push("a", "user"), PushOutcome::Enqueued);
+    let evicted = window.pop().expect("队首");
+
+    assert!(evicted.is_tagged());
+    assert!(window.is_empty());
+    assert_eq!(scripted.calls(), 0, "pop 只出队，不接触 LLM");
+}
+
+// ---------- 摘要 ----------
+
 #[tokio::test]
-async fn successful_summary_updates_summary_and_removes_the_message() {
+async fn summarize_updates_the_summary() {
     let window = SlidingWindow::new(1);
     let scripted = Scripted::new(vec![Outcome::Text("第一段摘要")]);
 
-    window
-        .push("a", "user", scripted.engine())
-        .await
-        .expect("push a");
-    assert_eq!(window.len(), 1, "未超容量");
-
-    window
-        .push("b", "user", scripted.engine())
-        .await
-        .expect("push b");
+    assert_eq!(window.push("a", "user"), PushOutcome::Enqueued);
+    assert_eq!(window.push("b", "user"), PushOutcome::NeedsEviction);
+    evict_and_summarize(&window, scripted.engine()).await;
 
     assert_eq!(scripted.calls(), 1, "应摘要一次");
     assert_eq!(window.get_summary().as_ref(), "第一段摘要");
-    assert_eq!(window.len(), 1, "成功后应回落到容量内");
+    assert_eq!(window.len(), 1);
     assert_eq!(window.get(0).expect("队首").get_str(), "b");
 }
 
 #[tokio::test]
-async fn summary_prompt_contains_window_in_order() {
+async fn summary_prompt_contains_evicted_and_window_in_order() {
     let window = SlidingWindow::new(1);
     let scripted = Scripted::new(vec![Outcome::Text("摘要")]);
 
-    window
-        .push("第一句", "user", scripted.engine())
-        .await
-        .expect("push");
-    window
-        .push("第二句", "assistant", scripted.engine())
-        .await
-        .expect("push");
+    assert_eq!(window.push("第一句", "user"), PushOutcome::Enqueued);
+    assert_eq!(
+        window.push("第二句", "assistant"),
+        PushOutcome::NeedsEviction
+    );
+    evict_and_summarize(&window, scripted.engine()).await;
 
     let prompt = scripted.last_prompt().expect("应有调用");
     assert!(prompt.contains("summary"), "system 提示应在：{prompt}");
-    let first_at = prompt.find("第一句").expect("旧消息应出现在提示词里");
-    let second_at = prompt.find("第二句").expect("新消息应出现在提示词里");
+    let first_at = prompt.find("第一句").expect("被弹出的消息也要进入提示词");
+    let second_at = prompt.find("第二句").expect("窗口消息应出现在提示词里");
     assert!(first_at < second_at, "消息顺序必须保持：{prompt}");
     assert!(prompt.contains("[user]"), "消息应带角色标签：{prompt}");
 }
@@ -115,20 +121,13 @@ async fn summary_prompt_carries_the_previous_summary_forward() {
         Outcome::Text("第二次摘要"),
     ]);
 
-    window
-        .push("a", "user", scripted.engine())
-        .await
-        .expect("push a");
-    window
-        .push("b", "user", scripted.engine())
-        .await
-        .expect("push b");
+    assert_eq!(window.push("a", "user"), PushOutcome::Enqueued);
+    assert_eq!(window.push("b", "user"), PushOutcome::NeedsEviction);
+    evict_and_summarize(&window, scripted.engine()).await;
     assert_eq!(window.get_summary().as_ref(), "第一次摘要");
 
-    window
-        .push("c", "user", scripted.engine())
-        .await
-        .expect("push c");
+    assert_eq!(window.push("c", "user"), PushOutcome::NeedsEviction);
+    evict_and_summarize(&window, scripted.engine()).await;
     assert_eq!(window.get_summary().as_ref(), "第二次摘要");
 
     let prompt = scripted.last_prompt().expect("应有调用");
@@ -138,88 +137,84 @@ async fn summary_prompt_carries_the_previous_summary_forward() {
     );
 }
 
-// ---------- 摘要失败路径（本次重构的核心修正） ----------
+#[tokio::test]
+async fn empty_summary_is_rejected_and_keeps_the_old_one() {
+    let window = SlidingWindow::new(1);
+    let scripted = Scripted::new(vec![Outcome::Text("   ")]);
+
+    assert_eq!(window.push("a", "user"), PushOutcome::Enqueued);
+    assert_eq!(window.push("b", "user"), PushOutcome::NeedsEviction);
+    let evicted = window.pop().expect("队首");
+    let error = window
+        .summarize(scripted.engine(), &evicted)
+        .await
+        .expect_err("空摘要必须被拒绝");
+
+    assert_eq!(error.kind(), LlmErrorKind::EmptyCompletion);
+    assert_eq!(window.get_summary().as_ref(), "", "旧摘要不得被覆盖");
+}
+
+// ---------- 摘要失败不丢消息 ----------
 
 #[tokio::test]
-async fn summary_failure_keeps_the_evicted_message() {
+async fn summary_failure_keeps_the_evicted_message_in_the_callers_hand() {
     let window = SlidingWindow::new(1);
     let scripted = Scripted::new(vec![Outcome::Fail(LlmErrorKind::Transport)]);
 
-    window
-        .push("a", "user", scripted.engine())
-        .await
-        .expect("push a");
+    assert_eq!(window.push("a", "user"), PushOutcome::Enqueued);
+    assert_eq!(window.push("b", "user"), PushOutcome::NeedsEviction);
+
+    let evicted = window.pop().expect("队首");
+    assert!(evicted.is_tagged());
     let error = window
-        .push("b", "user", scripted.engine())
+        .summarize(scripted.engine(), &evicted)
         .await
         .expect_err("摘要失败必须上报");
 
     assert_eq!(error.kind(), LlmErrorKind::Transport);
     assert!(error.is_unavailable(), "调用方应能据此降级");
-    assert_eq!(window.len(), 2, "失败时不得丢消息：容量是软上限");
     assert_eq!(
-        window.get(0).expect("队首").get_str(),
+        evicted.get_str(),
         "a",
-        "被淘汰的消息必须还在"
+        "被弹出的消息在调用方手里，不随摘要失败消失"
     );
+    assert_eq!(window.len(), 1, "pop 已经出队，摘要失败不回滚");
+    assert_eq!(window.get(0).expect("队首").get_str(), "b");
     assert_eq!(window.get_summary().as_ref(), "", "旧摘要不得被覆盖");
 }
 
+/// 失败之后用同一个被弹出的消息重试：摘要才更新，且不会再次出队。
 #[tokio::test]
-async fn summary_failure_keeps_the_popped_message() {
-    let window = SlidingWindow::new(1);
-    let scripted = Scripted::new(vec![Outcome::Fail(LlmErrorKind::ServerError)]);
-
-    window
-        .push("a", "user", scripted.engine())
-        .await
-        .expect("push a");
-    let error = window
-        .pop(scripted.engine())
-        .await
-        .expect_err("摘要失败必须上报");
-
-    assert_eq!(error.kind(), LlmErrorKind::ServerError);
-    assert_eq!(window.len(), 1, "popped 的消息不得消失");
-    assert_eq!(window.get(0).expect("队首").get_str(), "a");
-}
-
-/// 失败之后重试成功：消息才被移除，摘要才被更新。
-#[tokio::test]
-async fn a_failed_summary_can_be_retried_on_the_next_push() {
+async fn a_failed_summary_can_be_retried_with_the_same_message() {
     let window = SlidingWindow::new(1);
     let scripted = Scripted::new(vec![
         Outcome::Fail(LlmErrorKind::Timeout),
         Outcome::Text("补救摘要"),
     ]);
 
-    window
-        .push("a", "user", scripted.engine())
-        .await
-        .expect("push a");
-    window
-        .push("b", "user", scripted.engine())
-        .await
-        .expect_err("第一次失败");
-    assert_eq!(window.len(), 2);
+    assert_eq!(window.push("a", "user"), PushOutcome::Enqueued);
+    assert_eq!(window.push("b", "user"), PushOutcome::NeedsEviction);
+    let evicted = window.pop().expect("队首");
 
     window
-        .push("c", "user", scripted.engine())
+        .summarize(scripted.engine(), &evicted)
+        .await
+        .expect_err("第一次失败");
+    assert_eq!(window.get_summary().as_ref(), "");
+
+    window
+        .summarize(scripted.engine(), &evicted)
         .await
         .expect("第二次成功");
 
     assert_eq!(scripted.calls(), 2);
     assert_eq!(window.get_summary().as_ref(), "补救摘要");
-    assert_eq!(
-        window.get(0).expect("队首").get_str(),
-        "b",
-        "\"a\" 已被摘要淘汰"
-    );
+    assert_eq!(window.len(), 1, "重试不会再次出队");
 }
 
 /// 引擎会先自行重试可重试的失败：窗口只有在重试预算耗尽后才看到错误。
 #[tokio::test]
-async fn a_transient_failure_is_retried_by_the_engine_before_push_reports_anything() {
+async fn a_transient_failure_is_retried_by_the_engine_before_the_window_sees_an_error() {
     let window = SlidingWindow::new(1);
     let scripted = Scripted::with_whole_call_retries(
         vec![
@@ -229,37 +224,14 @@ async fn a_transient_failure_is_retried_by_the_engine_before_push_reports_anythi
         1,
     );
 
-    window
-        .push("a", "user", scripted.engine())
-        .await
-        .expect("push a");
-    window
-        .push("b", "user", scripted.engine())
-        .await
-        .expect("引擎重试后应当成功，窗口不该看到错误");
+    assert_eq!(window.push("a", "user"), PushOutcome::Enqueued);
+    assert_eq!(window.push("b", "user"), PushOutcome::NeedsEviction);
+    let evicted = evict_and_summarize(&window, scripted.engine()).await;
 
+    assert_eq!(evicted.get_str(), "a");
     assert_eq!(scripted.calls(), 2, "第一次失败 + 一次重试");
     assert_eq!(window.get_summary().as_ref(), "重试后摘要");
-    assert_eq!(window.len(), 1, "只有摘要成功后才淘汰消息");
-}
-
-#[tokio::test]
-async fn empty_summary_is_rejected_and_keeps_everything() {
-    let window = SlidingWindow::new(1);
-    let scripted = Scripted::new(vec![Outcome::Text("   ")]);
-
-    window
-        .push("a", "user", scripted.engine())
-        .await
-        .expect("push a");
-    let error = window
-        .push("b", "user", scripted.engine())
-        .await
-        .expect_err("空摘要必须被拒绝");
-
-    assert_eq!(error.kind(), LlmErrorKind::EmptyCompletion);
-    assert_eq!(window.len(), 2, "拒绝空摘要时不得丢消息");
-    assert_eq!(window.get_summary().as_ref(), "");
+    assert_eq!(window.len(), 1);
 }
 
 // ---------- 并发 ----------
@@ -267,24 +239,22 @@ async fn empty_summary_is_rejected_and_keeps_everything() {
 #[tokio::test]
 async fn concurrent_push_fills_the_window() {
     let window = Arc::new(SlidingWindow::new(100));
-    let scripted = Scripted::new(vec![]);
 
     let window1 = window.clone();
-    let engine1 = scripted.engine().clone();
     let handle = tokio::spawn(async move {
         for i in 0..50 {
-            window1
-                .push(&format!("user_{i}"), "user", &engine1)
-                .await
-                .expect("push");
+            assert_eq!(
+                window1.push(&format!("user_{i}"), "user"),
+                PushOutcome::Enqueued
+            );
         }
     });
 
     for i in 50..100 {
-        window
-            .push(&format!("user_{i}"), "user", scripted.engine())
-            .await
-            .expect("push");
+        assert_eq!(
+            window.push(&format!("user_{i}"), "user"),
+            PushOutcome::Enqueued
+        );
     }
 
     handle.await.expect("任务不应 panic");
@@ -294,18 +264,16 @@ async fn concurrent_push_fills_the_window() {
 #[tokio::test]
 async fn concurrent_read_write_does_not_deadlock_or_lose_data() {
     let window = Arc::new(SlidingWindow::new(50));
-    let scripted = Scripted::new(vec![]);
 
     let window_write = window.clone();
     let window_read = window.clone();
-    let engine = scripted.engine().clone();
 
     let write_handle = tokio::spawn(async move {
         for i in 0..25 {
-            window_write
-                .push(&format!("msg_{i}"), "user", &engine)
-                .await
-                .expect("push");
+            assert_eq!(
+                window_write.push(&format!("msg_{i}"), "user"),
+                PushOutcome::Enqueued
+            );
         }
     });
 
@@ -326,50 +294,50 @@ async fn concurrent_pop_terminates_and_shrinks_the_window() {
     let scripted = Scripted::new(vec![]);
 
     for i in 0..5 {
-        window
-            .push(&format!("initial_{i}"), "user", scripted.engine())
-            .await
-            .expect("push");
+        assert_eq!(
+            window.push(&format!("initial_{i}"), "user"),
+            PushOutcome::Enqueued
+        );
     }
 
     let window_clone = window.clone();
-    let engine = scripted.engine().clone();
     let pop_handle = tokio::spawn(async move {
         for _ in 0..3 {
-            window_clone.pop(&engine).await.expect("pop");
+            window_clone.pop();
         }
     });
 
     pop_handle.await.expect("任务不应 panic");
     assert_eq!(window.len(), 2);
-    assert_eq!(scripted.calls(), 0, "这些消息都未被标记");
+    assert_eq!(scripted.calls(), 0, "这些消息都未被摘要");
 }
 
 #[tokio::test]
 async fn window_is_shareable_across_tasks() {
     let window = Arc::new(SlidingWindow::new(10));
-    let scripted = Scripted::new(vec![]);
 
     let window1 = window.clone();
-    let engine1 = scripted.engine().clone();
     let handle1 = tokio::spawn(async move {
         for i in 0..5 {
-            window1.push(&format!("t1_{i}"), "user", &engine1).await?;
+            assert_eq!(
+                window1.push(&format!("t1_{i}"), "user"),
+                PushOutcome::Enqueued
+            );
         }
-        Ok::<(), LlmError>(())
     });
 
     let window2 = window.clone();
-    let engine2 = scripted.engine().clone();
     let handle2 = tokio::spawn(async move {
         for i in 0..5 {
-            window2.push(&format!("t2_{i}"), "user", &engine2).await?;
+            assert_eq!(
+                window2.push(&format!("t2_{i}"), "user"),
+                PushOutcome::Enqueued
+            );
         }
-        Ok::<(), LlmError>(())
     });
 
-    handle1.await.expect("任务 1 不应 panic").expect("任务 1");
-    handle2.await.expect("任务 2 不应 panic").expect("任务 2");
+    handle1.await.expect("任务 1 不应 panic");
+    handle2.await.expect("任务 2 不应 panic");
     assert_eq!(window.len(), 10);
 }
 
@@ -452,6 +420,7 @@ fn empty_window_reports_empty() {
     assert!(window.is_empty());
     assert_eq!(window.len(), 0);
     assert!(window.get(0).is_none());
+    assert!(window.pop().is_none());
     assert_eq!(window.get_summary().as_ref(), "");
 }
 

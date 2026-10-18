@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # 定时任务本身由 main 上的本文件触发，但检查的必须是 dev 的工作树与
           # dev 的 deny.toml。
@@ -50,7 +50,7 @@ jobs:
           arguments: --workspace
 
       - name: 漂移开 issue，恢复后自动关闭
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           OUTCOME: ${{ steps.deny.outcome }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -73,15 +73,16 @@ jobs:
                 '`dev` 上的 `cargo-deny` 失败了，而**没有任何代码改动**。最常见的原因是上游',
                 'RustSec advisory 库新增了一条针对锁文件里某个版本的公告（其次是某个 crate 被 yank）。',
                 '',
-                '**先确认这不是某个 PR 的错**：advisory 检查是全局的，此时所有基于 `dev` 的 PR',
-                '都会红在同一个 `Security (cargo-deny)` 上。',
+                '**先确认这不是某个 PR 的错**：advisory 检查是全局的，此时所有改动了',
+                '`Cargo.toml` / `Cargo.lock` / `deny.toml` 的 PR 都会红在同一个 `Security (cargo-deny)` 上。',
                 '',
                 '处理步骤：',
                 '1. 看本次运行日志里 `error[vulnerability]` / `error[yanked]` 的条目与它的 `Solution:` 行：',
                 `   ${runUrl}`,
                 '2. 有修复版就在 `dev` 上单独提一个 fix PR 升级它（例：`cargo update -p rustls --precise 0.23.45`，',
                 '   连带还会升 rustls-webpki / aws-lc-rs），并确认 `cargo deny check` 四段全绿；',
-                '3. 上游确实没有修复版时才写进 `deny.toml` 的 `ignore`，并在注释里写清影响面与跟踪条件；',
+                '3. 修复版在依赖图里不可达（父依赖钉死上限）时才写进 `deny.toml` 的 `ignore`，',
+                '   并在注释里写清影响面与跟踪条件；',
                 '4. 顺手删掉本次输出里 `warning[advisory-not-detected]` 指向的条目——该警告说明那条已经',
                 '   随着依赖升级失效了。',
                 '',

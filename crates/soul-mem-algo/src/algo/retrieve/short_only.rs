@@ -90,8 +90,8 @@ mod tests {
     }
 
     fn create_mock_working_memory_with_window() -> WorkingMemory {
-        let mut wm = WorkingMemory::new(10);
-        let sw = wm.sliding_window_mut();
+        let wm = WorkingMemory::new(10);
+        let sw = wm.sliding_window();
         let window = sw.window();
         let mut guard = window.write();
         guard.push_back(Information::User(UserInformation::new("Hello")));

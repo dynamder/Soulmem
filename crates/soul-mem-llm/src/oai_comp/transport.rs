@@ -43,7 +43,7 @@ use async_openai::config::Config;
 use async_openai::error::OpenAIError;
 use async_openai::middleware::retry::should_retry;
 use async_openai::middleware::{HttpRequestFactory, ReqwestService};
-use rand::Rng;
+use rand::RngExt;
 use std::sync::Arc;
 use std::time::Duration;
 use tower::ServiceBuilder;

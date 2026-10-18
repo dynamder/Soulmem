@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 
 //动作类型
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Serialize, Deserialize)]
+// `Hash` 供检索层把动作按类型分席（`HashMap<ActionType, _>` 分组键）使用，
+// 不改变既有 wire 表示。
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Clone, Serialize, Deserialize)]
 pub enum ActionType {
     Speak,              //语气类，说话方式
     Skill(SkillRecord), //技能类，例如使用外部工具
@@ -17,8 +19,16 @@ impl ActionType {
     pub fn new_think() -> Self {
         Self::Think
     }
+    /// 全部动作类型（枚举顺序：Speak → Think → Skill），供按类型遍历席位的调用方使用。
+    pub fn all() -> [Self; 3] {
+        [
+            Self::Speak,
+            Self::Think,
+            Self::Skill(SkillRecord::default()),
+        ]
+    }
 }
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Default, Clone, Serialize, Deserialize)]
 pub struct SkillRecord {
     //TODO: 后续版本功能，仅做PlaceHolder
 }
