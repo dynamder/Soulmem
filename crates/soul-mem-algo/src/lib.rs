@@ -9,7 +9,7 @@
 //! |---|---|---|
 //! | 检索 | [`algo::retrieve`] | `DefaultPipeline`（ShortOnly → Similarity → AssociateWithAction）、纯相似度、贝叶斯动作推理、PPR 联想 |
 //! | 遗忘 | [`algo::forget`] | 衰减计算（[`algo::forget::decay_calculator`]，**常数文档化的模板**）、随机遮罩、LLM 补全 |
-//! | 巩固 | [`algo::consolidate`] | 把滑动窗口摘要拆解为记忆节点 |
+//! | 巩固 | [`algo::consolidate`] | 摘要拆解为记忆节点、活跃节点连边、写回长期存储 |
 //!
 //! 图算法底座在 [`common`]：[`common::ppr`] 是 EdgePush PPR 变种，
 //! [`common::ord_float`] 处理浮点在有序结构里的比较语义。
