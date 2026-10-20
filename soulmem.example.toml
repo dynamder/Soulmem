@@ -1,0 +1,56 @@
+# SoulMem 服务配置示例。
+#
+# 用法：复制为同目录下的 soulmem.toml（默认配置路径），按需修改。
+#   cp soulmem.example.toml soulmem.toml
+#
+# soulmem.toml 已在 .gitignore 中忽略：它可能包含 LLM 密钥，不要提交。
+# 未出现的字段一律取默认值；未知字段会被拒绝（deny_unknown_fields）。
+
+character = "soulmem"
+db_path = "soulmem.db"
+
+[zenoh]
+enable = true
+# key_prefix = "soulmem/soulmem"   # 默认 soulmem/<character>
+
+[grpc]
+enable = true
+addr = "127.0.0.1:50051"
+
+[working_memory]
+window_capacity = 20
+max_cluster_nodes = 2048
+
+[retrieval]
+candidate_k = 32
+top_k = 10
+similarity_threshold = 0.35
+abstract_source_priority = 2.0
+threads = 0                       # 0 = 自动（核数-1）
+include_short_summary = true
+# short_clipping_length = 8
+
+[retrieval.association]
+damping_factor = 0.65
+residue_threshold = 0.00001
+top_k = 8
+
+[consolidation]
+interval_secs = 300
+idle_quiet_secs = 120
+link_top_k = 3
+link_verb = "related"
+link_confidence = 1.0
+
+[service]
+heartbeat_interval_secs = 30
+event_channel_capacity = 64
+command_buffer = 32
+shutdown_grace_secs = 5
+
+[llm]
+# 缺少 base_url / model 时服务照常启动，只是摘要与巩固不可用。
+# base_url = "https://api.example.com/v1"
+# model = "your-model"
+# api_key = "..."                 # 敏感信息：soulmem.toml 不应提交到仓库
+probe_timeout_secs = 5

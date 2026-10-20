@@ -1,5 +1,6 @@
 //! SoulMem 记忆服务入口：引导依赖、启动 zenoh / gRPC 适配器、处理优雅退出。
 
+use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -7,7 +8,7 @@ use tokio::sync::broadcast;
 use tokio::task::JoinHandle;
 
 use soul_mem::bootstrap::bootstrap;
-use soul_mem::config::Config;
+use soul_mem::config::{Config, DEFAULT_CONFIG_PATH};
 use soul_mem::proto::v1;
 use soul_mem::service::{ControlAction, ServiceEvent, ServiceHandle, spawn};
 use soul_mem::transport::{GrpcService, ZenohService};
@@ -17,7 +18,9 @@ async fn main() -> anyhow::Result<()> {
     let _ = dotenvy::dotenv();
     init_tracing();
 
-    let config = Arc::new(Config::load()?);
+    let config_path =
+        std::env::var("SOULMEM_CONFIG").unwrap_or_else(|_| DEFAULT_CONFIG_PATH.to_string());
+    let config = Arc::new(Config::load(Path::new(&config_path))?);
     tracing::info!(
         character = %config.character,
         db = %config.db_path.display(),
@@ -25,20 +28,20 @@ async fn main() -> anyhow::Result<()> {
     );
 
     let boot = bootstrap(Arc::clone(&config)).await?;
-    let (handle, service_loop) = spawn(boot.service, 32);
+    let (handle, service_loop) = spawn(boot.service, config.service.command_buffer);
 
     let heartbeat = spawn_heartbeat(
         handle.clone(),
         boot.events.clone(),
-        config.heartbeat_interval_secs,
+        config.service.heartbeat_interval_secs,
     );
-    let maintenance = spawn_maintenance(handle.clone(), config.consolidate_interval_secs);
+    let maintenance = spawn_maintenance(handle.clone(), config.consolidation.interval_secs);
 
     let mut adapters: Vec<JoinHandle<()>> = Vec::new();
 
-    if config.enable_grpc {
+    if config.grpc.enable {
         let service = GrpcService::new(handle.clone(), boot.events.clone());
-        let addr = config.grpc_addr;
+        let addr = config.grpc.addr;
         adapters.push(tokio::spawn(async move {
             tracing::info!(%addr, "gRPC 适配器监听中");
             if let Err(error) = tonic::transport::Server::builder()
@@ -51,10 +54,10 @@ async fn main() -> anyhow::Result<()> {
         }));
     }
 
-    if config.enable_zenoh {
+    if config.zenoh.enable {
         let service = ZenohService::new(
             handle.clone(),
-            config.key_prefix.clone(),
+            config.key_prefix().to_string(),
             boot.events.clone(),
         );
         adapters.push(tokio::spawn(async move {
@@ -81,7 +84,12 @@ async fn main() -> anyhow::Result<()> {
     let _ = maintenance.await;
     drop(handle);
 
-    match tokio::time::timeout(Duration::from_secs(5), service_loop).await {
+    match tokio::time::timeout(
+        Duration::from_secs(config.service.shutdown_grace_secs),
+        service_loop,
+    )
+    .await
+    {
         Ok(_) => tracing::info!("服务循环已正常结束"),
         Err(_) => tracing::warn!("服务循环未在超时内结束，强制退出"),
     }

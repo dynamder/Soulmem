@@ -177,6 +177,7 @@ fn map_action(raw: i32) -> ServiceResult<Option<ControlAction>> {
         Ok(v1::ControlAction::Forget) => Ok(Some(ControlAction::Forget)),
         Ok(v1::ControlAction::Pause) => Ok(Some(ControlAction::Pause)),
         Ok(v1::ControlAction::Resume) => Ok(Some(ControlAction::Resume)),
+        Ok(v1::ControlAction::ProbeLlm) => Ok(Some(ControlAction::ProbeLlm)),
         Ok(v1::ControlAction::Maintenance) => Ok(Some(ControlAction::Maintenance)),
         Err(_) => Err(ServiceError::BadRequest(format!("未知控制信号: {raw}"))),
     }
@@ -309,6 +310,16 @@ mod tests {
         };
         let converted = service_request(request).expect("维护信号应可映射");
         assert_eq!(converted.controls, vec![ControlAction::Maintenance]);
+    }
+
+    #[test]
+    fn probe_llm_control_maps() {
+        let request = v1::Request {
+            controls: vec![v1::ControlAction::ProbeLlm as i32],
+            ..v1::Request::default()
+        };
+        let converted = service_request(request).expect("探活信号应可映射");
+        assert_eq!(converted.controls, vec![ControlAction::ProbeLlm]);
     }
 
     #[test]

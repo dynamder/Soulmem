@@ -1,23 +1,23 @@
 //! 引导：按配置构造仓储、LLM、嵌入模型与服务核心。
 //!
-//! 模型供给策略：LLM 走远程 OpenAI 兼容端点（`.env` 的 `API_BASE` / `API_KEY` /
-//! `MODEL`），嵌入模型用进程内 BGE（首次会下载权重）。密钥只进入 `OaiCompatConfig`，
-//! **不落盘、不进日志**。
+//! 模型供给策略：LLM 走远程 OpenAI 兼容端点（`[llm]` 段的 `base_url` / `model` /
+//! `api_key`），嵌入模型用进程内 BGE（首次会下载权重）。密钥只进入 `OaiCompatConfig`，
+//! **不进日志**（`LlmConfig` 的 `Debug` 已脱敏）。
 //!
-//! LLM **可选**：缺少 `API_BASE` / `MODEL`（或后端构造失败）时注入一个恒错的
+//! LLM **可选**：缺少 `[llm].base_url` / `model`（或后端构造失败）时注入一个恒错的
 //! [`UnavailableBackend`]，服务照常启动——检索不依赖 LLM，只有摘要与巩固会失败。
 //! 这符合"能不用 LLM 就不用"的原则，也让纯检索部署无需 LLM。
 //!
-//! 启动时做一次**探活**（发一条极小补全）确定初始 `llm_available`；失败/超时不阻断
-//! 启动，只记为不可用。
+//! 启动时**不**做探活：`llm_available` 初始为 `false`，由控制信号 `ProbeLlm` 触发
+//! （见 `MemoryService::apply_control`）。
 
 use std::sync::Arc;
-use std::time::Duration;
 
 use jieba_rs::Jieba;
+use secrecy::ExposeSecret;
 use soul_mem_llm::{
     BackendInfo, ChatBackend, Completion, EventStream, LlmEngine, LlmError, OaiCompatBackend,
-    OaiCompatConfig, Sampling, Task,
+    OaiCompatConfig, Task,
 };
 use soul_mem_query::embedding::EmbeddingModel;
 use soul_mem_query::embedding::embedding_model::bge::BgeSmallZh;
@@ -26,14 +26,9 @@ use soul_mem_runtime::storage::{MemoryRepository, StorageError};
 use soul_mem_runtime::working_memory::WorkingMemory;
 use tokio::sync::broadcast;
 
-use crate::config::Config;
+use crate::config::{Config, LlmConfig};
 use crate::error::{ServiceError, ServiceResult};
 use crate::service::{MemoryService, ServiceEvent};
-
-/// 事件广播通道容量。
-const EVENT_CHANNEL_CAPACITY: usize = 64;
-/// 启动探活超时：避免启动被一个无响应的 LLM 端点卡住。
-const PROBE_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// 引导产物：服务核心与事件广播发送端。
 pub struct Bootstrap {
@@ -53,14 +48,13 @@ pub async fn bootstrap(config: Arc<Config>) -> ServiceResult<Bootstrap> {
     repo.init_schema().await?;
     let repo: Arc<dyn MemoryRepository> = Arc::new(repo);
 
-    let llm = build_llm_engine();
-    let llm_available = probe_llm(&llm).await;
+    let llm = build_llm_engine(&config.llm);
     let model: Arc<dyn EmbeddingModel + Send + Sync> = Arc::new(build_embedding_model().await?);
     let jieba = Jieba::new();
-    let working_memory = Arc::new(WorkingMemory::new(config.window_capacity));
-    let retrieval_pool = Arc::new(build_retrieval_pool()?);
+    let working_memory = Arc::new(WorkingMemory::new(config.working_memory.window_capacity));
+    let retrieval_pool = Arc::new(build_retrieval_pool(config.retrieval.threads)?);
 
-    let (events, _receiver) = broadcast::channel(EVENT_CHANNEL_CAPACITY);
+    let (events, _receiver) = broadcast::channel(config.service.event_channel_capacity);
     let service = MemoryService::new(
         config,
         working_memory,
@@ -69,22 +63,26 @@ pub async fn bootstrap(config: Arc<Config>) -> ServiceResult<Bootstrap> {
         model,
         jieba,
         events.clone(),
-        llm_available,
+        false,
         retrieval_pool,
     );
 
     Ok(Bootstrap { service, events })
 }
 
-/// 检索并行池：`num_threads = 核数 - 1`（至少 1），线程名固定以便观测。
+/// 检索并行池：`threads` 为 `0` 时取 `核数 - 1`（至少 1），否则用配置值。
 ///
 /// 池在引导时构建一次并注入服务核心；一次检索批次内的并行只读都落在这个池上。
-fn build_retrieval_pool() -> ServiceResult<rayon::ThreadPool> {
-    let workers = std::thread::available_parallelism()
-        .map(|n| n.get())
-        .unwrap_or(2)
-        .saturating_sub(1)
-        .max(1);
+fn build_retrieval_pool(threads: usize) -> ServiceResult<rayon::ThreadPool> {
+    let workers = if threads == 0 {
+        std::thread::available_parallelism()
+            .map(|n| n.get())
+            .unwrap_or(2)
+            .saturating_sub(1)
+            .max(1)
+    } else {
+        threads
+    };
     rayon::ThreadPoolBuilder::new()
         .num_threads(workers)
         .thread_name(|index| format!("soulmem-retrieve-{index}"))
@@ -92,55 +90,31 @@ fn build_retrieval_pool() -> ServiceResult<rayon::ThreadPool> {
         .map_err(|error| ServiceError::Internal(format!("构造检索线程池失败: {error}")))
 }
 
-/// 从环境变量构造远程 LLM 引擎；缺失配置时返回恒错后端。
-fn build_llm_engine() -> LlmEngine {
-    let base_url = std::env::var("API_BASE")
-        .ok()
-        .filter(|value| !value.is_empty());
-    let model = std::env::var("MODEL")
-        .ok()
-        .filter(|value| !value.is_empty());
-
-    let (Some(base_url), Some(model)) = (base_url, model) else {
-        tracing::warn!("未配置 API_BASE/MODEL，LLM 摘要与巩固不可用（检索仍可用）");
+/// 按 `[llm]` 配置构造远程 LLM 引擎；缺失配置时返回恒错后端。
+fn build_llm_engine(cfg: &LlmConfig) -> LlmEngine {
+    let base_url = cfg.base_url.trim();
+    let model = cfg.model.trim();
+    if base_url.is_empty() || model.is_empty() {
+        tracing::warn!("未配置 [llm].base_url/model，LLM 摘要与巩固不可用（检索仍可用）");
         return unavailable_engine();
-    };
-
-    let mut config = OaiCompatConfig::new("soulmem", base_url, model);
-    if let Ok(key) = std::env::var("API_KEY")
-        && !key.is_empty()
-    {
-        config = config.with_api_key(key);
     }
-    if let Err(error) = config.validate() {
+
+    let mut oai = OaiCompatConfig::new("soulmem", base_url, model);
+    if let Some(key) = cfg.api_key.as_ref() {
+        let key = key.expose_secret();
+        if !key.is_empty() {
+            oai = oai.with_api_key(key);
+        }
+    }
+    if let Err(error) = oai.validate() {
         tracing::warn!(%error, "LLM 配置校验失败，降级为不可用");
         return unavailable_engine();
     }
-    match OaiCompatBackend::new(config) {
+    match OaiCompatBackend::new(oai) {
         Ok(backend) => LlmEngine::new(Arc::new(backend)),
         Err(error) => {
             tracing::warn!(%error, "LLM 后端构造失败，降级为不可用");
             unavailable_engine()
-        }
-    }
-}
-
-/// 启动探活：发一次极小补全，据此确定 LLM 初始可用性。
-///
-/// 失败/超时不阻断启动——检索不依赖 LLM，只有摘要与巩固会失败；后续的真实调用
-/// （巩固成功/摘要失败）仍会继续更新该标志。
-async fn probe_llm(llm: &LlmEngine) -> bool {
-    let task = Task::system_user("ping", "pong")
-        .with_sampling(Sampling::default().with_max_output_tokens(1));
-    match tokio::time::timeout(PROBE_TIMEOUT, llm.complete(task)).await {
-        Ok(Ok(_)) => true,
-        Ok(Err(error)) => {
-            tracing::warn!(%error, "LLM 启动探活失败，记为不可用");
-            false
-        }
-        Err(_) => {
-            tracing::warn!("LLM 启动探活超时，记为不可用");
-            false
         }
     }
 }
@@ -160,11 +134,15 @@ impl ChatBackend for UnavailableBackend {
     }
 
     async fn complete(&self, _task: Task) -> Result<Completion, LlmError> {
-        Err(LlmError::unavailable("LLM 未配置（缺少 API_BASE / MODEL）"))
+        Err(LlmError::unavailable(
+            "LLM 未配置（[llm] 缺少 base_url / model）",
+        ))
     }
 
     async fn stream(&self, _task: Task) -> Result<EventStream, LlmError> {
-        Err(LlmError::unavailable("LLM 未配置（缺少 API_BASE / MODEL）"))
+        Err(LlmError::unavailable(
+            "LLM 未配置（[llm] 缺少 base_url / model）",
+        ))
     }
 }
 

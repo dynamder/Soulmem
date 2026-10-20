@@ -34,7 +34,6 @@ use soul_mem_algo::algo::forget::decay_revise::{
     ForgetAction, compute_and_update_missing_degree, lazy_forget,
 };
 use soul_mem_algo::algo::retrieve::RetrStrategy;
-use soul_mem_algo::algo::retrieve::association::AssociationConfig;
 use soul_mem_algo::algo::retrieve::complex::default_pipeline::DefaultPipelineResult;
 use soul_mem_algo::algo::retrieve::complex::{
     AssociateWithActionConfig, DefaultPipelineConfig, RetrDefaultPipeline,
@@ -46,7 +45,7 @@ use soul_mem_core::memory_links::sem_mem::SemMemLink;
 use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType};
 use soul_mem_core::memory_note::{MemoryId, MemoryNote};
 use soul_mem_core::render::{Render, RenderedMemoryNote};
-use soul_mem_llm::LlmEngine;
+use soul_mem_llm::{LlmEngine, Sampling, Task};
 use soul_mem_query::embedding::Embeddable;
 use soul_mem_query::embedding::EmbeddingGenResult;
 use soul_mem_query::embedding::EmbeddingModel;
@@ -63,17 +62,6 @@ use super::types::{
 use super::{merge, render};
 use crate::config::Config;
 use crate::error::{ServiceError, ServiceResult};
-
-/// 默认相似度兜底分。
-const SIMILARITY_THRESHOLD: f32 = 0.35;
-/// 抽象情境源在 Bayes 动作提取中的权重倍率。
-const ABSTRACT_SOURCE_PRIORITY: f64 = 2.0;
-/// 巩固时新节点链接到活跃节点的数量上限。
-const CONSOLIDATION_LINK_TOP_K: usize = 3;
-/// 巩固生成链接的默认谓词。
-const CONSOLIDATION_LINK_VERB: &str = "related";
-/// 巩固生成链接的默认置信度。
-const CONSOLIDATION_LINK_CONFIDENCE: f32 = 1.0;
 
 /// 检索用例的产物：自然语言段落 + 结构化记忆集合（二者并列）。
 struct RetrieveOutcome {
@@ -132,18 +120,19 @@ impl MemoryService {
         llm_available: bool,
         pool: Arc<ThreadPool>,
     ) -> Self {
+        let retrieval = &config.retrieval;
         let pipeline = DefaultPipelineConfig {
             short_mem_with_history: ShortOnlyConfig {
-                clipping_length: None,
-                include_summary: true,
+                clipping_length: retrieval.short_clipping_length,
+                include_summary: retrieval.include_short_summary,
             },
             similarity: SimilarityConfig {
-                similarity_threshold: SIMILARITY_THRESHOLD,
-                max_results: config.top_k,
+                similarity_threshold: retrieval.similarity_threshold,
+                max_results: retrieval.top_k,
             },
             assoc_with_action: AssociateWithActionConfig {
-                association: AssociationConfig::default(),
-                abstract_source_priority: ABSTRACT_SOURCE_PRIORITY,
+                association: retrieval.association.clone(),
+                abstract_source_priority: retrieval.abstract_source_priority,
             },
         };
         Self {
@@ -267,7 +256,7 @@ impl MemoryService {
         prefetch_db(
             self.repo.as_ref(),
             prefetch,
-            self.config.candidate_k,
+            self.config.retrieval.candidate_k,
             &self.wm,
         )
         .await?;
@@ -280,7 +269,7 @@ impl MemoryService {
             results
                 .iter()
                 .map(|result| (result.priority, result.association.as_slice())),
-            self.config.top_k,
+            self.config.retrieval.top_k,
         );
 
         // 5) 记录命中（供巩固建链与后续频次统计）。
@@ -462,11 +451,35 @@ impl MemoryService {
             }
             ControlAction::Pause => self.paused = true,
             ControlAction::Resume => self.paused = false,
+            ControlAction::ProbeLlm => {
+                self.llm_available = self.probe_llm().await;
+                tracing::info!(available = self.llm_available, "LLM 探活完成");
+            }
             ControlAction::Maintenance => {
                 self.maintenance().await?;
             }
         }
         Ok(())
+    }
+
+    /// 探活：发一条极小补全，更新 `llm_available`。
+    ///
+    /// 由 `ControlAction::ProbeLlm` 触发；启动时不再自动探测。
+    async fn probe_llm(&self) -> bool {
+        let task = Task::system_user("ping", "pong")
+            .with_sampling(Sampling::default().with_max_output_tokens(1));
+        let timeout = Duration::from_secs(self.config.llm.probe_timeout_secs);
+        match tokio::time::timeout(timeout, self.llm.complete(task)).await {
+            Ok(Ok(_)) => true,
+            Ok(Err(error)) => {
+                tracing::warn!(%error, "LLM 探活失败，记为不可用");
+                false
+            }
+            Err(_) => {
+                tracing::warn!("LLM 探活超时，记为不可用");
+                false
+            }
+        }
     }
 
     /// 遗忘衰减：刷新工作记忆全部节点的缺失度并落库。
@@ -502,7 +515,9 @@ impl MemoryService {
 
     /// 内部维护：静默超过阈值后转入 Idle；摘要非空则巩固，并在簇过大时告警。
     async fn maintenance(&mut self) -> ServiceResult<()> {
-        if self.last_activity.elapsed() < Duration::from_secs(self.config.idle_quiet_secs) {
+        if self.last_activity.elapsed()
+            < Duration::from_secs(self.config.consolidation.idle_quiet_secs)
+        {
             return Ok(());
         }
         self.wm.transition_to_idle();
@@ -511,10 +526,11 @@ impl MemoryService {
             tracing::info!(created, "定时巩固完成");
         }
         let node_count = self.snapshot().node_count;
-        if node_count as usize > self.config.max_cluster_nodes {
+        let max_cluster_nodes = self.config.working_memory.max_cluster_nodes;
+        if node_count as usize > max_cluster_nodes {
             tracing::warn!(
                 node_count,
-                max = self.config.max_cluster_nodes,
+                max = max_cluster_nodes,
                 "工作记忆簇节点数超过软上限；本服务不自动淘汰，根因见 soul-mem-algo 的 prefetch_db"
             );
         }
@@ -573,7 +589,7 @@ impl MemoryService {
                         if new_id == from {
                             continue;
                         }
-                        let link = Self::consolidation_link(from, new_id);
+                        let link = self.consolidation_link(from, new_id);
                         clone.note.links_mut().push(link.clone());
                         active_links.push((from, link));
                     }
@@ -642,7 +658,7 @@ impl MemoryService {
             let from = note.id();
             for &to in &active {
                 if to != from {
-                    note.links_mut().push(Self::consolidation_link(from, to));
+                    note.links_mut().push(self.consolidation_link(from, to));
                 }
             }
         }
@@ -650,13 +666,13 @@ impl MemoryService {
     }
 
     /// 构造一条巩固联系边（Sem 关联）。
-    fn consolidation_link(from: MemoryId, to: MemoryId) -> MemoryLink {
+    fn consolidation_link(&self, from: MemoryId, to: MemoryId) -> MemoryLink {
         MemoryLink::new(
             from,
             to,
             MemoryLinkType::Sem(SemMemLink::new(
-                CONSOLIDATION_LINK_VERB.to_string(),
-                CONSOLIDATION_LINK_CONFIDENCE,
+                self.config.consolidation.link_verb.clone(),
+                self.config.consolidation.link_confidence,
             )),
         )
     }
@@ -682,7 +698,7 @@ impl MemoryService {
         entries.sort_by_key(|entry| std::cmp::Reverse(entry.1));
         entries
             .into_iter()
-            .take(CONSOLIDATION_LINK_TOP_K)
+            .take(self.config.consolidation.link_top_k)
             .map(|(id, _)| id)
             .collect()
     }
@@ -951,20 +967,54 @@ mod tests {
     }
 
     fn test_config() -> Config {
+        use crate::config::{
+            ConsolidationConfig, GrpcConfig, LlmConfig, RetrievalConfig, ServiceConfig,
+            WorkingMemoryConfig, ZenohConfig,
+        };
         Config {
             character: "test".into(),
             db_path: std::path::PathBuf::from("test.db"),
-            key_prefix: "test".into(),
-            enable_zenoh: false,
-            enable_grpc: false,
-            grpc_addr: "127.0.0.1:0".parse().expect("addr"),
-            window_capacity: 20,
-            consolidate_interval_secs: 300,
-            idle_quiet_secs: 1,
-            heartbeat_interval_secs: 30,
-            candidate_k: 8,
-            top_k: 5,
-            max_cluster_nodes: 2048,
+            zenoh: ZenohConfig {
+                enable: false,
+                key_prefix: Some("test".into()),
+            },
+            grpc: GrpcConfig {
+                enable: false,
+                addr: "127.0.0.1:0".parse().expect("addr"),
+            },
+            working_memory: WorkingMemoryConfig {
+                window_capacity: 20,
+                max_cluster_nodes: 2048,
+            },
+            retrieval: RetrievalConfig {
+                candidate_k: 8,
+                top_k: 5,
+                similarity_threshold: 0.35,
+                abstract_source_priority: 2.0,
+                threads: 0,
+                include_short_summary: true,
+                short_clipping_length: None,
+                association: Default::default(),
+            },
+            consolidation: ConsolidationConfig {
+                interval_secs: 300,
+                idle_quiet_secs: 1,
+                link_top_k: 3,
+                link_verb: "related".into(),
+                link_confidence: 1.0,
+            },
+            service: ServiceConfig {
+                heartbeat_interval_secs: 30,
+                event_channel_capacity: 8,
+                command_buffer: 32,
+                shutdown_grace_secs: 5,
+            },
+            llm: LlmConfig {
+                base_url: String::new(),
+                model: String::new(),
+                api_key: None,
+                probe_timeout_secs: 5,
+            },
         }
     }
 

@@ -196,6 +196,8 @@ enum ControlAction {
   // 内部维护：静默超过阈值后转入 Idle 并（摘要非空时）巩固。
   // 通常由服务定时任务发出；外部主动调用亦可。
   CONTROL_ACTION_MAINTENANCE = 7;
+  // 触发一次 LLM 探活（启动时不再自动探测）。
+  CONTROL_ACTION_PROBE_LLM = 8;
 }
 
 message ServiceState {
