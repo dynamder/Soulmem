@@ -5,9 +5,9 @@
 //   <prefix>/resp   Reply    服务端 publish 响应（按 request_id 配对）
 //   <prefix>/event  Event    服务端主动推送（周期心跳、巩固完成）
 //
-// 设计依据见 `docs/architecture/orchestration.md`：一次请求 = query 集合 +
-// 当前信息增量（均可选，可同时）+ 控制信号；输出为一段自然语言。
-// 三个可选项并列（非 oneof），因此可以"先压增量、再做检索"。
+// 设计依据见 `docs/architecture/orchestration.md`：一次请求只做一件事
+// （信息增量 / 检索 / 控制信号，由 `Request.body` 的 oneof 表达）；检索输出是
+// 一段自然语言 + 结构化记忆。需要多种操作时由调用方分多条请求发送。
 syntax = "proto3";
 
 package soulmem.v1;
@@ -22,7 +22,7 @@ import "google/protobuf/timestamp.proto";
 //   Exchange  <-> zenoh <prefix>/req + <prefix>/resp
 //   Subscribe <-> zenoh <prefix>/event
 service SoulMem {
-  // 统一入口：检索 / 信息增量 / 控制信号（三者可同时出现）。
+  // 统一入口：一次请求只处理增量 / 检索 / 控制三者之一。
   rpc Exchange(Request) returns (Reply);
   // 事件订阅：心跳与巩固完成。
   rpc Subscribe(google.protobuf.Empty) returns (stream Event);
@@ -32,16 +32,23 @@ service SoulMem {
 // 信封
 // ============================================================================
 
-// 请求。query 集合、信息增量、控制信号均为可选；同时存在时先压增量再检索。
+// 请求。一次只做一件事。
 message Request {
   // 请求标识（UUID），响应按此回填。
   string request_id = 1;
-  // 检索 query 集合，每条带优先级。
-  repeated Query queries = 2;
-  // 信息增量，按顺序压入滑动窗口。
-  repeated Delta deltas = 3;
-  // 控制信号，按顺序执行。
-  repeated ControlAction controls = 4;
+  oneof body {
+    // 压入一条信息增量。
+    Delta delta = 2;
+    // 执行一次检索。
+    QueryBatch queries = 3;
+    // 执行一个控制信号。
+    ControlAction control = 4;
+  }
+}
+
+// 一次检索的 query 集合（多条 query 按 priority 加权合并）。
+message QueryBatch {
+  repeated Query queries = 1;
 }
 
 // 响应。
@@ -49,11 +56,11 @@ message Reply {
   string request_id = 1;
   bool ok = 2;
   string error = 3;
-  // 检索结果：一段自然语言（有 query 时给出）。
+  // 检索结果：一段自然语言（检索请求时给出）。
   optional string output = 4;
   // 服务状态：正常处理（含业务失败）时给出；仅"服务循环不可用"这类传输层错误可能缺省。
   optional ServiceState state = 5;
-  // 实际接受的信息增量条数。
+  // 信息增量请求是否被接受（1 = 已接受，0 = 其他请求或失败）。
   uint32 accepted = 6;
   // 结构化检索结果：命中的记忆节点（kind + score + content），与 `output` 并列。
   repeated RenderedMemoryNote memories = 7;

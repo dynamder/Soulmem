@@ -6,15 +6,15 @@ use chrono::{DateTime, Utc};
 use soul_mem_core::render::RenderedMemoryNote;
 use soul_mem_query::query::retrieve::PrioritizedMemoryRetrieveQuery;
 
-/// 一次请求：query 集合 + 信息增量 + 控制信号（均可空，可同时）。
-#[derive(Debug, Clone, Default)]
-pub struct ServiceRequest {
-    /// 检索 query 集合，每条带优先级。
-    pub queries: Vec<PrioritizedMemoryRetrieveQuery>,
-    /// 信息增量，按顺序压入滑动窗口。
-    pub deltas: Vec<Delta>,
-    /// 控制信号，按顺序执行。
-    pub controls: Vec<ControlAction>,
+/// 一次原子请求：同一请求只做一件事。
+#[derive(Debug, Clone)]
+pub enum ServiceRequest {
+    /// 压入一条信息增量。
+    Ingest(Delta),
+    /// 执行一次检索（query 集合整体合并）。
+    Retrieve(Vec<PrioritizedMemoryRetrieveQuery>),
+    /// 执行一个控制信号。
+    Control(ControlAction),
 }
 
 /// 一条信息增量：语句 + 角色。
@@ -26,22 +26,33 @@ pub struct Delta {
     pub role: String,
 }
 
-/// 一次响应。
-///
-/// 即使某一步失败也照常返回：`error` 承载首个失败原因，`state`/`accepted` 反映
-/// 已经发生的状态变化，避免"失败即丢掉部分结果"。
+/// 检索产物：自然语言 + 结构化记忆 + 状态快照。
 #[derive(Debug, Clone)]
-pub struct ServiceResponse {
-    /// 检索结果（一段自然语言）；无 query 时为 `None`。
-    pub output: Option<String>,
-    /// 结构化检索结果（命中的记忆节点），与 `output` 并列；无 query 时为空。
+pub struct Retrieval {
+    /// 一段自然语言。
+    pub output: String,
+    /// 命中的记忆节点。
     pub memories: Vec<RenderedMemoryNote>,
-    /// 服务状态快照。
+    /// 检索后的状态快照。
     pub state: ServiceState,
-    /// 实际接受的信息增量条数。
-    pub accepted: u32,
-    /// 首个失败原因；`None` 表示本次请求全部成功。
-    pub error: Option<String>,
+}
+
+/// 一次原子请求的成功响应。
+#[derive(Debug, Clone)]
+pub enum ServiceResponse {
+    Ingested(ServiceState),
+    Retrieved(Retrieval),
+    Controlled(ServiceState),
+}
+
+impl ServiceResponse {
+    /// 响应携带的状态快照。
+    pub fn state(&self) -> &ServiceState {
+        match self {
+            Self::Ingested(state) | Self::Controlled(state) => state,
+            Self::Retrieved(retrieval) => &retrieval.state,
+        }
+    }
 }
 
 /// 控制信号。

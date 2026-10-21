@@ -1,25 +1,23 @@
 //! 服务核心：串行命令循环与各用例实现。
 //!
 //! 服务持有唯一的 `WorkingMemory`，所有请求经命令通道**串行**处理；检索批次内部
-//! 并行只读，写回仍串行，因此工作记忆永不被并发改写。一次请求按
-//! `docs/architecture/orchestration.md` 处理：
+//! 并行只读，写回仍串行，因此工作记忆永不被并发改写。请求是原子的：
 //!
-//! 1. 信息增量：逐条压入滑动窗口（可能触发摘要）；
+//! 1. 信息增量：压入滑动窗口（可能触发摘要）；
 //! 2. 检索：query 集合并行跑 `DefaultPipeline`，按 priority 加权合并，取 top-k
-//!    并渲染成一段自然语言（命中节点渲染后从工作记忆移出，DB 中仍有权威副本）；
-//!    命中节点在取出时执行**惰性遗忘**（刷新缺失度，必要时遮罩 + LLM 补全）；
-//! 3. 控制信号：巩固 / 持久化 / 快照 / 暂停 / 恢复 / 维护 / 遗忘衰减。
+//!    并渲染成一段自然语言（命中节点保留在簇内，检索计数与惰性遗忘结果写回）；
+//!    命中节点执行**惰性遗忘**（刷新缺失度，必要时遮罩 + LLM 补全）；
+//! 3. 控制信号：巩固 / 持久化 / 快照 / 暂停 / 恢复 / 探活 / 维护 / 遗忘衰减。
 //!
-//! 三部分可同时出现在一条请求里；任一步失败都只记录首个错误，其余步骤继续执行，
-//! 响应里带回已经发生的变化（`accepted` / `state`）。
+//! 一次请求只做其中一件；失败以 `Err` 返回给调用方。
 //!
 //! ## 并发与所有权
 //!
 //! `WorkingMemory` 内部可变（见 `soul-mem-runtime`），因此检索批次的多个 query 可以
 //! 同时持有 `Arc<WorkingMemory>` 并行**只读**。并行批次 join 之后，才在命令循环线程上
-//! 串行完成写回（活跃记录、出簇、惰性遗忘）；跨请求的串行保证不变。
+//! 串行完成写回（检索计数、惰性遗忘、写回簇）；跨请求的串行保证不变。
 
-use std::collections::HashSet;
+use std::collections::VecDeque;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -30,9 +28,7 @@ use rayon::prelude::*;
 use tokio::sync::{broadcast, mpsc, oneshot};
 
 use soul_mem_algo::algo::consolidate::generate::generate_memories_from_summary;
-use soul_mem_algo::algo::forget::decay_revise::{
-    ForgetAction, compute_and_update_missing_degree, lazy_forget,
-};
+use soul_mem_algo::algo::forget::decay_revise::{compute_and_update_missing_degree, lazy_forget};
 use soul_mem_algo::algo::retrieve::RetrStrategy;
 use soul_mem_algo::algo::retrieve::complex::default_pipeline::DefaultPipelineResult;
 use soul_mem_algo::algo::retrieve::complex::{
@@ -57,7 +53,7 @@ use soul_mem_runtime::working_memory::WorkingMemory;
 use soul_mem_runtime::working_memory::sliding_window::{Information, PushOutcome, Summary};
 
 use super::types::{
-    ControlAction, Delta, ServiceEvent, ServiceRequest, ServiceResponse, ServiceState,
+    ControlAction, Delta, Retrieval, ServiceEvent, ServiceRequest, ServiceResponse, ServiceState,
 };
 use super::{merge, render};
 use crate::config::Config;
@@ -66,14 +62,14 @@ use crate::error::{ServiceError, ServiceResult};
 /// 检索用例的产物：自然语言段落 + 结构化记忆集合（二者并列）。
 struct RetrieveOutcome {
     /// 一段自然语言（摘要 + 相关记忆 + 最近对话）。
-    text: String,
+    output: String,
     /// 命中的记忆节点（结构化，含 kind/score/content）。
     memories: Vec<RenderedMemoryNote>,
 }
 
 /// 交给核心处理的命令。
 pub enum Command {
-    /// 组合请求（检索 / 增量 / 控制）。
+    /// 一次原子请求。
     Exchange {
         /// 请求内容。
         request: ServiceRequest,
@@ -91,9 +87,10 @@ pub struct MemoryService {
     model: Arc<dyn EmbeddingModel + Send + Sync>,
     /// 检索批次的并行只读池（引导时构建一次）。
     pool: Arc<ThreadPool>,
+    /// 待摘要的淘汰消息；摘要失败时保留，按淘汰顺序重试。
+    pending_evicted: VecDeque<Information>,
     /// 分词器：惰性遗忘的遮罩（`mask_text`）需要。
     jieba: Jieba,
-    pipeline: DefaultPipelineConfig,
     paused: bool,
     /// 最近一次有增量/检索输入的时刻，用于 Idle 判定。
     last_activity: Instant,
@@ -102,110 +99,138 @@ pub struct MemoryService {
     llm_available: bool,
 }
 
-impl MemoryService {
-    /// 组装服务核心。各依赖由引导层注入，便于替换与测试。
-    ///
-    /// `config` 以 `Arc` 注入：服务与引导层共享同一份设置，运行期不再重建。
-    // 这是进程唯一的组装点（composition root）：依赖全靠注入，参数多属预期；
-    // 拆成中间结构只会把同一批参数搬个位置，不增加清晰度。
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        config: Arc<Config>,
-        wm: Arc<WorkingMemory>,
-        repo: Arc<dyn MemoryRepository>,
-        llm: Arc<LlmEngine>,
-        model: Arc<dyn EmbeddingModel + Send + Sync>,
-        jieba: Jieba,
-        events: broadcast::Sender<ServiceEvent>,
-        llm_available: bool,
-        pool: Arc<ThreadPool>,
-    ) -> Self {
-        let retrieval = &config.retrieval;
-        let pipeline = DefaultPipelineConfig {
-            short_mem_with_history: ShortOnlyConfig {
-                clipping_length: retrieval.short_clipping_length,
-                include_summary: retrieval.include_short_summary,
-            },
-            similarity: SimilarityConfig {
-                similarity_threshold: retrieval.similarity_threshold,
-                max_results: retrieval.top_k,
-            },
-            assoc_with_action: AssociateWithActionConfig {
-                association: retrieval.association.clone(),
-                abstract_source_priority: retrieval.abstract_source_priority,
-            },
-        };
-        Self {
+#[derive(Default)]
+pub struct MemoryServiceBuilder {
+    config: Option<Arc<Config>>,
+    wm: Option<Arc<WorkingMemory>>,
+    repo: Option<Arc<dyn MemoryRepository>>,
+    llm: Option<Arc<LlmEngine>>,
+    model: Option<Arc<dyn EmbeddingModel + Send + Sync>>,
+    jieba: Option<Jieba>,
+    events: Option<broadcast::Sender<ServiceEvent>>,
+    llm_available: Option<bool>,
+    pool: Option<Arc<ThreadPool>>,
+}
+
+impl MemoryServiceBuilder {
+    /// 共享配置（服务与引导层共用同一份）。
+    pub fn config(mut self, config: Arc<Config>) -> Self {
+        self.config = Some(config);
+        self
+    }
+
+    pub fn working_memory(mut self, wm: Arc<WorkingMemory>) -> Self {
+        self.wm = Some(wm);
+        self
+    }
+
+    pub fn repository(mut self, repo: Arc<dyn MemoryRepository>) -> Self {
+        self.repo = Some(repo);
+        self
+    }
+
+    pub fn llm(mut self, llm: Arc<LlmEngine>) -> Self {
+        self.llm = Some(llm);
+        self
+    }
+
+    pub fn embedding_model(mut self, model: Arc<dyn EmbeddingModel + Send + Sync>) -> Self {
+        self.model = Some(model);
+        self
+    }
+
+    pub fn jieba(mut self, jieba: Jieba) -> Self {
+        self.jieba = Some(jieba);
+        self
+    }
+
+    pub fn events(mut self, events: broadcast::Sender<ServiceEvent>) -> Self {
+        self.events = Some(events);
+        self
+    }
+
+    pub fn llm_available(mut self, llm_available: bool) -> Self {
+        self.llm_available = Some(llm_available);
+        self
+    }
+
+    /// 检索批次的并行只读池（引导时构建一次）。
+    pub fn retrieval_pool(mut self, pool: Arc<ThreadPool>) -> Self {
+        self.pool = Some(pool);
+        self
+    }
+
+    /// 组装服务核心；缺少任一必需依赖时返回错误。
+    pub fn build(self) -> ServiceResult<MemoryService> {
+        let config = self.config.ok_or_else(|| missing_dependency("config"))?;
+        let wm = self
+            .wm
+            .ok_or_else(|| missing_dependency("working_memory"))?;
+        let repo = self.repo.ok_or_else(|| missing_dependency("repository"))?;
+        let llm = self.llm.ok_or_else(|| missing_dependency("llm"))?;
+        let model = self
+            .model
+            .ok_or_else(|| missing_dependency("embedding_model"))?;
+        let jieba = self.jieba.ok_or_else(|| missing_dependency("jieba"))?;
+        let events = self.events.ok_or_else(|| missing_dependency("events"))?;
+        let llm_available = self
+            .llm_available
+            .ok_or_else(|| missing_dependency("llm_available"))?;
+        let pool = self
+            .pool
+            .ok_or_else(|| missing_dependency("retrieval_pool"))?;
+
+        Ok(MemoryService {
             config,
             wm,
             repo,
             llm,
             model,
             pool,
+            pending_evicted: VecDeque::new(),
             jieba,
-            pipeline,
             paused: false,
             last_activity: Instant::now(),
             last_consolidation_at: None,
             events,
             llm_available,
-        }
+        })
+    }
+}
+
+fn missing_dependency(field: &str) -> ServiceError {
+    ServiceError::Internal(format!("MemoryService 构造缺少依赖: {field}"))
+}
+
+impl MemoryService {
+    /// 开始构造服务核心；依赖通过 [`MemoryServiceBuilder`] 逐个注入。
+    pub fn builder() -> MemoryServiceBuilder {
+        MemoryServiceBuilder::default()
     }
 
-    /// 处理一次组合请求。
-    ///
-    /// 不在失败时丢弃整条请求：首个错误记录进 `error`，其余步骤尽力执行。
-    async fn handle_exchange(&mut self, request: ServiceRequest) -> ServiceResponse {
-        let has_activity = !request.deltas.is_empty() || !request.queries.is_empty();
-        if has_activity {
-            self.last_activity = Instant::now();
-            self.wm.transition_to_working();
-        }
-
-        let mut first_error: Option<ServiceError> = None;
-
-        // 1) 信息增量：先压入滑窗（摘要可能随之更新）。
-        let mut accepted: u32 = 0;
-        for delta in &request.deltas {
-            match self.ingest_one(delta).await {
-                Ok(()) => accepted += 1,
-                Err(error) => {
-                    first_error = Some(error);
-                    break;
-                }
+    /// 处理一次原子请求。
+    async fn handle_request(&mut self, request: ServiceRequest) -> ServiceResult<ServiceResponse> {
+        match request {
+            ServiceRequest::Ingest(delta) => {
+                self.last_activity = Instant::now();
+                self.wm.transition_to_working();
+                self.ingest_one(&delta).await?;
+                Ok(ServiceResponse::Ingested(self.snapshot()))
             }
-        }
-
-        // 2) 检索。
-        let (output, memories) = if request.queries.is_empty() {
-            (None, Vec::new())
-        } else {
-            match self.retrieve(&request.queries).await {
-                Ok(outcome) => (Some(outcome.text), outcome.memories),
-                Err(error) => {
-                    if first_error.is_none() {
-                        first_error = Some(error);
-                    }
-                    (None, Vec::new())
-                }
+            ServiceRequest::Retrieve(queries) => {
+                self.last_activity = Instant::now();
+                self.wm.transition_to_working();
+                let RetrieveOutcome { output, memories } = self.retrieve(&queries).await?;
+                Ok(ServiceResponse::Retrieved(Retrieval {
+                    output,
+                    memories,
+                    state: self.snapshot(),
+                }))
             }
-        };
-
-        // 3) 控制信号：即使前面出错也继续执行。
-        for action in &request.controls {
-            if let Err(error) = self.apply_control(*action).await
-                && first_error.is_none()
-            {
-                first_error = Some(error);
+            ServiceRequest::Control(action) => {
+                self.apply_control(action).await?;
+                Ok(ServiceResponse::Controlled(self.snapshot()))
             }
-        }
-
-        ServiceResponse {
-            output,
-            memories,
-            state: self.snapshot(),
-            accepted,
-            error: first_error.map(|error| error.to_string()),
         }
     }
 
@@ -220,26 +245,58 @@ impl MemoryService {
         } else {
             "user"
         };
-        // push 只入队；超过容量后由调用方 pop 队首，仅在队首带标记时触发摘要 LLM。
-        // 因此 `Ok` 不蕴含"调用过 LLM"，不能据此点亮可用性标志——只在真正失败时置 false，
-        // 置 true 交给启动探活与巩固（它们确定会调用 LLM）。
+        // push 只入队；超过容量后由调用方 pop 队首，带标记的进入待摘要队列。
+        // `Ok` 不蕴含"调用过 LLM"；失败只在 flush 里置 false，置 true 交给探活与巩固。
         match self.wm.sliding_window().push(&delta.statement, role) {
             PushOutcome::Enqueued => {}
             PushOutcome::NeedsEviction => {
                 if let Some(evicted) = self.wm.sliding_window().pop()
                     && evicted.is_tagged()
-                    && let Err(error) = self
-                        .wm
-                        .sliding_window()
-                        .summarize(&self.llm, &evicted)
-                        .await
                 {
+                    self.pending_evicted.push_back(evicted);
+                }
+            }
+        }
+        self.flush_pending_summaries().await
+    }
+
+    /// 按淘汰顺序重试待摘要消息；失败时把队首放回，下次 ingest / 维护继续。
+    async fn flush_pending_summaries(&mut self) -> ServiceResult<()> {
+        while let Some(evicted) = self.pending_evicted.pop_front() {
+            match self
+                .wm
+                .sliding_window()
+                .summarize(&self.llm, &evicted)
+                .await
+            {
+                Ok(()) => {}
+                Err(error) => {
+                    self.pending_evicted.push_front(evicted);
                     self.llm_available = false;
                     return Err(error.into());
                 }
             }
         }
         Ok(())
+    }
+
+    /// 每次检索重建管线配置：`into_request` 会消费所有权，配置不长期持有。
+    fn pipeline_config(&self) -> DefaultPipelineConfig {
+        let retrieval = &self.config.retrieval;
+        DefaultPipelineConfig {
+            short_mem_with_history: ShortOnlyConfig {
+                clipping_length: retrieval.short_clipping_length,
+                include_summary: retrieval.include_short_summary,
+            },
+            similarity: SimilarityConfig {
+                similarity_threshold: retrieval.similarity_threshold,
+                max_results: retrieval.top_k,
+            },
+            assoc_with_action: AssociateWithActionConfig {
+                association: retrieval.association.clone(),
+                abstract_source_priority: retrieval.abstract_source_priority,
+            },
+        }
     }
 
     /// 检索用例：query 集合 -> 一段自然语言。
@@ -262,7 +319,7 @@ impl MemoryService {
         .await?;
 
         // 3) 整批跑管线：并行只读工作记忆；join 后再串行落写。
-        let results = self.run_pipelines(embedded).await?;
+        let results = self.run_pipelines(self.pipeline_config(), embedded).await?;
 
         // 4) 按 priority 加权合并记忆。
         let merged_memories = merge::merge_scored(
@@ -272,12 +329,7 @@ impl MemoryService {
             self.config.retrieval.top_k,
         );
 
-        // 5) 记录命中（供巩固建链与后续频次统计）。
-        for (id, _) in &merged_memories {
-            self.wm.record_retrieval(*id);
-        }
-
-        // 6) 取短记忆（同一工作记忆，任取非空）。
+        // 5) 取短记忆（同一工作记忆，任取非空）。
         let short_mem = results
             .iter()
             .map(|result| result.short_mem.as_ref())
@@ -289,38 +341,39 @@ impl MemoryService {
             .map(|result| Arc::clone(&result.short_history))
             .unwrap_or_else(|| Arc::from(Vec::<Information>::new()));
 
-        // 7) 从簇取内容并渲染：命中节点直接移出，投影交给 `soul_mem_core::render`。
-        //
-        // 移出是安全的：节点在 DB 里都有权威副本（预取来自 DB；巩固新建的节点先落库再入簇），
-        // 下次相似召回会重新加入，`incompletely_linked_note` 会恢复其入射边。
-        // 这里保留 `records`（不调用 `WorkingMemory::remove_node`），因此累计检索次数不丢：
-        // 节点若被再次召回，仍可参与巩固建链（`active_node_ids` 只在缺席期间把它过滤掉）。
+        // 6) 命中节点保留在簇里：递增检索计数，克隆出来做惰性遗忘/渲染，再写回簇。
         let cluster = self.wm.memory_cluster();
-        let removed: Vec<(f64, EmbeddedMemoryNote)> = cluster.write(|c| {
+        let hits: Vec<(f64, EmbeddedMemoryNote)> = cluster.write(|c| {
             merged_memories
                 .iter()
-                .filter_map(|(id, score)| c.remove_single_node(*id).map(|node| (*score, node)))
+                .filter_map(|(id, score)| {
+                    let node = c.get_node_mut(*id)?;
+                    node.note.retrieval_increment();
+                    Some((*score, node.clone()))
+                })
                 .collect()
         });
 
-        // 惰性遗忘（`orchestration.md:238`）：命中的记忆作为最终结果时刷新缺失度，
-        // 必要时遮罩并用 LLM 补全；仅在 LLM 可用时传入引擎（否则退化为仅遮罩）。
+        // 惰性遗忘：命中的记忆作为最终结果时刷新缺失度，必要时遮罩并用 LLM 补全；
+        // 仅在 LLM 可用时传入引擎（否则退化为仅遮罩）。
         let now = Utc::now();
         let engine = self.llm_available.then_some(self.llm.as_ref());
-        let mut memories: Vec<RenderedMemoryNote> = Vec::with_capacity(removed.len());
-        let mut forgotten: Vec<EmbeddedMemoryNote> = Vec::new();
-        for (score, mut embedded) in removed {
-            let action = lazy_forget(&mut embedded.note, now, &self.jieba, None, engine).await;
-            let changed = !matches!(action, ForgetAction::NoAction);
+        let mut memories: Vec<RenderedMemoryNote> = Vec::with_capacity(hits.len());
+        let mut updated: Vec<EmbeddedMemoryNote> = Vec::with_capacity(hits.len());
+        for (score, mut embedded) in hits {
+            lazy_forget(&mut embedded.note, now, &self.jieba, None, engine).await;
             memories.push(embedded.note().render(score));
-            if changed {
-                forgotten.push(embedded);
-            }
+            updated.push(embedded);
         }
-        if !forgotten.is_empty()
-            && let Err(error) = self.repo.upsert_notes(forgotten).await
-        {
-            tracing::warn!(%error, "惰性遗忘结果持久化失败");
+        cluster.write(|c| {
+            for node in &updated {
+                if let Some(slot) = c.get_node_mut(node.note().id()) {
+                    *slot = node.clone();
+                }
+            }
+        });
+        if let Err(error) = self.repo.upsert_notes(updated).await {
+            tracing::warn!(%error, "检索命中持久化失败");
         }
         let memory_texts: Vec<String> = memories
             .iter()
@@ -334,8 +387,8 @@ impl MemoryService {
             })
             .collect();
 
-        let text = render::render_output(&short_mem, &memory_texts, short_history.as_ref());
-        Ok(RetrieveOutcome { text, memories })
+        let output = render::render_output(&short_mem, &memory_texts, short_history.as_ref());
+        Ok(RetrieveOutcome { output, memories })
     }
 
     /// 整批生成查询嵌入：一次 `spawn_blocking`，在专用 rayon 池上并行。
@@ -379,12 +432,12 @@ impl MemoryService {
 
     /// 整批执行检索管线：一次 `spawn_blocking`，在专用 rayon 池上并行。
     ///
-    /// 管线只读工作记忆；命中记录、出簇与惰性遗忘由调用方在 join 后串行完成。
+    /// 管线只读工作记忆；检索计数、惰性遗忘与写回簇由调用方在 join 后串行完成。
     async fn run_pipelines(
         &self,
+        pipeline: DefaultPipelineConfig,
         embedded: Vec<(u32, EmbeddedMemoryRetrieveQuery)>,
     ) -> ServiceResult<Vec<DefaultPipelineResult>> {
-        let pipeline = self.pipeline.clone();
         let wm = Arc::clone(&self.wm);
         let pool = Arc::clone(&self.pool);
         tokio::task::spawn_blocking(move || {
@@ -521,6 +574,7 @@ impl MemoryService {
             return Ok(());
         }
         self.wm.transition_to_idle();
+        self.flush_pending_summaries().await?;
         if !self.wm.sliding_window().get_summary().trim().is_empty() {
             let created = self.consolidate().await?;
             tracing::info!(created, "定时巩固完成");
@@ -542,6 +596,7 @@ impl MemoryService {
     /// 顺序刻意是**先持久化、成功后才清摘要、最后入簇**：任一步失败都不会消耗摘要，
     /// 重试安全，也不会出现"摘要没了但节点没落库"的静默丢失。
     async fn consolidate(&mut self) -> ServiceResult<u32> {
+        self.flush_pending_summaries().await?;
         let summary_text = self.wm.sliding_window().get_summary();
         if summary_text.trim().is_empty() {
             return Ok(0);
@@ -677,25 +732,19 @@ impl MemoryService {
         )
     }
 
-    /// 活跃节点：检索次数 > 0 且仍存在于工作记忆簇中的 top-k。
-    ///
-    /// 簇的存在性用一次读锁一次性取全量 id 集合，避免对每条记录反复加锁。
+    /// 活跃节点：簇内检索次数 > 0 的 top-k（计数取自持久化的 note 字段）。
     fn active_node_ids(&self) -> Vec<MemoryId> {
         let cluster = self.wm.memory_cluster();
-        let present: HashSet<MemoryId> = cluster.read_or_compute(|c| {
+        let mut entries: Vec<(MemoryId, usize)> = cluster.read_or_compute(|c| {
             c.graph()
                 .node_weights()
-                .map(|node| node.note().id())
+                .filter_map(|node| {
+                    let count = node.note().retrieval_count();
+                    (count > 0).then(|| (node.note().id(), count))
+                })
                 .collect()
         });
-        let mut entries: Vec<(MemoryId, usize)> = self.wm.read_records(|records| {
-            records
-                .iter()
-                .filter(|(id, record)| record.retrieval_count() > 0 && present.contains(id))
-                .map(|(id, record)| (*id, record.retrieval_count()))
-                .collect()
-        });
-        entries.sort_by_key(|entry| std::cmp::Reverse(entry.1));
+        entries.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
         entries
             .into_iter()
             .take(self.config.consolidation.link_top_k)
@@ -739,8 +788,8 @@ pub struct ServiceHandle {
 }
 
 impl ServiceHandle {
-    /// 提交一次组合请求。
-    pub async fn exchange(&self, request: ServiceRequest) -> ServiceResult<ServiceResponse> {
+    /// 投递一次原子请求。
+    pub(crate) async fn send(&self, request: ServiceRequest) -> ServiceResult<ServiceResponse> {
         let (reply, rx) = oneshot::channel();
         self.tx
             .send(Command::Exchange { request, reply })
@@ -750,19 +799,41 @@ impl ServiceHandle {
             .map_err(|_| ServiceError::Internal("响应通道关闭".into()))?
     }
 
-    /// 仅取状态快照。
-    pub async fn snapshot(&self) -> ServiceResult<ServiceState> {
-        Ok(self.exchange(ServiceRequest::default()).await?.state)
+    /// 压入一条信息增量。
+    pub async fn ingest(&self, delta: Delta) -> ServiceResult<ServiceState> {
+        match self.send(ServiceRequest::Ingest(delta)).await? {
+            ServiceResponse::Ingested(state) => Ok(state),
+            other => Err(mismatch(&other)),
+        }
     }
 
-    /// 仅发送控制信号。
-    pub async fn control(&self, controls: Vec<ControlAction>) -> ServiceResult<ServiceState> {
-        let request = ServiceRequest {
-            controls,
-            ..ServiceRequest::default()
-        };
-        Ok(self.exchange(request).await?.state)
+    /// 执行一次检索。
+    pub async fn retrieve(
+        &self,
+        queries: Vec<PrioritizedMemoryRetrieveQuery>,
+    ) -> ServiceResult<Retrieval> {
+        match self.send(ServiceRequest::Retrieve(queries)).await? {
+            ServiceResponse::Retrieved(retrieval) => Ok(retrieval),
+            other => Err(mismatch(&other)),
+        }
     }
+
+    /// 执行一个控制信号。
+    pub async fn control(&self, action: ControlAction) -> ServiceResult<ServiceState> {
+        match self.send(ServiceRequest::Control(action)).await? {
+            ServiceResponse::Controlled(state) => Ok(state),
+            other => Err(mismatch(&other)),
+        }
+    }
+
+    /// 仅取状态快照。
+    pub async fn snapshot(&self) -> ServiceResult<ServiceState> {
+        self.control(ControlAction::Snapshot).await
+    }
+}
+
+fn mismatch(response: &ServiceResponse) -> ServiceError {
+    ServiceError::Internal(format!("响应与请求不匹配: {response:?}"))
 }
 
 /// 启动串行命令循环；返回句柄与后台任务。
@@ -776,8 +847,7 @@ pub fn spawn(
         while let Some(command) = rx.recv().await {
             match command {
                 Command::Exchange { request, reply } => {
-                    let response = service.handle_exchange(request).await;
-                    let _ = reply.send(Ok(response));
+                    let _ = reply.send(service.handle_request(request).await);
                 }
             }
         }
@@ -966,6 +1036,30 @@ mod tests {
         }
     }
 
+    /// 首次调用失败、之后成功的假 LLM，用于验证摘要失败后的重试。
+    #[derive(Default)]
+    struct FailOnceLlm {
+        calls: AtomicUsize,
+    }
+
+    #[async_trait]
+    impl ChatBackend for FailOnceLlm {
+        fn info(&self) -> BackendInfo {
+            BackendInfo::new("fail-once")
+        }
+
+        async fn complete(&self, _task: Task) -> Result<Completion, LlmError> {
+            if self.calls.fetch_add(1, Ordering::SeqCst) == 0 {
+                return Err(LlmError::unsupported("boom"));
+            }
+            Ok(Completion::new("摘要"))
+        }
+
+        async fn stream(&self, _task: Task) -> Result<EventStream, LlmError> {
+            Err(LlmError::unsupported("不支持流式"))
+        }
+    }
+
     fn test_config() -> Config {
         use crate::config::{
             ConsolidationConfig, GrpcConfig, LlmConfig, RetrievalConfig, ServiceConfig,
@@ -1026,6 +1120,15 @@ mod tests {
         repo: Arc<FakeRepo>,
         model: Arc<dyn EmbeddingModel + Send + Sync>,
     ) -> MemoryService {
+        build_service_with(repo, model, Arc::new(LlmEngine::new(Arc::new(FakeLlm))), 20)
+    }
+
+    fn build_service_with(
+        repo: Arc<FakeRepo>,
+        model: Arc<dyn EmbeddingModel + Send + Sync>,
+        llm: Arc<LlmEngine>,
+        capacity: usize,
+    ) -> MemoryService {
         let events = broadcast::channel(8).0;
         let pool = Arc::new(
             rayon::ThreadPoolBuilder::new()
@@ -1033,17 +1136,18 @@ mod tests {
                 .build()
                 .expect("测试线程池"),
         );
-        MemoryService::new(
-            Arc::new(test_config()),
-            Arc::new(WorkingMemory::new(20)),
-            repo,
-            Arc::new(LlmEngine::new(Arc::new(FakeLlm))),
-            model,
-            jieba_rs::Jieba::new(),
-            events,
-            true,
-            pool,
-        )
+        MemoryService::builder()
+            .config(Arc::new(test_config()))
+            .working_memory(Arc::new(WorkingMemory::new(capacity)))
+            .repository(repo)
+            .llm(llm)
+            .embedding_model(model)
+            .jieba(jieba_rs::Jieba::new())
+            .events(events)
+            .llm_available(true)
+            .retrieval_pool(pool)
+            .build()
+            .expect("构造测试服务")
     }
 
     /// 4 维单位向量：第 `index` 个分量为 1，其余为 0。
@@ -1109,13 +1213,10 @@ mod tests {
     async fn ingest_accepts_delta_and_marks_working() {
         let repo = Arc::new(FakeRepo::default());
         let mut service = build_service(repo);
-        let request = ServiceRequest {
-            deltas: vec![delta("你好")],
-            ..ServiceRequest::default()
-        };
-        let response = service.handle_exchange(request).await;
-        assert_eq!(response.accepted, 1);
-        assert!(response.error.is_none());
+        let response = service
+            .handle_request(ServiceRequest::Ingest(delta("你好")))
+            .await;
+        assert!(matches!(response, Ok(ServiceResponse::Ingested(_))));
         assert!(service.wm.is_working());
     }
 
@@ -1125,27 +1226,22 @@ mod tests {
         let repo = Arc::new(FakeRepo::default());
         let mut service = build_service(repo);
         service.llm_available = false;
-        let request = ServiceRequest {
-            deltas: vec![delta("你好")],
-            ..ServiceRequest::default()
-        };
-        let response = service.handle_exchange(request).await;
-        assert!(response.error.is_none());
+        let response = service
+            .handle_request(ServiceRequest::Ingest(delta("你好")))
+            .await;
+        assert!(response.is_ok());
         assert!(!service.llm_available, "未调用 LLM 不应把可用性置真");
     }
 
     #[tokio::test]
-    async fn paused_reports_error_and_zero_accepted() {
+    async fn paused_rejects_ingest() {
         let repo = Arc::new(FakeRepo::default());
         let mut service = build_service(repo);
         service.paused = true;
-        let request = ServiceRequest {
-            deltas: vec![delta("你好")],
-            ..ServiceRequest::default()
-        };
-        let response = service.handle_exchange(request).await;
-        assert_eq!(response.accepted, 0);
-        assert!(response.error.is_some());
+        let result = service
+            .handle_request(ServiceRequest::Ingest(delta("你好")))
+            .await;
+        assert!(result.is_err());
     }
 
     #[tokio::test]
@@ -1228,7 +1324,10 @@ mod tests {
             .collect();
         assert_eq!(tags, vec![unit(2), unit(0), unit(1)]);
 
-        let results = service.run_pipelines(embedded).await.expect("管线应成功");
+        let results = service
+            .run_pipelines(service.pipeline_config(), embedded)
+            .await
+            .expect("管线应成功");
         let priorities: Vec<u32> = results.iter().map(|result| result.priority).collect();
         assert_eq!(priorities, vec![7, 1, 3], "并行管线必须保持输入顺序");
     }
@@ -1241,34 +1340,44 @@ mod tests {
         seed_note(&service, id, "a", unit(0), unit(0));
 
         let response = service
-            .handle_exchange(ServiceRequest {
-                queries: vec![prioritized_query(1, "a", "a")],
-                ..ServiceRequest::default()
-            })
-            .await;
+            .handle_request(ServiceRequest::Retrieve(vec![prioritized_query(
+                1, "a", "a",
+            )]))
+            .await
+            .expect("检索应成功");
+        let ServiceResponse::Retrieved(retrieval) = response else {
+            panic!("期望 Retrieved 响应");
+        };
 
-        assert!(
-            response.error.is_none(),
-            "检索不应报错: {:?}",
-            response.error
-        );
-        assert_eq!(response.memories.len(), 1, "应命中预置节点");
-        assert_eq!(response.memories[0].content, "a");
-        assert!(
-            response
-                .output
-                .as_deref()
-                .is_some_and(|text| !text.trim().is_empty()),
-            "应渲染出非空输出"
-        );
-        // 命中节点已从工作记忆移出（DB 中仍有权威副本）。
-        assert_eq!(
-            service
-                .wm
-                .memory_cluster()
-                .read_or_compute(|cluster| cluster.graph().node_count()),
-            0
-        );
+        assert_eq!(retrieval.memories.len(), 1, "应命中预置节点");
+        assert_eq!(retrieval.memories[0].content, "a");
+        assert!(!retrieval.output.trim().is_empty(), "应渲染出非空输出");
+        // 命中节点保留在簇里，并递增自身检索计数。
+        let (node_count, count) = service.wm.memory_cluster().read_or_compute(|cluster| {
+            let count = cluster
+                .get_node(id)
+                .map(|node| node.note().retrieval_count());
+            (cluster.graph().node_count(), count)
+        });
+        assert_eq!(node_count, 1);
+        assert_eq!(count, Some(1));
+    }
+
+    #[tokio::test]
+    async fn retrieved_node_becomes_active() {
+        let repo = Arc::new(FakeRepo::default());
+        let mut service = build_service_with_model(repo, Arc::new(ScriptedModel::new()));
+        let id = MemoryId::new();
+        seed_note(&service, id, "a", unit(0), unit(0));
+
+        service
+            .handle_request(ServiceRequest::Retrieve(vec![prioritized_query(
+                1, "a", "a",
+            )]))
+            .await
+            .expect("检索应成功");
+
+        assert_eq!(service.active_node_ids(), vec![id]);
     }
 
     #[tokio::test]
@@ -1277,19 +1386,14 @@ mod tests {
         let mut service =
             build_service_with_model(repo, Arc::new(ScriptedModel::failing_on("boom")));
 
-        let response = service
-            .handle_exchange(ServiceRequest {
-                queries: vec![
-                    prioritized_query(1, "a", "a"),
-                    prioritized_query(1, "boom", "boom"),
-                ],
-                ..ServiceRequest::default()
-            })
+        let result = service
+            .handle_request(ServiceRequest::Retrieve(vec![
+                prioritized_query(1, "a", "a"),
+                prioritized_query(1, "boom", "boom"),
+            ]))
             .await;
 
-        assert!(response.error.is_some(), "任一条嵌入失败应使整批失败");
-        assert!(response.memories.is_empty());
-        assert!(response.output.is_none());
+        assert!(result.is_err(), "任一条嵌入失败应使整批失败");
     }
 
     #[tokio::test]
@@ -1309,14 +1413,15 @@ mod tests {
         seed_note(&service, high, high_content, unit(0), unit(0));
 
         let response = service
-            .handle_exchange(ServiceRequest {
-                queries: vec![prioritized_query(1, "a", "a")],
-                ..ServiceRequest::default()
-            })
-            .await;
-
-        assert!(response.error.is_none());
-        let contents: Vec<&str> = response
+            .handle_request(ServiceRequest::Retrieve(vec![prioritized_query(
+                1, "a", "a",
+            )]))
+            .await
+            .expect("检索应成功");
+        let ServiceResponse::Retrieved(retrieval) = response else {
+            panic!("期望 Retrieved 响应");
+        };
+        let contents: Vec<&str> = retrieval
             .memories
             .iter()
             .map(|memory| memory.content.as_str())
@@ -1326,5 +1431,34 @@ mod tests {
             vec![low_content, high_content],
             "同分应按 MemoryId 升序"
         );
+    }
+
+    #[tokio::test]
+    async fn summarize_failure_keeps_evicted_message_for_retry() {
+        let repo = Arc::new(FakeRepo::default());
+        let llm = Arc::new(LlmEngine::new(Arc::new(FailOnceLlm::default())));
+        let mut service = build_service_with(repo, Arc::new(FakeModel), llm, 1);
+
+        service
+            .handle_request(ServiceRequest::Ingest(delta("a")))
+            .await
+            .expect("首次入队应成功");
+
+        let result = service
+            .handle_request(ServiceRequest::Ingest(delta("b")))
+            .await;
+        assert!(result.is_err(), "首次摘要失败应返回错误");
+        assert_eq!(service.pending_evicted.len(), 1, "被弹出的消息必须保留");
+        assert!(!service.llm_available);
+
+        service
+            .handle_request(ServiceRequest::Ingest(delta("c")))
+            .await
+            .expect("重试摘要应成功");
+        assert!(
+            service.pending_evicted.is_empty(),
+            "重试成功后应清空待摘要队列"
+        );
+        assert!(!service.wm.sliding_window().get_summary().trim().is_empty());
     }
 }

@@ -69,7 +69,7 @@ async fn main() -> anyhow::Result<()> {
 
     tokio::signal::ctrl_c().await?;
     tracing::info!("收到退出信号，持久化工作记忆");
-    let _ = handle.control(vec![ControlAction::Persist]).await;
+    let _ = handle.control(ControlAction::Persist).await;
 
     // 先停掉所有持有服务句柄的任务，再等待服务循环把在途命令排空。
     heartbeat.abort();
@@ -122,7 +122,7 @@ fn spawn_maintenance(handle: ServiceHandle, secs: u64) -> JoinHandle<()> {
         let mut ticker = tokio::time::interval_at(tokio::time::Instant::now() + period, period);
         loop {
             ticker.tick().await;
-            if let Err(error) = handle.control(vec![ControlAction::Maintenance]).await {
+            if let Err(error) = handle.control(ControlAction::Maintenance).await {
                 tracing::warn!(%error, "定时维护失败");
             }
         }

@@ -12,5 +12,5 @@ pub mod types;
 
 pub use engine::{Command, MemoryService, ServiceHandle, spawn};
 pub use types::{
-    ControlAction, Delta, ServiceEvent, ServiceRequest, ServiceResponse, ServiceState,
+    ControlAction, Delta, Retrieval, ServiceEvent, ServiceRequest, ServiceResponse, ServiceState,
 };

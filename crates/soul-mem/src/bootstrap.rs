@@ -55,17 +55,17 @@ pub async fn bootstrap(config: Arc<Config>) -> ServiceResult<Bootstrap> {
     let retrieval_pool = Arc::new(build_retrieval_pool(config.retrieval.threads)?);
 
     let (events, _receiver) = broadcast::channel(config.service.event_channel_capacity);
-    let service = MemoryService::new(
-        config,
-        working_memory,
-        repo,
-        Arc::new(llm),
-        model,
-        jieba,
-        events.clone(),
-        false,
-        retrieval_pool,
-    );
+    let service = MemoryService::builder()
+        .config(config)
+        .working_memory(working_memory)
+        .repository(repo)
+        .llm(Arc::new(llm))
+        .embedding_model(model)
+        .jieba(jieba)
+        .events(events.clone())
+        .llm_available(false)
+        .retrieval_pool(retrieval_pool)
+        .build()?;
 
     Ok(Bootstrap { service, events })
 }

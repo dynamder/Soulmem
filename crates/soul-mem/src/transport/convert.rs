@@ -8,8 +8,7 @@ use prost_types::Timestamp;
 use crate::error::{ServiceError, ServiceResult};
 use crate::proto::v1;
 use crate::service::{
-    ControlAction, Delta as ServiceDelta, ServiceEvent, ServiceRequest, ServiceResponse,
-    ServiceState,
+    ControlAction, Delta as ServiceDelta, ServiceEvent, ServiceRequest, ServiceState,
 };
 use soul_mem_core::render::{MemoryKind, RenderedMemoryNote};
 use soul_mem_query::query::retrieve::{
@@ -18,22 +17,19 @@ use soul_mem_query::query::retrieve::{
     SemanticQueryUnit, SituationQueryUnit, TimeSpanQueryUnit,
 };
 
-/// proto 请求 -> 领域组合请求。
+/// proto 请求 -> 领域原子请求。
 ///
-/// 未知/未指定的控制信号不再静默丢弃：未指定（0）视作无操作，无法识别的值报错，
-/// 由适配器以 `Reply { ok: false }` 明确反馈给调用方。
-pub fn service_request(message: v1::Request) -> ServiceResult<ServiceRequest> {
-    let mut controls = Vec::new();
-    for raw in message.controls {
-        if let Some(action) = map_action(raw)? {
-            controls.push(action);
-        }
+/// 空 body / 未指定控制（0）视作无操作；无法识别的控制值报错，由适配器以
+/// `Reply { ok: false }` 明确反馈给调用方。
+pub fn service_request(message: v1::Request) -> ServiceResult<Option<ServiceRequest>> {
+    match message.body {
+        None => Ok(None),
+        Some(v1::request::Body::Delta(message)) => Ok(Some(ServiceRequest::Ingest(delta(message)))),
+        Some(v1::request::Body::Queries(batch)) => Ok(Some(ServiceRequest::Retrieve(
+            batch.queries.into_iter().map(query).collect(),
+        ))),
+        Some(v1::request::Body::Control(raw)) => Ok(map_action(raw)?.map(ServiceRequest::Control)),
     }
-    Ok(ServiceRequest {
-        queries: message.queries.into_iter().map(query).collect(),
-        deltas: message.deltas.into_iter().map(delta).collect(),
-        controls,
-    })
 }
 
 /// proto query -> 带优先级的内部查询。
@@ -197,17 +193,26 @@ pub fn service_state(state: ServiceState) -> v1::ServiceState {
     }
 }
 
-/// 组装一次处理响应：`ok` 由领域层的 `error` 决定，失败时仍带状态与已接受条数。
-pub fn reply(request_id: String, response: ServiceResponse) -> v1::Reply {
-    let ok = response.error.is_none();
+/// 一次 Reply 的聚合结果。
+pub struct ReplyData {
+    pub request_id: String,
+    pub error: Option<String>,
+    pub output: Option<String>,
+    pub memories: Vec<RenderedMemoryNote>,
+    pub state: Option<ServiceState>,
+    pub accepted: u32,
+}
+
+/// 组装一次处理响应：`ok` 由是否有错误决定。
+pub fn reply(data: ReplyData) -> v1::Reply {
     v1::Reply {
-        request_id,
-        ok,
-        error: response.error.unwrap_or_default(),
-        output: response.output,
-        memories: response.memories.into_iter().map(rendered_note).collect(),
-        state: Some(service_state(response.state)),
-        accepted: response.accepted,
+        request_id: data.request_id,
+        ok: data.error.is_none(),
+        error: data.error.unwrap_or_default(),
+        output: data.output,
+        memories: data.memories.into_iter().map(rendered_note).collect(),
+        state: data.state.map(service_state),
+        accepted: data.accepted,
     }
 }
 
@@ -286,17 +291,22 @@ mod tests {
     #[test]
     fn unspecified_control_is_noop() {
         let request = v1::Request {
-            controls: vec![v1::ControlAction::Unspecified as i32],
+            body: Some(v1::request::Body::Control(
+                v1::ControlAction::Unspecified as i32,
+            )),
             ..v1::Request::default()
         };
-        let converted = service_request(request).expect("未指定应视为无操作");
-        assert!(converted.controls.is_empty());
+        assert!(
+            service_request(request)
+                .expect("未指定应视为无操作")
+                .is_none()
+        );
     }
 
     #[test]
     fn unknown_control_is_rejected() {
         let request = v1::Request {
-            controls: vec![9999],
+            body: Some(v1::request::Body::Control(9999)),
             ..v1::Request::default()
         };
         assert!(service_request(request).is_err());
@@ -305,21 +315,60 @@ mod tests {
     #[test]
     fn maintenance_control_maps() {
         let request = v1::Request {
-            controls: vec![v1::ControlAction::Maintenance as i32],
+            body: Some(v1::request::Body::Control(
+                v1::ControlAction::Maintenance as i32,
+            )),
             ..v1::Request::default()
         };
         let converted = service_request(request).expect("维护信号应可映射");
-        assert_eq!(converted.controls, vec![ControlAction::Maintenance]);
+        assert!(matches!(
+            converted,
+            Some(ServiceRequest::Control(ControlAction::Maintenance))
+        ));
     }
 
     #[test]
     fn probe_llm_control_maps() {
         let request = v1::Request {
-            controls: vec![v1::ControlAction::ProbeLlm as i32],
+            body: Some(v1::request::Body::Control(
+                v1::ControlAction::ProbeLlm as i32,
+            )),
             ..v1::Request::default()
         };
         let converted = service_request(request).expect("探活信号应可映射");
-        assert_eq!(converted.controls, vec![ControlAction::ProbeLlm]);
+        assert!(matches!(
+            converted,
+            Some(ServiceRequest::Control(ControlAction::ProbeLlm))
+        ));
+    }
+
+    #[test]
+    fn delta_maps_to_ingest() {
+        let request = v1::Request {
+            body: Some(v1::request::Body::Delta(v1::Delta {
+                statement: "hi".into(),
+                role: "user".into(),
+            })),
+            ..v1::Request::default()
+        };
+        let Some(ServiceRequest::Ingest(delta)) = service_request(request).expect("应可转换")
+        else {
+            panic!("期望 Ingest");
+        };
+        assert_eq!(delta.statement, "hi");
+        assert_eq!(delta.role, "user");
+    }
+
+    #[test]
+    fn query_batch_maps_to_retrieve() {
+        let request = v1::Request {
+            body: Some(v1::request::Body::Queries(v1::QueryBatch {
+                queries: Vec::new(),
+            })),
+            ..v1::Request::default()
+        };
+        let converted = service_request(request).expect("应可转换");
+        assert!(matches!(converted, Some(ServiceRequest::Retrieve(_))));
     }
 
     #[test]
@@ -334,20 +383,21 @@ mod tests {
 
     #[test]
     fn reply_carries_state_on_business_error() {
-        let response = ServiceResponse {
+        let data = ReplyData {
+            request_id: "req-1".into(),
+            error: Some("boom".into()),
             output: None,
             memories: Vec::new(),
-            state: ServiceState {
+            state: Some(ServiceState {
                 working: false,
                 node_count: 0,
                 edge_count: 0,
                 llm_available: true,
                 last_consolidation_at: None,
-            },
+            }),
             accepted: 2,
-            error: Some("boom".into()),
         };
-        let reply = reply("req-1".into(), response);
+        let reply = reply(data);
         assert!(!reply.ok);
         assert_eq!(reply.error, "boom");
         assert_eq!(reply.accepted, 2);
