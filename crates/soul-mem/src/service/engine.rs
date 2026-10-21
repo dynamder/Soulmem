@@ -211,10 +211,10 @@ impl MemoryService {
     /// 处理一次原子请求。
     async fn handle_request(&mut self, request: ServiceRequest) -> ServiceResult<ServiceResponse> {
         match request {
-            ServiceRequest::Ingest(delta) => {
+            ServiceRequest::Ingest(window_delta) => {
                 self.last_activity = Instant::now();
                 self.wm.transition_to_working();
-                self.ingest_one(&delta).await?;
+                self.ingest_one(&window_delta).await?;
                 Ok(ServiceResponse::Ingested(self.snapshot()))
             }
             ServiceRequest::Retrieve(queries) => {
@@ -235,19 +235,19 @@ impl MemoryService {
     }
 
     /// 增量用例：把一条语句压入滑动窗口。
-    async fn ingest_one(&mut self, delta: &Delta) -> ServiceResult<()> {
+    async fn ingest_one(&mut self, window_delta: &Delta) -> ServiceResult<()> {
         if self.paused {
             return Err(ServiceError::Internal("服务已暂停，忽略增量".into()));
         }
         // proto 约定：空串或其他值都按 user 处理。
-        let role = if delta.role == "assistant" {
+        let role = if window_delta.role == "assistant" {
             "assistant"
         } else {
             "user"
         };
         // push 只入队；超过容量后由调用方 pop 队首，带标记的进入待摘要队列。
         // `Ok` 不蕴含"调用过 LLM"；失败只在 flush 里置 false，置 true 交给探活与巩固。
-        match self.wm.sliding_window().push(&delta.statement, role) {
+        match self.wm.sliding_window().push(&window_delta.statement, role) {
             PushOutcome::Enqueued => {}
             PushOutcome::NeedsEviction => {
                 if let Some(evicted) = self.wm.sliding_window().pop()
@@ -366,11 +366,11 @@ impl MemoryService {
             updated.push(embedded);
         }
         cluster.write(|c| {
-            for node in &updated {
+            updated.iter().for_each(|node| {
                 if let Some(slot) = c.get_node_mut(node.note().id()) {
                     *slot = node.clone();
                 }
-            }
+            });
         });
         if let Err(error) = self.repo.upsert_notes(updated).await {
             tracing::warn!(%error, "检索命中持久化失败");
@@ -550,11 +550,11 @@ impl MemoryService {
                     .node_weights()
                     .map(|node| node.note().id())
                     .collect();
-                for id in &ids {
+                ids.iter().for_each(|id| {
                     if let Some(node) = c.get_node_mut(*id) {
                         compute_and_update_missing_degree(&mut node.note, now);
                     }
-                }
+                });
                 ids.iter()
                     .filter_map(|id| c.get_node(*id).cloned())
                     .collect()
@@ -634,22 +634,22 @@ impl MemoryService {
         {
             let cluster = self.wm.memory_cluster();
             cluster.read_or_compute(|c| {
-                for id in &active_ids {
+                active_ids.iter().for_each(|id| {
                     let Some(active_node) = c.get_node(*id) else {
-                        continue;
+                        return;
                     };
                     let from = active_node.note().id();
                     let mut clone = active_node.clone();
-                    for &new_id in &new_ids {
-                        if new_id == from {
-                            continue;
-                        }
-                        let link = self.consolidation_link(from, new_id);
-                        clone.note.links_mut().push(link.clone());
-                        active_links.push((from, link));
-                    }
+                    new_ids
+                        .iter()
+                        .filter(|&&new_id| new_id != from)
+                        .for_each(|&new_id| {
+                            let link = self.consolidation_link(from, new_id);
+                            clone.note.links_mut().push(link.clone());
+                            active_links.push((from, link));
+                        });
                     updated_active.push(clone);
-                }
+                });
             });
         }
 
@@ -662,21 +662,19 @@ impl MemoryService {
         self.clear_summary();
 
         // 入簇（同时注册活跃记录）。
-        for node in embedded_notes {
-            self.wm.add_node(node);
-        }
+        embedded_notes
+            .into_iter()
+            .for_each(|node| self.wm.add_node(node));
 
         // 让簇内的活跃节点也带上 `活跃 -> 新` 出边（复用同一批 LinkId）。
         let cluster = self.wm.memory_cluster();
         cluster.write(|c| {
-            for (from, link) in active_links {
+            active_links.into_iter().for_each(|(from, link)| {
                 if let Some(node) = c.get_node_mut(from) {
                     node.note.links_mut().push(link);
                 }
-            }
-            for &active in &active_ids {
-                c.refresh_node(&active);
-            }
+            });
+            active_ids.iter().for_each(|active| c.refresh_node(active));
         });
 
         self.last_consolidation_at = Some(Utc::now());
@@ -709,14 +707,12 @@ impl MemoryService {
         if active.is_empty() {
             return (notes, active);
         }
-        for note in &mut notes {
+        notes.iter_mut().for_each(|note| {
             let from = note.id();
-            for &to in &active {
-                if to != from {
-                    note.links_mut().push(self.consolidation_link(from, to));
-                }
-            }
-        }
+            active.iter().filter(|&&to| to != from).for_each(|&to| {
+                note.links_mut().push(self.consolidation_link(from, to));
+            });
+        });
         (notes, active)
     }
 
@@ -800,8 +796,8 @@ impl ServiceHandle {
     }
 
     /// 压入一条信息增量。
-    pub async fn ingest(&self, delta: Delta) -> ServiceResult<ServiceState> {
-        match self.send(ServiceRequest::Ingest(delta)).await? {
+    pub async fn ingest(&self, window_delta: Delta) -> ServiceResult<ServiceState> {
+        match self.send(ServiceRequest::Ingest(window_delta)).await? {
             ServiceResponse::Ingested(state) => Ok(state),
             other => Err(mismatch(&other)),
         }
@@ -897,9 +893,9 @@ mod tests {
                 return Err(StorageError::InvalidArgument("模拟写入失败".into()));
             }
             let mut notes = self.notes.lock().expect("notes lock");
-            for note in mem_notes {
+            mem_notes.into_iter().for_each(|note| {
                 notes.insert(note.note().id(), note);
-            }
+            });
             Ok(())
         }
 

@@ -1,16 +1,15 @@
-//! zenoh pub/sub 适配器。
+//! zenoh 适配器：请求走 query/reply，事件走 pub/sub。
 //!
-//! 三条 keyexpr：
-//! - `<prefix>/req`：订阅客户端请求。
-//! - `<prefix>/resp`：发布响应（按 `request_id` 配对）。
+//! 两条 keyexpr：
+//! - `<prefix>/req`：声明 queryable，接收客户端 `get` 请求并直接 reply。
 //! - `<prefix>/event`：发布服务主动事件（心跳、巩固完成）。
 //!
-//! pub/sub 无应答语义，故请求与响应是两条独立的 publish；客户端订阅 `resp`
-//! 并按 `request_id` 过滤。事件来源是服务内部广播通道。
+//! query/reply 自带应答语义：响应只回到发起 query 的客户端，不再需要公共的
+//! `<prefix>/resp`，也无需按 `request_id` 过滤。事件来源是服务内部广播通道。
 //!
 //! 结构：适配器的全部逻辑都收在 [`ZenohService`] 的 `impl` 块里——会话/端点声明
 //! （[`ZenohService::declare`]）、事件转发（[`ZenohService::spawn_event_forwarder`]）、
-//! 请求服务循环（[`ZenohService::serve_requests`]）与单条处理（[`ZenohService::handle_sample`]）；
+//! 请求服务循环（[`ZenohService::serve_queries`]）与单条处理（[`ZenohService::handle_query`]）；
 //! [`ZenohService::run`] 只负责把它们串起来。
 
 use prost::Message;
@@ -19,15 +18,15 @@ use tokio::task::JoinHandle;
 use zenoh::Session;
 use zenoh::bytes::ZBytes;
 use zenoh::handlers::FifoChannelHandler;
-use zenoh::pubsub::{Publisher, Subscriber};
-use zenoh::sample::Sample;
+use zenoh::pubsub::Publisher;
+use zenoh::query::{Query, Queryable};
 
 use super::{convert, dispatch};
 use crate::proto::v1;
 use crate::service::{ServiceEvent, ServiceHandle};
 
-/// 请求订阅者类型（`declare_subscriber` 的默认 handler 是 FIFO 通道）。
-type RequestSubscriber = Subscriber<FifoChannelHandler<Sample>>;
+/// 请求 queryable 类型（`declare_queryable` 的默认 handler 是 FIFO 通道）。
+type RequestQueryable = Queryable<FifoChannelHandler<Query>>;
 /// 发布者类型。keyexpr 由 owned `String` 构造，因此生命周期是 `'static`。
 type PublisherHandle = Publisher<'static>;
 
@@ -52,20 +51,19 @@ impl ZenohService {
         }
     }
 
-    /// 启动适配器：开会话、声明端点、起事件转发、跑请求循环；返回时订阅已结束。
+    /// 启动适配器：开会话、声明端点、起事件转发、跑请求循环；返回时 queryable 已结束。
     pub async fn run(self) -> anyhow::Result<()> {
         let session = Self::open_session().await?;
-        let (subscriber, responder, event_publisher) = self.declare(&session).await?;
+        let (queryable, event_publisher) = self.declare(&session).await?;
         let event_task = self.spawn_event_forwarder(event_publisher);
 
         tracing::info!(
             req_key = %self.request_key(),
-            resp_key = %self.response_key(),
             event_key = %self.event_key(),
             "zenoh 适配器已启动"
         );
 
-        self.serve_requests(&subscriber, &responder).await;
+        self.serve_queries(&queryable).await;
 
         event_task.abort();
         Ok(())
@@ -74,11 +72,6 @@ impl ZenohService {
     /// `<prefix>/req`。
     fn request_key(&self) -> String {
         format!("{}/req", self.prefix)
-    }
-
-    /// `<prefix>/resp`。
-    fn response_key(&self) -> String {
-        format!("{}/resp", self.prefix)
     }
 
     /// `<prefix>/event`。
@@ -93,24 +86,20 @@ impl ZenohService {
             .map_err(to_anyhow)
     }
 
-    /// 声明请求订阅者与两个发布者（响应、事件）。
+    /// 声明请求 queryable 与事件发布者。
     async fn declare(
         &self,
         session: &Session,
-    ) -> anyhow::Result<(RequestSubscriber, PublisherHandle, PublisherHandle)> {
-        let subscriber = session
-            .declare_subscriber(self.request_key())
-            .await
-            .map_err(to_anyhow)?;
-        let responder = session
-            .declare_publisher(self.response_key())
+    ) -> anyhow::Result<(RequestQueryable, PublisherHandle)> {
+        let queryable = session
+            .declare_queryable(self.request_key())
             .await
             .map_err(to_anyhow)?;
         let event_publisher = session
             .declare_publisher(self.event_key())
             .await
             .map_err(to_anyhow)?;
-        Ok((subscriber, responder, event_publisher))
+        Ok((queryable, event_publisher))
     }
 
     /// 事件转发任务：把内部广播转成 zenoh 事件发布。
@@ -138,29 +127,33 @@ impl ZenohService {
         })
     }
 
-    /// 请求服务循环：订阅结束（`Err`）即退出，避免围绕失效会话空转。
-    async fn serve_requests(&self, subscriber: &RequestSubscriber, responder: &PublisherHandle) {
+    /// 请求服务循环：queryable 结束（`Err`）即退出，避免围绕失效会话空转。
+    async fn serve_queries(&self, queryable: &RequestQueryable) {
         loop {
-            let sample = match subscriber.recv_async().await {
-                Ok(sample) => sample,
+            let query = match queryable.recv_async().await {
+                Ok(query) => query,
                 Err(error) => {
-                    tracing::warn!(%error, "zenoh 订阅结束");
+                    tracing::warn!(%error, "zenoh queryable 结束");
                     break;
                 }
             };
-            if let Some(encoded) = self.handle_sample(&sample).await
-                && let Err(error) = responder.put(ZBytes::from(encoded)).await
+            if let Some(encoded) = self.handle_query(&query).await
+                && let Err(error) = query.reply(self.request_key(), ZBytes::from(encoded)).await
             {
-                tracing::warn!(%error, "响应发布失败");
+                tracing::warn!(%error, "响应发送失败");
             }
         }
     }
 
-    /// 处理一条请求样本：解码 -> 分派 -> 编码。
+    /// 处理一条 query：解码 payload -> 分派 -> 编码。
     ///
-    /// 解码失败只丢弃该样本并返回 `None`，不影响循环继续。
-    async fn handle_sample(&self, sample: &Sample) -> Option<Vec<u8>> {
-        let payload = sample.payload().to_bytes();
+    /// 解码失败只丢弃该 query 并返回 `None`，不影响循环继续。
+    async fn handle_query(&self, query: &Query) -> Option<Vec<u8>> {
+        let Some(payload) = query.payload() else {
+            tracing::warn!("请求缺少 payload，已丢弃");
+            return None;
+        };
+        let payload = payload.to_bytes();
         let bytes: &[u8] = &payload;
         let request = match v1::Request::decode(bytes) {
             Ok(request) => request,

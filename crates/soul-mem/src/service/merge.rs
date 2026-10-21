@@ -20,16 +20,16 @@ pub fn merge_scored<'a>(
 ) -> Vec<(MemoryId, f64)> {
     // (加权分和, 权重和, 原始分和, 命中次数)
     let mut acc: HashMap<MemoryId, (f64, f64, f64, u32)> = HashMap::new();
-    for (priority, scored) in series {
+    series.for_each(|(priority, scored)| {
         let weight = priority as f64;
-        for (id, score) in scored {
+        scored.iter().for_each(|(id, score)| {
             let slot = acc.entry(*id).or_insert((0.0, 0.0, 0.0, 0));
             slot.0 += weight * *score;
             slot.1 += weight;
             slot.2 += *score;
             slot.3 += 1;
-        }
-    }
+        });
+    });
     let mut merged: Vec<(MemoryId, f64)> = acc
         .into_iter()
         .map(|(id, (weighted, weight, raw, count))| {

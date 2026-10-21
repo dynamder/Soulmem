@@ -74,9 +74,7 @@ async fn main() -> anyhow::Result<()> {
     // 先停掉所有持有服务句柄的任务，再等待服务循环把在途命令排空。
     heartbeat.abort();
     maintenance.abort();
-    for adapter in &adapters {
-        adapter.abort();
-    }
+    adapters.iter().for_each(|adapter| adapter.abort());
     for adapter in adapters {
         let _ = adapter.await;
     }

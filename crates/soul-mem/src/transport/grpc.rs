@@ -1,6 +1,6 @@
 //! gRPC 适配器（tonic）。
 //!
-//! `Exchange` 与 zenoh 的 `<prefix>/req` + `<prefix>/resp` 等价；`Subscribe` 与
+//! `Exchange` 与 zenoh 的 `<prefix>/req` query/reply 等价；`Subscribe` 与
 //! `<prefix>/event` 等价。消息均来自同一份 `proto/soulmem.proto`。
 
 use std::pin::Pin;

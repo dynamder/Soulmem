@@ -671,10 +671,10 @@ mod tests {
 
     #[test]
     fn invalid_key_prefix_is_rejected() {
-        for bad in ["a/*", "/a", "a b"] {
+        ["a/*", "/a", "a b"].into_iter().for_each(|bad| {
             let text = format!("[zenoh]\nkey_prefix = \"{bad}\"");
             assert!(load_from_toml(&text).is_err(), "应拒绝 {bad}");
-        }
+        });
     }
 
     #[test]
