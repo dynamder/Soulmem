@@ -7759,9 +7759,7 @@ dependencies = [
  "indexmap",
  "js-sys",
  "path-clean",
- "reqwest 0.13.4",
  "ring",
- "rustls",
  "rustls-pki-types",
  "semver",
  "serde",
@@ -7770,7 +7768,6 @@ dependencies = [
  "surrealdb-types",
  "surrealdb-types-derive",
  "tokio",
- "tokio-tungstenite",
  "tokio-tungstenite-wasm",
  "tokio-util",
  "tracing",
@@ -8584,12 +8581,8 @@ checksum = "d25a406cddcc431a75d3d9afc6a7c0f7428d4891dd973e4d54c56b46127bf857"
 dependencies = [
  "futures-util",
  "log",
- "rustls",
- "rustls-pki-types",
  "tokio",
- "tokio-rustls",
  "tungstenite",
- "webpki-roots 0.26.11",
 ]
 
 [[package]]
@@ -8899,11 +8892,8 @@ dependencies = [
  "httparse",
  "log",
  "rand 0.9.5",
- "rustls",
- "rustls-pki-types",
  "sha1",
  "thiserror 2.0.21",
- "url",
  "utf-8",
 ]
 
