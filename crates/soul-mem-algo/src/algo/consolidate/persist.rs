@@ -218,6 +218,8 @@ mod tests {
     use soul_mem_query::embedding::{EmbeddingGenResult, EmbeddingVec};
     use soul_mem_runtime::storage::StorageResult;
     use soul_mem_runtime::storage::surreal::SurrealRepository;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicBool, Ordering};
 
     const DIM: usize = 512;
 
@@ -252,6 +254,41 @@ mod tests {
         }
         fn infer_and_fuse(&self, _input: &[&str]) -> EmbeddingGenResult<EmbeddingVec> {
             Err(EmbeddingGenError::InvalidInput)
+        }
+        fn max_input_token(&self) -> usize {
+            DIM
+        }
+        fn dim(&self) -> usize {
+            DIM
+        }
+    }
+
+    struct RemovingModel {
+        working_mem: Arc<WorkingMemory>,
+        victim: MemoryId,
+        removed: AtomicBool,
+    }
+
+    impl RemovingModel {
+        fn remove_once(&self) {
+            if !self.removed.swap(true, Ordering::SeqCst) {
+                self.working_mem.remove_node(self.victim);
+            }
+        }
+    }
+
+    impl EmbeddingModel for RemovingModel {
+        fn infer_batch(&self, input: &[&str]) -> EmbeddingGenResult<Vec<EmbeddingVec>> {
+            self.remove_once();
+            Ok(input.iter().map(|_| EmbeddingVec::zero(DIM)).collect())
+        }
+        fn infer_with_chunk(&self, _input: &str) -> EmbeddingGenResult<EmbeddingVec> {
+            self.remove_once();
+            Ok(EmbeddingVec::zero(DIM))
+        }
+        fn infer_and_fuse(&self, _input: &[&str]) -> EmbeddingGenResult<EmbeddingVec> {
+            self.remove_once();
+            Ok(EmbeddingVec::zero(DIM))
         }
         fn max_input_token(&self) -> usize {
             DIM
@@ -537,5 +574,41 @@ mod tests {
         assert_eq!(fetched.len(), 2);
         let a_fetched = fetched.iter().find(|n| n.note().id() == a_id).unwrap();
         assert_eq!(links_of(a_fetched), std::slice::from_ref(&link));
+    }
+
+    #[tokio::test]
+    async fn empty_working_memory_snapshot_skips_storage() {
+        let wm = WorkingMemory::new(10);
+
+        let report = persist_working_memory(&FailingRepo, &wm).await.unwrap();
+
+        assert_eq!(report, PersistReport::default());
+    }
+
+    #[tokio::test]
+    async fn counts_link_as_dropped_when_source_disappears_during_embedding() {
+        let repo = repo().await;
+        let wm = Arc::new(WorkingMemory::new(10));
+        let active = embed(sem_note("active"));
+        let active_id = active.note().id();
+        wm.add_node(active);
+
+        let new_note = sem_note("new");
+        let new_id = new_note.id();
+        let link = sem_link(active_id, new_id);
+        let model = RemovingModel {
+            working_mem: wm.clone(),
+            victim: active_id,
+            removed: AtomicBool::new(false),
+        };
+
+        let report = persist_consolidation(&repo, wm.as_ref(), &model, vec![new_note], vec![link])
+            .await
+            .unwrap();
+
+        assert_eq!(report.links_dropped, 1);
+        assert_eq!(report.links_attached, 0);
+        assert_eq!(report.notes_written, 1);
+        assert_eq!(repo.fetch_notes(&[new_id]).await.unwrap().len(), 1);
     }
 }
