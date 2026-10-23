@@ -101,3 +101,224 @@ fn active_nodes(working_mem: &WorkingMemory) -> Vec<ActiveNode> {
         })
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use async_trait::async_trait;
+    use chrono::Utc;
+    use parking_lot::Mutex;
+    use soul_mem_core::memory_note::MemoryId;
+    use soul_mem_core::memory_note::MemoryNoteBuilder;
+    use soul_mem_core::memory_note::MemoryType;
+    use soul_mem_core::memory_note::situation_mem::{
+        Context, Environment, Location, Participant, SpecificSituation, SituationType,
+    };
+    use soul_mem_llm::{BackendInfo, ChatBackend, Completion, EventStream, LlmErrorKind, Task};
+    use soul_mem_query::embedding::EmbeddingVec;
+    use soul_mem_query::embedding::note::{
+        EmbeddedMemoryNote, MemoryEmbedding, MemoryEmbeddingVariant,
+    };
+    use soul_mem_query::embedding::sem::SemanticEmbedding;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    const GENERATED_JSON: &str = r#"[{"type":"semantic","content":"new fact","description":"desc","concept_type":"Entity"}]"#;
+
+    #[derive(Clone, Copy)]
+    enum LinkStep {
+        Edges,
+        Fail,
+    }
+
+    struct Backend {
+        calls: AtomicUsize,
+        link_step: LinkStep,
+        link_prompt: Mutex<Option<String>>,
+    }
+
+    impl Backend {
+        fn new(link_step: LinkStep) -> Self {
+            Self {
+                calls: AtomicUsize::new(0),
+                link_step,
+                link_prompt: Mutex::new(None),
+            }
+        }
+
+        fn call_count(&self) -> usize {
+            self.calls.load(Ordering::SeqCst)
+        }
+
+        fn link_prompt(&self) -> String {
+            self.link_prompt.lock().clone().unwrap_or_default()
+        }
+    }
+
+    #[async_trait]
+    impl ChatBackend for Backend {
+        fn info(&self) -> BackendInfo {
+            BackendInfo::new("consolidate-test")
+        }
+
+        async fn complete(&self, task: Task) -> Result<Completion, LlmError> {
+            let call = self.calls.fetch_add(1, Ordering::SeqCst);
+            if call == 0 {
+                return Ok(Completion::new(GENERATED_JSON));
+            }
+
+            let prompt = task
+                .messages
+                .last()
+                .map(|message| message.text.as_str())
+                .unwrap_or_default();
+            *self.link_prompt.lock() = Some(prompt.to_string());
+
+            match self.link_step {
+                LinkStep::Fail => Err(LlmError::new(LlmErrorKind::Timeout, "link failed")),
+                LinkStep::Edges => {
+                    let new_id = find_prompt_id(prompt, true).ok_or_else(|| {
+                        LlmError::new(LlmErrorKind::Internal, "new node id missing from prompt")
+                    })?;
+                    let active_id = find_prompt_id(prompt, false).ok_or_else(|| {
+                        LlmError::new(LlmErrorKind::Internal, "active node id missing from prompt")
+                    })?;
+                    let unknown = MemoryId::new();
+                    Ok(Completion::new(format!(
+                        r#"[{{"from":"{active_id}","to":"{new_id}","link_type":{{"Sem":{{"verb":"relates","confidence":1.0}}}}}},{{"from":"{new_id}","to":"{new_id}","link_type":{{"Sem":{{"verb":"self","confidence":1.0}}}}}},{{"from":"{unknown}","to":"{new_id}","link_type":{{"Sem":{{"verb":"ghost","confidence":1.0}}}}}}]"#
+                    )))
+                }
+            }
+        }
+
+        async fn stream(&self, _task: Task) -> Result<EventStream, LlmError> {
+            Err(LlmError::unsupported("test backend has no stream"))
+        }
+    }
+
+    fn find_prompt_id(prompt: &str, new: bool) -> Option<String> {
+        prompt
+            .lines()
+            .filter(|line| line.starts_with("- "))
+            .find(|line| line.contains("[NEW]") == new)
+            .and_then(|line| line.strip_prefix("- "))
+            .and_then(|line| line.split_whitespace().next())
+            .map(str::to_string)
+    }
+
+    fn summary(text: &str) -> Summary {
+        let mut summary = Summary::new();
+        summary.update(text);
+        summary
+    }
+
+    fn specific_note() -> MemoryNote {
+        MemoryNoteBuilder::new(MemoryType::Situation(SituationType::SpecificSituation(
+            SpecificSituation::new(
+                String::new(),
+                Utc::now(),
+                Context::new(
+                    Some(Location {
+                        name: "火锅店".to_string(),
+                        coordinates: String::new(),
+                    }),
+                    vec![Participant {
+                        name: "小白".to_string(),
+                        role: "朋友".to_string(),
+                    }],
+                    vec![],
+                    vec![],
+                    Environment {
+                        atmosphere: "热闹".to_string(),
+                        tone: String::new(),
+                    },
+                    vec![],
+                ),
+            ),
+        )))
+        .build()
+        .unwrap()
+    }
+
+    fn embedded(note: MemoryNote) -> EmbeddedMemoryNote {
+        let embedding = MemoryEmbedding::new(
+            EmbeddingVec::zero(512),
+            MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                EmbeddingVec::zero(512),
+                EmbeddingVec::zero(512),
+                EmbeddingVec::zero(512),
+            )),
+        );
+        EmbeddedMemoryNote { note, embedding }
+    }
+
+    #[tokio::test]
+    async fn consolidate_returns_valid_links_and_builds_prompt_without_empty_sections() {
+        let working_mem = WorkingMemory::new(10);
+        let active = specific_note();
+        let active_id = active.id();
+        working_mem.add_node(embedded(active));
+        working_mem.record_retrieval(active_id);
+
+        let backend = Arc::new(Backend::new(LinkStep::Edges));
+        let engine = LlmEngine::new(backend.clone()).with_whole_call_retries(0);
+        let patch = consolidate(&summary("a new fact"), &working_mem, &engine)
+            .await
+            .unwrap();
+
+        assert_eq!(backend.call_count(), 2);
+        assert_eq!(patch.new_notes.len(), 1);
+        assert_eq!(patch.links.len(), 1, "只应保留两端已知且非自环的边");
+        assert_eq!(patch.links[0].from(), active_id);
+        assert_eq!(patch.links[0].to(), patch.new_notes[0].id());
+
+        let prompt = backend.link_prompt();
+        assert!(
+            prompt.contains("[specific_situation] 地点=火锅店"),
+            "{prompt}"
+        );
+        assert!(prompt.contains("参与者=小白"), "{prompt}");
+        assert!(prompt.contains("氛围=热闹"), "{prompt}");
+        assert!(!prompt.contains("情绪="), "{prompt}");
+        assert!(!prompt.contains("事件="), "{prompt}");
+        assert!(prompt.contains("[NEW]"), "{prompt}");
+
+        assert_eq!(
+            working_mem
+                .memory_cluster()
+                .read_or_compute(|cluster| cluster.graph().node_count()),
+            1,
+            "consolidate 不应修改工作记忆"
+        );
+    }
+
+    #[tokio::test]
+    async fn link_failure_returns_generated_notes_and_keeps_working_memory_unchanged() {
+        let working_mem = WorkingMemory::new(10);
+        let active = specific_note();
+        let active_id = active.id();
+        working_mem.add_node(embedded(active));
+        working_mem.record_retrieval(active_id);
+
+        let backend = Arc::new(Backend::new(LinkStep::Fail));
+        let engine = LlmEngine::new(backend.clone()).with_whole_call_retries(0);
+        let error = consolidate(&summary("a new fact"), &working_mem, &engine)
+            .await
+            .unwrap_err();
+
+        assert!(matches!(error, ConsolidationError::Link { .. }));
+        let notes = error.generated_notes().expect("连边失败必须保留已生成节点");
+        assert_eq!(notes.len(), 1);
+        assert!(matches!(
+            notes[0].mem_type(),
+            MemoryType::Semantic(semantic) if semantic.content == "new fact"
+        ));
+        assert_eq!(backend.call_count(), 2);
+        assert_eq!(
+            working_mem
+                .memory_cluster()
+                .read_or_compute(|cluster| cluster.graph().node_count()),
+            1
+        );
+    }
+}
