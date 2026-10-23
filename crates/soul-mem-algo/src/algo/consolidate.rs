@@ -112,7 +112,7 @@ mod tests {
     use soul_mem_core::memory_note::MemoryNoteBuilder;
     use soul_mem_core::memory_note::MemoryType;
     use soul_mem_core::memory_note::situation_mem::{
-        Context, Environment, Location, Participant, SpecificSituation, SituationType,
+        Context, Environment, Location, Participant, SituationType, SpecificSituation,
     };
     use soul_mem_llm::{BackendInfo, ChatBackend, Completion, EventStream, LlmErrorKind, Task};
     use soul_mem_query::embedding::EmbeddingVec;
