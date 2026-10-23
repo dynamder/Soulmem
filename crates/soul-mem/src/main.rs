@@ -69,7 +69,9 @@ async fn main() -> anyhow::Result<()> {
 
     tokio::signal::ctrl_c().await?;
     tracing::info!("收到退出信号，持久化工作记忆");
-    let _ = handle.control(ControlAction::Persist).await;
+    if let Err(error) = handle.control(ControlAction::Persist).await {
+        tracing::warn!(%error, "退出时持久化失败");
+    }
 
     // 先停掉所有持有服务句柄的任务，再等待服务循环把在途命令排空。
     heartbeat.abort();
@@ -113,7 +115,7 @@ fn spawn_heartbeat(
     })
 }
 
-/// 周期触发内部维护（静默转 Idle + 巩固）。
+/// 周期触发内部维护（静默转 Idle + 巩固 + 重试待持久化节点）。
 fn spawn_maintenance(handle: ServiceHandle, secs: u64) -> JoinHandle<()> {
     tokio::spawn(async move {
         let period = Duration::from_secs(secs.max(1));

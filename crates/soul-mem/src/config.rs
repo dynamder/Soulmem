@@ -219,7 +219,7 @@ impl Default for RetrievalConfig {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct ConsolidationConfig {
-    /// Idle 时定时巩固的间隔（秒）。
+    /// Idle 时定时维护（巩固 + 重试待持久化节点）的间隔（秒）。
     pub interval_secs: u64,
     /// 静默多久后视为 Idle（秒）。
     pub idle_quiet_secs: u64,

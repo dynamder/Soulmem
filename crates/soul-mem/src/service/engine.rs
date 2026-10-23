@@ -17,7 +17,7 @@
 //! 同时持有 `Arc<WorkingMemory>` 并行**只读**。并行批次 join 之后，才在命令循环线程上
 //! 串行完成写回（检索计数、惰性遗忘、写回簇）；跨请求的串行保证不变。
 
-use std::collections::VecDeque;
+use std::collections::{BTreeSet, VecDeque};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -89,6 +89,8 @@ pub struct MemoryService {
     pool: Arc<ThreadPool>,
     /// 待摘要的淘汰消息；摘要失败时保留，按淘汰顺序重试。
     pending_evicted: VecDeque<Information>,
+    /// 尚未成功落库的节点；定期维护时重试。
+    pending_persist: BTreeSet<MemoryId>,
     /// 分词器：惰性遗忘的遮罩（`mask_text`）需要。
     jieba: Jieba,
     paused: bool,
@@ -188,6 +190,7 @@ impl MemoryServiceBuilder {
             model,
             pool,
             pending_evicted: VecDeque::new(),
+            pending_persist: BTreeSet::new(),
             jieba,
             paused: false,
             last_activity: Instant::now(),
@@ -372,8 +375,10 @@ impl MemoryService {
                 }
             });
         });
+        let updated_ids: Vec<MemoryId> = updated.iter().map(|node| node.note().id()).collect();
         if let Err(error) = self.repo.upsert_notes(updated).await {
-            tracing::warn!(%error, "检索命中持久化失败");
+            tracing::warn!(%error, count = updated_ids.len(), "检索命中持久化失败，转入定期重试");
+            self.pending_persist.extend(updated_ids);
         }
         let memory_texts: Vec<String> = memories
             .iter()
@@ -561,12 +566,17 @@ impl MemoryService {
             })
         };
         if !updated.is_empty() {
-            self.repo.upsert_notes(updated).await?;
+            let updated_ids: Vec<MemoryId> = updated.iter().map(|node| node.note().id()).collect();
+            if let Err(error) = self.repo.upsert_notes(updated).await {
+                tracing::warn!(%error, count = updated_ids.len(), "遗忘衰减持久化失败，转入定期重试");
+                self.pending_persist.extend(updated_ids);
+                return Err(error.into());
+            }
         }
         Ok(())
     }
 
-    /// 内部维护：静默超过阈值后转入 Idle；摘要非空则巩固，并在簇过大时告警。
+    /// 内部维护：静默超过阈值后转入 Idle；尝试巩固并重试待持久化节点。
     async fn maintenance(&mut self) -> ServiceResult<()> {
         if self.last_activity.elapsed()
             < Duration::from_secs(self.config.consolidation.idle_quiet_secs)
@@ -574,11 +584,16 @@ impl MemoryService {
             return Ok(());
         }
         self.wm.transition_to_idle();
-        self.flush_pending_summaries().await?;
-        if !self.wm.sliding_window().get_summary().trim().is_empty() {
-            let created = self.consolidate().await?;
-            tracing::info!(created, "定时巩固完成");
-        }
+        let summary_result = self.flush_pending_summaries().await;
+        let consolidation_result = if summary_result.is_ok()
+            && !self.wm.sliding_window().get_summary().trim().is_empty()
+        {
+            Some(self.consolidate().await)
+        } else {
+            None
+        };
+        let persist_result = self.persist_pending().await;
+
         let node_count = self.snapshot().node_count;
         let max_cluster_nodes = self.config.working_memory.max_cluster_nodes;
         if node_count as usize > max_cluster_nodes {
@@ -588,6 +603,13 @@ impl MemoryService {
                 "工作记忆簇节点数超过软上限；本服务不自动淘汰，根因见 soul-mem-algo 的 prefetch_db"
             );
         }
+
+        summary_result?;
+        if let Some(result) = consolidation_result {
+            let created = result?;
+            tracing::info!(created, "定时巩固完成");
+        }
+        persist_result?;
         Ok(())
     }
 
@@ -748,7 +770,7 @@ impl MemoryService {
             .collect()
     }
 
-    /// 持久化：工作记忆全量写入数据库。
+    /// 持久化：工作记忆全量写入数据库；失败节点留待定期重试。
     async fn persist(&mut self) -> ServiceResult<()> {
         let notes: Vec<EmbeddedMemoryNote> = self
             .wm
@@ -757,8 +779,51 @@ impl MemoryService {
         if notes.is_empty() {
             return Ok(());
         }
-        self.repo.upsert_notes(notes).await?;
-        Ok(())
+        let ids: Vec<MemoryId> = notes.iter().map(|node| node.note().id()).collect();
+        match self.repo.upsert_notes(notes).await {
+            Ok(()) => {
+                self.pending_persist.clear();
+                Ok(())
+            }
+            Err(error) => {
+                self.pending_persist.extend(ids);
+                Err(error.into())
+            }
+        }
+    }
+
+    /// 重试尚未成功落库的节点；成功后清空，失败保留到下一次维护。
+    async fn persist_pending(&mut self) -> ServiceResult<()> {
+        if self.pending_persist.is_empty() {
+            return Ok(());
+        }
+        let notes: Vec<EmbeddedMemoryNote> = {
+            let cluster = self.wm.memory_cluster();
+            cluster.read_or_compute(|c| {
+                self.pending_persist
+                    .iter()
+                    .filter_map(|id| c.get_node(*id).cloned())
+                    .collect()
+            })
+        };
+        if notes.is_empty() {
+            self.pending_persist.clear();
+            return Ok(());
+        }
+        match self.repo.upsert_notes(notes).await {
+            Ok(()) => {
+                self.pending_persist.clear();
+                Ok(())
+            }
+            Err(error) => {
+                tracing::warn!(
+                    %error,
+                    pending = self.pending_persist.len(),
+                    "定期持久化失败，保留待重试"
+                );
+                Err(error.into())
+            }
+        }
     }
 
     /// 采集状态快照。
@@ -1456,5 +1521,134 @@ mod tests {
             "重试成功后应清空待摘要队列"
         );
         assert!(!service.wm.sliding_window().get_summary().trim().is_empty());
+    }
+
+    #[tokio::test]
+    async fn maintenance_persists_pending_nodes_after_idle_quiet_period() {
+        let repo = Arc::new(FakeRepo::default());
+        let mut service = build_service(Arc::clone(&repo));
+        let id = MemoryId::new();
+        seed_note(&service, id, "pending", unit(0), unit(0));
+        service.pending_persist.insert(id);
+        service.last_activity = Instant::now() - Duration::from_secs(10);
+
+        service.maintenance().await.expect("维护应成功");
+
+        assert!(repo.notes.lock().expect("notes lock").contains_key(&id));
+        assert!(service.pending_persist.is_empty());
+    }
+
+    #[tokio::test]
+    async fn maintenance_skips_pending_persist_when_recent_activity() {
+        let repo = Arc::new(FakeRepo::default());
+        let mut service = build_service(Arc::clone(&repo));
+        let id = MemoryId::new();
+        seed_note(&service, id, "pending", unit(0), unit(0));
+        service.pending_persist.insert(id);
+        service.last_activity = Instant::now();
+
+        service.maintenance().await.expect("维护应成功");
+
+        assert_eq!(repo.upsert_calls.load(Ordering::SeqCst), 0);
+        assert!(service.pending_persist.contains(&id));
+    }
+
+    #[tokio::test]
+    async fn persist_pending_keeps_ids_when_write_fails() {
+        let repo = Arc::new(FakeRepo::default());
+        let mut service = build_service(Arc::clone(&repo));
+        let id = MemoryId::new();
+        seed_note(&service, id, "pending", unit(0), unit(0));
+        service.pending_persist.insert(id);
+        repo.fail_upsert.store(true, Ordering::SeqCst);
+
+        assert!(service.persist_pending().await.is_err());
+        assert!(service.pending_persist.contains(&id));
+
+        repo.fail_upsert.store(false, Ordering::SeqCst);
+        service.persist_pending().await.expect("重试应成功");
+
+        assert!(service.pending_persist.is_empty());
+        assert!(repo.notes.lock().expect("notes lock").contains_key(&id));
+    }
+
+    #[tokio::test]
+    async fn persist_pending_writes_only_pending_nodes() {
+        let repo = Arc::new(FakeRepo::default());
+        let mut service = build_service(Arc::clone(&repo));
+        let pending = MemoryId::new();
+        let clean = MemoryId::new();
+        seed_note(&service, pending, "pending", unit(0), unit(0));
+        seed_note(&service, clean, "clean", unit(1), unit(1));
+        service.pending_persist.insert(pending);
+
+        service.persist_pending().await.expect("持久化应成功");
+
+        let notes = repo.notes.lock().expect("notes lock");
+        assert!(notes.contains_key(&pending));
+        assert!(!notes.contains_key(&clean));
+    }
+
+    #[tokio::test]
+    async fn maintenance_persists_pending_nodes_when_summary_fails() {
+        let repo = Arc::new(FakeRepo::default());
+        let llm = Arc::new(LlmEngine::new(Arc::new(FailOnceLlm::default())));
+        let mut service = build_service_with(Arc::clone(&repo), Arc::new(FakeModel), llm, 20);
+        let id = MemoryId::new();
+        seed_note(&service, id, "pending", unit(0), unit(0));
+        service.pending_persist.insert(id);
+        let mut evicted = Information::new("old", "user");
+        evicted.tag_information();
+        service.pending_evicted.push_back(evicted);
+        service.last_activity = Instant::now() - Duration::from_secs(10);
+
+        assert!(service.maintenance().await.is_err(), "摘要失败应上报");
+        assert!(repo.notes.lock().expect("notes lock").contains_key(&id));
+        assert!(service.pending_persist.is_empty());
+    }
+
+    #[tokio::test]
+    async fn full_persist_failure_marks_all_nodes_pending() {
+        let repo = Arc::new(FakeRepo::default());
+        let mut service = build_service(Arc::clone(&repo));
+        let id = MemoryId::new();
+        seed_note(&service, id, "pending", unit(0), unit(0));
+        repo.fail_upsert.store(true, Ordering::SeqCst);
+
+        assert!(service.persist().await.is_err());
+
+        assert!(service.pending_persist.contains(&id));
+    }
+
+    #[tokio::test]
+    async fn retrieve_write_failure_marks_hits_pending() {
+        let repo = Arc::new(FakeRepo::default());
+        let mut service =
+            build_service_with_model(Arc::clone(&repo), Arc::new(ScriptedModel::new()));
+        let id = MemoryId::new();
+        seed_note(&service, id, "a", unit(0), unit(0));
+        repo.fail_upsert.store(true, Ordering::SeqCst);
+
+        service
+            .handle_request(ServiceRequest::Retrieve(vec![prioritized_query(
+                1, "a", "a",
+            )]))
+            .await
+            .expect("检索应成功");
+
+        assert!(service.pending_persist.contains(&id));
+    }
+
+    #[tokio::test]
+    async fn forget_write_failure_marks_nodes_pending() {
+        let repo = Arc::new(FakeRepo::default());
+        let mut service = build_service(Arc::clone(&repo));
+        let id = MemoryId::new();
+        seed_note(&service, id, "a", unit(0), unit(0));
+        repo.fail_upsert.store(true, Ordering::SeqCst);
+
+        assert!(service.forget_pass().await.is_err());
+
+        assert!(service.pending_persist.contains(&id));
     }
 }
