@@ -17,6 +17,8 @@ impl EmbeddingVec {
     pub fn from_slice(slice: &[f32]) -> Self {
         Self(slice.to_vec())
     }
+    /// 零向量占位：无有效嵌入输入（如空标签）时写入。runtime 仓储会跳过零向量、不写向量列，
+    /// 因此它等价于「没有向量」，而不是「与谁都相似度为 0 的向量」。
     pub fn zero(shape: usize) -> Self {
         Self(vec![0.0; shape])
     }
