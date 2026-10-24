@@ -32,12 +32,10 @@ pub struct GraphMemoryLink {
     last_forget_time: DateTime<Utc>,
 }
 
-/// serde 默认：缺失度初始为 0
 fn default_missing_degree() -> f32 {
     0.0
 }
 
-/// serde 默认：缺失度计算时间初始为当前
 fn default_last_forget_time() -> DateTime<Utc> {
     Utc::now()
 }
@@ -72,7 +70,7 @@ impl From<MemoryLink> for GraphMemoryLink {
         GraphMemoryLink {
             id: link.id(),
             intensity: link.intensity,
-            link_type: link.into_link_type(), // extract the link type
+            link_type: link.into_link_type(),
             missing_degree,
             last_forget_time,
         }
@@ -80,13 +78,12 @@ impl From<MemoryLink> for GraphMemoryLink {
 }
 
 #[derive(Clone)]
-//TODO: test it, the embedding injection and link store has changed
 pub struct MemoryCluster {
     graph: StableDiGraph<EmbeddedMemoryNote, GraphMemoryLink>,
     mem_id_to_index: HashMap<MemoryId, NodeIndex>,
     link_id_to_index: HashMap<LinkId, EdgeIndex>,
-    incompletely_linked_note: HashMap<MemoryId, Vec<(MemoryId, MemoryLink)>>, //目标节点的uuid，Vec<(源节点的uuid，关系)>，存uuid而非NodeIndex，避免petgraph索引复用导致连错节点
-                                                                              //embedding_store: HashMap<MemoryId, MemoryEmbedding>, //由于link储存在source节点，source节点不在图中，link则不可知，因此source节点通常总是有效
+    /// 目标节点 id → 待补边 `(源节点 id, 关系)`；存 id 而非 `NodeIndex`，避免 petgraph 索引复用后连错节点。
+    incompletely_linked_note: HashMap<MemoryId, Vec<(MemoryId, MemoryLink)>>,
 }
 impl Default for MemoryCluster {
     fn default() -> Self {
@@ -101,17 +98,14 @@ impl MemoryCluster {
             mem_id_to_index: HashMap::new(),
             link_id_to_index: HashMap::new(),
             incompletely_linked_note: HashMap::new(),
-            //embedding_store: HashMap::new(),
         }
     }
-    // 获取内部图的不可变引用
     pub fn graph(&self) -> &StableDiGraph<EmbeddedMemoryNote, GraphMemoryLink> {
         &self.graph
     }
 
-    // 获取内部图的可变引用
     pub fn graph_mut(&mut self) -> &mut StableDiGraph<EmbeddedMemoryNote, GraphMemoryLink> {
-        //Be careful when using this
+        // 直接改图会绕过索引同步；改完必须调用 refresh_node。
         &mut self.graph
     }
 
@@ -131,9 +125,6 @@ impl MemoryCluster {
     pub fn has_edge(&self, link_id: LinkId) -> bool {
         self.link_id_to_index.contains_key(&link_id)
     }
-    // fn add_embeddings(&mut self, node_id: MemoryId, embeddings: MemoryEmbedding) {
-    //     self.embedding_store.insert(node_id, embeddings);
-    // }
     pub fn add_single_node(&mut self, embed_node: EmbeddedMemoryNote) {
         let (id, links) = (embed_node.note().id(), embed_node.note().links().to_owned());
         self.merge_node(embed_node);
@@ -149,18 +140,13 @@ impl MemoryCluster {
             self.merge_edges(*node_index, node.note.links().to_owned());
         }
     }
-    /// 删除单个节点，返回被删除的节点，并清理冗余项目，添加pending边
     pub fn remove_single_node(&mut self, node_id: MemoryId) -> Option<EmbeddedMemoryNote> {
-        //TODO: test it
         if let Some(idx) = self.mem_id_to_index.remove(&node_id) {
-            //self.embedding_store.remove(&node_id);
-            //清理所有pending的边中，源节点是node_id的项
             self.incompletely_linked_note
                 .values_mut()
                 .for_each(|v| v.retain(|(origin_id, _)| *origin_id != node_id));
 
             //因为删除了node_id节点，原来已经建立的链接，可能会丢失，将Incoming的链接加入pending边
-            // 这里似乎性能看起来不是很好，不过先这样了，后续再说,remove操作本身不会非常频繁
             let incoming_neighbors = self
                 .graph
                 .edges_directed(idx, Direction::Incoming)
@@ -310,10 +296,7 @@ impl MemoryCluster {
                 // 这里不再递增note的retrieval_count，避免双计数漂移
                 index
             }
-            _ => {
-                // 节点不存在或索引无效
-                self.add_new_node(embed_node)
-            }
+            _ => self.add_new_node(embed_node),
         }
     }
     fn add_new_node(&mut self, embed_node: EmbeddedMemoryNote) -> NodeIndex {
@@ -321,11 +304,8 @@ impl MemoryCluster {
 
         let index = self.graph.add_node(embed_node);
 
-        // 清理可能存在的无效索引
-        //self.id_to_index.remove(&node_id);
         self.mem_id_to_index.insert(node_id, index);
 
-        // 处理悬挂边
         self.process_pending_edges(&node_id);
 
         index
@@ -419,7 +399,6 @@ impl Debug for MemoryCluster {
     }
 }
 
-//TODO: test it
 #[derive(Debug, Clone)]
 pub struct MemorySubCluster<'a> {
     node_ids: HashSet<MemoryId>,
@@ -466,81 +445,6 @@ pub enum ClusterError {
     NotImplemented(String),
 }
 
-//WARNING: Legacy Code below, maybe useful for later reuse
-
-// pub struct LTMemoryQuery {
-//     pub query_type: LTQueryType,
-//     pub depth: Option<usize>,
-//     pub filter: Option<qdrant_client::qdrant::Filter>,
-//     pub relation: Option<Vec<String>>, //TODO: 未实现
-//     pub vs_k: Option<usize>,           //vector_search_k
-// }
-// impl LTMemoryQuery {
-//     pub fn new(query_type: LTQueryType) -> Self {
-//         Self {
-//             query_type,
-//             depth: None,
-//             filter: None,
-//             relation: None,
-//             vs_k: None,
-//         }
-//     }
-//     pub fn with_depth(mut self, depth: usize) -> Self {
-//         self.depth = Some(depth);
-//         self
-//     }
-//     pub fn with_filter(mut self, filter: Filter) -> Self {
-//         self.filter = Some(filter);
-//         self
-//     }
-
-//     pub fn with_relation(mut self, relation: impl Into<Vec<String>>) -> Self {
-//         self.relation = Some(relation.into());
-//         self
-//     }
-//     pub fn with_vs_k(mut self, vs_k: usize) -> Self {
-//         self.vs_k = Some(vs_k);
-//         self
-//     }
-// }
-// pub struct BatchLTMemoryQuery {
-//     pub query_type: BatchLTQueryType,
-//     pub depth: Option<usize>,
-//     pub filter: Option<qdrant_client::qdrant::Filter>,
-//     pub relation: Option<Vec<String>>,
-//     pub vs_k: Option<usize>,
-// }
-// impl BatchLTMemoryQuery {
-//     pub fn new(query_type: BatchLTQueryType) -> Self {
-//         Self {
-//             query_type,
-//             depth: None,
-//             filter: None,
-//             relation: None,
-//             vs_k: None,
-//         }
-//     }
-//     pub fn with_depth(mut self, depth: usize) -> Self {
-//         self.depth = Some(depth);
-//         self
-//     }
-//     pub fn with_filter(mut self, filter: Filter) -> Self {
-//         self.filter = Some(filter);
-//         self
-//     }
-
-//     pub fn with_relation(mut self, relation: impl Into<Vec<String>>) -> Self {
-//         self.relation = Some(relation.into());
-//         self
-//     }
-//     pub fn with_vs_k(mut self, vs_k: usize) -> Self {
-//         self.vs_k = Some(vs_k);
-//         self
-//     }
-// }
-
-// 测试分两个模块：`tests.rs` 是两个针对索引复用/待补边不变量的回归测试，
-// `tests2.rs` 是通用的图变更套件（增删、合并、子簇、索引查询）。
 #[cfg(test)]
 mod tests;
 #[cfg(test)]

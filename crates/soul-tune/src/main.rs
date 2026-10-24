@@ -368,8 +368,6 @@ fn run_headless_compare_db(
     Ok(())
 }
 
-// ===== 文件日志（仅观测用，不改动任何功能逻辑）=====
-
 fn fmt_variant(v: &MemoryRetrieveQueryVariant) -> String {
     match v {
         MemoryRetrieveQueryVariant::Semantic(units) => {
