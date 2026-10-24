@@ -52,6 +52,8 @@ pub struct WorkingMemory {
     sliding_window: SlidingWindow,
     memory_cluster: MemoryClusterHandle,
     records: RwLock<HashMap<MemoryId, Record>>,
+    // 本工作循环内的提取命中计数（循环开始时清空）
+    cycle_hits: RwLock<HashMap<MemoryId, u32>>,
 }
 
 impl WorkingMemory {
@@ -65,6 +67,7 @@ impl WorkingMemory {
             sliding_window: SlidingWindow::new(window_capacity),
             memory_cluster: MemoryCluster::new().into_handle(),
             records: RwLock::new(HashMap::new()),
+            cycle_hits: RwLock::new(HashMap::new()),
         }
     }
 
@@ -75,9 +78,18 @@ impl WorkingMemory {
         *self.state.read()
     }
 
-    /// 转入 `Working`。
+    /// 转入 `Working`；进入新的工作循环时清空本循环命中计数。
     pub fn transition_to_working(&self) {
-        *self.state.write() = WorkingState::Working;
+        // 两把锁不同时持有（见模块注释）：先放掉 `state` 再清计数。重复清空是幂等的。
+        let entered_new_cycle = {
+            let mut state = self.state.write();
+            let entered_new_cycle = *state != WorkingState::Working;
+            *state = WorkingState::Working;
+            entered_new_cycle
+        };
+        if entered_new_cycle {
+            self.cycle_hits.write().clear();
+        }
     }
 
     /// 转入 `Idle`。
@@ -113,9 +125,10 @@ impl WorkingMemory {
             .or_insert_with(|| Record::new(node_id));
     }
 
-    /// 移除节点，同时移除对应的记录。
+    /// 移除节点，同时移除对应的记录与本循环命中计数。
     pub fn remove_node(&self, node_id: MemoryId) -> Option<EmbeddedMemoryNote> {
         self.records.write().remove(&node_id);
+        self.cycle_hits.write().remove(&node_id);
         self.memory_cluster
             .write(|cluster| cluster.remove_single_node(node_id))
     }
@@ -131,15 +144,18 @@ impl WorkingMemory {
     pub fn record_retrieval(&self, node_id: MemoryId) {
         // "查-改-插"整体持一次写锁：拆成两次取锁的话，并发的两次命中会各自判定为
         // "无记录" 并各自插入，后插入的那次把先前的计数覆盖掉。
-        let mut records = self.records.write();
-        match records.get_mut(&node_id) {
-            Some(record) => record.record_retrieval(),
-            None => {
-                let mut record = Record::new(node_id);
-                record.record_retrieval();
-                records.insert(node_id, record);
+        {
+            let mut records = self.records.write();
+            match records.get_mut(&node_id) {
+                Some(record) => record.record_retrieval(),
+                None => {
+                    let mut record = Record::new(node_id);
+                    record.record_retrieval();
+                    records.insert(node_id, record);
+                }
             }
         }
+        *self.cycle_hits.write().entry(node_id).or_insert(0) += 1;
     }
 
     /// 追加一条用户反馈；节点尚无记录时按需创建，避免反馈被静默丢弃。
@@ -164,6 +180,11 @@ impl WorkingMemory {
     /// 可变访问活跃记录。守卫不外泄（见文件头的锁纪律）。
     pub fn write_records<R>(&self, write: impl FnOnce(&mut HashMap<MemoryId, Record>) -> R) -> R {
         write(&mut self.records.write())
+    }
+
+    /// 只读访问本工作循环的命中计数。守卫不外泄（见模块注释的"锁的纪律"）。
+    pub fn read_cycle_hits<R>(&self, read: impl FnOnce(&HashMap<MemoryId, u32>) -> R) -> R {
+        read(&self.cycle_hits.read())
     }
 }
 
@@ -328,7 +349,56 @@ mod tests {
         assert!(wm.memory_cluster().read_or_compute(|c| c.contains_node(id)));
     }
 
-    // 回归：存在多份 `Arc` 时状态变更不得被静默跳过。
+    #[test]
+    fn test_cycle_hits_accumulate_retrievals() {
+        let wm = WorkingMemory::new(10);
+        let id = MemoryId::new();
+        assert!(wm.read_cycle_hits(|hits| hits.is_empty()));
+
+        wm.record_retrieval(id);
+        wm.record_retrieval(id);
+
+        assert_eq!(wm.read_cycle_hits(|hits| hits[&id]), 2);
+        // 与累计计数保持一致的语义
+        assert_eq!(wm.read_records(|records| records[&id].retrieval_count()), 2);
+    }
+
+    #[test]
+    fn test_transition_to_working_resets_cycle_hits_only_on_state_change() {
+        let wm = WorkingMemory::new(10);
+        let id = MemoryId::new();
+        wm.transition_to_working();
+        wm.record_retrieval(id);
+        assert_eq!(wm.read_cycle_hits(|hits| hits[&id]), 1);
+
+        // 已在 Working 时重复调用不得清空本轮命中
+        wm.transition_to_working();
+        assert_eq!(wm.read_cycle_hits(|hits| hits[&id]), 1);
+
+        // 一轮 Idle -> Working 的切换开启新循环
+        wm.transition_to_idle();
+        wm.transition_to_working();
+        assert!(wm.read_cycle_hits(|hits| hits.is_empty()));
+    }
+
+    #[test]
+    fn test_remove_node_removes_cycle_hits() {
+        let wm = WorkingMemory::new(10);
+        let node = sem_note("A");
+        let id = node.note().id();
+        wm.add_node(node);
+        wm.record_retrieval(id);
+        assert!(wm.read_cycle_hits(|hits| hits.contains_key(&id)));
+
+        wm.remove_node(id);
+        assert!(!wm.read_cycle_hits(|hits| hits.contains_key(&id)));
+    }
+
+    /// 回归（issue #60 的 P1 前置）：存在多份 `Arc` 时状态变更不得被静默跳过。
+    ///
+    /// 旧实现要求 `&mut WorkingMemory`，调用方只能用 `Arc::get_mut` 取可变引用；
+    /// 共享计数 > 1 时它返回 `None`，变更被丢弃且只留一条日志。现在全靠内部可变性，
+    /// 第二个 `Arc` 上的变更必须对第一个可见。
     #[test]
     fn test_second_arc_clone_can_mutate() {
         let wm = Arc::new(WorkingMemory::new(10));

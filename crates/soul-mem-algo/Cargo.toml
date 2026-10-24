@@ -13,6 +13,8 @@ soul-mem-runtime = { path = "../soul-mem-runtime" }
 soul-mem-llm = { path = "../soul-mem-llm" }
 # 遗忘补全失败时必须留日志（旧实现静默吞掉错误）
 log = "0.4.27"
+# 巩固持久化的错误类型要同时容纳「嵌入失败」与「仓储失败」
+thiserror.workspace = true
 petgraph = { workspace = true }
 ordered-float = "5.0.0"
 serde = { workspace = true }
@@ -34,3 +36,4 @@ hotpath = ["hotpath/hotpath"]
 insta.workspace = true
 tokio = { workspace = true }
 dotenvy = { workspace = true }
+async-trait = { workspace = true }
