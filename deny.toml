@@ -7,7 +7,8 @@ yanked = "deny"
 # 漂移。这不影响安全结论：真正可利用的漏洞仍由 [advisories] 拦截，只有显式 ignore
 # 才放行。
 unmaintained = "none"
-# ignore 只写「上游确实没有修复版」的条目，并写清影响面与跟踪条件。
+# ignore 只写「上游确实没有修复版」或「修复版在依赖图里不可达、且对应代码不参与
+# 编译」的条目，并写清影响面与跟踪条件。
 # cargo-deny 每次运行都会对**没有命中任何 crate** 的条目报
 # `warning[advisory-not-detected]`——出现该警告说明对应的传递依赖已被升级掉，
 # 该条目应当删除（RUSTSEC-2026-0098/0099/0104 就是这样在 embed_anything 升到
@@ -19,6 +20,7 @@ unmaintained = "none"
 #   年至今无修复版（最新 0.9.10 仍受影响，0.10 尚在 rc）。影响面：攻击者可观测
 #   时序时恢复私钥。SoulMem 仅在本地/可信环境使用 SurrealDB 嵌入式存储，
 #   不暴露给可观测时序的网络攻击者，故忽略并跟踪上游修复。
+#   与 RUSTSEC-2026-0387 同属 `rust_crypto` 可选路径，不参与编译。
 # - RUSTSEC-2026-0367/0368/0369: zip 的 `extract()` 家族（`ZipArchive::extract`、
 #   `ZipStreamReader::extract`）解压时保留 SUID/SGID、创建指向目标目录外的符号链接、
 #   并沿符号链接套用权限；修复版是 zip >= 9.0.0。树上三个 zip 都被父依赖钉在 9 以下，
@@ -27,12 +29,24 @@ unmaintained = "none"
 #   影响面：三条公告都只在 `extract()` 写盘路径上成立，这些依赖只按条目名读归档
 #   （`ZipArchive::new` + `by_index`/`by_name`），SoulMem 也不把不可信归档解压到磁盘。
 #   跟踪条件：任一父依赖放开到 zip ^9 后删除本条。
+# - RUSTSEC-2026-0387: crypto-bigint 的减法、除零计数、除法与蒙哥马利乘法等「常数
+#   时间」实现会因编译器/CPU 生成依赖秘密的分支，可经时序侧信道泄露中间值。
+#   crypto-bigint 0.5.5 只存在于 Cargo.lock，不参与编译：jsonwebtoken 把
+#   p256/p384/rsa 挂在 `rust_crypto` 特性上，而 surrealdb-core 只开 `use_pem` +
+#   `aws_lc_rs`，`cargo tree -i crypto-bigint` 因此为空；锁文件按「feature 无关」
+#   记录所有声明的可选依赖，才会留下这条（与上面 rsa 同源）。
+#   修复版 0.7.6 在依赖图里不可达：jsonwebtoken 10.4.0 与最新的 11.1.0 都仍要求
+#   p256 ^0.13.2 ← elliptic-curve 0.13 → crypto-bigint ^0.5。
+#   跟踪条件：jsonwebtoken 迁到 RustCrypto 0.14 线（elliptic-curve 0.14 →
+#   crypto-bigint ^0.7.5）或去掉这几个可选依赖后删除本条。一旦启用 `rust_crypto`
+#   或构建 wasm 目标，这条即刻失效，必须改成真正修复。
 ignore = [
     "RUSTSEC-2026-0187",
     "RUSTSEC-2023-0071",
     "RUSTSEC-2026-0367",
     "RUSTSEC-2026-0368",
     "RUSTSEC-2026-0369",
+    "RUSTSEC-2026-0387",
 ]
 
 [bans]
