@@ -1,22 +1,6 @@
-//! 本地 llama-server 的进程生命周期与调用入口。
-//!
-//! 分工：
-//! - **进程管理留在本文件**：探活、拉起子进程、优雅关闭、启动超时与异常退出诊断。
-//! - **HTTP 调用全部交给 `soul-mem-llm`**：请求体拼装、响应解析、`reasoning_content`
-//!   兜底、错误分类、重试与超时、可选 trace，都由那一条栈统一负责。
-//!   本文件不再自己拼 JSON、不再自己解释状态码——那正是"四套 LLM 实现"的来源之一。
-//!
-//! `LlmBackend` 现在是**同步外壳**：soul-tune 的测试套件（以及 FRB 入口）是同步的，
-//! 因此用一个全局运行时把异步引擎桥接过来。调用方必须在**阻塞上下文**中调用 `chat()`——
-//! 这一点未变（旧实现用的是 `reqwest::blocking`，同样不能在异步上下文里调用）。
-//!
-//! # 从中导航
-//!
-//! - 想改"请求长什么样"（字段名、扩展体）：`local_config` 下面的
-//!   [`soul_mem_llm::OaiCompatConfig`]，wire 形状在 `soul-mem-llm/src/oai_comp/wire.rs`。
-//! - 想改"怎么重试/超时"：`soul-mem-llm/src/oai_comp/transport.rs` 与 `src/engine.rs`。
-//! - 想看调用 trace：设 `SOULMEM_LLM_TRACE=<path>`，事件产生在 `soul-mem-llm/src/observer.rs`。
-//! - 完整链路：`docs/architecture/llm-layer.md`。
+// 本地 llama-server 的进程生命周期与调用入口。
+// 进程管理（探活、拉起、关闭、启动超时）在本文件；HTTP 调用全部走 `soul-mem-llm`，
+// `LlmBackend::chat` 是同步外壳，调用方必须在阻塞上下文中调用。
 
 use std::process::{Child, Command};
 use std::sync::{Arc, OnceLock};
@@ -28,16 +12,10 @@ use soul_mem_llm::{Hints, OaiCompatBackend, OaiCompatConfig, Sampling, Task};
 
 use crate::engine::llm::backend::LlmBackend;
 
-/// 整次调用的总时限。
-///
-/// 与旧实现（`reqwest` 120s）保持一致：本地推理若超过它，重发整次生成只会再等一遍，
-/// 不会更快得到结果。
+/// 整次调用的总时限（120s）；本地推理超时后重发只会再等一遍。
 const TOTAL_TIMEOUT: Duration = Duration::from_secs(120);
 
-/// 沿用旧实现的固定温度。
-///
-/// 刻意不"顺手改成更合理"的值：本次是重构，不是调参；改了会让既有的 playtest
-/// 观测结果失去可比性。
+// 固定温度：playtest 的既有观测结果依赖它，不要随手改。
 const DEFAULT_TEMPERATURE: f32 = 0.7;
 
 /// 同步桥接用的全局运行时。
