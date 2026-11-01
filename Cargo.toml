@@ -29,7 +29,7 @@ parking_lot = "0.12"
 # 0.41.3 起以 tower middleware 组织 HTTP 执行路径：自带重试覆盖 429/5xx/connect
 # 并遵守 Retry-After，且错误体保留 status_code（0.32.4 这三项全缺）。
 # 版本必须与 soul-mem-llm 的 reqwest 声明（0.13）一致，否则类型无法互通。
-async-openai = { version = "0.41.3", features = ["chat-completion"] }
+async-openai = { version = "0.42.2", features = ["chat-completion"] }
 # LLM 传输层栈：ServiceBuilder + 自定义重试策略（透传 async-openai 的 middleware 边界）
 tower = { version = "0.5", features = ["limit", "retry", "timeout", "util"] }
 # 消费 async-openai 的 SSE 流（byot 流式返回 Pin<Box<dyn Stream>>）
