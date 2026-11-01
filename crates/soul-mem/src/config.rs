@@ -625,23 +625,17 @@ mod tests {
     }
 
     #[test]
-    fn zero_window_capacity_is_rejected() {
-        assert!(load_from_toml("[working_memory]\nwindow_capacity = 0").is_err());
-    }
-
-    #[test]
-    fn zero_top_k_is_rejected() {
-        assert!(load_from_toml("[retrieval]\ntop_k = 0").is_err());
-    }
-
-    #[test]
-    fn zero_candidate_k_is_rejected() {
-        assert!(load_from_toml("[retrieval]\ncandidate_k = 0").is_err());
-    }
-
-    #[test]
-    fn zero_command_buffer_is_rejected() {
-        assert!(load_from_toml("[service]\ncommand_buffer = 0").is_err());
+    fn zero_values_are_rejected() {
+        [
+            "[working_memory]\nwindow_capacity = 0",
+            "[working_memory]\nmax_cluster_nodes = 0",
+            "[retrieval]\ntop_k = 0",
+            "[retrieval]\ncandidate_k = 0",
+            "[service]\nevent_channel_capacity = 0",
+            "[service]\ncommand_buffer = 0",
+        ]
+        .into_iter()
+        .for_each(|text| assert!(load_from_toml(text).is_err(), "应拒绝: {text}"));
     }
 
     #[test]

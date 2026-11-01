@@ -28,7 +28,9 @@ use rayon::prelude::*;
 use tokio::sync::{broadcast, mpsc, oneshot};
 
 use soul_mem_algo::algo::consolidate::generate::generate_memories_from_summary;
-use soul_mem_algo::algo::forget::decay_revise::{compute_and_update_missing_degree, lazy_forget};
+use soul_mem_algo::algo::forget::decay_revise::{
+    ForgetAction, align_sem_fields, compute_and_update_missing_degree, lazy_forget,
+};
 use soul_mem_algo::algo::retrieve::RetrStrategy;
 use soul_mem_algo::algo::retrieve::complex::default_pipeline::DefaultPipelineResult;
 use soul_mem_algo::algo::retrieve::complex::{
@@ -361,10 +363,43 @@ impl MemoryService {
         // 仅在 LLM 可用时传入引擎（否则退化为仅遮罩）。
         let now = Utc::now();
         let engine = self.llm_available.then_some(self.llm.as_ref());
-        let mut memories: Vec<RenderedMemoryNote> = Vec::with_capacity(hits.len());
-        let mut updated: Vec<EmbeddedMemoryNote> = Vec::with_capacity(hits.len());
+        let mut processed: Vec<(f64, EmbeddedMemoryNote, bool)> = Vec::with_capacity(hits.len());
         for (score, mut embedded) in hits {
-            lazy_forget(&mut embedded.note, now, &self.jieba, None, engine).await;
+            let action = lazy_forget(&mut embedded.note, now, &self.jieba, None, engine).await;
+            if matches!(action, ForgetAction::Revised { .. })
+                && let Some(engine) = engine
+                && let Err(error) = align_sem_fields(&mut embedded.note, None, engine).await
+            {
+                tracing::warn!(
+                    %error,
+                    id = %embedded.note.id(),
+                    "遗忘后字段对齐失败"
+                );
+            }
+            let reembed = matches!(action, ForgetAction::Revised { .. });
+            processed.push((score, embedded, reembed));
+        }
+
+        let reembed_indices: Vec<usize> = processed
+            .iter()
+            .enumerate()
+            .filter_map(|(index, (_, _, reembed))| reembed.then_some(index))
+            .collect();
+        if !reembed_indices.is_empty() {
+            let notes: Vec<MemoryNote> = reembed_indices
+                .iter()
+                .map(|&index| processed[index].1.note().clone())
+                .collect();
+            let reembedded = self.embed_notes(notes).await?;
+            reembed_indices
+                .into_iter()
+                .zip(reembedded)
+                .for_each(|(index, embedded)| processed[index].1 = embedded);
+        }
+
+        let mut memories: Vec<RenderedMemoryNote> = Vec::with_capacity(processed.len());
+        let mut updated: Vec<EmbeddedMemoryNote> = Vec::with_capacity(processed.len());
+        for (score, embedded, _) in processed {
             memories.push(embedded.note().render(score));
             updated.push(embedded);
         }
@@ -1042,8 +1077,8 @@ mod tests {
                 return Err(EmbeddingGenError::InvalidInput);
             }
             let index = match text {
-                "b" => 1,
-                "c" => 2,
+                "b" | "重构摘要" => 1,
+                "c" | "新描述" => 2,
                 _ => 0,
             };
             Ok(unit(index))
@@ -1094,6 +1129,31 @@ mod tests {
 
         async fn stream(&self, _task: Task) -> Result<EventStream, LlmError> {
             Err(LlmError::unsupported("fake 后端不支持流式"))
+        }
+    }
+
+    /// 首次调用返回重建文本，第二次返回字段对齐结果。
+    #[derive(Default)]
+    struct SequencedLlm {
+        calls: AtomicUsize,
+    }
+
+    #[async_trait]
+    impl ChatBackend for SequencedLlm {
+        fn info(&self) -> BackendInfo {
+            BackendInfo::new("sequenced")
+        }
+
+        async fn complete(&self, _task: Task) -> Result<Completion, LlmError> {
+            let text = match self.calls.fetch_add(1, Ordering::SeqCst) {
+                0 => "重构摘要",
+                _ => "Aliases: 别名A\nDescription: 新描述\nConceptType: Entity",
+            };
+            Ok(Completion::new(text))
+        }
+
+        async fn stream(&self, _task: Task) -> Result<EventStream, LlmError> {
+            Err(LlmError::unsupported("sequenced 后端不支持流式"))
         }
     }
 
@@ -1248,6 +1308,42 @@ mod tests {
         });
     }
 
+    fn seed_aged_note(
+        service: &MemoryService,
+        id: MemoryId,
+        content: &str,
+        aliases: Vec<String>,
+        description: &str,
+        age_hours: i64,
+    ) {
+        let now = Utc::now();
+        let created = now - chrono::Duration::hours(age_hours + 3);
+        let last_forget = now - chrono::Duration::hours(age_hours);
+        let note = MemoryNoteBuilder::new(MemoryType::Semantic(SemMemory {
+            content: content.to_string(),
+            aliases,
+            concept_type: ConceptType::Entity,
+            description: description.to_string(),
+        }))
+        .id(id)
+        .create_time(created)
+        .last_accessed_time(created)
+        .last_forget_time(last_forget)
+        .build()
+        .expect("构造记忆节点");
+        let embedding = MemoryEmbedding::new(
+            unit(0),
+            MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
+                unit(0),
+                EmbeddingVec::zero(4),
+                EmbeddingVec::zero(4),
+            )),
+        );
+        service.wm.memory_cluster().write(|cluster| {
+            cluster.add_single_node(EmbeddedMemoryNote { note, embedding });
+        });
+    }
+
     /// 构造一条带 tag 与 concept 的语义 query。
     fn prioritized_query(
         priority: u32,
@@ -1346,23 +1442,37 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn maintenance_goes_idle_after_quiet_period() {
+    async fn maintenance_goes_idle_and_persists_pending_after_quiet_period() {
         let repo = Arc::new(FakeRepo::default());
-        let mut service = build_service(repo);
+        let mut service = build_service(Arc::clone(&repo));
+        let id = MemoryId::new();
+        seed_note(&service, id, "pending", unit(0), unit(0));
+        service.pending_persist.insert(id);
         service.wm.transition_to_working();
         service.last_activity = Instant::now() - Duration::from_secs(10);
+
         service.maintenance().await.expect("维护应成功");
+
         assert!(!service.wm.is_working());
+        assert!(repo.notes.lock().expect("notes lock").contains_key(&id));
+        assert!(service.pending_persist.is_empty());
     }
 
     #[tokio::test]
-    async fn maintenance_skips_when_recent_activity() {
+    async fn maintenance_skips_pending_persist_when_recent_activity() {
         let repo = Arc::new(FakeRepo::default());
-        let mut service = build_service(repo);
+        let mut service = build_service(Arc::clone(&repo));
+        let id = MemoryId::new();
+        seed_note(&service, id, "pending", unit(0), unit(0));
+        service.pending_persist.insert(id);
         service.wm.transition_to_working();
         service.last_activity = Instant::now();
+
         service.maintenance().await.expect("维护应成功");
+
         assert!(service.wm.is_working());
+        assert_eq!(repo.upsert_calls.load(Ordering::SeqCst), 0);
+        assert!(service.pending_persist.contains(&id));
     }
 
     /// 并行批次必须保序，且 tag 走 `infer_query_and_fuse`（而非 passage 的 `infer_and_fuse`）。
@@ -1422,22 +1532,6 @@ mod tests {
         });
         assert_eq!(node_count, 1);
         assert_eq!(count, Some(1));
-    }
-
-    #[tokio::test]
-    async fn retrieved_node_becomes_active() {
-        let repo = Arc::new(FakeRepo::default());
-        let mut service = build_service_with_model(repo, Arc::new(ScriptedModel::new()));
-        let id = MemoryId::new();
-        seed_note(&service, id, "a", unit(0), unit(0));
-
-        service
-            .handle_request(ServiceRequest::Retrieve(vec![prioritized_query(
-                1, "a", "a",
-            )]))
-            .await
-            .expect("检索应成功");
-
         assert_eq!(service.active_node_ids(), vec![id]);
     }
 
@@ -1521,36 +1615,6 @@ mod tests {
             "重试成功后应清空待摘要队列"
         );
         assert!(!service.wm.sliding_window().get_summary().trim().is_empty());
-    }
-
-    #[tokio::test]
-    async fn maintenance_persists_pending_nodes_after_idle_quiet_period() {
-        let repo = Arc::new(FakeRepo::default());
-        let mut service = build_service(Arc::clone(&repo));
-        let id = MemoryId::new();
-        seed_note(&service, id, "pending", unit(0), unit(0));
-        service.pending_persist.insert(id);
-        service.last_activity = Instant::now() - Duration::from_secs(10);
-
-        service.maintenance().await.expect("维护应成功");
-
-        assert!(repo.notes.lock().expect("notes lock").contains_key(&id));
-        assert!(service.pending_persist.is_empty());
-    }
-
-    #[tokio::test]
-    async fn maintenance_skips_pending_persist_when_recent_activity() {
-        let repo = Arc::new(FakeRepo::default());
-        let mut service = build_service(Arc::clone(&repo));
-        let id = MemoryId::new();
-        seed_note(&service, id, "pending", unit(0), unit(0));
-        service.pending_persist.insert(id);
-        service.last_activity = Instant::now();
-
-        service.maintenance().await.expect("维护应成功");
-
-        assert_eq!(repo.upsert_calls.load(Ordering::SeqCst), 0);
-        assert!(service.pending_persist.contains(&id));
     }
 
     #[tokio::test]
@@ -1650,5 +1714,56 @@ mod tests {
         assert!(service.forget_pass().await.is_err());
 
         assert!(service.pending_persist.contains(&id));
+    }
+
+    #[tokio::test]
+    async fn revised_forget_aligns_fields_and_reembeds_whole_note() {
+        let repo = Arc::new(FakeRepo::default());
+        let llm = Arc::new(LlmEngine::new(Arc::new(SequencedLlm::default())));
+        let mut service =
+            build_service_with(Arc::clone(&repo), Arc::new(ScriptedModel::new()), llm, 20);
+        let id = MemoryId::new();
+        seed_aged_note(
+            &service,
+            id,
+            "红魔馆的女仆长十六夜",
+            vec!["旧别名".to_string()],
+            "旧描述",
+            7,
+        );
+
+        let response = service
+            .handle_request(ServiceRequest::Retrieve(vec![prioritized_query(
+                1, "a", "a",
+            )]))
+            .await
+            .expect("检索应成功");
+        let ServiceResponse::Retrieved(retrieval) = response else {
+            panic!("期望 Retrieved 响应");
+        };
+        assert_eq!(retrieval.memories.len(), 1);
+        assert_eq!(retrieval.memories[0].content, "重构摘要（新描述）");
+
+        let node = service
+            .wm
+            .memory_cluster()
+            .read_or_compute(|cluster| cluster.get_node(id).cloned())
+            .expect("节点应存在");
+        let MemoryType::Semantic(sem) = node.note().mem_type() else {
+            panic!("期望 Semantic 节点");
+        };
+        assert_eq!(sem.content.as_str(), "重构摘要");
+        assert_eq!(sem.aliases, vec!["别名A".to_string()]);
+        assert_eq!(sem.description.as_str(), "新描述");
+
+        let semantic = node
+            .embedding()
+            .variant()
+            .clone()
+            .to_semantic()
+            .expect("期望 Semantic embedding");
+        assert_eq!(semantic.content(), &unit(1));
+        assert_eq!(semantic.aliases(), &unit(3));
+        assert_eq!(semantic.description(), &unit(2));
     }
 }
