@@ -350,7 +350,11 @@ impl ChunkState {
                     return Some(Err(match self.emitted {
                         true => LlmError::stream_interrupted(
                             classified.message().to_string(),
-                            Some(self.text.clone()),
+                            Some(if self.text.is_empty() {
+                                self.reasoning.clone()
+                            } else {
+                                self.text.clone()
+                            }),
                         )
                         .with_backend(self.backend.clone()),
                         false => classified,

@@ -668,6 +668,35 @@ async fn streaming_that_ends_with_nothing_is_reported_as_interrupted() {
     harness.server.shutdown();
 }
 
+#[tokio::test]
+async fn streaming_interrupted_after_reasoning_is_not_retryable() {
+    let server = ScriptedServer::start(vec![Reply::TruncatedSse {
+        chunks: vec![chunk(json!({"reasoning_content": "thinking"}), None)],
+        declared_length: 4096,
+    }])
+    .await;
+    let cfg = Harness::config(&server, |cfg| cfg);
+    let harness = Harness::new(server, cfg, 3);
+    let stream = harness
+        .engine
+        .stream(Harness::task())
+        .await
+        .expect("stream");
+    let (events, error) = crate::mock::drain(stream).await;
+
+    assert!(
+        events
+            .iter()
+            .any(|e| matches!(e, StreamEvent::ReasoningDelta(t) if t == "thinking"))
+    );
+    let error = error.expect("interrupted stream must fail");
+    assert_eq!(error.kind(), LlmErrorKind::StreamInterrupted);
+    assert_eq!(error.partial(), Some("thinking"));
+    assert!(!error.is_retryable());
+    assert_eq!(harness.server.request_count(), 1);
+    harness.server.shutdown();
+}
+
 /// 已经产出内容后断流：错误必须带上半截文本，且**不可**被重放。
 #[tokio::test]
 async fn streaming_interrupted_after_content_is_not_retryable() {
