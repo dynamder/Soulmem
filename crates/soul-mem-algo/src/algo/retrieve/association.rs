@@ -19,18 +19,28 @@ use soul_mem_runtime::working_memory::WorkingMemory;
 
 use super::RetrStrategy;
 
+/// PPR 关联检索的配置，可由 JSON 反序列化（soul-tune 的调参入口）。
+///
+/// 边权 = `(intensity × intensity_factor + confidence_boost × confidence_factor + type_boost)`
+/// 除以三者系数之和；各字段的默认值与边界见字段文档。
 #[derive(Debug, Clone, Deserialize)]
 pub struct AssociationConfig {
+    /// 边权中连接强度 `intensity` 的系数；`None` 表示默认 `1.0`（不是关闭该项）。
     #[serde(default)]
     pub intensity_factor: Option<f64>,
+    /// 边权中置信度加成的系数；`None` 表示默认 `0.8`。
     #[serde(default)]
     pub confidence_factor: Option<f64>,
+    /// PPR 阻尼系数，必须落在 `[0, 1)`；`1.0` 会让残差无法结转，`weighted_ppr_fp` 直接 `assert` 失败。
     #[serde(default = "default_damping_factor")]
     pub damping_factor: f64,
+    /// forward-push 的残差质量阈值，低于它即结转残差并收敛；默认 `1e-5`。
     #[serde(default = "default_residue_threshold")]
     pub residue_threshold: f64,
+    /// 类型加成偏好：`Semantic` 给语义节点 0.7 / 情境 0.3，`Situation` 反之。
     #[serde(default)]
     pub preference: TypePreference,
+    /// 返回的关联节点数上限，默认 `8`。
     #[serde(default = "default_top_k")]
     pub top_k: usize,
 }
@@ -191,7 +201,7 @@ impl RetrStrategy for RetrAssociation {
                 .collect::<Vec<(MemoryId, OrdFloat<f64>)>>()
         });
 
-        res.sort_by(|x, y| y.1.partial_cmp(&x.1).unwrap_or(std::cmp::Ordering::Equal));
+        res.sort_by_key(|y| std::cmp::Reverse(y.1));
 
         res.into_iter()
             .take(request.top_k)
