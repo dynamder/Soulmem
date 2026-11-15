@@ -26,8 +26,9 @@ impl Clone for BgeSmallZh {
     }
 }
 impl BgeSmallZh {
-    /// 全局共享的BGE模型实例。embed_anything依赖的candle在Windows上对同一safetensors
-    /// 文件进行并发mmap会产生文件锁冲突，因此整个进程只构造一次底层模型。
+    /// 用全局共享的 BGE 模型实例构造（CPU）。
+    // 进程内只构造一次底层模型：embed_anything 依赖的 candle 在 Windows 上对同一
+    // safetensors 文件并发 mmap 会产生文件锁冲突。
     pub fn default_cpu() -> Result<Self> {
         static MODEL: OnceLock<Arc<BertEmbedder>> = OnceLock::new();
         let model = MODEL.get_or_init(|| {
@@ -54,14 +55,13 @@ impl BgeSmallZh {
             .model
             .embed(input, None, None)?
             .into_iter()
-            .map(|e| EmbeddingVec::new(e.to_dense().unwrap())) //SAFEUNWRAP: qwen3 embedder在embed_anything的
+            .map(|e| EmbeddingVec::new(e.to_dense().unwrap())) //SAFEUNWRAP: embed_anything 的 BGE embedder 永远返回 dense
             .collect())
     }
     //对于长文本，分块向量化后平均池化
     pub fn embed_gen_with_chunk_pooling(&self, input: &str) -> EmbeddingGenResult<EmbeddingVec> {
         //分块文本
         let chunked_input = self.splitter.chunks(input).collect::<Vec<_>>();
-        //println!("chunked_input: {:?}", chunked_input);
         if chunked_input.is_empty() {
             return Err(EmbeddingGenError::InvalidInput);
         }
@@ -74,12 +74,11 @@ impl BgeSmallZh {
             return Err(EmbeddingGenError::InvalidInput);
         }
 
-        //生成embedding
         let embeddings = self
             .model
             .embed(input, None, None)?
             .into_iter()
-            .map(|e| e.to_dense().unwrap()) //SAFEUNWRAP: qwen3 embedder在embed_anything的源码中永远返回dense
+            .map(|e| e.to_dense().unwrap()) //SAFEUNWRAP: embed_anything 的 BGE embedder 永远返回 dense
             .collect::<Vec<_>>();
 
         //融合embedding，平均池化

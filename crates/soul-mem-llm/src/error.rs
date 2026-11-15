@@ -1,18 +1,9 @@
-//! 语义错误：调用方据此决定**重试**还是**降级**，而不是去解析错误字符串。
+//! 语义错误：调用方据此决定重试还是降级，而不是解析错误字符串。
 //!
-//! # 谁产生、谁消费
+//! 后端负责把 HTTP/传输错误映射成 [`LlmError`]；调用方用 [`LlmError::is_retryable`] 决定重发，
+//! 用 [`LlmError::is_unavailable`] 决定降级，用 [`LlmError::retry_after`] 决定退避。
 //!
-//! - **产生**：各后端把传输层错误映射成 [`LlmError`]（OpenAI-compatible 的映射在
-//!   `oai_comp::classify_error`）。只有后端知道自己的 HTTP status 与错误体形状。
-//! - **消费**：
-//!   - [`LlmError::is_retryable`] —— 由 [`crate::LlmEngine`] 的整调用重试循环使用；
-//!   - [`LlmError::is_unavailable`] —— 由业务侧决定降级（例如遗忘路径降级为仅遮罩）；
-//!   - [`LlmError::retry_after`] —— 由调用方决定自己退避多久。
-//!
-//! # 两个谓词的边界
-//!
-//! [`LlmError::is_retryable`] 的例外是流式中断：只在**尚未产出任何内容**时可重试。
-//! 一旦吐出了文本，重放会让消费方看到重复内容（摘要 / 记忆写入场景下是静默损坏）。
+//! 流式中断只在尚未产出内容时可重试；已吐出文本后重放会造成重复内容。
 
 use std::fmt;
 use std::time::Duration;
@@ -80,10 +71,7 @@ impl LlmErrorKind {
         }
     }
 
-    /// 重发**同一**请求是否可能成功。
-    ///
-    /// 注意 [`Self::StreamInterrupted`] 不在此列：流已经产出内容时重放会产生重复文本，
-    /// 该情形由 [`LlmError::is_retryable`] 按"是否已产出"单独判定。
+    /// 重发同一请求是否可能成功；流式中断按是否已产出判定。
     pub fn is_retryable(self) -> bool {
         matches!(
             self,
@@ -203,9 +191,6 @@ impl LlmError {
     }
 
     /// 重发同一请求是否可能成功。
-    ///
-    /// 流式中断只在**尚未产出任何内容**时可重试：一旦吐出了文本，重放会让消费方
-    /// 看到重复内容（摘要/记忆写入场景下是不可接受的静默损坏）。
     pub fn is_retryable(&self) -> bool {
         match self.kind {
             LlmErrorKind::StreamInterrupted => self.partial.is_none(),

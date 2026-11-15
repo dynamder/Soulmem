@@ -38,8 +38,6 @@ use soul_tune::engine::suite::{DetailRow, MetricEntry, TestCaseOutcome, TestSuit
 /// 全局取消标志（单跑/批量共享）。
 static CANCEL: AtomicBool = AtomicBool::new(false);
 
-// ======================= 元数据接口 =======================
-
 #[derive(Serialize)]
 struct DatasetEntryJson {
     name: String,
@@ -150,8 +148,6 @@ pub fn reset_cancel() {
     CANCEL.store(false, Ordering::SeqCst);
 }
 
-// ======================= 单跑 =======================
-
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum RunEvent {
@@ -217,15 +213,9 @@ fn emit<T: Serialize>(sink: &StreamSink<String>, ev: &T) {
     }
 }
 
-/// 在 spawn 出来的线程里执行一次运行，失败时把错误推成对应的 `*Event::Error`。
+/// 在 spawn 出来的线程里执行一次运行；失败时把错误推成对应的 `*Event::Error`。
 ///
-/// 四处入口此前都是 `let _ = run_*_impl(...)`：算法名写错、数据集缺失、参数非法等错误
-/// 被直接丢弃，Dart 侧只会看到流静静关闭，没有任何事件可读——界面表现为"转圈之后没反应"，
-/// 调试时也没有任何线索。
-///
-/// 补发事件是在兑现既有契约而非新增契约：Dart 的 `RunEvent` / `BatchEvent` /
-/// `CompareEvent` / `ForgetEvent` 都已经实现了 `error` 分支
-/// （见 `soul-tune-ui/lib/src/models.dart`），只是 Rust 侧从未发送过。
+/// 所有入口都必须走这里：错误不能丢弃，Dart 侧已经实现了 `error` 分支。
 fn run_stream<E: Serialize>(
     sink: &StreamSink<String>,
     run: impl FnOnce() -> anyhow::Result<()>,
@@ -369,8 +359,6 @@ fn parse_algo(s: &str) -> anyhow::Result<AlgoType> {
         other => Err(anyhow::anyhow!("未知算法: {other}")),
     }
 }
-
-// ======================= 批量 =======================
 
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -555,8 +543,6 @@ fn run_batch_impl(
     Ok(())
 }
 
-// ======================= 对比（embedding vs full） =======================
-
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum CompareEvent {
@@ -645,22 +631,12 @@ fn find_query_metrics(
         .map(|p| &p.ranking_metrics)
 }
 
-/// [`case_extras_json`] 的多通道返回值。
-///
-/// 这里刻意用**命名结构体**而不是元组：返回值是多通道指标的聚合，元组会让调用方
-/// 依赖位置记忆（原先只能靠 `// emb precision` 这类行内注释区分），而且会让
-/// "整体替换返回值" 这一类变异测试发生组合爆炸——cargo-mutants 曾为该元组单函数
-/// 生成约 4800 个变异体，占全仓库变异体总数的约 46%，把杀灭率指标完全淹掉。
+/// [`case_extras_json`] 的多通道返回值；用命名结构体避免元组位置记忆与变异体爆炸。
 struct CaseExtras {
-    /// embedding 侧的 precision@k 曲线
     emb_precision: Vec<(usize, f64)>,
-    /// full pipeline 侧的 precision@k 曲线
     full_precision: Vec<(usize, f64)>,
-    /// embedding 侧的 ndcg@k 曲线
     emb_ndcg: Vec<(usize, f64)>,
-    /// full pipeline 侧的 ndcg@k 曲线
     full_ndcg: Vec<(usize, f64)>,
-    /// 逐查询明细
     per_query: Vec<ComparePerQueryJson>,
 }
 
@@ -989,8 +965,6 @@ fn collect_graph_names(
     name_map
 }
 
-// ======================= 对比（同管线 直接 vs 数据库） =======================
-
 /// params flavor（"full"/"embedding"/"association"，缺省 full）→ (直接模式, 数据库模式)。
 fn compare_db_modes(flavor: &str) -> (RetrieveMode, RetrieveMode) {
     let direct = match flavor {
@@ -1148,8 +1122,6 @@ fn build_db_compare_json(
     }
 }
 
-// ======================= 检视数据集 =======================
-
 #[derive(Serialize)]
 struct InspectLinkJson {
     from_id: String,
@@ -1248,8 +1220,6 @@ pub fn inspect_file_json(path: String) -> String {
     };
     meta(file_type, None, v)
 }
-
-// ======================= 遗忘测试（mask / revise / pipeline） =======================
 
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -1537,8 +1507,6 @@ fn run_forget_impl(mode: &str, dataset: &str, sink: &StreamSink<String>) -> anyh
     Ok(())
 }
 
-// ======================= 模型来源（llama-server） =======================
-
 /// 模型来源状态（只探测、不启动）：
 /// - `running`：检测到**已运行**的 llama-server，直接复用；
 /// - `spawned`：无运行服务，将自动拉起本地缓存模型（`model_path`）；
@@ -1567,8 +1535,6 @@ pub fn model_status_json() -> String {
     })
     .unwrap_or_else(|_| "{}".to_string())
 }
-
-// ======================= 角色扮演（playtest） =======================
 
 struct PlaytestSession {
     runner: PlayTestRunner,

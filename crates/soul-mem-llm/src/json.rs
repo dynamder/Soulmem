@@ -1,26 +1,7 @@
-//! 宽容地从 LLM 输出里取出 JSON —— 与 provider、与具体任务都无关。
+//! 宽容地从 LLM 输出里取出 JSON —— 与 provider、具体任务无关。
 //!
-//! # 谁在用
-//!
-//! | 调用方 | 用到的入口 |
-//! |---|---|
-//! | `soul-mem-algo` 巩固解析器 | [`parse_json_array`] |
-//! | `soul-tune` playtest 修复器 | [`extract_balanced_array`] / [`extract_balanced_object`] / [`extract_top_level_objects`] / [`strip_markdown_fences`] |
-//! | `soul-tune` trace 展示 | [`split_think_blocks`] / [`strip_think_block`] / [`extract_think_content`] |
-//! | 本 crate 的 provider 错误信息 | [`preview_text`] |
-//!
-//! # 为什么集中在一处
-//!
-//! 这段逻辑此前在仓库里有两份实现，且细节不一致：`soul-tune` 的 playtest 修复器用
-//! **平衡括号扫描**（会跳过字符串内的括号与转义），`soul-mem-algo` 的巩固解析器用
-//! `rfind('}')` 截取（尾部解释里出现 `}` 就解析失败）。这里以前者为准，作为唯一来源。
-//!
-//! # 顺序
-//!
-//! 1. 剥 `<think>` 块（推理模型的思考过程不该被当成答案）；
-//! 2. 剥 markdown 代码围栏；
-//! 3. 用平衡括号扫描取出完整的数组/对象；
-//! 4. 反序列化。解析失败**一律返回显式错误并带上原文片段**，不静默降级为空结果。
+//! 顺序：剥 `<think>` 块 → 剥 markdown 围栏 → 平衡括号扫描取出完整的数组/对象 → 反序列化。
+//! 解析失败一律返回显式错误并带上原文片段，不静默降级为空结果。
 
 use crate::error::{LlmError, LlmErrorKind};
 use serde::de::DeserializeOwned;
@@ -253,8 +234,6 @@ mod tests {
     use super::*;
     use serde_json::{Value, json};
 
-    // ---------- think 块 ----------
-
     #[test]
     fn strip_think_block_removes_closed_blocks() {
         assert_eq!(strip_think_block("<think>reasoning</think>ab"), "ab");
@@ -291,8 +270,6 @@ mod tests {
             Some(String::new())
         );
     }
-
-    // ---------- 数组/对象提取 ----------
 
     #[test]
     fn extract_json_array_takes_first_to_last_bracket() {
@@ -341,8 +318,6 @@ mod tests {
         assert_eq!(extract_top_level_objects("no objects"), None);
     }
 
-    // ---------- 围栏 ----------
-
     #[test]
     fn strip_markdown_fences_unwraps_fenced_content() {
         assert_eq!(strip_markdown_fences("```json\n[a]\n```"), "[a]");
@@ -354,8 +329,6 @@ mod tests {
         assert_eq!(strip_markdown_fences("[a]"), "[a]");
         assert_eq!(strip_markdown_fences("  [a]  "), "  [a]  ");
     }
-
-    // ---------- 宽容解析 ----------
 
     #[test]
     fn parse_json_array_handles_think_fences_and_noise() {
@@ -380,7 +353,6 @@ mod tests {
         assert!(empty.is_empty());
     }
 
-    /// 这一条是本次集中化的直接收益：尾部解释里带 `}` 不再解析失败。
     #[test]
     fn parse_json_array_survives_braces_in_trailing_prose() {
         let raw = r#"[{"a":1}] 说明：每个对象形如 {"a": <int>}。"#;

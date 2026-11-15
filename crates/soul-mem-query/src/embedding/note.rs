@@ -69,7 +69,6 @@ impl EmbeddedMemoryType {
 // 不要在这里新增与 `EmbeddingVec` 同名的方法——同名双份 API 会让调用方在
 // 一种类型上正常、在另一种上 abort，且编译器不会提示。
 
-////////////////////////////////////////////////////////
 impl Embeddable for MemoryType {
     type EmbeddingGen = MemoryEmbeddingVariant;
     type EmbeddingFused = EmbeddedMemoryType;

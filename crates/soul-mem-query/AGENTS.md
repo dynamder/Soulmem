@@ -2,9 +2,10 @@
 
 Embedding + scoring: turns memory and queries into vectors and computes similarity.
 
-- Read the crate root module doc first (reading index + two cross-crate contracts).
+- The crate root module doc lists the two subdomains; the notes below are the ones that bite.
 - Two subdomains: `embedding` (domain objects → vectors) and `query` (query types + scoring).
-- The only scoring entry point is `query::compute::compute_fused`.
+- The only scoring entry point is `query::compute::compute_fused`; `MemoryEmbedding` has no distance methods, so don't build a second same-named API.
+- Many tests call `BgeSmallZh::default_cpu()` and download a model; an offline failure is an environment problem, not a code failure.
 
 ## Traps
 

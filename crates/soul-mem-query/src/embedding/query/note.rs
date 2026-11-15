@@ -65,7 +65,6 @@ impl Embeddable for MemoryRetrieveQueryVariant {
         })
     }
 }
-///////////////////////////////////////////////////////////////////////////////////
 #[derive(Debug, Clone, PartialEq)]
 pub struct MemoryRetrieveQueryEmbedding {
     tag: EmbeddingVec,
@@ -74,10 +73,7 @@ pub struct MemoryRetrieveQueryEmbedding {
     pub variant_weight: f32,
     /// embedding 在最终混合分中的权重，`1 - string_blend_alpha` 为字符串得分权重
     pub string_blend_alpha: f32,
-    /// 完整权重集。字符串通道的子字段加权与 embedding 通道必须共用同一来源：
-    /// 上面三个标量字段只覆盖顶层混合，字符串通道所需的子字段权重
-    /// （如 `sit_event_*`）此前无处可取，导致字符串侧硬编码常量、`with_weights()`
-    /// 只对 embedding 侧生效。
+    /// 完整权重集，字符串通道的子字段加权与 embedding 通道共用这一来源。
     pub blend_weights: BlendWeights,
 }
 impl MemoryRetrieveQueryEmbedding {

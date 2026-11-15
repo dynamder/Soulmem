@@ -156,11 +156,9 @@ fn test_semantic_alias_max_pooling_hits_alias() {
 
     let sem_embedding = memory.embed(&model).unwrap();
 
-    //别名命中查询：query.concept_identifier 与 alias 完全一致
     let alias_query = SemanticQueryUnit::new().with_concept_identifier("Rust".to_string());
     let alias_query_emb = alias_query.embed(&model).unwrap();
 
-    //content命中查询：query.concept_identifier 与 content 完全一致
     let content_query =
         SemanticQueryUnit::new().with_concept_identifier("Rust编程语言".to_string());
     let content_query_emb = content_query.embed(&model).unwrap();
@@ -168,7 +166,6 @@ fn test_semantic_alias_max_pooling_hits_alias() {
     let alias_score = sem_embedding.anonymous_compute(&alias_query_emb).unwrap();
     let content_score = sem_embedding.anonymous_compute(&content_query_emb).unwrap();
 
-    //别名与content命中的分数都应显著高于0，且max_pooling保证别名命中不被content稀释
     assert!(alias_score > 0.5, "alias score too low: {alias_score}");
     assert!(
         content_score > 0.5,
@@ -189,7 +186,6 @@ fn test_abstract_situation_narrative_fallback() {
     use crate::query::retrieve::SituationQueryUnit;
     use soul_mem_core::memory_note::situation_mem::{AbstractSituation, SituationType};
 
-    //抽象情境：事件节点，无narrative字段
     let abstract_event = AbstractSituation::Event(Event {
         action: "战斗".to_string(),
         action_intensity: 0.9,
@@ -200,7 +196,6 @@ fn test_abstract_situation_narrative_fallback() {
     let embedding = situation_type.embed(&model).unwrap();
     let abstract_emb = embedding.to_abstract().unwrap();
 
-    //纯叙事查询：没有event结构化字段，只能靠narrative fallback
     let narrative_query =
         SituationQueryUnit::new().with_narrative("享受战斗时的愉快氛围而不是单纯厮杀".to_string());
     let narrative_query_emb = narrative_query.embed(&model).unwrap();
@@ -213,7 +208,6 @@ fn test_abstract_situation_narrative_fallback() {
         "abstract situation should be matched by narrative, got {score}"
     );
 
-    //结构化命中：提供event字段时分数应更高（结构化+叙事双重信号）
     let structured_query = SituationQueryUnit::new()
         .with_narrative("享受战斗时的愉快氛围".to_string())
         .with_event(vec![EventQueryUnit::new("战斗".to_string())]);
@@ -257,7 +251,6 @@ fn test_compute_fused_matches_blend_formula() {
     let str_score = compute_note_string_score(embedded_note.note(), &embedded_query.query);
     let fused = embedded_note.compute(&embedded_query).unwrap().score;
 
-    // 字符串通道只加分：fused = max(pure, 0.6*pure + 0.4*str)
     let expected = pure.max(0.6 * pure + 0.4 * str_score);
     assert!(
         (fused - expected).abs() < 1e-5,
@@ -265,7 +258,6 @@ fn test_compute_fused_matches_blend_formula() {
     );
     assert!(fused.is_finite());
     assert!((0.0..=1.0).contains(&fused), "fused out of range: {fused}");
-    // 字符串分提供正的兜底贡献（0.4 * str > 0，且至少不低于纯 embedding 分）
     assert!(str_score > 0.5, "str_score too low: {str_score}");
     assert!(
         fused >= pure,
@@ -276,7 +268,6 @@ fn test_compute_fused_matches_blend_formula() {
 #[test]
 fn test_compute_fused_string_boost_ranking() {
     let model = BgeSmallZh::default_cpu().unwrap();
-    // 字形相近的命中项 vs 字形完全不同的干扰项
     let hit = embed_sem_note(&model, "小酒馆", &[]);
     let miss = embed_sem_note(&model, "火车站", &[]);
     let embedded_query = embed_sem_query(&model, "酒馆");
@@ -284,7 +275,6 @@ fn test_compute_fused_string_boost_ranking() {
     let hit_fused = hit.compute_fused(&embedded_query, 0.6).unwrap();
     let miss_fused = miss.compute_fused(&embedded_query, 0.6).unwrap();
 
-    // 字符串分对命中项是正贡献，对干扰项（str=0）无贡献
     let hit_str = compute_note_string_score(hit.note(), &embedded_query.query);
     let miss_str = compute_note_string_score(miss.note(), &embedded_query.query);
     assert!(hit_str > 0.5);
@@ -296,20 +286,12 @@ fn test_compute_fused_string_boost_ranking() {
     assert!((0.0..=1.0).contains(&hit_fused));
 }
 
-/// 端到端回归测试：`compute_fused` 的字符串通道必须使用查询自带的
-/// `embedding.blend_weights`，而不是默认权重/硬编码常量。
-///
-/// 此前 `MemoryRetrieveQueryEmbedding` 不保存完整权重集，`with_weights()` 只作用于
-/// embedding 侧；字符串侧静默沿用 0.3/0.3/0.4，导致同一查询的两个通道权重不一致。
-/// 手法：用查询自身的 `blend_weights` 复算 `compute_fused` 的混合公式，
-/// 与实现结果精确比对；权重不生效时二者必然发散。
+// 回归：字符串通道必须使用查询自带的 `embedding.blend_weights`。
 #[test]
 fn test_compute_fused_string_channel_follows_custom_weights() {
     let model = BgeSmallZh::default_cpu().unwrap();
     let alpha = 0.6f32;
 
-    // 事件记忆：initiator/target 与查询高度重叠，action 完全不相关。
-    // 于是"权重压到 action"与"默认权重"在字符串通道上会产生显著不同的得分。
     let mem_type = MemoryType::Situation(
         AbstractSituation::Event(Event {
             action: "跑步".to_string(),
@@ -332,7 +314,6 @@ fn test_compute_fused_string_channel_follows_custom_weights() {
         )]),
     );
 
-    // 定制权重：全部压到 action → 字符串通道应退化为 action 分（≈0）
     let custom = BlendWeights {
         sit_event_initiator: 0.0,
         sit_event_target: 0.0,
@@ -349,7 +330,6 @@ fn test_compute_fused_string_channel_follows_custom_weights() {
         query,
     };
 
-    // 用查询自身的权重复算期望值（与 compute_fused 同一取权重方式）
     let pure = embedded_note
         .embedding
         .anonymous_compute(&embedded_query.embedding)
@@ -371,7 +351,6 @@ fn test_compute_fused_string_channel_follows_custom_weights() {
         "compute_fused={fused} 与按查询权重复算的期望={expected} 不一致（字符串通道未采用定制权重）"
     );
 
-    // 定制权重确实改变了字符串通道（证明上面的比对不是恒等式）
     let default_str = compute_note_string_score(embedded_note.note(), &embedded_query.query);
     assert!(
         (str_score - default_str).abs() > 0.1,
@@ -382,7 +361,6 @@ fn test_compute_fused_string_channel_follows_custom_weights() {
 #[test]
 fn test_compute_fused_variant_mismatch_degrades_to_embedding() {
     let model = BgeSmallZh::default_cpu().unwrap();
-    // Semantic 记忆 + Situation 查询：字符串分=0，混合分退化为 0.6 * embedding 分
     let embedded_note = embed_sem_note(&model, "战斗", &[]);
     let query = MemoryRetrieveQuery::new(
         vec![],
@@ -405,11 +383,8 @@ fn test_compute_fused_variant_mismatch_degrades_to_embedding() {
         compute_note_string_score(embedded_note.note(), &embedded_query.query),
         0.0
     );
-    // 字符串分量缺失（变体不匹配）时退化为纯 embedding 分
     assert!((fused - pure).abs() < 1e-6);
 }
-
-// —— 以下测试通过直接构造 EmbeddingVec 验证评分公式，不依赖真实模型 ——
 
 fn assert_close(actual: f32, expected: f32) {
     assert!(
@@ -418,12 +393,10 @@ fn assert_close(actual: f32, expected: f32) {
     );
 }
 
-/// 单位向量 [1, 0]：与 `at(c)` 的余弦相似度为 c。
 fn unit() -> EmbeddingVec {
     EmbeddingVec::new(vec![1.0, 0.0])
 }
 
-/// 单位向量 [c, sqrt(1-c²)]：与 `unit()` 的余弦相似度为 c。
 fn at(c: f32) -> EmbeddingVec {
     EmbeddingVec::new(vec![c, (1.0 - c * c).sqrt()])
 }
@@ -525,7 +498,7 @@ fn variant_mean_rejects_non_finite_unit_score() {
     ));
 }
 
-/// 回归（issue #73）：两条通道都完美匹配、配对权重都取 0.9 时未归一化的加权和是 1.8。
+// 回归（issue #73）：两条通道都完美匹配、配对权重都取 0.9 时未归一化的加权和是 1.8。
 #[test]
 fn with_weights_normalizes_pairs_so_score_stays_in_unit_range() {
     let note_emb = MemoryEmbedding::new(
@@ -549,19 +522,13 @@ fn with_weights_normalizes_pairs_so_score_stays_in_unit_range() {
     assert_close(score, 1.0);
 }
 
-/// 回归：情境变体必须按**单元数归一化**，与 Semantic 分支保持一致。
-///
-/// 此前该分支直接 `sum`，多单元情境查询得分可达 N×1.0，突破 [0,1] 量纲，
-/// 破坏 `default_pipeline` 依赖的"相似度与联想两路分数同量纲、可直接比较"契约
-/// （也让 `similarity` 的"最低兜底分"语义失效）。
-/// 现有测试全是单单元查询（sum/1 == sum），所以这个边界从未被覆盖。
+// 回归：情境变体按单元数归一化，保持 [0,1] 量纲。
 #[test]
 fn test_situation_variant_normalizes_by_unit_count() {
     let note_variant = MemoryEmbeddingVariant::Situation(SituationEmbedding::Abstract(
         AbstractSituationEmbedding::Location(LocationEmbedding::test_new(unit(), unit())),
     ));
 
-    // 每个单元对 Location.name 都完全命中 → 单单元得分恒为 1.0
     let mk_unit = || {
         SituationQueryUnitEmbedding::test_new(
             None,
@@ -587,17 +554,9 @@ fn test_situation_variant_normalizes_by_unit_count() {
     assert_close(score, 1.0);
 }
 
-/// 回归：**所有**子通道的加权都必须取自传入的 `BlendWeights`，而不是实现内的字面量。
-///
-/// 此前每个通道测试都用 `BlendWeights::default()` 构造查询，期望值又是"按默认权重手算出的
-/// 字面量"（如 `0.62`），因此**无法区分"读配置"与"读常量"**——把任何一处实现改成硬编码，
-/// 这些测试依旧全绿。`BlendWeights` 的 16 个字段里有 9 个从未在任何测试中被赋过非默认值。
-///
-/// 手法：把权重全部压到单个子字段上，得分就该**恰好**等于该子字段的相似度。
-/// 只有"改变权重并断言结果随之改变"才能区分"读权重"与"读常量"。
+// 回归：所有子通道加权必须取自 `BlendWeights`，不能写死。
 #[test]
 fn test_channel_weights_are_read_from_config() {
-    // —— Location：sit_location_name / sit_location_coord ——
     let loc = LocationEmbedding::test_new(unit(), unit());
     let w_name = BlendWeights {
         sit_location_name: 1.0,
@@ -628,7 +587,6 @@ fn test_channel_weights_are_read_from_config() {
         0.8,
     );
 
-    // —— Participant：sit_participant_name / sit_participant_role ——
     let part = ParticipantEmbedding::test_new(unit(), unit(), unit());
     let w_name = BlendWeights {
         sit_participant_name: 1.0,
@@ -659,7 +617,6 @@ fn test_channel_weights_are_read_from_config() {
         0.8,
     );
 
-    // —— Environment：sit_env_atmosphere / sit_env_tone ——
     let env = EnvironmentEmbedding::test_new(unit(), unit());
     let w_atm = BlendWeights {
         sit_env_atmosphere: 1.0,
@@ -690,7 +647,6 @@ fn test_channel_weights_are_read_from_config() {
         0.8,
     );
 
-    // —— Semantic：sem_concept / sem_description ——
     let sem = SemanticEmbedding::new(unit(), unit(), unit());
     let w_concept = BlendWeights {
         sem_concept: 1.0,
@@ -721,8 +677,6 @@ fn test_channel_weights_are_read_from_config() {
         0.8,
     );
 
-    // —— Event 退化路径：sit_event_target_only_action ——
-    // 权重全给 action ⇒ 仅 target 的查询得分恰好等于 action 分（0.9）
     let event = EventEmbedding::test_new(unit(), unit(), unit(), 0.5);
     let w_target_only = BlendWeights {
         sit_event_target_only_action: 1.0,
@@ -747,7 +701,6 @@ fn test_location_anonymous_compute_with_coordinates() {
     let query =
         LocationQueryUnitEmbedding::test_new(at(0.5), Some(at(0.8)), BlendWeights::default());
     let score = loc.anonymous_compute(&query).unwrap();
-    // name_score=0.5, coord_score=0.8: 0.6*0.5 + 0.4*0.8 = 0.62
     assert_close(score, 0.62);
 }
 
@@ -768,7 +721,6 @@ fn test_participant_anonymous_compute_all_fields() {
         BlendWeights::default(),
     );
     let score = participant.anonymous_compute(&query).unwrap();
-    // name_score=0.5, role_score=0.8: 0.6*0.5 + 0.4*0.8 = 0.62
     assert_close(score, 0.62);
 }
 
@@ -807,7 +759,6 @@ fn test_environment_anonymous_compute_all_fields() {
         BlendWeights::default(),
     );
     let score = env.anonymous_compute(&query).unwrap();
-    // atmosphere=0.5, tone=0.8: 0.5*0.5 + 0.5*0.8 = 0.65
     assert_close(score, 0.65);
 }
 
@@ -829,7 +780,6 @@ fn test_event_anonymous_compute_all_fields() {
         BlendWeights::default(),
     );
     let score = event.anonymous_compute(&query).unwrap();
-    // initiator=0.5, target=0.8, action=0.9: 0.3*0.5+0.3*0.8+0.4*0.9 = 0.75
     assert_close(score, 0.75);
 }
 
@@ -839,7 +789,6 @@ fn test_event_anonymous_compute_initiator_only() {
     let query =
         EventQueryUnitEmbedding::test_new(at(0.9), Some(at(0.5)), None, BlendWeights::default());
     let score = event.anonymous_compute(&query).unwrap();
-    // a_w = 0.6, i_w = 0.4: 0.4*0.5 + 0.6*0.9 = 0.74
     assert_close(score, 0.74);
 }
 
@@ -849,7 +798,6 @@ fn test_event_anonymous_compute_target_only() {
     let query =
         EventQueryUnitEmbedding::test_new(at(0.9), None, Some(at(0.8)), BlendWeights::default());
     let score = event.anonymous_compute(&query).unwrap();
-    // a_w = 0.6, t_w = 0.4: 0.4*0.8 + 0.6*0.9 = 0.86
     assert_close(score, 0.86);
 }
 
@@ -867,17 +815,14 @@ fn test_semantic_anonymous_compute_with_description() {
     let query =
         SemanticQueryUnitEmbedding::test_new(Some(at(0.5)), Some(at(0.8)), BlendWeights::default());
     let score = sem.anonymous_compute(&query).unwrap();
-    // concept = max(0.5, 0.5) = 0.5; 0.5*0.5 + 0.5*0.8 = 0.65
     assert_close(score, 0.65);
 }
 
 #[test]
 fn test_semantic_anonymous_compute_alias_winning() {
-    // concept_identifier 命中 alias（aliases=unit() 与 query=unit() → 1.0），content 较低
     let sem = SemanticEmbedding::new(at(0.5), unit(), unit());
     let query = SemanticQueryUnitEmbedding::test_new(Some(unit()), None, BlendWeights::default());
     let score = sem.anonymous_compute(&query).unwrap();
-    // concept = max(0.5, 1.0) = 1.0（alias 命中）；无 description → 直接返回 concept
     assert_close(score, 1.0);
 }
 
@@ -911,7 +856,6 @@ fn test_specific_situation_anonymous_compute_single_narrative() {
         BlendWeights::default(),
     );
     let score = specific.anonymous_compute(&query).unwrap();
-    // 仅 narrative → 单元素均值 = 0.8
     assert_close(score, 0.8);
 }
 
@@ -933,7 +877,6 @@ fn test_abstract_situation_anonymous_compute_none() {
 
 #[test]
 fn test_specific_situation_anonymous_compute_max_two_signals() {
-    // narrative + location 两个信号 → 取 max（任一强命中即算命中）
     let specific = SpecificSituationEmbedding::test_new(
         unit(),
         ContextEmbedding::test_new(
@@ -958,13 +901,11 @@ fn test_specific_situation_anonymous_compute_max_two_signals() {
         BlendWeights::default(),
     );
     let score = specific.anonymous_compute(&query).unwrap();
-    // narrative=0.8, location(name)=0.5 → max = 0.8
     assert_close(score, 0.8);
 }
 
 #[test]
 fn test_abstract_situation_anonymous_compute_max_two_signals() {
-    // Location 抽象情境 + narrative 和结构化 location 两个信号
     let abstract_emb =
         AbstractSituationEmbedding::Location(LocationEmbedding::test_new(unit(), unit()));
     let query = SituationQueryUnitEmbedding::test_new(
@@ -980,13 +921,11 @@ fn test_abstract_situation_anonymous_compute_max_two_signals() {
         BlendWeights::default(),
     );
     let score = abstract_emb.anonymous_compute(&query).unwrap();
-    // structured=0.5, narrative=0.8 → max = 0.8
     assert_close(score, 0.8);
 }
 
 #[test]
 fn test_semantic_anonymous_compute_no_concept_identifier() {
-    // concept_identifier 缺失 → (None, None) 分支返回 0.0
     let sem = SemanticEmbedding::new(unit(), unit(), unit());
     let query = SemanticQueryUnitEmbedding::test_new(None, None, BlendWeights::default());
     let score = sem.anonymous_compute(&query).unwrap();
@@ -1006,7 +945,6 @@ fn test_memory_variant_semantic_average() {
 
 #[test]
 fn test_memory_variant_semantic_average_multiple_units() {
-    // 多单元语义查询：按单元数归一化取平均（/len 而非 *len）
     let sem = SemanticEmbedding::new(unit(), unit(), unit());
     let query_sem_1 =
         SemanticQueryUnitEmbedding::test_new(Some(at(0.5)), None, BlendWeights::default());
@@ -1016,14 +954,12 @@ fn test_memory_variant_semantic_average_multiple_units() {
     let query_variant =
         MemoryRetrieveQueryVariantEmbedding::Semantic(vec![query_sem_1, query_sem_2]);
     let score = variant.anonymous_compute(&query_variant).unwrap();
-    // (0.5 + 0.9)/2 = 0.7
     assert_close(score, 0.7);
 }
 
 #[test]
 fn test_memory_embedding_tag_variant_fusion() {
     let note_emb = MemoryEmbedding::new(unit(), MemoryEmbeddingVariant::Procedure());
-    // 通过 MemoryEmbedding 构造的 tag + 空语义 variant
     let mut query = MemoryRetrieveQueryEmbedding::new(unit());
     let bw = BlendWeights {
         tag: 0.4,
@@ -1032,13 +968,11 @@ fn test_memory_embedding_tag_variant_fusion() {
     };
     query = query.with_weights(bw);
     let score = note_emb.anonymous_compute(&query).unwrap();
-    // tag=1.0 * 0.4 + variant(0.0)*0.6 = 0.4
     assert_close(score, 0.4);
 }
 
 #[test]
 fn test_memory_embedding_tag_missing_uses_variant_only() {
-    // variant 构造：description=unit()，query 仅提供 description → variant 分 = 0.5
     let note_emb = MemoryEmbedding::new(
         unit(),
         MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(
@@ -1050,18 +984,15 @@ fn test_memory_embedding_tag_missing_uses_variant_only() {
     let q_sem = SemanticQueryUnitEmbedding::test_new(None, Some(unit()), BlendWeights::default());
     let q_variant = MemoryRetrieveQueryVariantEmbedding::Semantic(vec![q_sem]);
 
-    // query 无 tag（零向量）→ 纯 variant 分，不再被 0.4 压缩
     let query_no_tag =
         MemoryRetrieveQueryEmbedding::new(EmbeddingVec::zero(2)).with_variant(q_variant.clone());
     let score = note_emb.anonymous_compute(&query_no_tag).unwrap();
     assert_close(score, 0.5);
 
-    // 两侧都有 tag → 保持 0.3/0.7 加权：0.3*1.0 + 0.7*0.5 = 0.65
     let query_tag = MemoryRetrieveQueryEmbedding::new(unit()).with_variant(q_variant.clone());
     let score = note_emb.anonymous_compute(&query_tag).unwrap();
     assert_close(score, 0.65);
 
-    // note 无 tag、query 有 tag → 同样纯 variant 分
     let note_no_tag = MemoryEmbedding::new(
         EmbeddingVec::zero(2),
         MemoryEmbeddingVariant::Semantic(SemanticEmbedding::new(

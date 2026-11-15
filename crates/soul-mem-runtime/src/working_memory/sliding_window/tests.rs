@@ -12,8 +12,6 @@ async fn evict_and_summarize(window: &SlidingWindow, engine: &LlmEngine) -> Info
     evicted
 }
 
-// ---------- 窗口基本行为 ----------
-
 #[tokio::test]
 async fn push_and_get_keep_order_and_role() {
     let window = SlidingWindow::new(10);
@@ -74,8 +72,6 @@ fn pop_never_calls_the_llm_even_for_a_tagged_front() {
     assert!(window.is_empty());
     assert_eq!(scripted.calls(), 0, "pop 只出队，不接触 LLM");
 }
-
-// ---------- 摘要 ----------
 
 #[tokio::test]
 async fn summarize_updates_the_summary() {
@@ -154,8 +150,6 @@ async fn empty_summary_is_rejected_and_keeps_the_old_one() {
     assert_eq!(window.get_summary().as_ref(), "", "旧摘要不得被覆盖");
 }
 
-// ---------- 摘要失败不丢消息 ----------
-
 #[tokio::test]
 async fn summary_failure_keeps_the_evicted_message_in_the_callers_hand() {
     let window = SlidingWindow::new(1);
@@ -233,8 +227,6 @@ async fn a_transient_failure_is_retried_by_the_engine_before_the_window_sees_an_
     assert_eq!(window.get_summary().as_ref(), "重试后摘要");
     assert_eq!(window.len(), 1);
 }
-
-// ---------- 并发 ----------
 
 #[tokio::test]
 async fn concurrent_push_fills_the_window() {
@@ -360,8 +352,6 @@ async fn capacity_can_be_changed_concurrently() {
     assert_eq!(capacity, 15);
     assert_eq!(window_for_check.get_capacity(), 15);
 }
-
-// ---------- 纯逻辑：Information / Summary / 标记 ----------
 
 #[test]
 fn information_new_maps_role_and_keeps_text() {

@@ -6,6 +6,8 @@ pub enum SituationMemLink {
     /// 具体情境 → 抽象情境：PPR 从具体情境种子游走到抽象模式节点的反向边。
     /// 抽象模式节点由 PPR 检出后作为 Bayes 动作提取的优先源。
     SpecificToAbstract(SpecificToAbstract),
+    AbstractToAbstract(AbstractToAbstract),
+    SpecificToSpecific(SpecificToSpecific),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -34,5 +36,33 @@ impl Default for SpecificToAbstract {
 impl SpecificToAbstract {
     pub fn new() -> Self {
         SpecificToAbstract {}
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AbstractToAbstract {}
+impl Default for AbstractToAbstract {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl AbstractToAbstract {
+    pub fn new() -> Self {
+        AbstractToAbstract {}
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SpecificToSpecific {}
+impl Default for SpecificToSpecific {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl SpecificToSpecific {
+    pub fn new() -> Self {
+        SpecificToSpecific {}
     }
 }

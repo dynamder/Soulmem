@@ -1,31 +1,22 @@
 //! 工作记忆：滑动窗口 + 记忆簇 + 活跃记录。
 //!
-//! # 为什么所有变更方法都只取 `&self`
-//!
-//! 检索管线按契约接收 `Arc<WorkingMemory>`（见 `DefaultPipelineConfig::into_request`），
-//! 编排层并行处理一批 query 时会同时存在多份 `Arc`。若状态变更要求 `&mut self`，
-//! 调用方就只能退化成 `Arc::get_mut`；而共享计数 > 1 时它返回 `None`——状态变更被
-//! **静默跳过**，既无法察觉也无法恢复。因此本类型不提供任何 `&mut self` 接口，
-//! 四块状态各自内部可变：
-//!
-//! | 状态 | 可变性载体 |
-//! |---|---|
-//! | [`WorkingState`] | `parking_lot::RwLock` |
-//! | [`SlidingWindow`] | 自身即内部可变（`Arc<RwLock<..>>` + 原子计数） |
-//! | 记忆簇 | [`MemoryClusterHandle`]（`Arc<RwLock<MemoryCluster>>`） |
-//! | `records` | `parking_lot::RwLock<HashMap<..>>` |
-//!
-//! 于是 `Arc<WorkingMemory>` 可安全跨线程共享，调用方不需要（也无法）拿到独占引用。
-//!
-//! # 锁的纪律
-//!
-//! `records` 只经 [`WorkingMemory::read_records`] / [`WorkingMemory::write_records`]
-//! 的闭包访问，**锁守卫一律不外泄**：`parking_lot` 的守卫默认 `!Send`，闭包形式从结构上
-//! 排除了"守卫跨越 await 存活"，与 `lib.rs` 的"锁不得跨 await 持有"约定一致。
-//!
-//! 这些锁只保护各自字段。跨字段的复合不变量——例如"簇里新增节点的同时登记活跃记录"——
-//! **不由它们保证**：`add_node` 先写簇、再写 `records`，两把锁不同时持有；需要更强原子性的
-//! 调用方必须自己定义顺序契约。
+//! 四块状态各自内部可变，因此公开方法一律只取 `&self`；`Arc<WorkingMemory>` 可跨线程共享，
+//! 调用方不需要（也无法）拿到独占引用。
+
+// 为什么所有变更方法都只取 `&self`：检索管线按契约接收 `Arc<WorkingMemory>`
+// （见 `DefaultPipelineConfig::into_request`），编排层并行处理一批 query 时同时存在多份 `Arc`。
+// 若变更要求 `&mut self`，调用方只能退化成 `Arc::get_mut`，而共享计数 > 1 时它返回 `None`
+// ——变更被静默跳过，既无法察觉也无法恢复。
+//
+// 四块状态的可变性载体：`WorkingState` 是 `parking_lot::RwLock`；`SlidingWindow` 自身即内部可变
+// （`Arc<RwLock<..>>` + 原子计数）；记忆簇是 `MemoryClusterHandle`；`records` 是
+// `parking_lot::RwLock<HashMap<..>>`。
+//
+// 锁的纪律：`records` 只经 `read_records` / `write_records` 的闭包访问，锁守卫一律不外泄
+// （`parking_lot` 守卫默认 `!Send`，闭包形式从结构上排除"守卫跨越 await 存活"）。
+//
+// 这些锁只保护各自字段，跨字段的复合不变量（例如"簇里新增节点的同时登记活跃记录"）不由它们
+// 保证：`add_node` 先写簇、再写 `records`，两把锁不同时持有；更强的原子性要由调用方定义顺序契约。
 
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
@@ -43,8 +34,7 @@ use soul_mem_query::embedding::note::EmbeddedMemoryNote;
 
 /// 工作记忆状态。
 ///
-/// 实现 `Copy`：它只经 [`WorkingMemory::state`] 按值读出，取值不越过任何锁边界，
-/// 因此不必把守卫交给调用方。
+/// 实现 `Copy`：它只经 [`WorkingMemory::state`] 按值读出，取值不越过任何锁边界。
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum WorkingState {
     /// 空闲：当前没有进行中的交互。
@@ -62,6 +52,8 @@ pub struct WorkingMemory {
     sliding_window: SlidingWindow,
     memory_cluster: MemoryClusterHandle,
     records: RwLock<HashMap<MemoryId, Record>>,
+    // 本工作循环内的提取命中计数（循环开始时清空）
+    cycle_hits: RwLock<HashMap<MemoryId, u32>>,
 }
 
 impl WorkingMemory {
@@ -75,6 +67,7 @@ impl WorkingMemory {
             sliding_window: SlidingWindow::new(window_capacity),
             memory_cluster: MemoryCluster::new().into_handle(),
             records: RwLock::new(HashMap::new()),
+            cycle_hits: RwLock::new(HashMap::new()),
         }
     }
 
@@ -85,9 +78,18 @@ impl WorkingMemory {
         *self.state.read()
     }
 
-    /// 转入 `Working`。
+    /// 转入 `Working`；进入新的工作循环时清空本循环命中计数。
     pub fn transition_to_working(&self) {
-        *self.state.write() = WorkingState::Working;
+        // 两把锁不同时持有（见模块注释）：先放掉 `state` 再清计数。重复清空是幂等的。
+        let entered_new_cycle = {
+            let mut state = self.state.write();
+            let entered_new_cycle = *state != WorkingState::Working;
+            *state = WorkingState::Working;
+            entered_new_cycle
+        };
+        if entered_new_cycle {
+            self.cycle_hits.write().clear();
+        }
     }
 
     /// 转入 `Idle`。
@@ -104,8 +106,7 @@ impl WorkingMemory {
 
     /// 滑动窗口引用。
     ///
-    /// 返回共享引用即可：`SlidingWindow` 自身内部可变。曾经的 `sliding_window_mut()`
-    /// 除了强制要求 `&mut WorkingMemory` 之外没有提供任何额外能力，已删除。
+    /// 返回共享引用即可：`SlidingWindow` 自身内部可变。
     pub fn sliding_window(&self) -> &SlidingWindow {
         &self.sliding_window
     }
@@ -124,9 +125,10 @@ impl WorkingMemory {
             .or_insert_with(|| Record::new(node_id));
     }
 
-    /// 移除节点，同时移除对应的记录。
+    /// 移除节点，同时移除对应的记录与本循环命中计数。
     pub fn remove_node(&self, node_id: MemoryId) -> Option<EmbeddedMemoryNote> {
         self.records.write().remove(&node_id);
+        self.cycle_hits.write().remove(&node_id);
         self.memory_cluster
             .write(|cluster| cluster.remove_single_node(node_id))
     }
@@ -142,15 +144,18 @@ impl WorkingMemory {
     pub fn record_retrieval(&self, node_id: MemoryId) {
         // "查-改-插"整体持一次写锁：拆成两次取锁的话，并发的两次命中会各自判定为
         // "无记录" 并各自插入，后插入的那次把先前的计数覆盖掉。
-        let mut records = self.records.write();
-        match records.get_mut(&node_id) {
-            Some(record) => record.record_retrieval(),
-            None => {
-                let mut record = Record::new(node_id);
-                record.record_retrieval();
-                records.insert(node_id, record);
+        {
+            let mut records = self.records.write();
+            match records.get_mut(&node_id) {
+                Some(record) => record.record_retrieval(),
+                None => {
+                    let mut record = Record::new(node_id);
+                    record.record_retrieval();
+                    records.insert(node_id, record);
+                }
             }
         }
+        *self.cycle_hits.write().entry(node_id).or_insert(0) += 1;
     }
 
     /// 追加一条用户反馈；节点尚无记录时按需创建，避免反馈被静默丢弃。
@@ -167,14 +172,19 @@ impl WorkingMemory {
         }
     }
 
-    /// 只读访问活跃记录。守卫不外泄（见模块注释的"锁的纪律"）。
+    /// 只读访问活跃记录。守卫不外泄（见文件头的锁纪律）。
     pub fn read_records<R>(&self, read: impl FnOnce(&HashMap<MemoryId, Record>) -> R) -> R {
         read(&self.records.read())
     }
 
-    /// 可变访问活跃记录。守卫不外泄（见模块注释的"锁的纪律"）。
+    /// 可变访问活跃记录。守卫不外泄（见文件头的锁纪律）。
     pub fn write_records<R>(&self, write: impl FnOnce(&mut HashMap<MemoryId, Record>) -> R) -> R {
         write(&mut self.records.write())
+    }
+
+    /// 只读访问本工作循环的命中计数。守卫不外泄（见模块注释的"锁的纪律"）。
+    pub fn read_cycle_hits<R>(&self, read: impl FnOnce(&HashMap<MemoryId, u32>) -> R) -> R {
+        read(&self.cycle_hits.read())
     }
 }
 
@@ -339,6 +349,51 @@ mod tests {
         assert!(wm.memory_cluster().read_or_compute(|c| c.contains_node(id)));
     }
 
+    #[test]
+    fn test_cycle_hits_accumulate_retrievals() {
+        let wm = WorkingMemory::new(10);
+        let id = MemoryId::new();
+        assert!(wm.read_cycle_hits(|hits| hits.is_empty()));
+
+        wm.record_retrieval(id);
+        wm.record_retrieval(id);
+
+        assert_eq!(wm.read_cycle_hits(|hits| hits[&id]), 2);
+        // 与累计计数保持一致的语义
+        assert_eq!(wm.read_records(|records| records[&id].retrieval_count()), 2);
+    }
+
+    #[test]
+    fn test_transition_to_working_resets_cycle_hits_only_on_state_change() {
+        let wm = WorkingMemory::new(10);
+        let id = MemoryId::new();
+        wm.transition_to_working();
+        wm.record_retrieval(id);
+        assert_eq!(wm.read_cycle_hits(|hits| hits[&id]), 1);
+
+        // 已在 Working 时重复调用不得清空本轮命中
+        wm.transition_to_working();
+        assert_eq!(wm.read_cycle_hits(|hits| hits[&id]), 1);
+
+        // 一轮 Idle -> Working 的切换开启新循环
+        wm.transition_to_idle();
+        wm.transition_to_working();
+        assert!(wm.read_cycle_hits(|hits| hits.is_empty()));
+    }
+
+    #[test]
+    fn test_remove_node_removes_cycle_hits() {
+        let wm = WorkingMemory::new(10);
+        let node = sem_note("A");
+        let id = node.note().id();
+        wm.add_node(node);
+        wm.record_retrieval(id);
+        assert!(wm.read_cycle_hits(|hits| hits.contains_key(&id)));
+
+        wm.remove_node(id);
+        assert!(!wm.read_cycle_hits(|hits| hits.contains_key(&id)));
+    }
+
     /// 回归（issue #60 的 P1 前置）：存在多份 `Arc` 时状态变更不得被静默跳过。
     ///
     /// 旧实现要求 `&mut WorkingMemory`，调用方只能用 `Arc::get_mut` 取可变引用；
@@ -362,10 +417,7 @@ mod tests {
         assert_eq!(wm.read_records(|records| records[&id].feedback_score()), 1);
     }
 
-    /// 回归：`records` 的"查-改-插"必须整体持锁，否则并发命中会互相覆盖计数。
-    ///
-    /// 这是把 `record_retrieval` 从"两次取锁"改成"一次取锁"的动机所在：
-    /// 旧写法在并发下会让后插入者重置先前的计数，断言会偏小。
+    // 回归：`records` 的查-改-插必须整体持锁，否则并发命中会互相覆盖。
     #[test]
     fn test_concurrent_record_retrieval_accumulates() {
         const THREADS: usize = 4;

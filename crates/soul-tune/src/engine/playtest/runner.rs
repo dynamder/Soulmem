@@ -32,7 +32,6 @@ use crate::engine::loader::{cached_load_graph, get_bge_model};
 use crate::engine::retrieve::data::NodeSummary;
 
 use super::repair::run_paw;
-// 宽容抽取只有一份实现（soul-mem-llm），不再从 repair 模块转发
 use super::trace::{HitStage, QueryTrace, RetrievalTrace, TracedNode};
 use soul_mem_llm::json::{extract_balanced_array, extract_balanced_object, strip_think_block};
 
@@ -1014,9 +1013,8 @@ impl PlayTestRunner {
 
         let mut per_query = Vec::new();
         let mut merged_map: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
-        // 动作节点按 ActionType 拆成三路独立通道（不参与记忆分数合并）：
-        // Speak 语气 / Think 思维习惯各至多 1 条，其余行为类（含 proc_none）单独成路。
-        // 每类型一席由算法层保证（`ActionTypeSlots`），这里不再需要反查节点类型。
+        // 动作按 ActionType 拆三路：Speak / Think 各至多一条，其余行为类单独成路；
+        // 每类型一席由算法层保证（`ActionTypeSlots`）。
         let mut merged_speech: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
         let mut merged_think: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();
         let mut merged_behavior: HashMap<MemoryId, (f64, TracedNode)> = HashMap::new();

@@ -1,26 +1,6 @@
-//! 顶层唯一的调用契约。
+//! 顶层调用契约：只有语义类型（`Task` / `Completion` / `StreamEvent`），没有 wire 字段。
 //!
-//! [`ChatBackend`] 的签名里只有**语义**：要什么（[`Task`]）与得到了什么（[`Completion`] /
-//! [`StreamEvent`]）。请求的 wire 格式与 chunk 的解析完全在实现内部，顶层不可见。
-//!
-//! 这里刻意只放当前调用方真正需要的东西：加字段前先问"谁会用"。
-//! provider 专有扩展走 `OaiCompatConfig::extra_body`，不要往语义类型里搬。
-//!
-//! # 这一层在数据流中的位置
-//!
-//! ```text
-//! 调用方 ── Task ──► [engine::LlmEngine] ──► ChatBackend::complete ──► 后端实现（如 oai_comp）
-//!                       │                                                  │
-//!                       └────────────── Completion ◄───────────────────────┘
-//! ```
-//!
-//! - **本层不含任何逻辑**，只有类型定义与 trait：没有重试、没有超时、没有观测。
-//!   这些都在 [`crate::engine`]（编排）与 [`crate::oai_comp`]（传输）里。
-//! - **判断一个类型该不该放这里**：它描述的是"我们要什么 / 得到了什么"（放这里），
-//!   还是"provider 管它叫什么"（放 `oai_comp/wire.rs`）？
-//!
-//! 新增后端时**不需要改动本文件**（除非某个语义概念对**所有**后端都成立）。实现清单见
-//! `docs/architecture/llm-layer.md` 的"新增一个后端要做什么"。
+//! 本层不含逻辑：重试/超时/观测在 [`crate::engine`]，编码/解码/传输在 [`crate::oai_comp`]。
 
 use crate::error::LlmError;
 use async_trait::async_trait;
@@ -97,8 +77,8 @@ impl Sampling {
 
 /// 对后端的**语义**要求。
 ///
-/// 目前只有一项：抑制思考过程。这是本地 Qwen3 系的实际需求——不禁用 thinking 时
-/// 正文可能只落在 `reasoning_content`；而它是 provider 专有开关，所以映射归后端。
+/// 目前只有一项：抑制思考过程。它是 provider 专有开关，映射归后端；本地 Qwen3 系需要它——
+/// 不禁用 thinking 时正文可能只落在 `reasoning_content`。
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Hints {
     pub suppress_reasoning: bool,
@@ -218,8 +198,7 @@ pub type EventStream = Pin<Box<dyn Stream<Item = Result<StreamEvent, LlmError>> 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BackendInfo {
     pub name: String,
-    /// 后端实际使用的模型标识（未知则 `None`）。进 trace，否则"这次跑的是哪个模型"
-    /// 只能靠回忆配置。
+    /// 后端实际使用的模型标识（未知则 `None`），进 trace。
     pub model: Option<String>,
     pub supports_streaming: bool,
 }
