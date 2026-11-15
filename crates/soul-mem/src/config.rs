@@ -45,9 +45,6 @@
 //! [consolidation]
 //! interval_secs = 300
 //! idle_quiet_secs = 120
-//! link_top_k = 3
-//! link_verb = "related"
-//! link_confidence = 1.0
 //!
 //! [service]
 //! heartbeat_interval_secs = 30
@@ -103,12 +100,6 @@ const DEFAULT_MAX_CLUSTER_NODES: usize = 2048;
 const DEFAULT_SIMILARITY_THRESHOLD: f32 = 0.35;
 /// 默认抽象情境源在 Bayes 动作提取中的权重倍率。
 const DEFAULT_ABSTRACT_SOURCE_PRIORITY: f64 = 2.0;
-/// 默认巩固建链时保留的活跃节点数量上限。
-const DEFAULT_CONSOLIDATION_LINK_TOP_K: usize = 3;
-/// 默认巩固建链谓词。
-const DEFAULT_CONSOLIDATION_LINK_VERB: &str = "related";
-/// 默认巩固建链置信度。
-const DEFAULT_CONSOLIDATION_LINK_CONFIDENCE: f32 = 1.0;
 /// 默认事件广播通道容量。
 const DEFAULT_EVENT_CHANNEL_CAPACITY: usize = 64;
 /// 默认服务命令通道容量。
@@ -223,12 +214,6 @@ pub struct ConsolidationConfig {
     pub interval_secs: u64,
     /// 静默多久后视为 Idle（秒）。
     pub idle_quiet_secs: u64,
-    /// 巩固建链时保留的活跃节点数量上限。
-    pub link_top_k: usize,
-    /// 巩固建链谓词。
-    pub link_verb: String,
-    /// 巩固建链置信度。
-    pub link_confidence: f32,
 }
 
 impl Default for ConsolidationConfig {
@@ -236,9 +221,6 @@ impl Default for ConsolidationConfig {
         Self {
             interval_secs: DEFAULT_CONSOLIDATE_SECS,
             idle_quiet_secs: DEFAULT_IDLE_QUIET_SECS,
-            link_top_k: DEFAULT_CONSOLIDATION_LINK_TOP_K,
-            link_verb: DEFAULT_CONSOLIDATION_LINK_VERB.to_string(),
-            link_confidence: DEFAULT_CONSOLIDATION_LINK_CONFIDENCE,
         }
     }
 }
@@ -517,10 +499,6 @@ mod tests {
             config.retrieval.similarity_threshold,
             DEFAULT_SIMILARITY_THRESHOLD
         );
-        assert_eq!(
-            config.consolidation.link_verb,
-            DEFAULT_CONSOLIDATION_LINK_VERB
-        );
         assert_eq!(config.service.command_buffer, DEFAULT_COMMAND_BUFFER);
         assert!(config.llm.base_url.is_empty());
         assert!(config.llm.api_key.is_none());
@@ -560,9 +538,6 @@ mod tests {
             [consolidation]
             interval_secs = 10
             idle_quiet_secs = 11
-            link_top_k = 2
-            link_verb = "linked"
-            link_confidence = 0.5
 
             [service]
             heartbeat_interval_secs = 12
@@ -599,9 +574,6 @@ mod tests {
         assert_eq!(config.retrieval.association.top_k, 5);
         assert_eq!(config.consolidation.interval_secs, 10);
         assert_eq!(config.consolidation.idle_quiet_secs, 11);
-        assert_eq!(config.consolidation.link_top_k, 2);
-        assert_eq!(config.consolidation.link_verb, "linked");
-        assert_eq!(config.consolidation.link_confidence, 0.5);
         assert_eq!(config.service.heartbeat_interval_secs, 12);
         assert_eq!(config.service.event_channel_capacity, 13);
         assert_eq!(config.service.command_buffer, 14);

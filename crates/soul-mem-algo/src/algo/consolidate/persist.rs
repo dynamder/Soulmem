@@ -47,7 +47,7 @@ pub struct PersistReport {
 pub async fn persist_consolidation(
     repo: &dyn MemoryRepository,
     working_mem: &WorkingMemory,
-    model: &dyn EmbeddingModel,
+    model: &(dyn EmbeddingModel + Send + Sync),
     new_notes: Vec<MemoryNote>,
     links: Vec<MemoryLink>,
 ) -> Result<PersistReport, PersistError> {

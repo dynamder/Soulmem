@@ -27,7 +27,8 @@ use rayon::ThreadPool;
 use rayon::prelude::*;
 use tokio::sync::{broadcast, mpsc, oneshot};
 
-use soul_mem_algo::algo::consolidate::generate::generate_memories_from_summary;
+use soul_mem_algo::algo::consolidate::persist::{persist_consolidation, persist_working_memory};
+use soul_mem_algo::algo::consolidate::{ConsolidationError, consolidate};
 use soul_mem_algo::algo::forget::decay_revise::{
     ForgetAction, align_sem_fields, compute_and_update_missing_degree, lazy_forget,
 };
@@ -39,8 +40,6 @@ use soul_mem_algo::algo::retrieve::complex::{
 use soul_mem_algo::algo::retrieve::prefetch_db;
 use soul_mem_algo::algo::retrieve::short_only::ShortOnlyConfig;
 use soul_mem_algo::algo::retrieve::similarity::SimilarityConfig;
-use soul_mem_core::memory_links::sem_mem::SemMemLink;
-use soul_mem_core::memory_links::{MemoryLink, MemoryLinkType};
 use soul_mem_core::memory_note::{MemoryId, MemoryNote};
 use soul_mem_core::render::{Render, RenderedMemoryNote};
 use soul_mem_llm::{LlmEngine, Sampling, Task};
@@ -359,6 +358,10 @@ impl MemoryService {
                 .collect()
         });
 
+        hits.iter().for_each(|(_, embedded)| {
+            self.wm.record_retrieval(embedded.note().id());
+        });
+
         // 惰性遗忘：命中的记忆作为最终结果时刷新缺失度，必要时遮罩并用 LLM 补全；
         // 仅在 LLM 可用时传入引擎（否则退化为仅遮罩）。
         let now = Utc::now();
@@ -498,7 +501,7 @@ impl MemoryService {
         .map_err(|error| ServiceError::Internal(format!("检索管线任务失败: {error}")))
     }
 
-    /// 在阻塞线程池里生成记忆节点嵌入。
+    /// 在阻塞线程池里整节点重算嵌入。
     async fn embed_notes(&self, notes: Vec<MemoryNote>) -> ServiceResult<Vec<EmbeddedMemoryNote>> {
         self.spawn_embed("记忆嵌入", move |model| {
             notes
@@ -648,10 +651,9 @@ impl MemoryService {
         Ok(())
     }
 
-    /// 巩固：摘要 -> 新记忆节点 -> 持久化 -> 入簇（并建链）。
+    /// 巩固：摘要 -> 新记忆节点 -> LLM 连边 -> 持久化 -> 入簇。
     ///
-    /// 顺序刻意是**先持久化、成功后才清摘要、最后入簇**：任一步失败都不会消耗摘要，
-    /// 重试安全，也不会出现"摘要没了但节点没落库"的静默丢失。
+    /// 连边失败时只落已生成节点并告警；生成或持久化失败则保留摘要，等待重试。
     async fn consolidate(&mut self) -> ServiceResult<u32> {
         self.flush_pending_summaries().await?;
         let summary_text = self.wm.sliding_window().get_summary();
@@ -662,85 +664,42 @@ impl MemoryService {
         let mut summary = Summary::new();
         summary.update(summary_text.to_string());
 
-        let notes = match generate_memories_from_summary(&summary, None, &self.llm).await {
-            Ok(notes) => {
+        let (notes, links) = match consolidate(&summary, &self.wm, &self.llm).await {
+            Ok(patch) => {
                 self.llm_available = true;
-                notes
+                (patch.new_notes, patch.links)
             }
-            Err(error) => {
+            Err(ConsolidationError::Link { source, notes }) => {
+                tracing::warn!(%source, count = notes.len(), "巩固连边失败，先落节点");
+                self.llm_available = true;
+                (notes, Vec::new())
+            }
+            Err(ConsolidationError::Generate(source)) => {
                 self.llm_available = false;
-                return Err(error.into());
+                return Err(source.into());
             }
         };
-        if notes.is_empty() {
+        let count = notes.len() as u32;
+        if count == 0 {
             // 摘要已被本次巩固消费：清空，避免下一轮重复触发。
             self.clear_summary();
             return Ok(0);
         }
 
-        let (notes, active_ids) = self.attach_active_links(notes);
-        let embedded_notes = self.embed_notes(notes).await?;
-        let new_ids: Vec<MemoryId> = embedded_notes.iter().map(|node| node.note().id()).collect();
-        let count = embedded_notes.len() as u32;
-
-        // 既有活跃节点补 `活跃 -> 新` 出边。PPR 只沿出边传播，只建有 `新 -> 活跃`
-        // 会让新记忆永远无法被既有记忆联想到。LinkId 只生成一次，落库与入簇共用，
-        // 避免内存与数据库对同一条边持有不同身份。
-        let mut updated_active: Vec<EmbeddedMemoryNote> = Vec::new();
-        let mut active_links: Vec<(MemoryId, MemoryLink)> = Vec::new();
-        {
-            let cluster = self.wm.memory_cluster();
-            cluster.read_or_compute(|c| {
-                active_ids.iter().for_each(|id| {
-                    let Some(active_node) = c.get_node(*id) else {
-                        return;
-                    };
-                    let from = active_node.note().id();
-                    let mut clone = active_node.clone();
-                    new_ids
-                        .iter()
-                        .filter(|&&new_id| new_id != from)
-                        .for_each(|&new_id| {
-                            let link = self.consolidation_link(from, new_id);
-                            clone.note.links_mut().push(link.clone());
-                            active_links.push((from, link));
-                        });
-                    updated_active.push(clone);
-                });
-            });
-        }
-
-        // 先落库（新节点 + 被更新的活跃节点）；失败则摘要与工作记忆都不动，可安全重试。
-        let mut batch = embedded_notes.clone();
-        batch.extend(updated_active);
-        self.repo.upsert_notes(batch).await?;
-
-        // 落库成功：消费摘要。
+        persist_consolidation(
+            self.repo.as_ref(),
+            &self.wm,
+            self.model.as_ref(),
+            notes,
+            links,
+        )
+        .await?;
         self.clear_summary();
-
-        // 入簇（同时注册活跃记录）。
-        embedded_notes
-            .into_iter()
-            .for_each(|node| self.wm.add_node(node));
-
-        // 让簇内的活跃节点也带上 `活跃 -> 新` 出边（复用同一批 LinkId）。
-        let cluster = self.wm.memory_cluster();
-        cluster.write(|c| {
-            active_links.into_iter().for_each(|(from, link)| {
-                if let Some(node) = c.get_node_mut(from) {
-                    node.note.links_mut().push(link);
-                }
-            });
-            active_ids.iter().for_each(|active| c.refresh_node(active));
-        });
-
         self.last_consolidation_at = Some(Utc::now());
-        if count > 0 {
-            let _ = self.events.send(ServiceEvent::ConsolidationDone {
-                created_notes: count,
-                state: self.snapshot(),
-            });
-        }
+        let _ = self.events.send(ServiceEvent::ConsolidationDone {
+            created_notes: count,
+            state: self.snapshot(),
+        });
         Ok(count)
     }
 
@@ -753,78 +712,11 @@ impl MemoryService {
             .update(String::new());
     }
 
-    /// 给新生成的记忆节点附加指向活跃节点的出边（新 -> 活跃），并返回活跃节点集合。
-    ///
-    /// 这是对 `记忆算法概述` 中"由 LLM 建立新节点与提取频率 top-k 节点联系"的
-    /// 无 LLM 最小实现：谓词与强度固定。反向的 `活跃 -> 新` 出边由
-    /// [`Self::consolidate`] 补齐——PPR 只沿出边传播，只建单向会让新记忆孤立。
-    /// 后续接入 LLM 建链时替换本函数即可。
-    fn attach_active_links(&self, mut notes: Vec<MemoryNote>) -> (Vec<MemoryNote>, Vec<MemoryId>) {
-        let active = self.active_node_ids();
-        if active.is_empty() {
-            return (notes, active);
-        }
-        notes.iter_mut().for_each(|note| {
-            let from = note.id();
-            active.iter().filter(|&&to| to != from).for_each(|&to| {
-                note.links_mut().push(self.consolidation_link(from, to));
-            });
-        });
-        (notes, active)
-    }
-
-    /// 构造一条巩固联系边（Sem 关联）。
-    fn consolidation_link(&self, from: MemoryId, to: MemoryId) -> MemoryLink {
-        MemoryLink::new(
-            from,
-            to,
-            MemoryLinkType::Sem(SemMemLink::new(
-                self.config.consolidation.link_verb.clone(),
-                self.config.consolidation.link_confidence,
-            )),
-        )
-    }
-
-    /// 活跃节点：簇内检索次数 > 0 的 top-k（计数取自持久化的 note 字段）。
-    fn active_node_ids(&self) -> Vec<MemoryId> {
-        let cluster = self.wm.memory_cluster();
-        let mut entries: Vec<(MemoryId, usize)> = cluster.read_or_compute(|c| {
-            c.graph()
-                .node_weights()
-                .filter_map(|node| {
-                    let count = node.note().retrieval_count();
-                    (count > 0).then(|| (node.note().id(), count))
-                })
-                .collect()
-        });
-        entries.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
-        entries
-            .into_iter()
-            .take(self.config.consolidation.link_top_k)
-            .map(|(id, _)| id)
-            .collect()
-    }
-
-    /// 持久化：工作记忆全量写入数据库；失败节点留待定期重试。
+    /// 持久化：工作记忆全量写入数据库。
     async fn persist(&mut self) -> ServiceResult<()> {
-        let notes: Vec<EmbeddedMemoryNote> = self
-            .wm
-            .memory_cluster()
-            .read_or_compute(|c| c.graph().node_weights().cloned().collect());
-        if notes.is_empty() {
-            return Ok(());
-        }
-        let ids: Vec<MemoryId> = notes.iter().map(|node| node.note().id()).collect();
-        match self.repo.upsert_notes(notes).await {
-            Ok(()) => {
-                self.pending_persist.clear();
-                Ok(())
-            }
-            Err(error) => {
-                self.pending_persist.extend(ids);
-                Err(error.into())
-            }
-        }
+        persist_working_memory(self.repo.as_ref(), &self.wm).await?;
+        self.pending_persist.clear();
+        Ok(())
     }
 
     /// 重试尚未成功落库的节点；成功后清空，失败保留到下一次维护。
@@ -1214,9 +1106,6 @@ mod tests {
             consolidation: ConsolidationConfig {
                 interval_secs: 300,
                 idle_quiet_secs: 1,
-                link_top_k: 3,
-                link_verb: "related".into(),
-                link_confidence: 1.0,
             },
             service: ServiceConfig {
                 heartbeat_interval_secs: 30,
@@ -1532,7 +1421,10 @@ mod tests {
         });
         assert_eq!(node_count, 1);
         assert_eq!(count, Some(1));
-        assert_eq!(service.active_node_ids(), vec![id]);
+        assert_eq!(
+            service.wm.read_cycle_hits(|hits| hits.get(&id).copied()),
+            Some(1)
+        );
     }
 
     #[tokio::test]
@@ -1672,7 +1564,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn full_persist_failure_marks_all_nodes_pending() {
+    async fn full_persist_failure_does_not_queue_pending() {
         let repo = Arc::new(FakeRepo::default());
         let mut service = build_service(Arc::clone(&repo));
         let id = MemoryId::new();
@@ -1681,7 +1573,7 @@ mod tests {
 
         assert!(service.persist().await.is_err());
 
-        assert!(service.pending_persist.contains(&id));
+        assert!(service.pending_persist.is_empty());
     }
 
     #[tokio::test]

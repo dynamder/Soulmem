@@ -26,6 +26,10 @@ pub enum ServiceError {
     #[error("嵌入错误: {0}")]
     Embedding(String),
 
+    /// 巩固持久化错误。
+    #[error("持久化错误: {0}")]
+    Persist(#[from] soul_mem_algo::algo::consolidate::persist::PersistError),
+
     /// 其他内部错误。
     #[error("内部错误: {0}")]
     Internal(String),
