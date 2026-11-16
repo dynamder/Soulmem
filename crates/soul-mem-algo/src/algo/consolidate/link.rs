@@ -39,14 +39,16 @@ struct Edge {
 /// [`super::generate`] 从摘要新生成的节点。`active` 中无法在记忆簇里解析到内容的
 /// id 会被跳过（陈旧或非法 id），不会打断整轮。
 ///
-/// 引用不存在节点、以及自环的边会被丢弃；结果按 LLM 给出的顺序截断到
-/// [`MAX_LINKS`] 条。
+/// 引用不存在节点、自环、以及两端都是旧节点的边会被丢弃（巩固只负责把新节点
+/// 接入图中）；结果按 LLM 给出的顺序截断到 [`MAX_LINKS`] 条。
 pub async fn generate_links(
     working_mem: &WorkingMemory,
     active: &[ActiveNode],
     new_nodes: &[MemoryNote],
     engine: &LlmEngine,
 ) -> Result<Vec<MemoryLink>, LlmError> {
+    let new_ids: HashSet<MemoryId> = new_nodes.iter().map(MemoryNote::id).collect();
+
     // 拼清单与收集合法 id 都在这一次读锁内完成——锁不跨 await 持有。
     let (user, known) = working_mem.memory_cluster().read_or_compute(|cluster| {
         let mut user = String::from("Memory nodes:\n");
@@ -75,7 +77,11 @@ pub async fn generate_links(
     let links = edges
         .into_iter()
         .filter(|edge| {
-            edge.from != edge.to && known.contains(&edge.from) && known.contains(&edge.to)
+            let involves_new = new_ids.contains(&edge.from) || new_ids.contains(&edge.to);
+            edge.from != edge.to
+                && involves_new
+                && known.contains(&edge.from)
+                && known.contains(&edge.to)
         })
         .take(MAX_LINKS)
         .map(|edge| {
